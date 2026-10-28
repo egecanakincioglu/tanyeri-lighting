@@ -1,0 +1,48 @@
+name: pr-text
+
+# Checks of the pull request title and description. Kept apart from the `ci` workflow so that editing the
+# description re-runs only these checks and not the whole pipeline.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-text-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-text:
+    name: pr-text
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # Dependabot titles are not ours to word (length, language); the forbidden-term scan below still applies.
+      - name: Validate pull request title
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | tooling/scripts/check-commit-msg.sh --header-only -
+      - name: Scan pull request title and body for forbidden terms
+        if: ${{ !cancelled() }}
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | tooling/scripts/check-forbidden-terms.sh --text -
+      # Finished roadmap/plan items are ticked in the same pull request, or the description says why not.
+      - name: Roadmap or plan updated, or explicitly not applicable
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node tooling/scripts/check-roadmap-update.mjs --base "$BASE_SHA" --head "$HEAD_SHA"
