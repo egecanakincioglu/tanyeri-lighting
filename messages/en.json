@@ -4,5 +4,8 @@
   },
   "Home": {
     "placeholder": "The site is being prepared."
+  },
+  "NotFound": {
+    "title": "Page not found"
   }
 }
