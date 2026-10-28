@@ -7,7 +7,7 @@
 - **Faz:** Faz 2'nin kurulum PR'ları birleşti; Faz 3 (uygulama iskeleti ve kalite temeli) başlıyor. Uygulamayı yeni, temiz bir repoda sıfırdan yazıyorum.
 - **Son güncelleme:** 2026-10-28.
 - **Sıradaki adım:** Faz 3'ün ilk işleri: `package.json`, pnpm ve TypeScript yapılandırması, repo araçlarının TypeScript'e geçişi. Hemen ardından Faz 2'den kalan iki koruma (yerel rehber, eski marka), sonra Faz 3'ün devamı. Faz 2'nin doküman işleri (rehberler, İngilizce `CONTRIBUTING.md` ve `SECURITY.md`, `.env.example`) sıradan bağımsız.
-- **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `quality`, `test`, `build` ve `analyze (actions)`'ı eklemek; Faz 3'te Vercel ve Neon hesap adımları; Faz 5'te logo.
+- **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `quality`, `test`, `build`, `analyze (actions)` ve üç `site-audit` kolunu eklemek; Faz 3'te Vercel ve Neon hesap adımları (Neon Frankfurt bölgesinde); Faz 9'da üretimi Search Console ve Bing'e eklemek; Faz 5'te logo.
 
 ## İlerleme
 

@@ -20,7 +20,7 @@ Roadmap: n/a - <reason>
 
 ## Visual check
 
-<!-- UI changes: checked in the browser at desktop 1440 and mobile 390. Otherwise: `n/a - no UI change`. -->
+<!-- UI changes: checked in the browser at phone 390, tablet portrait 768, tablet landscape 1024 and desktop 1440; changes to the fixed header, menu or dialogs also at phone landscape 844x390. Overflow, target size, accessibility, image sizes and console errors are checked at every width by the site-audit job (screenshots in its artifact). Otherwise: `n/a - no UI change`. -->
 
 ## Checklist
 
