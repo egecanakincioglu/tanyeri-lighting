@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo DETACHED)"
+if [ "$branch" = "main" ]; then
+  echo "pre-commit: direct commits to main are not allowed; create a branch: git switch -c <type>/<name>" >&2
+  exit 1
+fi
+"$root/tooling/scripts/check-branch-name.sh" "$branch"
+"$root/tooling/scripts/check-forbidden-terms.sh" --staged
+"$root/tooling/scripts/check-forbidden-paths.sh" --staged
+
+# The image comes from the CI image manifest (single source of truth); sed keeps the hook independent of Node.
+gitleaks_image="$(sed -n 's/^FROM \(.*\) AS gitleaks$/\1/p' "$root/tooling/ci-images/Dockerfile" | tr -d '\r')"
+# A container engine counts only if its daemon is actually reachable (the CLI alone is not enough).
+# MSYS_NO_PATHCONV stops Git Bash on Windows from rewriting "-w /repo" and the volume path; it is harmless elsewhere.
+# $root is the form git reports ("C:/..." on Windows), which docker and podman accept as a volume source.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --redact --no-banner
+elif command -v docker >/dev/null 2>&1 && docker info --format "{{.ServerVersion}}" >/dev/null 2>&1; then
+  MSYS_NO_PATHCONV=1 docker run --rm -v "$root:/repo" -w /repo "$gitleaks_image" git --pre-commit --staged --redact --no-banner
+elif command -v podman >/dev/null 2>&1 && podman info >/dev/null 2>&1; then
+  MSYS_NO_PATHCONV=1 podman run --rm -v "$root:/repo" -w /repo "$gitleaks_image" git --pre-commit --staged --redact --no-banner
+else
+  echo "pre-commit: warning: gitleaks not found (no binary, docker or podman); skipping secret scan" >&2
+fi
