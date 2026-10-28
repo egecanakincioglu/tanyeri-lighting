@@ -41,11 +41,11 @@ CSP için:
 
 ## Karar
 
-Plan §2 ve §5'teki kararı olduğu gibi kaydediyorum: **Next.js 16 App Router ve React 19.** Çalışma ortamı Node 24, paket yöneticisi pnpm (tek kilit dosyası), TypeScript strict.
+Plan §2 ve §5'teki kararı olduğu gibi kaydediyorum: **Next.js 16 App Router ve React 19.** Çalışma ortamı Node 24, paket yöneticisi pnpm (tek kilit dosyası), TypeScript strict. Repo araçları dahil bütün kod TypeScript, düz JavaScript yok (plan §2, D5); Node 24 araç betiklerini derleme adımı olmadan çalıştırdığı için orada yalnız silinebilir TypeScript sözdizimi kullanılır.
 
 Uyacağım kurallar:
 
-1. **Sürüm tabanı:** `next` en az 16.4.3, `react` ve `react-dom` en az 19.3.1. Faz 4'teki bağımlılık PR'ı 2026-11-03 güvenlik sürümünü bekler ya da hemen ardından onu alır. Sürümler kilit dosyasında tam sabit; yükseltmeyi Dependabot önerir.
+1. **Sürüm tabanı:** `next` en az 16.4.3, `react` ve `react-dom` en az 19.3.1. Faz 3'teki uygulama iskeleti PR'ı 2026-11-03 güvenlik sürümünü bekler ya da hemen ardından onu alır. Sürümler kilit dosyasında tam sabit; yükseltmeyi Dependabot önerir.
 2. **Rotalar:** `src/app/[locale]/(site)/…` herkese açık sayfalar, `src/app/[locale]/(admin)/dashboard/…` admin, `src/app/api/…` route handler'lar.
 3. **`proxy.ts` yalnız iki iş yapar:** dil yönlendirmesi ([ADR 0006](0006-cok-dillilik-next-intl.md)) ve güvenlik başlıkları (CSP nonce dahil). **Yetki kontrolü her sayfada, her Server Action'da ve her route handler'da ayrıca yapılır**, proxy'ye güvenilmez (G-04). Proxy'de iyimser bir oturum çerezi yönlendirmesi olabilir; güvenlik sağladığı varsayılmaz.
 4. **Async istek API'leri:** `params`, `searchParams`, `cookies()`, `headers()` her yerde `await` ile kullanılır. Tipler `next typegen` ile üretilen `PageProps`/`LayoutProps`/`RouteContext` ile yazılır.
@@ -67,9 +67,9 @@ Uyacağım kurallar:
 
 ## Sonuçlar
 
-- Olumlu: Express, PM2, `pages/` ve `geoip-lite` kalkar. Tek bir Next.js uygulaması kalır. Güvenlik yamaları LTS hattında gelir.
+- Olumlu: Express, PM2, `pages/` ve `geoip-lite` yeni koda hiç girmez. Tek bir Next.js uygulaması var. Güvenlik yamaları LTS hattında gelir.
 - Olumlu: Yetki kontrolü proxy'den bağımsız olduğu için middleware/proxy atlatma türü açıklar (G-04 sınıfı) tek başına yetkisiz erişim sağlamaz.
-- Olumsuz: Kırıcı değişiklikler yüzünden Pages Router kodu taşınmıyor, sayfa sayfa yeniden yazılıyor (Faz 5).
+- Olumsuz: Eski Pages Router kodu taşınmıyor; uygulama yeni repoda baştan yazılıyor (Faz 3–7).
 - **Kabul ettiğim maliyet — nonce'lu CSP.**
   - Bütün sayfalar dinamik render edilir; statik üretim ve ISR yok, HTML için CDN önbelleği yok.
   - Her sayfa isteği bir fonksiyon çalıştırır.
@@ -98,3 +98,4 @@ Uyacağım kurallar:
 - https://vercel.com/docs/plans/hobby
 - https://vercel.com/docs/limits/fair-use-guidelines
 - https://vercel.com/docs/functions/runtimes/node-js/node-js-versions
+- https://nodejs.org/docs/latest-v24.x/api/typescript.html

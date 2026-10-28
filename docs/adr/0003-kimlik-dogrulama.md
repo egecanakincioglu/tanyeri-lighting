@@ -5,7 +5,7 @@ Tarih: 2026-10-28
 
 ## Bağlam
 
-Bugünkü admin girişi kendi yazdığım koddan oluşuyor: `jose` ile token, `bcrypt` ile hash, bellekte rate limit. Oturum token'ı adres satırında (`?state=`) kabul ediliyor (G-05). Şifre sıfırlama kodunda deneme sınırı yok (G-09). Plan §2 kararım: **bakımı süren hazır bir kütüphane; kendi oturum veya kripto kodumu yazmıyorum.** Plan §5'teki ölçütler: Prisma adaptörü, veritabanında oturumlar, e-posta/şifre girişi, şifre sıfırlama akışı, yerleşik CSRF/origin koruması, `HttpOnly` + `Secure` + `SameSite=Lax` çerez, şifre değişince bütün oturumların düşmesi. Kütüphane seçimini plan E-07 gereği bu ADR'de doğruladım ve 2026-10-28'de karara bağladım.
+Eski koddaki admin girişi kendi yazdığım koddan oluşuyordu: `jose` ile token, `bcrypt` ile hash, bellekte rate limit. Oturum token'ı adres satırında (`?state=`) kabul ediliyordu (G-05). Şifre sıfırlama kodunda deneme sınırı yoktu (G-09). Plan §2 kararım: **bakımı süren hazır bir kütüphane; kendi oturum veya kripto kodumu yazmıyorum.** Plan §5'teki ölçütler: Prisma adaptörü, veritabanında oturumlar, e-posta/şifre girişi, şifre sıfırlama akışı, yerleşik CSRF/origin koruması, `HttpOnly` + `Secure` + `SameSite=Lax` çerez, şifre değişince bütün oturumların düşmesi. Kütüphane seçimini plan E-07 gereği bu ADR'de doğruladım ve 2026-10-28'de karara bağladım.
 
 İhtiyacım dar: tek bir rol (admin), herkese açık kayıt yok, OAuth/SSO/2FA yok, salt okunur bir demo admin.
 
@@ -63,7 +63,7 @@ Uyacağım kurallar:
 
 ## Sonuçlar
 
-- Olumlu: `jose`, `bcrypt`, `cookie` ve kendi oturum kodum kalkıyor. G-05 (adres satırında token) ve G-09'un giriş/sıfırlama kısmı kütüphaneyle kapanıyor.
+- Olumlu: `jose`, `bcrypt`, `cookie` ve kendi oturum kodum yeni koda girmiyor. G-05 (adres satırında token) ve G-09'un giriş/sıfırlama kısmı kütüphaneyle tekrarlanmıyor.
 - Olumlu: Şema Better Auth CLI'ıyla üretiliyor, migration'ı Prisma uyguluyor. Tek migration hattı kalıyor.
 - Olumsuz: Better Auth sık yama çıkarıyor. Bağımlılık güncellemesi rutin bir iş haline geliyor.
 - Risk: Better Auth yalnız Prisma 5–7'yi destekliyor. Prisma 8'e geçiş Better Auth'un desteğine bağlı ([ADR 0002](0002-veri-ve-depolama.md)).

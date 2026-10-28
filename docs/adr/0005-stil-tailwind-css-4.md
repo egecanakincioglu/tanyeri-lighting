@@ -1,11 +1,11 @@
-# ADR 0005: Stil — Tailwind CSS 4'e tam geçiş, SCSS kalkıyor
+# ADR 0005: Stil — Tailwind CSS 4, SCSS yok
 
 Durum: Kabul edildi
 Tarih: 2026-10-28
 
 ## Bağlam
 
-Bugün bütün stiller 59 SCSS modülünde (9.167 satır). Tailwind kurulu ama hiç kullanılmıyor. İki ayrı PostCSS yapılandırması ve kullanılmayan bir Tailwind 3 yapılandırması duruyor (plan §8). Faz 6'da yeni marka, Faz 7'de element hiyerarşisi, hizalama ve pixel perfect yapı ele alınacak. Yani her bileşen zaten baştan elden geçecek. Plan §2 ve §5 kararım: **Tailwind CSS 4'e tam geçiş; tasarım token'ları `@theme` içinde tek kaynakta; geçiş bileşen bileşen; bir bileşende iki sistem karışmaz; son modül kalkınca `sass` da kalkar.**
+Eski kodda bütün stiller 59 SCSS modülündeydi (9.167 satır). Tailwind kuruluydu ama hiç kullanılmıyordu; iki ayrı PostCSS yapılandırması ve kullanılmayan bir Tailwind 3 yapılandırması vardı (plan §8). Uygulamayı yeni repoda baştan yazıyorum (plan §2, D1): Faz 5'te yeni marka ve tasarım sistemi, Faz 6–7'de sayfalar ve panel. Plan §2 ve §5 kararım: **Tailwind CSS 4; tasarım token'ları `@theme` içinde tek kaynakta; projeye SCSS girmez.**
 
 Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknoloji-dogrulamasi.md), bölüm 10):
 
@@ -24,26 +24,25 @@ Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknolo
 
 ## Karar
 
-Plan §2 ve §5'teki kararı olduğu gibi kaydediyorum: **Tailwind CSS 4'e tam geçiş.**
+Plan §2 ve §5'teki kararı olduğu gibi kaydediyorum: **Tailwind CSS 4; SCSS yok.**
 
 Uyacağım kurallar:
 
-1. Kurulum resmi Next.js rehberindeki gibi yapılır: `tailwindcss` ve `@tailwindcss/postcss` aynı tam sürümde. Tek bir `postcss.config.mjs` kalır; ikinci PostCSS yapılandırması ve Tailwind 3 yapılandırması silinir.
+1. Kurulum resmi Next.js rehberindeki gibi yapılır: `tailwindcss` ve `@tailwindcss/postcss` aynı tam sürümde. Tek bir PostCSS yapılandırması olur: `postcss.config.ts` (plan §2, D5); kullandığım Next.js sürümü TypeScript PostCSS yapılandırmasını okumuyorsa gerekçesiyle `postcss.config.mjs`. Tailwind 3 yapılandırması yok.
 2. **Tek token kaynağı:** `src/app/globals.css` (ya da onun içe aktardığı tek bir `theme.css`) içindeki `@theme` bloğu.
    - Renk, tipografi, boşluk ölçeği (`--spacing`), köşe, gölge ve kesme noktaları burada tanımlanır.
-   - Kesme noktaları Faz 7'deki 390, 768, 1024 ve 1440 genişliklerine göre adlandırılır.
+   - Kesme noktaları 390, 768, 1024 ve 1440 genişliklerine göre adlandırılır (plan Faz 5).
    - Fontlar `next/font` ile yüklenir ve `@theme inline` ile bağlanır.
-3. Geçiş bileşen bileşen yapılır. Bir bileşen taşındığı PR'da SCSS modülü silinir; bir bileşende iki sistem bulunmaz.
-4. Son SCSS modülü silindiği PR'da `sass` bağımlılığı da kalkar.
+3. Bileşenler baştan Tailwind ile yazılır; projeye SCSS dosyası girmez.
+4. `sass` bağımlılığı eklenmez.
 
 ## Sonuçlar
 
-- Olumlu: Yeni marka (Faz 6) tek bir dosyada token değiştirerek uygulanır. Hizalama ve boşluk tutarlılığı ölçekten gelir.
-- Olumlu: Kullanılmayan stil üretilmez. Ölü SCSS ve iki PostCSS yapılandırması kalkar (Faz 8 temizliğinin bir kısmı).
-- Olumsuz: Geçiş süresince (Faz 6–7) iki stil sistemi projede aynı anda bulunur, ama bileşen düzeyinde karışmaz.
+- Olumlu: Yeni marka (Faz 5) tek bir dosyada token değiştirerek uygulanır. Hizalama ve boşluk tutarlılığı ölçekten gelir.
+- Olumlu: Kullanılmayan stil üretilmez.
 - Olumsuz: Stil değişiklikleri birim testle değil, masaüstü (1440) ve mobil (390) genişlikte görsel kontrolle doğrulanır ([ADR 0007](0007-test-stratejisi.md), plan kural 9).
 - Takip: Tailwind 4.x yama sürümleri Dependabot'un gruplu minor/patch PR'ıyla gelir.
-- Açık kalanlar (Faz 6'da marka token'larıyla birlikte karara bağlarım):
+- Açık kalanlar (Faz 5'te marka token'larıyla birlikte karara bağlarım):
   - Varsayılan renk ad alanının `--color-*: initial` ile kapatılıp yalnız marka renklerinin tanımlanması.
   - `[#123456]`, `[13px]` gibi keyfi değerlerin yalnız gerekçesi yorumla yazılarak kullanılması. Sürekli gereken değer için `@theme`'e token eklenmesi.
 

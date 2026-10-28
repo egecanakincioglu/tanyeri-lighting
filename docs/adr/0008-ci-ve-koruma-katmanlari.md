@@ -1,11 +1,12 @@
-# ADR 0008: CI ve koruma katmanları — GitHub'ın barındırdığı çalıştırıcılar, 5 zorunlu kontrol, dal koruması, CodeQL, Semgrep, gitleaks, Dependabot
+# ADR 0008: CI ve koruma katmanları — GitHub'ın barındırdığı çalıştırıcılar, zorunlu kontroller, dal koruması, CodeQL, Semgrep, gitleaks, Dependabot
 
 Durum: Kabul edildi
+2026-10-28 güncellemesi: kurulum sırasında aynı gün netleşen ayrıntıları (zorunlu kontrol listesi, CodeQL'in zorunlu olması, gitleaks'in digest'li imajla çalışması, Dependabot ekosistemleri) uygulamaya geçmeden işledim; karar değişmedi.
 Tarih: 2026-10-28
 
 ## Bağlam
 
-Repo herkese açık ve geçmişinde bir veritabanı şifresi ile müşteri bilgileri vardı. Faz 1'de temizledim (G-01). Ön tarama varsayılan gitleaks kurallarının gerçek şifreyi yakalamadığını gösterdi (G-12). Bağımlılıklarda 51 açık var (G-02).
+Eski repo herkese açıktı ve geçmişinde bir veritabanı şifresi ile müşteri bilgileri vardı (G-01). Yeni repo temiz bir ilk commit'le başladı; eski geçmiş taşınmadı. Ön tarama varsayılan gitleaks kurallarının gerçek şifreyi yakalamadığını gösterdi (G-12). Eski kodun bağımlılıklarında 51 açık vardı (G-02).
 
 Plan §2'deki kararlarım:
 
@@ -59,23 +60,23 @@ Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknolo
 
 ## Karar
 
-Plan §2, §3 ve §4'teki kararı kaydediyorum: **GitHub'ın barındırdığı çalıştırıcılar; 5 zorunlu kontrol; dal koruması; CodeQL; Semgrep; gitleaks; Dependabot.** SAST'ın biçimini, gitleaks ve pnpm kurulumunu 2026-10-28'de karara bağladım. Semgrep'te hazır kural setlerini kullanmıyorum; bu karar plan §4'teki ve Faz 3'teki "hazır güvenlik kural setleri" ifadesinin yerini alıyor ve plan dosyasını buna göre güncellerim.
+Plan §2, §3 ve §4'teki kararı kaydediyorum: **GitHub'ın barındırdığı çalıştırıcılar; zorunlu kontroller; dal koruması; CodeQL; Semgrep; gitleaks; Dependabot.** SAST'ın biçimini, gitleaks ve pnpm kurulumunu 2026-10-28'de karara bağladım. Semgrep'te hazır kural setlerini kullanmıyorum; bu karar plan §4'teki ve Faz 3'teki "hazır güvenlik kural setleri" ifadesinin yerini alıyor ve plan dosyasını buna göre güncellerim.
 
 Uyacağım kurallar:
 
-1. **İş akışları:** `.github/workflows/ci.yml` (`policy`, `quality`, `test`, `build`) ve `.github/workflows/pr-text.yml` (`pr-text`). İş adları zorunlu kontrol adlarıyla birebir aynı. Hepsi `ubuntu-latest` standart çalıştırıcıda; büyük çalıştırıcı kullanılmaz.
+1. **İş akışları:** `.github/workflows/ci.yml` (`policy`, `tooling (linux)`, `tooling (windows)`; Faz 3'te `quality`, `test`, `build`), `.github/workflows/pr-text.yml` (`pr-text`) ve `.github/workflows/codeql.yml` (`analyze (javascript-typescript)`). İş adları zorunlu kontrol adlarıyla birebir aynı. `tooling (windows)` dışında hepsi `ubuntu-latest` standart çalıştırıcıda; büyük çalıştırıcı kullanılmaz.
 2. **İşlerin içeriği** (plan §4):
    - `policy`: dal adı; PR'daki her commit (başlık, gövde, yasaklı terim, imza); günlük satırı; testsiz kod kapısı ve kapsam eşiğinin düşürülmemesi ([ADR 0007](0007-test-stratejisi.md)); bütün geçmişte sır taraması; yasak yollar.
    - `pr-text`: PR başlığı, yasaklı terimler, roadmap satırı.
-   - `quality`: Prettier, ESLint CLI (flat config; `next lint` yok), `tsc --noEmit`, ölü kod ve kullanılmayan bağımlılık taraması, `pnpm audit` (high/critical kırmızı, süreli istisna listesi), Semgrep, lisans politikası.
+   - `quality`: Prettier, ESLint CLI (flat config; `next lint` yok), `tsc --noEmit` (uygulama ve `tooling/` birlikte; plan §2, D5), ölü kod ve kullanılmayan bağımlılık taraması, `pnpm audit` (high/critical kırmızı, süreli istisna listesi), Semgrep, lisans politikası.
    - `test`: Vitest, Postgres servis konteyneriyle ve kapsam eşiğiyle.
    - `build`: `next build`.
-3. **Dal koruması (`main`):** PR zorunlu; 5 zorunlu kontrol strict (dal güncel olmalı); imzalı commit zorunlu; force push ve dal silme kapalı; yöneticiler dahil. Repo ayarları: yalnız merge commit, dal otomatik silme, auto-merge açık.
+3. **Dal koruması (`main`):** PR zorunlu (0 onay); zorunlu kontroller `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)` ve `CodeQL`, Faz 3'ten sonra `quality`, `test`, `build`; strict (dal güncel olmalı); imzalı commit zorunlu; force push ve dal silme kapalı; yöneticiler dahil. Repo ayarları: yalnız merge commit, dal otomatik silme, auto-merge açık, dal güncelleme önerisi açık.
 4. **Action'lar:** yalnız GitHub'ın (`actions/*`, `github/*`) ve doğrulanmış yayıncıların action'ları; her biri tam commit SHA'sıyla, yanında sürüm yorumu. Doğrulanmış olmayan araçlar action olarak değil, sürümü ve bütünlüğü sabit ikili dosya ya da paket olarak çalıştırılır.
 5. **CodeQL ana SAST tarayıcısı:** repoda bir iş akışıyla (gelişmiş kurulum).
    - Sorgu seti `security-extended`; diller `javascript-typescript` ve `actions`.
    - `main`'e push'ta, `main`'e açılan PR'larda ve haftalık çalışır. Bulgular güvenlik sekmesinde görünür.
-   - CodeQL zorunlu kontrol değildir (zorunlu kontroller 5 tane).
+   - CodeQL'in `analyze (javascript-typescript)` işi ve `CodeQL` sonuç kontrolü zorunlu kontrollerdendir.
    - CodeQL lisansı OSI onaylı lisans istediği için `LICENSE` (MIT) dosyası CodeQL iş akışıyla birlikte ya da ondan önce repoda olur.
 6. **Semgrep yalnız projeye özel kurallarla çalışır**; registry'den hiçbir kural seti çekilmez. Kurallar repoda (MIT) durur ve her PR'da bütün kod üzerinde çalışır; bulgu `quality` işini kırar.
    - `$queryRawUnsafe` / `$executeRawUnsafe` kullanımı.
@@ -84,13 +85,13 @@ Uyacağım kurallar:
    - Ortam modülü (`src/server/env`) dışından `process.env` erişimi.
    - Kaynak kodda sabit gizli bilgi (anahtar, token, şifre değişkenine dizgi atanması).
 
-   Her kuralın kendi pozitif ve negatif örnek testi olur (`semgrep --test`). Motor CE, sabit sürüm (bugün 1.182.0), resmi konteyner imajı digest ile sabit; Semgrep hesabı veya token kullanılmaz.
+   Her kuralın kendi pozitif ve negatif örnek testi olur (`semgrep --test`). Motor CE, sabit sürüm (CI imaj listesindeki digest'li sürüm), resmi konteyner imajı digest ile sabit; Semgrep hesabı veya token kullanılmaz.
 
    **Neden hazır setler yok:** (1) kural lisansı kullanımı "kendi iç iş amaçlarına" sınırlıyor ve herkese açık bir projenin CI'ını açıkça ele almıyor; (2) CE kapsamı bu yığın için ince (`p/nextjs` boş, `p/react` 4 kural). Genel güvenlik desenlerini CodeQL'in `security-extended` seti karşılıyor.
-7. **gitleaks:** v8.30.1 ikili dosyası resmi sürümden indirilir ve SHA-256 sağlama toplamı doğrulanmadan çalıştırılmaz. Varsayılan kurallar ve `.gitleaks.toml`'daki özel kurallarla çalışır: JSON/YAML içindeki şifre alanları, bağlantı adreslerindeki kimlik bilgisi, Türkiye telefon numarası. Hem staged değişiklikte (yerel hook) hem bütün geçmişte (CI `policy`) çalışır. Bilinen yanlış pozitif parmak iziyle istisna listesinde durur.
+7. **gitleaks:** v8.30.1, resmi konteyner imajıyla ve digest ile sabit (`tooling/ci-images/Dockerfile`; Dependabot günceller). Yerelde PATH'te kurulu bir `gitleaks` varsa o kullanılır. Varsayılan kurallar ve `.gitleaks.toml`'daki özel kurallarla çalışır: JSON/YAML içindeki şifre alanları, bağlantı adreslerindeki kimlik bilgisi, Türkiye telefon numarası. Hem staged değişiklikte (yerel hook) hem bütün geçmişte (CI `policy`) çalışır. Bilinen yanlış pozitif parmak iziyle istisna listesinde durur. Faz 3'ten sonra yerel hook tarayıcıyı bulamazsa commit'i reddeder.
 8. **pnpm Corepack ile kurulur.** `package.json`'daki `packageManager` alanı pnpm'in tam sürümünü ve bütünlük hash'ini taşır; CI'da `corepack enable` sonrası bu sürüm kullanılır. `policy` alanın hash'li ve tam sürümlü olduğunu denetler.
-9. **Dependabot:** `npm` ve `github-actions` ekosistemleri; haftalık; minor ve patch güncellemeleri ekosistem başına gruplu; güvenlik güncellemeleri ve uyarıları açık. Dependabot PR'ları da aynı 5 kontrolden geçer.
-10. **Repo güvenlik ayarları:** secret scanning ve push protection açık; gizli güvenlik açığı bildirimi açık.
+9. **Dependabot:** `npm`, `github-actions` ve `docker` (CI imaj listesi) ekosistemleri; haftalık; minor ve patch güncellemeleri ekosistem başına gruplu; yeni sürümler 7 gün bekler, güvenlik güncellemeleri beklemez; `prisma` ve `@prisma/*` ile Postgres imajının ana sürümleri yok sayılır (ana sürüm geçişi bilinçli bir PR); güvenlik güncellemeleri ve uyarıları açık. Dependabot PR'ları da aynı zorunlu kontrollerden geçer.
+10. **Repo güvenlik ayarları:** secret scanning ve push protection açık; gizli güvenlik açığı bildirimi açık. Actions: SHA sabitleme zorunlu, iş akışı token'ı salt okunur, Actions PR onaylayamaz.
 
 ## Sonuçlar
 
@@ -101,7 +102,7 @@ Uyacağım kurallar:
 - Olumsuz: Registry'deki hazır Semgrep desenleri kullanılmıyor. Next.js'e özgü güvenlik desenleri yalnız kendi kurallarımla ve CodeQL'le aranıyor.
 - Risk: Corepack Node 24'te deneysel ve Node 25'ten itibaren Node ile gelmiyor. Node 26'ya geçişte Corepack, sabit sürümlü npm paketi olarak ayrıca kurulur.
 - Risk: Strict dal koruması her birleştirmeden önce dalın güncel olmasını istiyor. Aynı anda birden fazla PR kuyruktayken auto-merge sırayla yeniden çalıştırma gerektirebilir; tek kişilik bir projede kabul edilebilir.
-- Takip: Kurulum Faz 2–3'te yerelde doğrulanır. GitHub'a geçişte korumalar açıldıktan sonra küçük bir PR ile 5 kontrolün, auto-merge'ün ve `main`'e doğrudan push reddinin çalıştığı görülür (plan "GitHub'a geçiş").
+- Takip: Korumaları 2026-10-28'de açtım; sonraki ilk PR (#8) zorunlu kontrollerden geçip auto-merge ile birleşti. `quality`, `test` ve `build` Faz 3'te kurulup zorunlu kontrollere eklenir.
 
 ## Kaynaklar
 
