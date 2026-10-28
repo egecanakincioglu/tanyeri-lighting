@@ -5,7 +5,7 @@ Tarih: 2026-10-28
 
 ## Bağlam
 
-Eski kodda bütün stiller 59 SCSS modülündeydi (9.167 satır). Tailwind kuruluydu ama hiç kullanılmıyordu; iki ayrı PostCSS yapılandırması ve kullanılmayan bir Tailwind 3 yapılandırması vardı (plan §8). Uygulamayı yeni repoda baştan yazıyorum (plan §2, D1): Faz 5'te yeni marka ve tasarım sistemi, Faz 6–7'de sayfalar ve panel. Plan §2 ve §5 kararım: **Tailwind CSS 4; tasarım token'ları `@theme` içinde tek kaynakta; projeye SCSS girmez.**
+Eski kodda bütün stiller 59 SCSS modülündeydi (9.167 satır). Tailwind 3 kuruluydu ve etkindi: temel stilleri yükleniyordu ve 9 bileşen SCSS modülünün yanında Tailwind sınıfları da kullanıyordu; iki ayrı PostCSS yapılandırması vardı (plan §8, [tasarım incelemesi](../research/2026-10-28-tasarim-incelemesi.md) T-32). Uygulamayı yeni repoda baştan yazıyorum (plan §2, D1): Faz 5'te yeni marka ve tasarım sistemi, Faz 6–7'de sayfalar ve panel. Plan §2 ve §5 kararım: **Tailwind CSS 4; tasarım token'ları `@theme` içinde tek kaynakta; projeye SCSS girmez.**
 
 Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknoloji-dogrulamasi.md), bölüm 10):
 
