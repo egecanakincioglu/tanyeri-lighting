@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getEnv, isIndexingEnabled, parseEnv } from './env.ts';
+import { getEnv, isDevelopment, isIndexingEnabled, parseEnv } from './env.ts';
 
 const valid = {
   DATABASE_URL: 'postgresql://pool.example.com:5432/tanyeri',
@@ -70,5 +70,22 @@ describe('isIndexingEnabled', () => {
   it('reads process.env by default', () => {
     vi.stubEnv('SITE_INDEXING', 'on');
     expect(isIndexingEnabled()).toBe(true);
+  });
+});
+
+describe('isDevelopment', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('is true only for the development environment', () => {
+    expect(isDevelopment({ NODE_ENV: 'development' })).toBe(true);
+    expect(isDevelopment({ NODE_ENV: 'production' })).toBe(false);
+    expect(isDevelopment({})).toBe(false);
+  });
+
+  it('reads process.env by default', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    expect(isDevelopment()).toBe(true);
   });
 });
