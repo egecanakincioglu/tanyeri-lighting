@@ -4,8 +4,8 @@ export default function HomePage() {
   const t = useTranslations('Home');
 
   return (
-    <main>
-      <h1>Tanyeri</h1>
+    <main className="p-4">
+      <h1 className="text-2xl font-semibold">Tanyeri</h1>
       <p>{t('placeholder')}</p>
     </main>
   );
