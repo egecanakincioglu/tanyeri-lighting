@@ -32,6 +32,11 @@ updates:
         update-types:
           - 'minor'
           - 'patch'
+    ignore:
+      # The PostgreSQL major version is a deliberate PR; local data volumes only stay compatible within one major.
+      - dependency-name: 'postgres'
+        update-types:
+          - 'version-update:semver-major'
     commit-message:
       prefix: 'build'
   - package-ecosystem: 'npm'
