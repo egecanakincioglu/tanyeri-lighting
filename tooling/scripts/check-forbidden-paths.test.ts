@@ -46,6 +46,10 @@ const rejected = [
   'home/id_ed25519',
   'docs/old-source-code/README.md',
   'docs/old-source-code/src/app/page.tsx',
+  'x.mjs',
+  'src/y.js',
+  'tooling/z.cjs',
+  'components/w.jsx',
 ];
 const allowed = [
   '.env.example',
@@ -59,6 +63,13 @@ const allowed = [
   'README.md',
   'docs/old-source-code-notes.md',
   'docs/guides/old-source-code/notes.md',
+  'x.ts',
+  'components/w.tsx',
+  'tsconfig.json',
+  'docs/js.md',
+  'src/notes.js.md',
+  'src/mjs',
+  'eslint.config.ts',
 ];
 
 describe('check-forbidden-paths.sh', { skip: bash ? false : 'bash not found' }, () => {
