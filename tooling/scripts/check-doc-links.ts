@@ -2,11 +2,12 @@
 // Fails if any relative markdown link in docs/ (or in the root README.md, CONTRIBUTING.md, SECURITY.md, when they
 // exist) points to a missing file. Anchors are ignored; links inside code blocks and inline code are not links.
 //   node tooling/scripts/check-doc-links.ts [--root <dir>]
-// Without --root the repository root is resolved with `git rev-parse --show-toplevel`.
+// Paths git ignores (for example the local legacy guide) are not scanned. Without --root the repository root is resolved with `git rev-parse --show-toplevel`.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutGitIgnored } from './lib/git-ignored.ts';
 
 const LINK = /\]\(([^)#:\s]+)(#[^)]*)?\)/g;
 const FENCE = /^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^[ \t]*\1[ \t]*$|(?![\s\S]))/gm;
@@ -24,10 +25,10 @@ function listMarkdown(dir: string, base: string, out: string[]): string[] {
 
 export function checkLinks(root: string): { files: string[]; broken: string[] } {
   const docs = path.join(root, 'docs');
-  const files = [
+  const files = withoutGitIgnored(root, [
     ...ROOT_FILES.filter((f) => existsSync(path.join(root, f))),
     ...(existsSync(docs) ? listMarkdown(docs, root, []).sort() : []),
-  ];
+  ]);
   const broken: string[] = [];
   for (const file of files) {
     const text = readFileSync(path.join(root, file), 'utf8').replace(FENCE, '').replace(/`[^`\n]*`/g, '');
