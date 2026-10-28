@@ -3,7 +3,7 @@
 // somewhere in docs/journal/*.md at <ref>. The per-commit hook and the per-PR check only see one pull request;
 // this check looks at the whole history, so a commit that slipped through (typically a bot commit) is caught later.
 //
-//   node tooling/scripts/check-journal-coverage.mjs [--ref <ref>] [--worktree]
+//   node tooling/scripts/check-journal-coverage.ts [--ref <ref>] [--worktree]
 //
 // The baseline is detected: it is the first commit that added docs/journal/README.md, and that commit is checked
 // too. The commits before it predate the journal and are out of scope.
@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 const JOURNAL_MARKER = ':(top)docs/journal/README.md';
 const JOURNAL_FILE = /^docs\/journal\/[^/]+\.md$/;
 
-function git(args, cwd) {
+function git(args: string[], cwd?: string): { ok: boolean; out: string; err: string } {
   const r = spawnSync('git', args, {
     cwd,
     encoding: 'utf8',
@@ -36,7 +36,7 @@ function git(args, cwd) {
 }
 
 /** The first commit (oldest) reachable from `ref` that added docs/journal/README.md. Throws when there is none. */
-export function detectBaseline({ root = process.cwd(), ref = 'HEAD' } = {}) {
+export function detectBaseline({ root = process.cwd(), ref = 'HEAD' }: { root?: string; ref?: string } = {}): string {
   const r = git(['log', '--diff-filter=A', '--reverse', '--format=%H', ref, '--', JOURNAL_MARKER], root);
   if (!r.ok) throw new Error(`git log failed: ${r.err.trim()}`);
   const first = r.out.split(/\r?\n/).find(Boolean);
@@ -45,10 +45,10 @@ export function detectBaseline({ root = process.cwd(), ref = 'HEAD' } = {}) {
 }
 
 /** Journal text (all markdown files concatenated) as of `ref`, or from the working tree. */
-export function readJournal({ root, ref, worktree }) {
+export function readJournal({ root, ref, worktree }: { root: string; ref: string; worktree?: boolean }): string {
   if (worktree) {
     const dir = path.join(root, 'docs', 'journal');
-    let files = [];
+    let files: string[] = [];
     try {
       files = readdirSync(dir).filter((f) => f.endsWith('.md'));
     } catch {
@@ -58,7 +58,7 @@ export function readJournal({ root, ref, worktree }) {
   }
   const list = git(['ls-tree', '-r', '--full-tree', '--name-only', ref, '--', ':(top)docs/journal'], root);
   if (!list.ok) throw new Error(`cannot list the journal at ${ref}: ${list.err.trim()}`);
-  const parts = [];
+  const parts: string[] = [];
   for (const file of list.out.split(/\r?\n/).filter((f) => JOURNAL_FILE.test(f))) {
     const show = git(['show', `${ref}:${file}`], root);
     if (!show.ok) throw new Error(`cannot read ${file} at ${ref}: ${show.err.trim()}`);
@@ -71,7 +71,11 @@ export function readJournal({ root, ref, worktree }) {
  * Commits from the baseline (inclusive) to ref (merges excluded, oldest first) whose header is not in the
  * journal in backticks. Returns [{sha, header}]. Throws when git fails or there is no baseline.
  */
-export function findUncovered({ root = process.cwd(), ref = 'HEAD', worktree = false } = {}) {
+export function findUncovered({
+  root = process.cwd(),
+  ref = 'HEAD',
+  worktree = false,
+}: { root?: string; ref?: string; worktree?: boolean } = {}): { sha: string; header: string }[] {
   const baseline = detectBaseline({ root, ref });
   const hasParent = git(['rev-parse', '--verify', '--quiet', `${baseline}^`], root).ok;
   // Without a parent the baseline is a root commit, so the whole history is in scope.
@@ -79,7 +83,7 @@ export function findUncovered({ root = process.cwd(), ref = 'HEAD', worktree = f
   const log = git(['log', '--no-merges', '--reverse', '--format=%H%x09%s', range], root);
   if (!log.ok) throw new Error(`git log failed: ${log.err.trim()}`);
   const journal = readJournal({ root, ref, worktree });
-  const missing = [];
+  const missing: { sha: string; header: string }[] = [];
   for (const line of log.out.split(/\r?\n/)) {
     if (!line) continue;
     const tab = line.indexOf('\t');
@@ -90,7 +94,7 @@ export function findUncovered({ root = process.cwd(), ref = 'HEAD', worktree = f
   return missing;
 }
 
-function parseArgs(argv) {
+function parseArgs(argv: string[]): { ref: string; worktree: boolean } {
   const opts = { ref: 'HEAD', worktree: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -103,21 +107,21 @@ function parseArgs(argv) {
   return opts;
 }
 
-export function main(argv, start = process.cwd()) {
+export function main(argv: string[], start: string = process.cwd()): number {
   const top = git(['rev-parse', '--show-toplevel'], start);
   const root = top.ok ? top.out.trim() : start;
-  let opts;
+  let opts: { ref: string; worktree: boolean };
   try {
     opts = parseArgs(argv);
   } catch (e) {
-    process.stderr.write(`check-journal-coverage: ${e.message}\n`);
+    process.stderr.write(`check-journal-coverage: ${(e as Error).message}\n`);
     return 2;
   }
-  let missing;
+  let missing: { sha: string; header: string }[];
   try {
     missing = findUncovered({ root, ref: opts.ref, worktree: opts.worktree });
   } catch (e) {
-    process.stderr.write(`check-journal-coverage: ${e.message}\n`);
+    process.stderr.write(`check-journal-coverage: ${(e as Error).message}\n`);
     return 2;
   }
   if (missing.length === 0) {

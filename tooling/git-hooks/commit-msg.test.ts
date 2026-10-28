@@ -1,23 +1,25 @@
 // End-to-end test of the commit-msg hook (and the pre-commit hook next to it) in a throwaway repo whose
 // core.hooksPath points at the real hooks. A stub gitleaks binary keeps docker out of the test.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from '../scripts/lib/bash.mjs';
+import { resolveBash } from '../scripts/lib/bash.ts';
 
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 const today = (() => {
   const d = new Date();
-  const p = (n) => String(n).padStart(2, '0');
+  const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 })();
 
-const withRepo = (fn) => {
+type Git = (...args: string[]) => SpawnSyncReturns<string>;
+
+const withRepo = (fn: (repo: string, git: Git) => void): void => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'commit-msg-hook-')));
   try {
     const stub = path.join(dir, 'stub-bin');
@@ -32,7 +34,7 @@ const withRepo = (fn) => {
     }
     copyFileSync(path.join(tooling, 'ci-images', 'Dockerfile'), path.join(repo, 'tooling', 'ci-images', 'Dockerfile'));
     const env = { ...process.env, PATH: `${stub}${path.delimiter}${process.env.PATH}` };
-    const git = (...args) => spawnSync('git', args, { cwd: repo, encoding: 'utf8', env });
+    const git: Git = (...args) => spawnSync('git', args, { cwd: repo, encoding: 'utf8', env });
     git('init', '-q', '-b', 'main');
     git('config', 'user.name', 't');
     git('config', 'user.email', 't@t');
@@ -46,7 +48,7 @@ const withRepo = (fn) => {
     rmSync(dir, { recursive: true, force: true });
   }
 };
-const write = (repo, file, content) => {
+const write = (repo: string, file: string, content: string): void => {
   mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
   writeFileSync(path.join(repo, file), content);
 };

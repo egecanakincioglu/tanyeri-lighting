@@ -1,26 +1,28 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-journal-entry.sh');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 const header = 'feat(cart): add stepper';
 const today = (() => {
   const d = new Date();
-  const p = (n) => String(n).padStart(2, '0');
+  const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 })();
 
 // files: path -> content, staged in a fresh repo with an initial commit holding an empty journal folder
-const withRepo = (files, fn) => {
+type Git = (...args: string[]) => SpawnSyncReturns<string>;
+
+const withRepo = <T>(files: Record<string, string>, fn: (dir: string, git: Git) => T): T => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'journal-entry-')));
   try {
-    const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+    const git: Git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
     git('init', '-q');
     git('config', 'user.name', 't');
     git('config', 'user.email', 't@t');
@@ -37,7 +39,7 @@ const withRepo = (files, fn) => {
     rmSync(dir, { recursive: true, force: true });
   }
 };
-const sh = (dir, ...args) => spawnSync(bash, [script, ...args], { cwd: dir, encoding: 'utf8' });
+const sh = (dir: string, ...args: string[]) => spawnSync(bash, [script, ...args], { cwd: dir, encoding: 'utf8' });
 const line = `- \`${header}\` - Sepete adet butonunu ekledim.\n`;
 
 describe('check-journal-entry.sh', { skip: bash ? false : 'bash not found' }, () => {
@@ -80,7 +82,7 @@ describe('check-journal-entry.sh', { skip: bash ? false : 'bash not found' }, ()
   });
 
   describe('--commit', () => {
-    const commit = (dir, git, extra = []) => {
+    const commit = (dir: string, git: Git, extra: string[] = []) => {
       git('commit', '-q', '-m', `${header}\n\nbody`, ...extra);
       return git('rev-parse', 'HEAD').stdout.trim();
     };

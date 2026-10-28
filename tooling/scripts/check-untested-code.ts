@@ -4,7 +4,7 @@
 // also add or modify at least one test file (*.test.{ts,tsx,mts,cts,mjs} or *.spec.*, anywhere).
 // Commits of type style, docs, ci, build, chore and test are exempt, and so are deletion-only changes.
 //
-//   node tooling/scripts/check-untested-code.mjs --base <sha> --head <sha>
+//   node tooling/scripts/check-untested-code.ts --base <sha> --head <sha>
 //
 // The check is range-wide on purpose: a fix and its test may land in separate commits of one pull request.
 // Exit codes: 0 ok, 1 untested source changes, 2 usage or git error. Portable: Node only.
@@ -12,7 +12,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const GATED_TYPES = new Set(['feat', 'fix', 'refactor', 'perf', 'revert']);
+const GATED_TYPES = new Set<string | null>(['feat', 'fix', 'refactor', 'perf', 'revert']);
 const HEADER = /^([a-z]+)(?:\([^)]*\))?!?:/;
 const SOURCE = /(?:^|\/)src\/.+\.(?:ts|tsx|mts|cts)$/;
 const TEST_FILE = /\.(?:test\.(?:ts|tsx|mts|cts|mjs)|spec\.[^/]+)$/;
@@ -20,18 +20,19 @@ const TEST_DIR = /(?:^|\/)__tests__\//;
 const DECLARATION = /\.d\.[cm]?ts$/;
 
 /** True for a test file (by name or by living under __tests__/). */
-export const isTestFile = (file) => TEST_FILE.test(file) || TEST_DIR.test(file);
+export const isTestFile = (file: string): boolean => TEST_FILE.test(file) || TEST_DIR.test(file);
 /** True for production source that needs a test: under src/, TypeScript, not a test and not a declaration file. */
-export const isGatedSource = (file) => SOURCE.test(file) && !isTestFile(file) && !DECLARATION.test(file);
+export const isGatedSource = (file: string): boolean => SOURCE.test(file) && !isTestFile(file) && !DECLARATION.test(file);
 /** The Conventional Commits type of a header, or null. */
-export const commitType = (header) => HEADER.exec(header)?.[1] ?? null;
+export const commitType = (header: string): string | null => HEADER.exec(header)?.[1] ?? null;
 
 /**
  * Parses `git log --name-status` output (records start with \x01<sha>\t<subject>) into
  * [{ sha, header, files: [{ status, file }] }].
  */
-export function parseLog(text) {
-  const commits = [];
+export type Commit = { sha: string; header: string; files: { status: string; file: string }[] };
+export function parseLog(text: string): Commit[] {
+  const commits: Commit[] = [];
   for (const line of text.split(/\r?\n/)) {
     if (line.startsWith('\x01')) {
       const body = line.slice(1);
@@ -46,10 +47,14 @@ export function parseLog(text) {
 }
 
 /** Decision for parsed commits: { ok, offenders: [{ sha, header, files }], testFiles }. */
-export function evaluate(commits) {
-  const alive = (f) => f.status !== 'D';
+export function evaluate(commits: Commit[]): {
+  ok: boolean;
+  offenders: { sha: string; header: string; files: string[] }[];
+  testFiles: string[];
+} {
+  const alive = (f: { status: string }): boolean => f.status !== 'D';
   const testFiles = commits.flatMap((c) => c.files.filter((f) => alive(f) && isTestFile(f.file)).map((f) => f.file));
-  const offenders = [];
+  const offenders: { sha: string; header: string; files: string[] }[] = [];
   for (const c of commits) {
     if (!GATED_TYPES.has(commitType(c.header))) continue;
     const files = c.files.filter((f) => alive(f) && isGatedSource(f.file)).map((f) => f.file);
@@ -58,7 +63,7 @@ export function evaluate(commits) {
   return { ok: offenders.length === 0 || testFiles.length > 0, offenders, testFiles };
 }
 
-function git(args, cwd) {
+function git(args: string[], cwd?: string): { ok: boolean; out: string; err: string } {
   const r = spawnSync('git', ['-c', 'core.quotepath=off', ...args], {
     cwd,
     encoding: 'utf8',
@@ -73,8 +78,8 @@ function git(args, cwd) {
   };
 }
 
-export function main(argv, cwd = process.cwd()) {
-  const get = (flag) => {
+export function main(argv: string[], cwd: string = process.cwd()): number {
+  const get = (flag: string): string | undefined => {
     const i = argv.indexOf(flag);
     return i === -1 ? undefined : argv[i + 1];
   };

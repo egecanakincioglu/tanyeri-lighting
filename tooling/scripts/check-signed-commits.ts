@@ -2,7 +2,7 @@
 // Signed-commit enforcement without the gh CLI: every non-merge commit in base..head must be reported as
 // `verified` by the GitHub API (a signature checked against a key registered on the author's account).
 //
-//   GH_TOKEN=... REPO=owner/name node tooling/scripts/check-signed-commits.mjs --base <sha> --head <sha>
+//   GH_TOKEN=... REPO=owner/name node tooling/scripts/check-signed-commits.ts --base <sha> --head <sha>
 //
 // --base/--head fall back to BASE_SHA/HEAD_SHA. Dependency-free (Node fetch). Prints one
 // `::error::commit <sha> is not verified (reason: <reason>)` line per offending commit.
@@ -13,7 +13,9 @@ import { fileURLToPath } from 'node:url';
 
 const API = 'https://api.github.com';
 
-function gitRevList(base, head, cwd) {
+type RevList = { ok: true; shas: string[] } | { ok: false; err: string };
+
+function gitRevList(base: string, head: string, cwd?: string): RevList {
   const r = spawnSync('git', ['rev-list', '--no-merges', `${base}..${head}`], {
     cwd,
     encoding: 'utf8',
@@ -26,7 +28,19 @@ function gitRevList(base, head, cwd) {
 }
 
 /** Verification of one commit: { verified, reason }. Throws on an API failure. */
-export async function commitVerification({ repo, sha, token, fetchImpl = fetch }) {
+type FetchLike = (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<any> }>; // any: the GitHub API body is only probed with optional chaining
+
+export async function commitVerification({
+  repo,
+  sha,
+  token,
+  fetchImpl = fetch,
+}: {
+  repo: string;
+  sha: string;
+  token: string;
+  fetchImpl?: FetchLike;
+}): Promise<{ verified: boolean; reason: string }> {
   const res = await fetchImpl(`${API}/repos/${repo}/commits/${sha}`, {
     headers: {
       Accept: 'application/vnd.github+json',
@@ -42,11 +56,23 @@ export async function commitVerification({ repo, sha, token, fetchImpl = fetch }
 }
 
 export async function main(
-  argv,
-  env = process.env,
-  { exec = gitRevList, fetchImpl = fetch, cwd = process.cwd(), out = process.stdout, err = process.stderr } = {},
-) {
-  const get = (flag) => {
+  argv: string[],
+  env: NodeJS.ProcessEnv = process.env,
+  {
+    exec = gitRevList,
+    fetchImpl = fetch,
+    cwd = process.cwd(),
+    out = process.stdout,
+    err = process.stderr,
+  }: {
+    exec?: (base: string, head: string, cwd?: string) => RevList;
+    fetchImpl?: FetchLike;
+    cwd?: string;
+    out?: { write(s: string): unknown };
+    err?: { write(s: string): unknown };
+  } = {},
+): Promise<number> {
+  const get = (flag: string): string | undefined => {
     const i = argv.indexOf(flag);
     return i === -1 ? undefined : argv[i + 1];
   };
@@ -72,7 +98,7 @@ export async function main(
         status = 1;
       }
     } catch (e) {
-      err.write(`check-signed-commits: ${e.message}\n`);
+      err.write(`check-signed-commits: ${(e as Error).message}\n`);
       status = 1;
     }
   }

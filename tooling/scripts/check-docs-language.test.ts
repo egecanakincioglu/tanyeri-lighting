@@ -1,4 +1,4 @@
-// Tests for check-docs-language.mjs: pure helpers, temporary docs trees and the real repository.
+// Tests for check-docs-language.ts: pure helpers, temporary docs trees and the real repository.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -6,15 +6,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { checkDocs, hasTurkishText, isValidDirName, isValidFileName } from './check-docs-language.mjs';
+import { checkDocs, hasTurkishText, isValidDirName, isValidFileName } from './check-docs-language.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const SCRIPT = path.join(HERE, 'check-docs-language.mjs');
+const SCRIPT = path.join(HERE, 'check-docs-language.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'docs-lang-'));
 let counter = 0;
 after(() => rmSync(root, { recursive: true, force: true }));
 
-function tree(files) {
+function tree(files: Record<string, string>): string {
   const dir = path.join(root, `d${counter++}`);
   for (const [rel, text] of Object.entries(files)) {
     const file = path.join(dir, rel);
@@ -119,7 +119,7 @@ describe('checkDocs', () => {
 });
 
 describe('CLI', () => {
-  const run = (...args) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8' });
+  const run = (...args: string[]) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8' });
   test('exit 0 for a clean tree, 1 for violations, 2 for usage errors', () => {
     assert.equal(run('--docs', tree({ 'a.md': 'Türkçe\n' })).status, 0);
     const bad = run('--docs', tree({ 'a.md': 'English\n' }));

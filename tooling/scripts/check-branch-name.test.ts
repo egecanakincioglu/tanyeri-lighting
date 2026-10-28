@@ -3,11 +3,11 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-branch-name.sh');
-const bash = resolveBash();
-const run = (...args) => spawnSync(bash, [script, ...args], { encoding: 'utf8' });
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
+const run = (...args: string[]) => spawnSync(bash, [script, ...args], { encoding: 'utf8' });
 
 describe('check-branch-name.sh', { skip: bash ? false : 'bash not found' }, () => {
   for (const name of ['feat/add-cart', 'fix/x', 'ci/bootstrap', 'docs/v2-plan', 'revert/bad-change']) {
