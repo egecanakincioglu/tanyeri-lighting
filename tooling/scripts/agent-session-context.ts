@@ -140,26 +140,32 @@ const DOCTOR_WARN = new Set(['warn', 'warning']);
  */
 export type DoctorEntry = { level: 'fail' | 'warn'; name: string; detail: string };
 
-// any: the doctor JSON is probed tolerantly with optional chaining, its shape is deliberately not fixed
-export function summarizeDoctor(data: any): { failures: DoctorEntry[]; warnings: DoctorEntry[] } {
-  const asItem = (x: any, level: 'fail' | 'warn'): DoctorEntry =>
-    typeof x === 'string'
-      ? { level, name: x, detail: '' }
-      : { level, name: String(x?.name ?? x?.id ?? x?.check ?? '?'), detail: String(x?.detail ?? x?.message ?? '') };
+// the doctor JSON is probed tolerantly, its shape is deliberately not fixed
+const asRecord = (x: unknown): Record<string, unknown> =>
+  x !== null && typeof x === 'object' ? (x as Record<string, unknown>) : {};
+
+export function summarizeDoctor(data: unknown): { failures: DoctorEntry[]; warnings: DoctorEntry[] } {
+  const asItem = (x: unknown, level: 'fail' | 'warn'): DoctorEntry => {
+    if (typeof x === 'string') return { level, name: x, detail: '' };
+    const o = asRecord(x);
+    return { level, name: String(o.name ?? o.id ?? o.check ?? '?'), detail: String(o.detail ?? o.message ?? '') };
+  };
   const failures: DoctorEntry[] = [];
   const warnings: DoctorEntry[] = [];
-  const take = (list: any[]) => {
+  const take = (list: unknown[]) => {
     for (const x of list) {
-      const raw = typeof x === 'string' ? '' : String(x?.level ?? x?.status ?? x?.severity ?? '').toLowerCase();
+      const o = asRecord(x);
+      const raw = typeof x === 'string' ? '' : String(o.level ?? o.status ?? o.severity ?? '').toLowerCase();
       if (DOCTOR_FAIL.has(raw)) failures.push(asItem(x, 'fail'));
       else if (DOCTOR_WARN.has(raw)) warnings.push(asItem(x, 'warn'));
     }
   };
   if (Array.isArray(data)) take(data);
   else if (data && typeof data === 'object') {
-    for (const key of ['checks', 'results', 'items']) if (Array.isArray(data[key])) take(data[key]);
-    if (Array.isArray(data.failures)) failures.push(...data.failures.map((x: any) => asItem(x, 'fail')));
-    if (Array.isArray(data.warnings)) warnings.push(...data.warnings.map((x: any) => asItem(x, 'warn')));
+    const d = asRecord(data);
+    for (const key of ['checks', 'results', 'items']) if (Array.isArray(d[key])) take(d[key]);
+    if (Array.isArray(d.failures)) failures.push(...d.failures.map((x: unknown) => asItem(x, 'fail')));
+    if (Array.isArray(d.warnings)) warnings.push(...d.warnings.map((x: unknown) => asItem(x, 'warn')));
   }
   return { failures, warnings };
 }
