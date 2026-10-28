@@ -8,10 +8,10 @@ Bu klasörde projenin mimari kararları duruyor: her biri numaralı, tarihli ve 
 | [0002](0002-veri-ve-depolama.md) | Veri ve depolama: Postgres (Neon), Prisma 7, Vercel Blob; paylaşılan önizleme veritabanı; sunucudan yükleme | Kabul edildi | 2026-10-28 |
 | [0003](0003-kimlik-dogrulama.md) | Kimlik doğrulama: Better Auth (e-posta/şifre, veritabanında oturum) | Kabul edildi | 2026-10-28 |
 | [0004](0004-rate-limit.md) | Rate limit: Postgres üzerinde, ek servis yok | Kabul edildi | 2026-10-28 |
-| [0005](0005-stil-tailwind-css-4.md) | Stil: Tailwind CSS 4'e tam geçiş, SCSS kalkıyor | Kabul edildi | 2026-10-28 |
+| [0005](0005-stil-tailwind-css-4.md) | Stil: Tailwind CSS 4, SCSS yok | Kabul edildi | 2026-10-28 |
 | [0006](0006-cok-dillilik-next-intl.md) | Çok dillilik: next-intl, her zaman önekli `/tr` ve `/en`, `proxy.ts` | Kabul edildi | 2026-10-28 |
 | [0007](0007-test-stratejisi.md) | Test stratejisi: Vitest + Testing Library, gerçek Postgres, %80 kapsam, testsiz kod kapısı | Kabul edildi | 2026-10-28 |
-| [0008](0008-ci-ve-koruma-katmanlari.md) | CI ve koruma katmanları: GitHub'ın barındırdığı çalıştırıcılar, 5 zorunlu kontrol, dal koruması, CodeQL, Semgrep (yalnız proje kuralları), gitleaks, Dependabot | Kabul edildi | 2026-10-28 |
+| [0008](0008-ci-ve-koruma-katmanlari.md) | CI ve koruma katmanları: GitHub'ın barındırdığı çalıştırıcılar, zorunlu kontroller, dal koruması, CodeQL, Semgrep (yalnız proje kuralları), gitleaks, Dependabot | Kabul edildi | 2026-10-28 |
 
 Bazı ADR'lerin Sonuçlar bölümünde "Açık kalanlar" maddeleri var. Bunlar ana karara bağlı, henüz karara bağlamadığım uygulama ayrıntıları; her birinin karara bağlanacağı faz yanında yazıyor.
 

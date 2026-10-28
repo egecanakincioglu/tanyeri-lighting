@@ -5,7 +5,7 @@ Tarih: 2026-10-28
 
 ## Bağlam
 
-Bugün veri üç yerde duruyor. Biri MySQL; tablolar ham bir SQL betiğinden `$queryRawUnsafe` ile oluşturuluyor (G-13). İkincisi JSON dosya veritabanları: `metadata`, `products`, `seo`, `firstLogin`, `pendingEmails`, `sql`. Bunlardan biri düz metin şifre (G-07), biri entegrasyon gizli bilgileri (G-06) içeriyordu. Üçüncüsü yerel diskteki `server/uploads/`; sunucusuz ortamda çalışmıyor. Plan §2 kararım: **Postgres (Neon) + Prisma; dosyalar Vercel Blob'da.**
+Eski kodda veri üç yerde duruyordu. Biri MySQL'di; tablolar ham bir SQL betiğinden `$queryRawUnsafe` ile oluşturuluyordu (G-13). İkincisi JSON dosya veritabanlarıydı: `metadata`, `products`, `seo`, `firstLogin`, `pendingEmails`, `sql`. Bunlardan biri düz metin şifre (G-07), biri entegrasyon gizli bilgileri (G-06) içeriyordu. Üçüncüsü yerel diskteki `server/uploads/` klasörüydü; sunucusuz ortamda çalışmıyordu. Plan §2 kararım: **Postgres (Neon) + Prisma; dosyalar Vercel Blob'da.**
 
 Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknoloji-dogrulamasi.md), bölüm 4, 5, 6):
 
@@ -17,6 +17,7 @@ Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknolo
 - Neon'un Vercel entegrasyonu her önizleme dağıtımına bir dal açabiliyor. Dallar Vercel dağıtımı silinince siliniyor ve varsayılan saklama 6 ay; Free'deki 10 dal sınırı dolabilir.
 - Vercel Blob Hobby: 1 GB depolama, 10.000 basit ve 2.000 gelişmiş işlem, 10 GB aktarım. Aşımda 30 gün kullanılamıyor, ücret çıkmıyor.
 - Vercel Functions'ta istek gövdesi sınırı 4,5 MB.
+- Neon'da Postgres 18 2026-05-01'den beri genel kullanımda, Haziran 2026'dan beri yeni projelerde varsayılan.
 
 ## Seçenekler
 
@@ -47,9 +48,9 @@ Uyacağım kurallar:
    - Dependabot'ta `prisma` ve `@prisma/*` için ana sürüm yükseltmesi yok sayılır.
    - Prisma 8'e geçiş ayrı bir ADR ister; ön koşulları Prisma 8'in genel sürümü ve Better Auth'un desteği.
 2. **Sürücü adaptörü `@prisma/adapter-pg`.** Neon'a havuzlu TCP bağlantısıyla (`DATABASE_URL`) bağlanır; yerelde Docker'daki, CI'da servis konteynerindeki Postgres'le aynı adaptör kullanılır. Migration ve CLI işleri havuzsuz `DATABASE_URL_UNPOOLED` ile `prisma.config.ts` üzerinden yapılır.
-3. JSON dosya veritabanları tablolara taşınır. Ham SQL betiği ve `$queryRawUnsafe` kalkar (G-13). Ham sorgu gerekirse yalnız parametreli `$queryRaw`/`$executeRaw` kullanılır; Semgrep'in projeye özel kuralı `$queryRawUnsafe`'i yasaklar ([ADR 0008](0008-ci-ve-koruma-katmanlari.md)).
+3. Eski koddaki JSON dosya veritabanlarının karşılığı baştan Postgres tablolarında tasarlanır; eski veri taşınmaz. Ham SQL betiği ve `$queryRawUnsafe` yeni koda girmez (G-13). Ham sorgu gerekirse yalnız parametreli `$queryRaw`/`$executeRaw` kullanılır; Semgrep'in projeye özel kuralı `$queryRawUnsafe`'i yasaklar ([ADR 0008](0008-ci-ve-koruma-katmanlari.md)).
 4. Şema değişikliği yalnız `prisma/migrations/` altındaki migration'larla yapılır. `db push` paylaşılan veritabanlarında kullanılmaz.
-5. İlk admin `pnpm db:seed` ve ortam değişkenleriyle oluşur; kurulum sihirbazı kalkar (G-03, G-07).
+5. İlk admin `pnpm db:seed` ve ortam değişkenleriyle oluşur; kurulum sihirbazı yok (G-03, G-07).
 6. Gizli entegrasyon bilgileri ortam değişkenlerinde durur. OAuth sonrası alınan refresh token veritabanında AES-GCM ile şifreli saklanır (G-06).
 7. **Önizleme veritabanı:** bütün PR önizlemeleri tek, paylaşılan bir Neon önizleme veritabanını kullanır; bu veritabanı üretimden ayrıdır.
    - Önizleme başına Neon dalı açılmaz; entegrasyonun önizleme dalı özelliği kapalı tutulur.
@@ -69,12 +70,13 @@ Uyacağım kurallar:
 - Olumlu: Bütün dosyalar depoya yazılmadan önce sunucuda doğrulanıyor ve yeniden kodlanıyor; zararlı içerik ve EXIF gibi meta veriler depoya girmiyor.
 - Olumsuz: Vercel Blob Vercel'e özgü. `src/server/storage` arayüzü sayesinde başka bir depolamaya geçiş tek bir adaptör yazmak demek.
 - Olumsuz: 4 MB sınırı yüzünden büyük katalog PDF'leri yüklenemez. Demo kataloğu kısa ve küçük tutulur.
-- Olumsuz: Prisma 7'nin ESM zorunluluğu `package.json`'a `"type": "module"` ve `tsconfig`'e `moduleResolution: "bundler"` getiriyor. Mevcut betikler buna göre güncellenir.
+- Not: Prisma 7 ESM istediği için `package.json` baştan `"type": "module"`, `tsconfig` `moduleResolution: "bundler"` ile kurulur (plan Faz 3).
 - Risk: Paylaşılan önizleme veritabanında farklı PR'ların migration'ları çakışabilir. Çakışırsa önizleme veritabanını sıfırlayıp yeniden seed'lerim; üretim etkilenmez.
 - Risk: Hobby kotası aşılırsa Blob 30 gün, Neon compute dönem sonuna kadar duruyor. Demo bunu kaldırır ama README'de not edilir. Seed görselleri küçük tutulur (WebP, makul çözünürlük).
 - Risk: Neon 5 dakikada uyuyor. İlk istekte bağlantı gecikmesi olur; bağlantı adresine `connect_timeout` eklenir. `adapter-pg`'nin soğuk başlangıç süresini Faz 9'da ölçerim.
+- Postgres 18 üretimde (Neon), CI'da ve yerelde. CI imajı ve Neon projesi aynı ana sürümde kalır; ana sürüm yükseltmesi bilinçli bir PR'dır.
 - Açık kalanlar (bu ADR'de karara bağlanmadı):
-  - Migration'ların üretimde hangi adımda uygulanacağı: Vercel derlemesi mi, ayrı bir iş mi? Ön önerim üretim derlemesinde `prisma migrate deploy` ve `DATABASE_URL_UNPOOLED`. Faz 9'da karara bağlarım.
+  - Migration'ların üretimde hangi adımda uygulanacağı: Vercel derlemesi mi, ayrı bir iş mi? Ön önerim derlemede `prisma migrate deploy` ve `DATABASE_URL_UNPOOLED`. Önizleme dağıtımları Faz 3'te başladığı için (plan §2, D4) Faz 3'te, önizlemeleri kurduğum PR'da karara bağlarım; üretim dağıtımı Faz 9'da açılır.
   - Önizleme veritabanına migration'ın nasıl uygulanacağı da aynı kararda ele alınır.
   - Blob mağazasının erişim türü (`public` veya `private`): ön önerim katalog içeriği için `public`. Faz 4'teki yükleme PR'ında karara bağlarım.
 - Takip: Prisma 8 genel sürüme çıkınca ayrı bir ADR ile değerlendirilir.
@@ -92,3 +94,5 @@ Uyacağım kurallar:
 - https://neon.com/docs/guides/vercel-managed-integration
 - https://vercel.com/docs/vercel-blob/usage-and-pricing
 - https://vercel.com/docs/vercel-blob/server-upload
+- https://neon.com/docs/changelog/2026-05-01
+- https://neon.com/docs/changelog/2026-06-05

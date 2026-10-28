@@ -5,7 +5,7 @@ Tarih: 2026-10-28
 
 ## Bağlam
 
-Bugün rate limit yalnız Express sunucusunda ve bellekte; şifre sıfırlama kodunda deneme sınırı yok (G-09). Vercel'de her istek ayrı bir fonksiyon örneğine düşebildiği için bellek içi sayaç sunucusuz ortamda paylaşılmaz. Plan §2 ve §5 kararım: **rate limit Postgres üzerinde, ek servis yok.** Giriş ve şifre sıfırlama uçlarında kimlik doğrulama kütüphanesinin veritabanı depolamalı sınırlayıcısı kullanılır. İletişim formu gibi diğer herkese açık yazma uçlarında aynı veritabanında küçük bir sayaç tablosu tutulur.
+Eski kodda rate limit yalnız Express sunucusunda ve bellekteydi; şifre sıfırlama kodunda deneme sınırı yoktu (G-09). Vercel'de her istek ayrı bir fonksiyon örneğine düşebildiği için bellek içi sayaç sunucusuz ortamda paylaşılmaz. Plan §2 ve §5 kararım: **rate limit Postgres üzerinde, ek servis yok.** Giriş ve şifre sıfırlama uçlarında kimlik doğrulama kütüphanesinin veritabanı depolamalı sınırlayıcısı kullanılır. İletişim formu gibi diğer herkese açık yazma uçlarında aynı veritabanında küçük bir sayaç tablosu tutulur.
 
 Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknoloji-dogrulamasi.md), bölüm 3.1, 4, 7):
 

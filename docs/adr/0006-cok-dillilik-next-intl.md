@@ -5,7 +5,7 @@ Tarih: 2026-10-28
 
 ## Bağlam
 
-Site bugün yalnız Türkçe. Plan §2 kararım: **site iki dilli, Türkçe ve İngilizce.** Plan §5'te yöntem de belli: next-intl; `messages/tr.json` ve `messages/en.json`; içerik verisinde iki dilli alanlar; dil yönlendirmesi `proxy.ts` ile; rotalar `src/app/[locale]/…` altında. Uygulama Faz 5'te.
+Eski site yalnız Türkçeydi. Plan §2 kararım: **site iki dilli, Türkçe ve İngilizce.** Plan §5'te yöntem de belli: next-intl; `messages/tr.json` ve `messages/en.json`; içerik verisinde iki dilli alanlar; dil yönlendirmesi `proxy.ts` ile; rotalar `src/app/[locale]/…` altında. Kurulum Faz 3'teki uygulama iskeletinde; sayfalar Faz 6–7'de.
 
 Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknoloji-dogrulamasi.md), bölüm 9):
 
@@ -31,7 +31,7 @@ Plan §2 ve §5'teki kararı olduğu gibi kaydediyorum: **next-intl ile iki dill
 
 Uyacağım kurallar:
 
-1. Diller `tr` ve `en`. Arayüz metinleri `messages/tr.json` ve `messages/en.json`'da; iki dosyanın anahtar kümesi aynı olmalı. Bir test eksik veya fazla anahtarı yakalar.
+1. Diller `tr` ve `en`. `messages/tr.json` ve `messages/en.json` yalnız arayüz metinlerini taşır; panelden düzenlenen bütün içerik, yasal sayfalar dahil, veritabanındaki iki dilli alanlardadır (plan §2, D3). İki dosyanın anahtar kümesi aynı olmalı. Bir test eksik veya fazla anahtarı yakalar.
 2. Bütün sayfalar `src/app/[locale]/…` altında. Kök layout dili `hasLocale` ile doğrular, geçersizse `notFound()` çağırır. `<html lang>` aktif dili gösterir.
 3. Sunucuda dil `next/root-params` ile okunur (next-intl'in önerdiği yol); geçerli diller `routing.locales`'tan gelir. Nonce'lu CSP yüzünden sayfalar zaten dinamik render edildiği için ([ADR 0001](0001-mimari-nextjs-16-app-router.md), kural 9) `setRequestLocale` kullanılmaz.
 4. Gezinme yalnız `src/i18n/navigation.ts`'ten gelen `Link`, `redirect`, `useRouter`, `usePathname` ile yapılır. `next/link` dil dışı yollarda kullanılmaz.
@@ -41,7 +41,7 @@ Uyacağım kurallar:
 8. **Varsayılan dil ve önek:** varsayılan dil `tr`; `localePrefix: "always"`.
    - Her adres `/tr/...` ya da `/en/...` ile başlar; iki dilin adres yapısı simetrik kalır.
    - Kök `/` isteği `Accept-Language` başlığına göre `/tr`'ye veya `/en`'e yönlendirilir; eşleşme yoksa `/tr`'ye gider.
-   - Yönlendirmeyi next-intl'in dil algılamasıyla yaparım. Bu davranışı, çerezin başlığa göre önceliği dahil, Faz 5'te testle doğrularım.
+   - Yönlendirmeyi next-intl'in dil algılamasıyla yaparım. Bu davranışı, çerezin başlığa göre önceliği dahil, Faz 3'te testle doğrularım.
 
 ## Sonuçlar
 
@@ -54,7 +54,7 @@ Uyacağım kurallar:
   - Kök `/` isteğinin `Accept-Language`'a göre `/tr`'ye veya `/en`'e, eşleşme yoksa `/tr`'ye yönlendirildiği.
   - Proxy'nin dil yönlendirmesi ve CSP başlığını birlikte ürettiği.
 - Açık kalanlar (bu ADR'de karara bağlanmadı; ikisi de ön önerim):
-  - Dil seçicinin davranışı: aynı sayfanın diğer dildeki karşılığına gitmesi ve seçimin next-intl'in çereziyle hatırlanması. Faz 7'deki header PR'ında karara bağlarım.
+  - Dil seçicinin davranışı: aynı sayfanın diğer dildeki karşılığına gitmesi ve seçimin next-intl'in çereziyle hatırlanması. Faz 6'daki header PR'ında karara bağlarım.
   - Eksik çeviri: iki dilli içerik alanlarının ikisinin de zorunlu olması ve sayfanın diğer dile sessizce düşmemesi. Faz 4'teki şema PR'ında karara bağlarım.
 
   Bunlar Vitest'le birim ve entegrasyon düzeyinde yazılır; görünüm masaüstü ve mobilde görsel olarak kontrol edilir ([ADR 0007](0007-test-stratejisi.md)).
