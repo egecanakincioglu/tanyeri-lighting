@@ -80,7 +80,19 @@ describe('check-forbidden-terms', { skip: bash ? false : 'bash not found' }, () 
 
   describe('--text', () => {
     test('clean text passes', () => assert.equal(text('feat: add cart\n\nbody\n').code, 0));
-    test('comment lines are ignored', () => assert.equal(text(`feat: x\n# ${names[0]}\n`).code, 0));
+    test('comment lines are scanned too', () => {
+      for (const input of [`feat: x\n# ${names[0]}\n`, 'feat: x\n\n## Generated with a tool\n', `## ${names[3]} notes\n`]) {
+        assert.equal(text(input).code, 1, input);
+      }
+    });
+    test('git comment template lines without forbidden words pass', () => {
+      assert.equal(text('feat: x\n\nbody\n\n# Please enter the commit message\n#\n# On branch ci/x\n').code, 0);
+    });
+    test('everything after the scissors line is ignored, before it is not', () => {
+      const cut = '# ------------------------ >8 ------------------------';
+      assert.equal(text(`feat: x\n\nbody\n${cut}\ndiff mentions ${names[0]}\n`).code, 0);
+      assert.equal(text(`feat: x\n\n${names[0]}\n${cut}\nfine\n`).code, 1);
+    });
     for (const name of names) {
       test(`${name} is rejected`, () => {
         const r = text(`feat: x\n\nmentions ${name}\n`);

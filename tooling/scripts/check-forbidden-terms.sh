@@ -43,7 +43,9 @@ case "$mode" in
   --text)
     src="${2:--}"
     if [ "$src" = "-" ]; then text="$(cat)"; else text="$(cat "$src")"; fi
-    text="$(printf '%s\n' "$text" | grep -v '^#' || true)"
+    # Every line is scanned, # lines included: -m/-F messages keep them and PR bodies use # headings. Only git's
+    # scissors line is honoured, because git discards everything after it (verbose diff, status) from the message.
+    text="$(printf '%s\n' "$text" | sed '/^# -\{24\} >8 -\{24\}$/,$d')"
     grep -Eiq "$terms" <<<"$text" && report "forbidden term in text"
     grep -Eiq "$attribution" <<<"$text" && report "attribution line in text"
     ;;
