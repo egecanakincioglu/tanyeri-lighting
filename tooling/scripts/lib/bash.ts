@@ -11,7 +11,7 @@ const BASH_CANDIDATES = ['bin/bash.exe', 'usr/bin/bash.exe'];
  * Walks up from that directory and returns the first `<dir>/bin/bash.exe` or `<dir>/usr/bin/bash.exe` that
  * existsFn accepts, or null. Forward slashes are used in the result. System32 (the WSL launcher) is never used.
  */
-export function gitBashFromExecPath(execPath, existsFn = existsSync) {
+export function gitBashFromExecPath(execPath: unknown, existsFn: (p: string) => boolean = existsSync): string | null {
   const norm = String(execPath ?? '')
     .trim()
     .replace(/\\/g, '/')
@@ -31,7 +31,7 @@ export function gitBashFromExecPath(execPath, existsFn = existsSync) {
 }
 
 /** Runs a command without a shell and returns its trimmed stdout, or null on failure. */
-function defaultRun(cmd, args) {
+function defaultRun(cmd: string, args: string[]): string | null {
   const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 15000, windowsHide: true });
   return r.error || r.status !== 0 ? null : (r.stdout ?? '').trim();
 }
@@ -40,7 +40,12 @@ function defaultRun(cmd, args) {
  * The bash executable to spawn: 'bash' outside Windows; on Windows the Git Bash found via git, or null when
  * there is none. Never returns the WSL launcher in System32.
  */
-export function resolveBash({ platform = process.platform, run = defaultRun, existsFn = existsSync } = {}) {
+export interface ResolveBashOptions {
+  platform?: string;
+  run?: (cmd: string, args: string[]) => string | null;
+  existsFn?: (p: string) => boolean;
+}
+export function resolveBash({ platform = process.platform, run = defaultRun, existsFn = existsSync }: ResolveBashOptions = {}): string | null {
   if (platform !== 'win32') return 'bash';
   const execPath = run('git', ['--exec-path']);
   return execPath ? gitBashFromExecPath(execPath, existsFn) : null;

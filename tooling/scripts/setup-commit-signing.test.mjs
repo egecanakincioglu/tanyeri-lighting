@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'setup-commit-signing.sh');
 const tmp = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'tanyeri-signing-'));

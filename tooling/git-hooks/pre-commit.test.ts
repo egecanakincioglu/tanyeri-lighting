@@ -1,20 +1,22 @@
 // End-to-end test of the pre-commit hook in a throwaway repo whose core.hooksPath points at the real hooks.
 // A stub gitleaks binary is put first on PATH so the test never needs docker; the real rules are tested in
-// .gitleaks.test.mjs.
+// gitleaks-rules.test.ts.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from '../scripts/lib/bash.mjs';
+import { resolveBash } from '../scripts/lib/bash.ts';
 
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 
 // a repo on main with the check scripts committed (hooks off), switched to `branch`
-const withRepo = (branch, fn) => {
+type Git = (...args: string[]) => SpawnSyncReturns<string>;
+
+const withRepo = (branch: string, fn: (repo: string, git: Git) => void): void => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'pre-commit-')));
   const stub = path.join(dir, '.stub-bin');
   try {
@@ -30,7 +32,7 @@ const withRepo = (branch, fn) => {
     copyFileSync(path.join(tooling, 'ci-images', 'Dockerfile'), path.join(repo, 'tooling', 'ci-images', 'Dockerfile'));
     const sep = process.platform === 'win32' ? ';' : ':';
     const env = { ...process.env, PATH: `${stub}${sep}${process.env.PATH}` };
-    const git = (...args) => spawnSync('git', args, { cwd: repo, encoding: 'utf8', env });
+    const git: Git = (...args) => spawnSync('git', args, { cwd: repo, encoding: 'utf8', env });
     git('init', '-q', '-b', 'main');
     git('config', 'user.name', 't');
     git('config', 'user.email', 't@t');

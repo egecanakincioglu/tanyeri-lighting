@@ -1,4 +1,4 @@
-// Tests for check-doc-links.mjs: temporary docs trees and the real repository.
+// Tests for check-doc-links.ts: temporary docs trees and the real repository.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -8,12 +8,12 @@ import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const SCRIPT = path.join(HERE, 'check-doc-links.mjs');
+const SCRIPT = path.join(HERE, 'check-doc-links.ts');
 const tmp = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'doc-links-'));
 let counter = 0;
 after(() => rmSync(tmp, { recursive: true, force: true }));
 
-function tree(files) {
+function tree(files: Record<string, string>): string {
   const dir = path.join(tmp, `d${counter++}`);
   for (const [rel, text] of Object.entries(files)) {
     const file = path.join(dir, rel);
@@ -23,7 +23,7 @@ function tree(files) {
   return dir;
 }
 
-function run(args, cwd) {
+function run(args: string[], cwd?: string) {
   const r = spawnSync(process.execPath, [SCRIPT, ...args], { cwd, encoding: 'utf8' });
   return { code: r.status, out: r.stdout, err: r.stderr };
 }

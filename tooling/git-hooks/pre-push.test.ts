@@ -5,15 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from '../scripts/lib/bash.mjs';
+import { resolveBash } from '../scripts/lib/bash.ts';
 
 const hooks = path.dirname(fileURLToPath(import.meta.url));
 const hook = path.join(hooks, 'pre-push');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 const sha = 'a'.repeat(40);
 
 describe('pre-push hook', { skip: bash ? false : 'bash not found' }, () => {
-  const feed = (refs) => spawnSync(bash, [hook, 'origin', 'url'], { input: refs, encoding: 'utf8' });
+  const feed = (refs: string) => spawnSync(bash, [hook, 'origin', 'url'], { input: refs, encoding: 'utf8' });
 
   test('refuses a push to refs/heads/main', () => {
     const r = feed(`refs/heads/feat/x ${sha} refs/heads/main ${sha}\n`);
@@ -33,7 +33,7 @@ describe('pre-push hook', { skip: bash ? false : 'bash not found' }, () => {
   test('end to end: git push to main is refused, a feature branch goes through', () => {
     const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'pre-push-')));
     try {
-      const run = (cwd, ...args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+      const run = (cwd: string, ...args: string[]) => spawnSync('git', args, { cwd, encoding: 'utf8' });
       const remote = path.join(dir, 'remote.git');
       const repo = path.join(dir, 'repo');
       mkdirSync(repo);

@@ -1,4 +1,4 @@
-// Tests for check-journal-coverage.mjs. Real temporary git repositories; nothing is mocked.
+// Tests for check-journal-coverage.ts. Real temporary git repositories; nothing is mocked.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -6,19 +6,19 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { detectBaseline, findUncovered } from './check-journal-coverage.mjs';
+import { detectBaseline, findUncovered } from './check-journal-coverage.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-journal-coverage.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-journal-coverage.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'journal-cov-'));
 let counter = 0;
 
-function sh(cwd, ...args) {
+function sh(cwd: string, ...args: string[]): string {
   const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
   assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
   return r.stdout.trim();
 }
 
-function write(repo, rel, text) {
+function write(repo: string, rel: string, text: string): void {
   const file = path.join(repo, rel);
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
@@ -39,7 +39,7 @@ function makeRepo() {
   sh(repo, 'add', '-A');
   sh(repo, 'commit', '-q', '-m', 'chore: before the journal');
   let n = 0;
-  const commit = (header, journalLine) => {
+  const commit = (header: string, journalLine?: string) => {
     write(repo, `f${n++}.txt`, `${n}\n`);
     if (journalLine !== undefined)
       write(repo, 'docs/journal/2026-10-12.md', `# 2026-10-12\n\n## Commit günlüğü\n\n${journalLine}\n`);
@@ -47,14 +47,14 @@ function makeRepo() {
     sh(repo, 'commit', '-q', '-m', header);
     return sh(repo, 'rev-parse', 'HEAD');
   };
-  const startJournal = (header, journalLine) => {
+  const startJournal = (header: string, journalLine?: string) => {
     write(repo, 'docs/journal/README.md', '# Günlük\n');
     return commit(header, journalLine);
   };
   return { repo, commit, startJournal };
 }
 
-const cli = (repo, ...extra) => {
+const cli = (repo: string, ...extra: string[]) => {
   const r = spawnSync('node', [SCRIPT, ...extra], { cwd: repo, encoding: 'utf8' });
   return { code: r.status, out: r.stdout, err: r.stderr };
 };
