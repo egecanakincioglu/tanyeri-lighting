@@ -73,5 +73,8 @@ gitleaks-report*
 # Local read-only reference of the legacy site; never tracked
 /docs/old-source-code/
 
+# Generated Prisma client
+src/generated/
+
 # Site audit output
 /site-audit-report/

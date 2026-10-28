@@ -35,6 +35,18 @@ image="$(node tooling/scripts/ci-image.ts semgrep)"
 docker run --rm -v "$PWD:/src" -w /src "$image" semgrep --test --metrics=off tooling/semgrep
 ```
 
+## Veritabanı
+
+Yerel veritabanı Postgres 18'dir; konteyneri `pnpm db:up` ile kaldırırım, `pnpm db:down` durdurur. Konteynerin adı `tanyeri-postgres`, yalnız `127.0.0.1:5432` üzerinden dinler ve şifresizdir. `db:down` veri hacmini silmez, veriler yerinde kalır. İmajın sürümünü elle yazmam: betik `tooling/ci-images/Dockerfile` listesinden okur, CI da aynı Postgres'i kullanır.
+
+İlk kurulumda `.env.example` dosyasını `.env` olarak kopyalarım; uygulama ortam değişkenlerini zod ile doğrular.
+
+Şema değiştiğinde `pnpm db:migrate` ile yeni migration üretirim ve oluşan dosyayı aynı PR'a eklerim.
+
+Entegrasyon testlerinin adı `*.int.test.ts` biçimindedir ve gerçek Postgres'e bağlanır. Her koşuda yalnız yereldeki `tanyeri_test` veritabanı silinip yeniden kurulur ve migration'lar baştan uygulanır. Bu testlerden önce `pnpm db:up` çalışıyor olmalı.
+
+Prisma istemcisi kurulumda (`postinstall`) `src/generated/prisma` altına üretilir. Bu klasör git'e girmez ve kapsam ile Semgrep taramalarının dışında tutulur.
+
 ## Günlük komutlar
 
 Hepsi `package.json` içindeki script'lerdir ve `pnpm <ad>` ile çalışır:

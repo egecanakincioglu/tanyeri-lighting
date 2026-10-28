@@ -2,5 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["tooling/scripts/agent-git-guard.ts"],
   "ignore": ["tooling/semgrep/**"],
+  "ignoreDependencies": ["@prisma/client"],
   "ignoreBinaries": ["ssh-keygen", "cygpath"]
 }
