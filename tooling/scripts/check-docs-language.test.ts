@@ -118,6 +118,32 @@ describe('checkDocs', () => {
   });
 });
 
+describe('git-ignored paths', () => {
+  const files = {
+    'README.md': '# Doküman\n',
+    'legacy/Bad Name.md': 'English only\n',
+    'legacy/Sub Dir/x.md': 'English only\n',
+  };
+  const inRepo = (ignore: string, init = true) => {
+    const dir = tree(Object.fromEntries(Object.entries(files).map(([k, v]) => [`docs/${k}`, v])));
+    writeFileSync(path.join(dir, '.gitignore'), ignore);
+    if (init) assert.equal(spawnSync('git', ['init', '-q'], { cwd: dir }).status, 0);
+    return path.join(dir, 'docs');
+  };
+  test('an ignored subfolder is skipped inside a git repository', () => {
+    assert.deepEqual(checkDocs(inRepo('docs/legacy/\n')), []);
+  });
+  test('the same files are reported when they are not ignored', () => {
+    const problems = checkDocs(inRepo('unrelated\n'));
+    assert.ok(problems.some((p) => p.includes('docs/legacy/Bad Name.md: file name')));
+    assert.ok(problems.some((p) => p.includes('docs/legacy/Bad Name.md: no Turkish')));
+    assert.ok(problems.some((p) => p.includes('docs/legacy/Sub Dir/: folder name')));
+  });
+  test('outside a git repository nothing is filtered', () => {
+    assert.ok(checkDocs(inRepo('docs/legacy/\n', false)).length >= 3);
+  });
+});
+
 describe('CLI', () => {
   const run = (...args: string[]) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8' });
   test('exit 0 for a clean tree, 1 for violations, 2 for usage errors', () => {
