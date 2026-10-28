@@ -13,11 +13,22 @@ const bash = resolveBash() as string; // null only without a usable bash, and th
 
 // the old client brand, built from pieces so this file does not match its own check
 const brand = ['af', 'ra'].join('');
-const brandCases = [brand, brand.toUpperCase(), `${brand} Lighting`, `${brand}-main`, `${brand}_signing`, `${brand}lighting`, `${brand}.png`];
+const brandCases = [
+  brand,
+  brand.toUpperCase(),
+  `${brand} Lighting`,
+  `${brand}-main`,
+  `${brand}_signing`,
+  `${brand}lighting`,
+  `${brand}.png`,
+];
 const harmless = ['afr', 'aid'].join(''); // contains the brand but is an ordinary word
 const harmlessTr = [['s', brand].join(''), ['s', brand, 'n'].join('')]; // Turkish words that contain it
 
-const withRepo = <T>(files: Record<string, string>, fn: (dir: string, git: (...args: string[]) => SpawnSyncReturns<string>) => T): T => {
+const withRepo = <T>(
+  files: Record<string, string>,
+  fn: (dir: string, git: (...args: string[]) => SpawnSyncReturns<string>) => T,
+): T => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-terms-')));
   try {
     const git = (...args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
@@ -102,7 +113,7 @@ describe('check-forbidden-terms', { skip: bash ? false : 'bash not found' }, () 
       assert.equal(text(`feat: x\n\n${harmless} ${harmlessTr.join(' ')}\n`).code, 0);
     });
     test('reads a file argument', () => {
-      withRepo({ 'MSG': `feat: x\n\n${brand}\n` }, (dir) => {
+      withRepo({ MSG: `feat: x\n\n${brand}\n` }, (dir) => {
         const r = spawnSync(bash, [script, '--text', 'MSG'], { cwd: dir, encoding: 'utf8' });
         assert.equal(r.status, 1);
       });

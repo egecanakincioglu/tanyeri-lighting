@@ -44,7 +44,7 @@ const line = `- \`${header}\` - Sepete adet butonunu ekledim.\n`;
 
 describe('check-journal-entry.sh', { skip: bash ? false : 'bash not found' }, () => {
   describe('--staged', () => {
-    test('passes with the header in backticks in today\'s journal', () => {
+    test("passes with the header in backticks in today's journal", () => {
       withRepo({ [`docs/journal/${today}.md`]: `# ${today}\n\n${line}` }, (dir) => {
         assert.equal(sh(dir, '--staged', header).status, 0);
       });
@@ -66,7 +66,7 @@ describe('check-journal-entry.sh', { skip: bash ? false : 'bash not found' }, ()
         assert.equal(sh(dir, '--staged', header).status, 1);
       });
     });
-    test('fails when the journal file is not today\'s', () => {
+    test("fails when the journal file is not today's", () => {
       withRepo({ 'docs/journal/2001-01-01.md': line }, (dir) => {
         assert.equal(sh(dir, '--staged', header).status, 1);
       });
@@ -86,7 +86,7 @@ describe('check-journal-entry.sh', { skip: bash ? false : 'bash not found' }, ()
       git('commit', '-q', '-m', `${header}\n\nbody`, ...extra);
       return git('rev-parse', 'HEAD').stdout.trim();
     };
-    test('passes for a commit that added the line to its day\'s journal', () => {
+    test("passes for a commit that added the line to its day's journal", () => {
       withRepo({ [`docs/journal/${today}.md`]: line }, (dir, git) => {
         assert.equal(sh(dir, '--commit', commit(dir, git)).status, 0);
       });

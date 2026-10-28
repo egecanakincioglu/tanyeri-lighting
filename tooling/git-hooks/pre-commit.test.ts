@@ -3,7 +3,16 @@
 // gitleaks-rules.test.ts.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
@@ -91,7 +100,10 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
       const r = spawnSync(bash, [path.join(tooling, 'git-hooks', 'pre-commit')], {
         cwd: repo,
         encoding: 'utf8',
-        env: { ...process.env, PATH: `${path.join(repo, '..', '.stub-bin')}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}` },
+        env: {
+          ...process.env,
+          PATH: `${path.join(repo, '..', '.stub-bin')}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+        },
       });
       assert.equal(r.status, 0, r.stderr);
     });

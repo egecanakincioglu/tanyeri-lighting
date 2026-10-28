@@ -40,7 +40,8 @@ export function detectBaseline({ root = process.cwd(), ref = 'HEAD' }: { root?: 
   const r = git(['log', '--diff-filter=A', '--reverse', '--format=%H', ref, '--', JOURNAL_MARKER], root);
   if (!r.ok) throw new Error(`git log failed: ${r.err.trim()}`);
   const first = r.out.split(/\r?\n/).find(Boolean);
-  if (!first) throw new Error(`no commit adds docs/journal/README.md in the history of ${ref}, so there is no baseline`);
+  if (!first)
+    throw new Error(`no commit adds docs/journal/README.md in the history of ${ref}, so there is no baseline`);
   return first;
 }
 

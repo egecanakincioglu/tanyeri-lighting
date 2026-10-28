@@ -17,7 +17,8 @@ const viaFile = (msg: string, ...flags: string[]) => {
   writeFileSync(file, msg);
   return spawnSync(bash, [script, ...flags, file], { encoding: 'utf8' });
 };
-const viaStdin = (msg: string, ...flags: string[]) => spawnSync(bash, [script, ...flags, '-'], { input: msg, encoding: 'utf8' });
+const viaStdin = (msg: string, ...flags: string[]) =>
+  spawnSync(bash, [script, ...flags, '-'], { input: msg, encoding: 'utf8' });
 
 const good = 'feat(cart): add quantity stepper\n\nThe cart now has a stepper.\n';
 

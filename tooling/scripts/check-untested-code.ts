@@ -22,7 +22,8 @@ const DECLARATION = /\.d\.[cm]?ts$/;
 /** True for a test file (by name or by living under __tests__/). */
 export const isTestFile = (file: string): boolean => TEST_FILE.test(file) || TEST_DIR.test(file);
 /** True for production source that needs a test: under src/, TypeScript, not a test and not a declaration file. */
-export const isGatedSource = (file: string): boolean => SOURCE.test(file) && !isTestFile(file) && !DECLARATION.test(file);
+export const isGatedSource = (file: string): boolean =>
+  SOURCE.test(file) && !isTestFile(file) && !DECLARATION.test(file);
 /** The Conventional Commits type of a header, or null. */
 export const commitType = (header: string): string | null => HEADER.exec(header)?.[1] ?? null;
 
@@ -90,7 +91,10 @@ export function main(argv: string[], cwd: string = process.cwd()): number {
     return 2;
   }
   // --no-renames reports a rename as delete plus add, so the new path is always seen as added.
-  const log = git(['log', '--no-merges', '--no-renames', '--name-status', '--format=%x01%H%x09%s', `${base}..${head}`], cwd);
+  const log = git(
+    ['log', '--no-merges', '--no-renames', '--name-status', '--format=%x01%H%x09%s', `${base}..${head}`],
+    cwd,
+  );
   if (!log.ok) {
     process.stderr.write(`check-untested-code: git log failed: ${log.err.trim()}\n`);
     return 2;

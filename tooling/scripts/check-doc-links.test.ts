@@ -80,7 +80,9 @@ describe('check-doc-links', () => {
 
   test('links inside code blocks and inline code are ignored', () => {
     const fence = '```';
-    const dir = tree({ 'docs/a.md': `${fence}md\n[x](nope.md)\n${fence}\n\nInline \`[y](nope2.md)\` text.\n[ok](a.md)\n` });
+    const dir = tree({
+      'docs/a.md': `${fence}md\n[x](nope.md)\n${fence}\n\nInline \`[y](nope2.md)\` text.\n[ok](a.md)\n`,
+    });
     const r = run(['--root', dir], os.tmpdir());
     assert.equal(r.code, 0, r.err);
   });

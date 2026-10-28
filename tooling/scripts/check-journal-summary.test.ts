@@ -85,9 +85,20 @@ describe('pure helpers', () => {
     assert.deepEqual(emptySections(noBullet), ['### Kararlar / öğrenilenler']);
     const missing = full.replace('### Yarım kalan / sıradaki\n- c\n', '');
     assert.deepEqual(emptySections(missing), ['### Yarım kalan / sıradaki']);
-    const belowOnly = ['## Özet', '### Yapılanlar', '### Kararlar / öğrenilenler', '### Yarım kalan / sıradaki', '## Commit günlüğü', '- `x`'].join('\n');
+    const belowOnly = [
+      '## Özet',
+      '### Yapılanlar',
+      '### Kararlar / öğrenilenler',
+      '### Yarım kalan / sıradaki',
+      '## Commit günlüğü',
+      '- `x`',
+    ].join('\n');
     assert.equal(emptySections(belowOnly).length, 3, 'a bullet in the commit log never fills a subsection');
-    assert.equal(emptySections('## Özet\n### Yapılanlar\n- a\n').length, 2, 'a file without the heading is all summary');
+    assert.equal(
+      emptySections('## Özet\n### Yapılanlar\n- a\n').length,
+      2,
+      'a file without the heading is all summary',
+    );
   });
 });
 
