@@ -112,9 +112,15 @@ export type Exec = (cmd: string, args?: string[]) => ExecResult;
 export type Level = 'ok' | 'warn' | 'error';
 export type CheckItem = { level: Level; name: string; detail: string; fix: string };
 
-/** Runs a command without a shell; never throws. */
+/** Runs a command without a shell (a .cmd shim through cmd.exe); never throws. */
 export function defaultExec(cmd: string, args: string[] = []): ExecResult {
-  const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 15000, windowsHide: true });
+  // Node refuses to spawn a .cmd shim directly (EINVAL); the arguments passed here are fixed strings, never user input.
+  const shim = /[.]cmd$/i.test(cmd);
+  const r = spawnSync(shim ? 'cmd.exe' : cmd, shim ? ['/d', '/c', cmd, ...args] : args, {
+    encoding: 'utf8',
+    timeout: 15000,
+    windowsHide: true,
+  });
   if (r.error)
     return {
       ok: false,
@@ -302,9 +308,19 @@ export function runChecks({
   else if (!gh.ok) items.push(item('error', 'gh', 'gh is not authenticated', 'gh auth login'));
   else items.push(item('ok', 'gh', 'installed and authenticated'));
 
-  // pnpm: a warning until the workspace needs it; it is a .cmd shim on Windows
+  // pnpm: a warning until the workspace needs it. A .cmd shim on Windows; or through Corepack, where it must match
+  // the version pinned in package.json (Corepack fetches exactly that version).
   const pnpm = exec(platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['--version']);
+  const viaCorepack = pnpm.ok ? null : exec(platform === 'win32' ? 'corepack.cmd' : 'corepack', ['pnpm', '--version']);
+  const packageJson = root ? safeRead(`${slashes(root)}/package.json`) : null;
+  const pinned = /"packageManager"\s*:\s*"pnpm@([^"+]+)/.exec(packageJson ?? '')?.[1];
   if (pnpm.ok) items.push(item('ok', 'pnpm', `v${pnpm.out}`));
+  else if (viaCorepack?.ok && viaCorepack.out === pinned)
+    items.push(item('ok', 'pnpm', `v${viaCorepack.out} via 'corepack pnpm'`));
+  else if (viaCorepack?.ok)
+    items.push(
+      item('warn', 'pnpm', `corepack pnpm is v${viaCorepack.out}, package.json pins ${pinned ?? 'nothing'}`, hint(platform, 'pnpm')),
+    );
   else items.push(item('warn', 'pnpm', 'pnpm is not available (not required yet)', hint(platform, 'pnpm')));
 
   // local-only paths must stay out of commits

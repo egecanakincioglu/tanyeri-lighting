@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
+  defaultExec,
   exitCodeFor,
   findCrlfFiles,
   formatReport,
@@ -288,6 +289,22 @@ describe('runChecks', () => {
     assert.equal(run(e).by.pnpm.level, 'ok');
   });
 
+  test('pnpm through Corepack is ok only when it matches the version pinned in package.json', () => {
+    const e = healthy();
+    e.cmds['pnpm --version'] = null;
+    e.files[`${ROOT}/package.json`] = '{ "packageManager": "pnpm@12.15.0+sha512.abc" }';
+    e.cmds['corepack pnpm --version'] = '12.15.0';
+    const ok = run(e).by.pnpm;
+    assert.equal(ok.level, 'ok');
+    assert.match(ok.detail, /corepack/);
+    e.cmds['corepack pnpm --version'] = '11.0.0';
+    const old = run(e).by.pnpm;
+    assert.equal(old.level, 'warn');
+    assert.match(old.detail, /11.0.0.*12.15.0/);
+    e.cmds['corepack pnpm --version'] = false;
+    assert.match(run(e).by.pnpm.detail, /not available/);
+  });
+
   test('local excludes: both entries are required', () => {
     const e = healthy();
     e.files[`${ROOT}/.git/info/exclude`] = `${LOCAL_DIR}\n`;
@@ -320,5 +337,15 @@ describe('cli', () => {
     assert.equal(typeof data.ok, 'boolean');
     assert.ok(Array.isArray(data.items) && data.items.length > 0);
     assert.equal(r.status, data.ok ? 0 : 1);
+  });
+});
+
+describe('defaultExec', () => {
+  test('runs a .cmd shim on Windows (Node refuses to spawn one without a shell)', { skip: process.platform !== 'win32' }, () => {
+    assert.equal(defaultExec('corepack.cmd', ['--version']).ok, true);
+  });
+  test('reports a missing program without throwing', () => {
+    const r = defaultExec('definitely-not-a-program-xyz', ['--version']);
+    assert.deepEqual([r.ok, r.missing], [false, true]);
   });
 });
