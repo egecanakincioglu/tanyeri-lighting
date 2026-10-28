@@ -7,7 +7,7 @@
 // when none of them is present the suggestion is PATCH. Exit codes: 0 ok, 1 invalid version or nothing to release,
 // 2 usage or environment error. Runs in the working directory (a git repository with a package.json).
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -92,6 +92,16 @@ export function setPackageVersion(text: string, version: string): string {
 const git = (cwd: string, ...args: string[]): string =>
   execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
+/** The file's text, or `fallback` when it does not exist (any other error is thrown). */
+function readOrDefault(file: string, fallback: string): string {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return fallback;
+    throw e;
+  }
+}
+
 function lastTag(cwd: string): string | null {
   try {
     return git(cwd, 'describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*').trim() || null;
@@ -146,7 +156,7 @@ export function main(
     const version = requested ?? nextVersion(base, commits);
     const section = renderSection(version, today, commits);
     const changelogPath = path.join(cwd, 'CHANGELOG.md');
-    const changelog = existsSync(changelogPath) ? readFileSync(changelogPath, 'utf8') : CHANGELOG_INTRO;
+    const changelog = readOrDefault(changelogPath, CHANGELOG_INTRO);
     if (!dryRun) {
       writeFileSync(pkgPath, setPackageVersion(pkgText, version));
       writeFileSync(changelogPath, insertSection(changelog, section));
