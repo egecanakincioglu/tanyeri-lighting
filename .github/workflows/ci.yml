@@ -1,0 +1,143 @@
+name: ci
+
+# Pull request title/description checks live in pr-text.yml (they also run on `edited`).
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  # All merge-rule checks in one job. Every step runs even when an earlier one failed, so a single run reports
+  # every violation. Dependabot commits can not carry journal lines or follow our branch/message conventions,
+  # so those steps are skipped for it; the rest runs for everyone.
+  policy:
+    name: policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: Branch name
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        run: tooling/scripts/check-branch-name.sh "$HEAD_REF"
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+      - name: Validate every commit message in the pull request
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          status=0
+          for sha in $(git rev-list --no-merges "$BASE_SHA..$HEAD_SHA"); do
+            msg="$(git log -1 --format=%B "$sha")"
+            if ! printf '%s\n' "$msg" | tooling/scripts/check-commit-msg.sh - || ! printf '%s\n' "$msg" | tooling/scripts/check-forbidden-terms.sh --text -; then
+              echo "::error::invalid commit message in $sha"
+              status=1
+            fi
+          done
+          exit $status
+      - name: Every commit adds its journal line
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          status=0
+          for sha in $(git rev-list --no-merges "$BASE_SHA..$HEAD_SHA"); do
+            tooling/scripts/check-journal-entry.sh --commit "$sha" || { echo "::error::missing journal line in $sha"; status=1; }
+          done
+          exit $status
+      # The step above only sees this pull request's commits; this one checks the whole history since the journal
+      # began, so a commit that skipped the journal (e.g. a Dependabot commit) is caught by the next human pull request.
+      - name: No commit in the history is missing from the journal
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-journal-coverage.mjs --ref "$HEAD_SHA"
+      # The summary is the hand-off between devices and sessions, so every pull request must update it.
+      - name: The journal summary is updated in this pull request
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-journal-summary.mjs --base "$BASE_SHA" --head "$HEAD_SHA"
+      # A stolen device or token can not forge the owner's commits. Runs for everyone, including Dependabot
+      # (GitHub signs those commits itself).
+      - name: Every commit in the pull request is verified by GitHub
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-signed-commits.mjs
+      - name: Source changes come with tests
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-untested-code.mjs --base "$BASE_SHA" --head "$HEAD_SHA"
+      - name: Doc links
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-doc-links.mjs
+      - name: Docs are Turkish and have ASCII kebab-case names
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-docs-language.mjs
+      - name: Scan tracked files and paths for forbidden terms
+        if: ${{ !cancelled() }}
+        run: tooling/scripts/check-forbidden-terms.sh --all
+      - name: Scan tracked paths for forbidden files
+        if: ${{ !cancelled() }}
+        run: tooling/scripts/check-forbidden-paths.sh --all
+      - name: Scan full history for leaked secrets
+        if: ${{ !cancelled() }}
+        run: |
+          image="$(node tooling/scripts/ci-image.mjs gitleaks)"
+          docker run --rm -v "$PWD:/repo" "$image" git /repo --redact --verbose
+
+  tooling-linux:
+    name: tooling (linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: Unit tests of the tooling
+        run: node --test "tooling/**/*.test.mjs"
+      # Syntax check of every shell script and of the extensionless git hooks.
+      - name: Shell syntax
+        run: |
+          set -euo pipefail
+          { find tooling -name '*.sh'; find tooling/git-hooks -type f ! -name '*.*'; } | while IFS= read -r f; do
+            bash -n "$f"
+          done
+
+  tooling-windows:
+    name: tooling (windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # Git Bash on the runner, the same shell the tooling targets on a developer's Windows machine.
+      - name: Unit tests of the tooling
+        shell: bash
+        run: node --test "tooling/**/*.test.mjs"

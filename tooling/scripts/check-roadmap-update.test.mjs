@@ -38,6 +38,11 @@ describe('opt-out line', () => {
   });
   test('rejects a missing, empty or placeholder reason and other separators', () => {
     assert.equal(naReason('Roadmap: n/a'), null);
+    assert.equal(naReason('<!-- Roadmap: n/a - example -->'), null);
+    assert.equal(naReason('<!<!---->--\nRoadmap: n/a - hidden\n-->'), null);
+    assert.equal(naReason('<!-- never closed\nRoadmap: n/a - hidden'), null);
+    assert.equal(naReason('<!-- a -->\nRoadmap: n/a - visible <!-- b -->'), 'visible');
+    assert.equal(naReason('Roadmap: n/a - real\n<!-- never closed'), 'real');
     assert.equal(naReason('Roadmap: n/a -'), null);
     assert.equal(naReason('Roadmap: n/a -   '), null);
     assert.equal(naReason('Roadmap: n/a - <reason>'), null);
