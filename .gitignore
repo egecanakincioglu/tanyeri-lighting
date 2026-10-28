@@ -72,3 +72,6 @@ gitleaks-report*
 
 # Local read-only reference of the legacy site; never tracked
 /docs/old-source-code/
+
+# Site audit output
+/site-audit-report/
