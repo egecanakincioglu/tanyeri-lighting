@@ -643,9 +643,7 @@ function evalGhApi(args: Word[]): void {
 function isGithubApiHost(arg: string): boolean {
   const value = arg.replace(/^-[^=]*=/, '');
   if (/^host:\s*api\.github\.com\.?(:\d+)?$/i.test(value)) return true;
-  const authority = value
-    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
-    .split(/[/?#]/, 1)[0];
+  const authority = value.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '').split(/[/?#]/, 1)[0];
   const host = authority.slice(authority.lastIndexOf('@') + 1).replace(/:\d*$/, '');
   return host.replace(/\.$/, '').toLowerCase() === 'api.github.com';
 }
@@ -1002,12 +1000,7 @@ function main(): void {
   const cmd = input.tool_input?.command;
   if (cmd === undefined || cmd === null) return;
   if (typeof cmd !== 'string') throw new Error('tool_input.command is not a string');
-  if (
-    !/git|gh|curl|wget|http|xh|export|declare|typeset/i.test(
-      cmd,
-    )
-  )
-    return;
+  if (!/git|gh|curl|wget|http|xh|export|declare|typeset/i.test(cmd)) return;
 
   let cwd = process.cwd();
   if (typeof input.cwd === 'string' && input.cwd)

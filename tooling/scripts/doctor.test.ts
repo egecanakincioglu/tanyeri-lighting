@@ -362,9 +362,13 @@ describe('cli', () => {
 });
 
 describe('defaultExec', () => {
-  test('runs a .cmd shim on Windows (Node refuses to spawn one without a shell)', { skip: process.platform !== 'win32' }, () => {
-    assert.equal(defaultExec('corepack.cmd', ['--version']).ok, true);
-  });
+  test(
+    'runs a .cmd shim on Windows (Node refuses to spawn one without a shell)',
+    { skip: process.platform !== 'win32' },
+    () => {
+      assert.equal(defaultExec('corepack.cmd', ['--version']).ok, true);
+    },
+  );
   test('reports a missing program without throwing', () => {
     const r = defaultExec('definitely-not-a-program-xyz', ['--version']);
     assert.deepEqual([r.ok, r.missing], [false, true]);

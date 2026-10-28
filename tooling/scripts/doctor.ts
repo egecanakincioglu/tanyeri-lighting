@@ -232,7 +232,8 @@ export function runChecks({
     let pubText = null;
     let problem = null;
     if (keyFile === null) {
-      if (keySetting) pubText = keySetting; // a literal public key
+      if (keySetting)
+        pubText = keySetting; // a literal public key
       else problem = 'user.signingkey is not set';
     } else {
       const pubFile = keyFile.endsWith('.pub') ? keyFile : `${keyFile}.pub`;
@@ -296,7 +297,12 @@ export function runChecks({
   const runtime = ['docker', 'podman'].find((c) => exec(c, ['info']).ok);
   if (!pinnedLeaks)
     items.push(
-      item('error', 'gitleaks', 'the pinned version cannot be read from tooling/ci-images/Dockerfile', 'git restore tooling/ci-images/Dockerfile'),
+      item(
+        'error',
+        'gitleaks',
+        'the pinned version cannot be read from tooling/ci-images/Dockerfile',
+        'git restore tooling/ci-images/Dockerfile',
+      ),
     );
   else if (leaksVersion === pinnedLeaks) items.push(item('ok', 'gitleaks', `binary ${leaksVersion}`));
   else if (runtime)
@@ -339,7 +345,12 @@ export function runChecks({
     items.push(item('ok', 'pnpm', `v${viaCorepack.out} via 'corepack pnpm'`));
   else if (viaCorepack?.ok)
     items.push(
-      item('warn', 'pnpm', `corepack pnpm is v${viaCorepack.out}, package.json pins ${pinned ?? 'nothing'}`, hint(platform, 'pnpm')),
+      item(
+        'warn',
+        'pnpm',
+        `corepack pnpm is v${viaCorepack.out}, package.json pins ${pinned ?? 'nothing'}`,
+        hint(platform, 'pnpm'),
+      ),
     );
   else items.push(item('warn', 'pnpm', 'pnpm is not available (not required yet)', hint(platform, 'pnpm')));
 
