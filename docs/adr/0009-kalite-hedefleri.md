@@ -1,6 +1,6 @@
 # ADR 0009: Kalite hedefleri — SEO, yapay zekâ aramasında görünürlük, erişilebilirlik, performans, ajan erişimi ve her cihazda duyarlı tasarım
 
-Durum: Kabul edildi
+Durum: Kabul edildi; bir kısmı [ADR 0010](0010-kalite-esikleri.md) ile değişti
 Tarih: 2026-10-28
 
 ## Bağlam
