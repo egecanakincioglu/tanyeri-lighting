@@ -45,6 +45,13 @@ describe('changelogSection', () => {
     assert.equal(changelogSection('## [1.0.0] - 2026-10-30\n\n- x\n', '1.0'), null);
     assert.equal(changelogSection('## [1x0x0] - 2026-10-30\n\n- x\n', '1.0.0'), null);
   });
+  test('a heading without a valid date is not a section', () => {
+    assert.equal(changelogSection('## [1.0.0] - soon\n\n- x\n', '1.0.0'), null);
+    assert.equal(changelogSection('## [1.0.0] - 2026-10-30 extra\n\n- x\n', '1.0.0'), null);
+  });
+  test('a version with regex characters is only compared as text', () => {
+    assert.equal(changelogSection('## [1.0.0] - 2026-10-30\n\n- x\n', '(.*)+'), null);
+  });
   test('handles CRLF line endings', () => {
     assert.equal(changelogSection(CHANGELOG.replaceAll('\n', '\r\n'), '1.0.0'), '- first release');
   });
