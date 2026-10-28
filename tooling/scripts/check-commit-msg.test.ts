@@ -5,19 +5,19 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-commit-msg.sh');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 const dir = mkdtempSync(path.join(os.tmpdir(), 'commit-msg-'));
 process.on('exit', () => rmSync(dir, { recursive: true, force: true }));
 
-const viaFile = (msg, ...flags) => {
+const viaFile = (msg: string, ...flags: string[]) => {
   const file = path.join(dir, 'MSG');
   writeFileSync(file, msg);
   return spawnSync(bash, [script, ...flags, file], { encoding: 'utf8' });
 };
-const viaStdin = (msg, ...flags) => spawnSync(bash, [script, ...flags, '-'], { input: msg, encoding: 'utf8' });
+const viaStdin = (msg: string, ...flags: string[]) => spawnSync(bash, [script, ...flags, '-'], { input: msg, encoding: 'utf8' });
 
 const coAuthor = ['Co-Authored', 'By: A <a@example.com>'].join('-');
 const good = 'feat(cart): add quantity stepper\n\nThe cart now has a stepper.\n';

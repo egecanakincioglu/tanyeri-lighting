@@ -1,15 +1,15 @@
 // Tests for check-forbidden-terms.sh against a throwaway git repository (files are only added to the index).
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-forbidden-terms.sh');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 // built from pieces so this file does not match its own check
 const names = [
   ['cl', 'aude'],
@@ -23,10 +23,10 @@ const names = [
   ['pony', 'tail'],
 ].map((p) => p.join(''));
 
-const withRepo = (files, fn) => {
+const withRepo = <T>(files: Record<string, string>, fn: (dir: string, git: (...args: string[]) => SpawnSyncReturns<string>) => T): T => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-terms-')));
   try {
-    const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+    const git = (...args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
     git('init', '-q');
     for (const [file, content] of Object.entries(files)) {
       mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
@@ -38,13 +38,13 @@ const withRepo = (files, fn) => {
     rmSync(dir, { recursive: true, force: true });
   }
 };
-const run = (mode, files) =>
+const run = (mode: string, files: Record<string, string>) =>
   withRepo(files, (dir, git) => {
     if (mode === '--all') git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'x');
     const r = spawnSync(bash, [script, mode], { cwd: dir, encoding: 'utf8' });
     return { code: r.status, err: r.stderr };
   });
-const text = (input) => {
+const text = (input: string) => {
   const r = spawnSync(bash, [script, '--text', '-'], { input, encoding: 'utf8' });
   return { code: r.status, err: r.stderr };
 };

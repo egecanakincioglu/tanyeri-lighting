@@ -5,15 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-forbidden-paths.sh');
-const bash = resolveBash();
+const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 
-const run = (mode, paths) => {
+const run = (mode: string, paths: string[]) => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-paths-')));
   try {
-    const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+    const git = (...args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
     git('init', '-q');
     for (const p of paths) {
       mkdirSync(path.dirname(path.join(dir, p)), { recursive: true });
@@ -88,7 +88,7 @@ describe('check-forbidden-paths.sh', { skip: bash ? false : 'bash not found' }, 
   test('--staged ignores tracked files that are not staged now', () => {
     const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-paths-')));
     try {
-      const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+      const git = (...args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
       git('init', '-q');
       writeFileSync(path.join(dir, '.env'), 'x\n');
       git('add', '-A');

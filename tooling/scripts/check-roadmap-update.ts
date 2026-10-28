@@ -6,7 +6,7 @@
 //
 // The reason must not be empty or an unfilled <placeholder>.
 //
-//   PR_BODY="$BODY" node tooling/scripts/check-roadmap-update.mjs --base <sha> --head <sha>
+//   PR_BODY="$BODY" node tooling/scripts/check-roadmap-update.ts --base <sha> --head <sha>
 //
 // The pull request description is read from the PR_BODY environment variable and is only ever treated as data.
 // Exit codes: 0 ok, 1 rule violated, 2 usage or git error. Portable: Node only.
@@ -20,14 +20,14 @@ const PLAN = /^docs\/plans\/(?!README\.md$)[^/]+\.md$/;
 const NA_LINE = /^Roadmap: n\/a - (\S.*)$/m;
 
 /** Files in `changedFiles` that count as a roadmap or plan update. */
-export function roadmapFiles(changedFiles) {
+export function roadmapFiles(changedFiles: string[]): string[] {
   return changedFiles.filter((f) => f === ROADMAP || PLAN.test(f));
 }
 
 // Repeats until stable so nesting such as "<!<!---->--" cannot rebuild an opener; an unterminated one hides the rest.
-function stripComments(input) {
+function stripComments(input: string): string {
   let text = input;
-  for (let prev = null; prev !== text; ) {
+  for (let prev: string | null = null; prev !== text; ) {
     prev = text;
     text = text.replace(/<!--[\s\S]*?-->/g, '');
   }
@@ -36,7 +36,7 @@ function stripComments(input) {
 }
 
 /** The reason of a valid `Roadmap: n/a - <reason>` line in the PR body, or null. */
-export function naReason(body) {
+export function naReason(body: unknown): string | null {
   const text = stripComments(String(body ?? '')).replace(/\r/g, '');
   const m = NA_LINE.exec(text);
   if (!m) return null;
@@ -46,7 +46,7 @@ export function naReason(body) {
 }
 
 /** Decision: { ok, message }. */
-export function evaluate({ changedFiles, body }) {
+export function evaluate({ changedFiles, body }: { changedFiles: string[]; body: unknown }): { ok: boolean; message: string } {
   const touched = roadmapFiles(changedFiles);
   if (touched.length) return { ok: true, message: `roadmap: updated (${touched.join(', ')})` };
   const reason = naReason(body);
@@ -59,7 +59,7 @@ export function evaluate({ changedFiles, body }) {
   };
 }
 
-function git(args, cwd) {
+function git(args: string[], cwd?: string): { ok: boolean; out: string; err: string } {
   const r = spawnSync('git', args, {
     cwd,
     encoding: 'utf8',
@@ -74,8 +74,8 @@ function git(args, cwd) {
   };
 }
 
-export function main(argv, env = process.env, cwd = process.cwd()) {
-  const get = (flag) => {
+export function main(argv: string[], env: NodeJS.ProcessEnv = process.env, cwd: string = process.cwd()): number {
+  const get = (flag: string): string | undefined => {
     const i = argv.indexOf(flag);
     return i === -1 ? undefined : argv[i + 1];
   };

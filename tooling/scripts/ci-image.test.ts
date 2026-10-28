@@ -3,9 +3,9 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { imageVersion, main, parseManifest, resolveImage } from './ci-image.mjs';
+import { imageVersion, main, parseManifest, resolveImage } from './ci-image.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ci-image.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ci-image.ts');
 const DIGEST = `sha256:${'a'.repeat(64)}`;
 const MANIFEST = [
   '# comment',
@@ -53,7 +53,7 @@ describe('main', () => {
     assert.equal(main(['nope'], MANIFEST, quiet, quiet), 1);
   });
   test('prints the reference', () => {
-    const out = [];
+    const out: string[] = [];
     assert.equal(
       main(['gitleaks'], MANIFEST, (s) => out.push(s), quiet),
       0,
@@ -61,7 +61,7 @@ describe('main', () => {
     assert.deepEqual(out, [`ghcr.io/gitleaks/gitleaks:v8.30.1@${DIGEST}`]);
   });
   test('--version prints only the version', () => {
-    const out = [];
+    const out: string[] = [];
     assert.equal(
       main(['--version', 'gitleaks'], MANIFEST, (s) => out.push(s), quiet),
       0,

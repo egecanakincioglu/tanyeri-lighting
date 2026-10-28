@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { gitBashFromExecPath, resolveBash } from './bash.mjs';
+import { gitBashFromExecPath, resolveBash } from './bash.ts';
 
 const exists =
-  (...files) =>
-  (f) =>
+  (...files: string[]) =>
+  (f: string) =>
     files.includes(f);
 
 describe('gitBashFromExecPath', () => {
@@ -48,7 +48,7 @@ describe('resolveBash', () => {
     assert.equal(resolveBash({ platform: 'linux', run: () => assert.fail('must not run git') }), 'bash');
   });
   test('Windows resolves Git Bash via git --exec-path', () => {
-    const run = (cmd, args) =>
+    const run = (cmd: string, args: string[]) =>
       cmd === 'git' && args[0] === '--exec-path' ? 'C:/Program Files/Git/mingw64/libexec/git-core' : null;
     assert.equal(
       resolveBash({ platform: 'win32', run, existsFn: exists('C:/Program Files/Git/bin/bash.exe') }),

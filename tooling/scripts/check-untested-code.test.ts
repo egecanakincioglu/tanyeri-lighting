@@ -1,4 +1,4 @@
-// Tests for check-untested-code.mjs: pure helpers plus the CLI against real temporary git repositories.
+// Tests for check-untested-code.ts: pure helpers plus the CLI against real temporary git repositories.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -6,9 +6,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { commitType, evaluate, isGatedSource, isTestFile, parseLog } from './check-untested-code.mjs';
+import { commitType, evaluate, isGatedSource, isTestFile, parseLog } from './check-untested-code.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-untested-code.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-untested-code.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'untested-'));
 let counter = 0;
 after(() => rmSync(root, { recursive: true, force: true }));
@@ -65,7 +65,7 @@ describe('log parsing', () => {
 });
 
 describe('decision', () => {
-  const c = (header, ...files) => ({
+  const c = (header: string, ...files: string[]) => ({
     sha: header,
     header,
     files: files.map((f) => ({ status: f[0], file: f.slice(2) })),
@@ -110,7 +110,7 @@ describe('decision', () => {
 });
 
 describe('CLI', () => {
-  function sh(cwd, ...args) {
+  function sh(cwd: string, ...args: string[]): string {
     const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
     assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
     return r.stdout.trim();
@@ -132,7 +132,7 @@ describe('CLI', () => {
     sh(repo, 'commit', '-q', '-m', 'chore: base');
     const base = sh(repo, 'rev-parse', 'HEAD');
     sh(repo, 'switch', '-q', '-c', 'feat/x');
-    const commit = (header, files, removed = []) => {
+    const commit = (header: string, files: Record<string, string>, removed: string[] = []) => {
       for (const [rel, text] of Object.entries(files)) {
         mkdirSync(path.dirname(path.join(repo, rel)), { recursive: true });
         writeFileSync(path.join(repo, rel), text);
@@ -143,7 +143,7 @@ describe('CLI', () => {
     };
     return { repo, base, commit, head: () => sh(repo, 'rev-parse', 'HEAD') };
   }
-  const run = (repo, base, head) =>
+  const run = (repo: string, base: string, head: string) =>
     spawnSync('node', [SCRIPT, '--base', base, '--head', head], { cwd: repo, encoding: 'utf8' });
 
   test('a feat with source and no test fails and lists the commit and its files', () => {

@@ -1,4 +1,4 @@
-// Tests for check-roadmap-update.mjs. Pure decision tests plus the CLI against real temporary git repositories.
+// Tests for check-roadmap-update.ts. Pure decision tests plus the CLI against real temporary git repositories.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -6,9 +6,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { evaluate, naReason, roadmapFiles } from './check-roadmap-update.mjs';
+import { evaluate, naReason, roadmapFiles } from './check-roadmap-update.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-roadmap-update.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-roadmap-update.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'roadmap-test-'));
 let counter = 0;
 after(() => rmSync(root, { recursive: true, force: true }));
@@ -80,12 +80,12 @@ describe('decision', () => {
 });
 
 describe('CLI', () => {
-  function sh(cwd, ...args) {
+  function sh(cwd: string, ...args: string[]): string {
     const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
     assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
     return r.stdout.trim();
   }
-  function makeRepo(changed) {
+  function makeRepo(changed: string[]) {
     const repo = path.join(root, `r${counter++}`);
     mkdirSync(repo, { recursive: true });
     sh(repo, 'init', '-q', '-b', 'main');
@@ -108,7 +108,7 @@ describe('CLI', () => {
     sh(repo, 'commit', '-q', '-m', 'chore: change');
     return { repo, base, head: sh(repo, 'rev-parse', 'HEAD') };
   }
-  const run = (repo, base, head, body) =>
+  const run = (repo: string, base: string, head: string, body?: string) =>
     spawnSync('node', [SCRIPT, '--base', base, '--head', head], {
       cwd: repo,
       encoding: 'utf8',

@@ -8,24 +8,24 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DIR = path.join(ROOT, '.github', 'workflows');
 const files = readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f));
-const read = (f) => readFileSync(path.join(DIR, f), 'utf8');
+const read = (f: string) => readFileSync(path.join(DIR, f), 'utf8');
 /** Lines without full-line comments. */
-const codeLines = (f) => read(f).split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
+const codeLines = (f: string) => read(f).split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
 
 /** Job blocks: jobs are the 2-space-indented keys under `jobs:`. */
-function jobs(f) {
+function jobs(f: string) {
   const lines = read(f).split(/\r?\n/);
   const start = lines.findIndex((l) => /^jobs:\s*$/.test(l));
   assert.ok(start >= 0, `${f}: jobs: block`);
-  const out = [];
+  const out: { id: string; lines: string[] }[] = [];
   for (const l of lines.slice(start + 1)) {
     const m = /^ {2}([A-Za-z0-9_-]+):\s*$/.exec(l);
     if (m) out.push({ id: m[1], lines: [] });
-    else if (out.length) out.at(-1).lines.push(l);
+    else if (out.length) out.at(-1)!.lines.push(l);
   }
   return out.map((j) => ({ id: j.id, text: j.lines.join('\n') }));
 }
-const jobName = (j) => /^ {4}name:\s*(.+?)\s*$/m.exec(j.text)?.[1];
+const jobName = (j: { text: string }) => /^ {4}name:\s*(.+?)\s*$/m.exec(j.text)?.[1];
 
 test('there are workflow files', () => assert.ok(files.length >= 3));
 
@@ -43,14 +43,14 @@ describe('every workflow', () => {
       const lines = read(f).split(/\r?\n/);
       const i = lines.findIndex((l) => /^permissions:\s*$/.test(l));
       assert.ok(i >= 0, 'top-level permissions block');
-      assert.match(lines[i + 1], /^ {2}contents: read\s*$/);
+      assert.match(lines[i + 1] as string, /^ {2}contents: read\s*$/);
     });
 
     test(`${f}: every job has a time limit and a GitHub-hosted runner`, () => {
       for (const j of jobs(f)) {
         assert.match(j.text, /^ {4}timeout-minutes:\s*\d+\s*$/m, `${f} job ${j.id}: timeout-minutes`);
         const runner = /^ {4}runs-on:\s*(\S+)\s*$/m.exec(j.text)?.[1];
-        assert.ok(['ubuntu-latest', 'windows-latest'].includes(runner), `${f} job ${j.id}: ${runner}`);
+        assert.ok(['ubuntu-latest', 'windows-latest'].includes(runner as string), `${f} job ${j.id}: ${runner}`);
       }
     });
 
