@@ -14,7 +14,7 @@ import {
   parseNodeMajor,
   runChecks,
   signingKeyPath,
-} from './doctor.mjs';
+} from './doctor.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = '/work/tanyeri';
@@ -24,9 +24,17 @@ const KEY = 'AAAAC3NzaC1lZDI1NTE5AAAAIabc123'; // gitleaks:allow
 const PUB = `ssh-ed25519 ${KEY} dev@example.com`;
 const LOCAL_DIR = '.' + 'cl' + 'aude';
 
+type Env = {
+  cfg: Record<string, string>;
+  cmds: Record<string, string | false | null>;
+  files: Record<string, string>;
+  nodeVersion: string;
+  platform: string;
+};
+
 // A machine on which every check passes; each test breaks one thing.
-function healthy() {
-  const cfg = {
+function healthy(): Env {
+  const cfg: Record<string, string> = {
     'user.name': 'Dev',
     'user.email': 'dev@example.com',
     'core.hooksPath': `${ROOT}/tooling/git-hooks`,
@@ -36,7 +44,7 @@ function healthy() {
     'gpg.ssh.allowedSignersFile': `${HOME}/.ssh/signers`,
     'core.autocrlf': 'false',
   };
-  const cmds = {
+  const cmds: Record<string, string | false | null> = {
     'git ls-files --eol': 'i/lf    w/lf    attr/text=auto eol=lf          \tREADME.md',
     'git rev-parse --git-path info/exclude': '.git/info/exclude',
     'gitleaks version': '8.30.1',
@@ -44,18 +52,18 @@ function healthy() {
     'pnpm --version': '10.0.0',
     'pnpm.cmd --version': '10.0.0',
   };
-  const files = {
+  const files: Record<string, string> = {
     [`${ROOT}/.node-version`]: '24\n',
     [`${HOME}/.ssh/k.pub`]: `${PUB}\n`,
     [`${HOME}/.ssh/signers`]: `dev@example.com ssh-ed25519 ${KEY}\n`,
     [`${ROOT}/.git/info/exclude`]: `# comment\n${LOCAL_DIR}/\n/.mcp.json\n`,
   };
-  const env = { cfg, cmds, files, nodeVersion: 'v24.1.0', platform: 'linux' };
+  const env: Env = { cfg, cmds, files, nodeVersion: 'v24.1.0', platform: 'linux' };
   return env;
 }
 
-function run(env) {
-  const exec = (cmd, args) => {
+function run(env: Env) {
+  const exec = (cmd: string, args: string[] = []) => {
     const line = `${cmd} ${args.join(' ')}`;
     if (cmd === 'git' && args[0] === 'config') {
       const v = env.cfg[args[2]];
@@ -77,8 +85,8 @@ function run(env) {
     root: ROOT,
     home: HOME,
     exec,
-    fileExists: (p) => p.replaceAll('\\', '/') in env.files,
-    readText: (p) => {
+    fileExists: (p: string) => p.replaceAll('\\', '/') in env.files,
+    readText: (p: string) => {
       if (!(p in env.files)) throw new Error('ENOENT');
       return env.files[p];
     },
@@ -132,7 +140,7 @@ describe('pure helpers', () => {
     assert.deepEqual(missingExcludes(null), [LOCAL_DIR, '.mcp.json']);
   });
   test('hints differ per OS', () => {
-    for (const tool of ['node', 'gitleaks', 'gh', 'pnpm'])
+    for (const tool of ['node', 'gitleaks', 'gh', 'pnpm'] as const)
       assert.notEqual(hint('win32', tool), hint('linux', tool));
   });
 });
@@ -307,7 +315,7 @@ describe('runChecks', () => {
 
 describe('cli', () => {
   test('--json prints parseable output with ok and items', () => {
-    const r = spawnSync(process.execPath, [path.join(HERE, 'doctor.mjs'), '--json'], { encoding: 'utf8' });
+    const r = spawnSync(process.execPath, [path.join(HERE, 'doctor.ts'), '--json'], { encoding: 'utf8' });
     const data = JSON.parse(r.stdout);
     assert.equal(typeof data.ok, 'boolean');
     assert.ok(Array.isArray(data.items) && data.items.length > 0);

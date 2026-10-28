@@ -8,10 +8,10 @@
 //   3. a commit was made today but today's journal summary ("Yapılanlar" / "Yarım kalan / sıradaki") is missing or empty.
 // All problems are reported together in one Turkish reason. Portable: Node only (no jq, stat).
 //
-//   node tooling/scripts/agent-handoff-guard.mjs --agent-dir <path>
+//   node tooling/scripts/agent-handoff-guard.ts --agent-dir <path>
 //
 // <path> is the local (git-ignored) agent folder holding `handoff.md` and `state/session-<id>.start`
-// (written by agent-session-context.mjs). Reads {session_id, stop_hook_active} as JSON on stdin.
+// (written by agent-session-context.ts). Reads {session_id, stop_hook_active} as JSON on stdin.
 // A reminder must never trap the session: on any internal error it prints a note to stderr and exits 0, and a
 // failure while evaluating one rule never hides the others. `stop_hook_active` prevents block loops.
 import { spawnSync } from 'node:child_process';
@@ -20,7 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Resolve symlinks and Windows 8.3 short names so that paths from git and from the caller compare equal.
-function canonical(p) {
+function canonical(p: string): string {
   try {
     return realpathSync.native(p);
   } catch {
@@ -28,13 +28,13 @@ function canonical(p) {
   }
 }
 
-function git(args, cwd, { raw = false } = {}) {
+function git(args: string[], cwd: string, { raw = false }: { raw?: boolean } = {}): { ok: boolean; out: string } {
   const r = spawnSync('git', args, { cwd, encoding: 'utf8', timeout: 15000, windowsHide: true });
   return { ok: !r.error && r.status === 0, out: raw ? (r.stdout ?? '') : (r.stdout ?? '').trim() };
 }
 
 /** The Turkish block reason shown to the agent. `rel` is the agent folder relative to the repository. */
-export function blockReason(rel) {
+export function blockReason(rel: string): string {
   return `Bu oturumda yeni commit ve/veya commit edilmemiş değişiklik var ama ${rel}/handoff.md güncellenmedi (son güncelleme bu oturumun başlangıcından veya son commit'ten eski). Bitirmeden önce ${rel}/handoff.md dosyasını güncelle: # Devir notu, Tarih/saat, ## Ne yapılıyordu, ## Durum, ## Bekleyen soru/onay, ## Sıradaki adım (en fazla ~40 satır). Bu dosyayı commit'leme.`;
 }
 
@@ -43,14 +43,24 @@ export function blockReason(rel) {
  * start: session start, handoff: handoff.md mtime (0 if missing), newestCommit: newest committer date on any branch,
  * dirty: tracked changes exist.
  */
-export function shouldBlock({ start, handoff, newestCommit, dirty }) {
+export function shouldBlock({
+  start,
+  handoff,
+  newestCommit,
+  dirty,
+}: {
+  start: number;
+  handoff: number;
+  newestCommit: number;
+  dirty: boolean;
+}): boolean {
   const newerCommit = newestCommit > start;
   if (!(newerCommit || dirty)) return false;
   return handoff < Math.max(newestCommit, start);
 }
 
 /** True when `text` mentions the branch `name` as a whole token (feat/x must not match feat/xy or feat/x/y). */
-export function namesBranch(text, name) {
+export function namesBranch(text: string, name: string): boolean {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`(?<![A-Za-z0-9._/-])${escaped}(?![A-Za-z0-9_/-]|\\.[A-Za-z0-9])`).test(text);
 }
@@ -60,7 +70,21 @@ export function namesBranch(text, name) {
  * Returns null (nothing to say, or covered by a fresh note that names every branch) or the Turkish problem text.
  * `rel` is the agent folder relative to the repository.
  */
-export function unpushedDecision({ branches, handoff, newestChange, handoffText, rel }) {
+export type UnpushedBranch = { name: string; count: number; upstream: string };
+
+export function unpushedDecision({
+  branches,
+  handoff,
+  newestChange,
+  handoffText,
+  rel,
+}: {
+  branches: UnpushedBranch[];
+  handoff: number;
+  newestChange: number;
+  handoffText: string | null | undefined;
+  rel: string;
+}): string | null {
   if (!branches.length) return null;
   const stale = handoff < newestChange;
   const unnamed = branches.filter((b) => !namesBranch(handoffText ?? '', b.name));
@@ -69,7 +93,7 @@ export function unpushedDecision({ branches, handoff, newestChange, handoffText,
     (b) =>
       `- "${b.name}": ${b.count} commit ${b.upstream ? `${b.upstream} dalında yok` : 'hiçbir uzak dalda yok (upstream tanımlı değil)'}`,
   );
-  const todo = [];
+  const todo: string[] = [];
   if (stale) todo.push(`${rel}/handoff.md son commit ve değişiklikten eski; dosyayı bunlardan SONRA güncelle`);
   if (unnamed.length)
     todo.push(`${rel}/handoff.md şu dalların adını içermiyor: ${unnamed.map((b) => b.name).join(', ')}`);
@@ -77,14 +101,14 @@ export function unpushedDecision({ branches, handoff, newestChange, handoffText,
 }
 
 /** Turkish problem text for a missing or empty journal summary. `file` is the journal path relative to the root. */
-export function journalReason(file, problem) {
+export function journalReason(file: string, problem: string): string {
   return `Bugün commit yapıldı ama bugünün günlüğünün özeti eksik (${file}: ${problem}). Günün Özet bölümünü güncelle (main'e doğrudan yazılmaz; ilgili dalda):"### Yapılanlar" ve "### Yarım kalan / sıradaki" altında en az birer madde olmalı (kısa, Türkçe); böylece repo düzeyindeki devir notu güncel kalır.`;
 }
 
 /** Non-blank lines under the `### <title>` subsection of a journal file (up to the next heading). */
-export function subsectionLines(text, title) {
+export function subsectionLines(text: string, title: string): string[] {
   const lines = text.replace(/\r\n/g, '\n').split('\n');
-  const out = [];
+  const out: string[] = [];
   let on = false;
   for (const line of lines) {
     if (line.startsWith('### ') || line.startsWith('## ') || line.startsWith('# ')) {
@@ -97,34 +121,36 @@ export function subsectionLines(text, title) {
 }
 
 /** Problem text when the journal summary is incomplete, or null. `text` is null when the file is missing. */
-export function journalProblem(file, text) {
+export function journalProblem(file: string, text: string | null): string | null {
   if (text === null) return 'dosya yok';
   const missing = ['Yapılanlar', 'Yarım kalan / sıradaki'].filter((t) => subsectionLines(text, t).length === 0);
   return missing.length ? `boş veya eksik bölüm: ${missing.map((t) => `"${t}"`).join(', ')}` : null;
 }
 
 /** The reason to show: the single problem as is, or a numbered list of all of them. */
-export function combineReasons(problems) {
+export function combineReasons(problems: string[]): string {
   if (problems.length === 1) return problems[0];
   return `Oturumu bitirmeden önce şu sorunları gider (hepsi):\n${problems.map((p, i) => `${i + 1}. ${p}`).join('\n')}`;
 }
 
-function pad(n) {
+function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
 
 /** Local date as YYYY-MM-DD. */
-export function localDate(d = new Date()) {
+export function localDate(d: Date = new Date()): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 // ---------------------------------------------------------------- rules
 
-function staleHandoffProblem(root, agentDir, input) {
+type HookInput = { session_id?: unknown; stop_hook_active?: unknown };
+
+function staleHandoffProblem(root: string, agentDir: string, input: HookInput): string | null {
   const sessionId = typeof input.session_id === 'string' ? input.session_id : '';
   if (!sessionId) return null;
 
-  let start;
+  let start: number;
   try {
     const safe = sessionId.replace(/[^A-Za-z0-9._-]/g, '_');
     const text = readFileSync(path.join(agentDir, 'state', `session-${safe}.start`), 'utf8').trim();
@@ -155,12 +181,12 @@ function staleHandoffProblem(root, agentDir, input) {
 }
 
 /** Local branches (other than main) whose commits are not on their upstream, or on any remote when they have none. */
-export function unpushedBranches(root) {
+export function unpushedBranches(root: string): UnpushedBranch[] {
   if (!git(['for-each-ref', '--count=1', 'refs/remotes'], root).out) return []; // no remote to push to: nothing to say
   const rows = git(['for-each-ref', '--format=%(refname:short)%09%(upstream:short)', 'refs/heads'], root)
     .out.split(/\r?\n/)
     .filter(Boolean);
-  const out = [];
+  const out: UnpushedBranch[] = [];
   for (const row of rows) {
     const [name, upstream = ''] = row.split('\t');
     if (name === 'main') continue;
@@ -178,7 +204,7 @@ export function unpushedBranches(root) {
 }
 
 /** Newest committer date on any local branch and newest mtime of a changed tracked file, in epoch seconds. */
-function newestChangeTime(root) {
+function newestChangeTime(root: string): number {
   const newest = git(
     ['for-each-ref', '--sort=-committerdate', 'refs/heads', '--format=%(committerdate:unix)'],
     root,
@@ -199,12 +225,12 @@ function newestChangeTime(root) {
   return t;
 }
 
-function agentRel(root, agentDir) {
+function agentRel(root: string, agentDir: string): string {
   const rel = path.relative(canonical(root), canonical(agentDir)).replace(/\\/g, '/') || '.';
   return rel.startsWith('..') || path.isAbsolute(rel) ? agentDir.replace(/\\/g, '/') : rel;
 }
 
-function unpushedProblem(root, agentDir) {
+function unpushedProblem(root: string, agentDir: string): string | null {
   const branches = unpushedBranches(root);
   if (!branches.length) return null;
   const file = path.join(agentDir, 'handoff.md');
@@ -231,13 +257,13 @@ function unpushedProblem(root, agentDir) {
   });
 }
 
-function journalSummaryProblem(root) {
+function journalSummaryProblem(root: string): string | null {
   const email = git(['config', 'user.email'], root).out;
   const now = new Date();
   const since = `${localDate(now)} 00:00:00`;
   const rel = `docs/journal/${localDate(now)}.md`;
   const README = 'docs/journal/README.md';
-  const hasToday = (ref) => {
+  const hasToday = (ref: string): boolean => {
     const args = ['log', ref, '--no-merges', `--since=${since}`, '-1', '--format=%H'];
     if (email) args.push(`--author=${email}`);
     const r = git(args, root);
@@ -251,7 +277,7 @@ function journalSummaryProblem(root) {
   // on disk (uncommitted edits count); every other ref is read with `git show <ref>:<path>`.
   const current = git(['symbolic-ref', '--short', 'HEAD'], root);
   const currentLabel = current.ok && current.out ? current.out : 'HEAD';
-  const refs = new Map(); // ref -> label
+  const refs = new Map<string, string>(); // ref -> label
   for (const b of git(['for-each-ref', '--format=%(refname:short)', 'refs/heads'], root).out.split(/\r?\n/)) {
     if (b) refs.set(b, `"${b}" dalı`);
   }
@@ -264,10 +290,10 @@ function journalSummaryProblem(root) {
   }
   if (!current.ok) refs.set('HEAD', 'HEAD (detached)');
 
-  const problems = [];
+  const problems: string[] = [];
   for (const [ref, label] of refs) {
     if (!hasToday(ref)) continue;
-    let text = null;
+    let text: string | null = null;
     if (ref === currentLabel) {
       if (!existsSync(path.join(root, README))) continue;
       try {
@@ -286,13 +312,13 @@ function journalSummaryProblem(root) {
   return problems.length ? problems.join('\n') : null;
 }
 
-function main() {
+function main(): void {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--agent-dir');
   if (i === -1 || !argv[i + 1]) throw new Error('--agent-dir <path> is required');
   const agentDir = path.resolve(process.cwd(), argv[i + 1]);
 
-  let input = {};
+  let input: HookInput = {};
   try {
     const raw = readFileSync(0, 'utf8');
     input = raw.trim() ? JSON.parse(raw) : {};
@@ -304,8 +330,8 @@ function main() {
   const top = git(['rev-parse', '--show-toplevel'], process.cwd());
   const root = top.ok && top.out ? top.out : process.cwd();
 
-  const problems = [];
-  const rules = [
+  const problems: string[] = [];
+  const rules: (() => string | null)[] = [
     () => staleHandoffProblem(root, agentDir, input),
     () => unpushedProblem(root, agentDir),
     () => journalSummaryProblem(root),

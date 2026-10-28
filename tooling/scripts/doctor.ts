@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Development environment doctor: checks that this machine can work on the project (Linux and Windows).
-//   node tooling/scripts/doctor.mjs           lists every check with a fix, exits 1 when any check fails
-//   node tooling/scripts/doctor.mjs --json    machine-readable: { ok, items: [{ level, name, detail, fix }] }
-// Level "warn" never changes the exit code.
+//   node tooling/scripts/doctor.ts           lists every check with a fix, exits 1 when any check fails
+//   node tooling/scripts/doctor.ts --json    machine-readable: { ok, items: [{ level, name, detail, fix }] }
+// Level 'warn' never changes the exit code.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import os from 'node:os';
@@ -18,17 +18,17 @@ const LOCAL_ONLY_PATHS = ['.' + 'cl' + 'aude', '.mcp.json'];
 
 // ---------------------------------------------------------------- pure helpers (exported for tests)
 
-const slashes = (p) =>
+const slashes = (p: unknown): string =>
   String(p ?? '')
     .replace(/\\/g, '/')
     .replace(/\/+$/, '');
-const normPath = (p) => {
+const normPath = (p: unknown): string => {
   const n = slashes(p);
   return /^([a-z]:|\/\/)/i.test(n) ? n.toLowerCase() : n; // Windows paths are case-insensitive
 };
 
 /** core.hooksPath is fine when it is, or resolves (relative to the repo root) to, <root>/tooling/git-hooks. */
-export function hooksPathOk(value, root) {
+export function hooksPathOk(value: unknown, root: string | undefined) {
   if (typeof value !== 'string' || value === '' || !root) return false;
   const v = slashes(value);
   const abs = /^([a-z]:|\/)/i.test(v) ? v : `${slashes(root)}/${v}`;
@@ -36,13 +36,13 @@ export function hooksPathOk(value, root) {
 }
 
 /** First integer of a .node-version style string ("24", "v24.1.0"). */
-export function parseNodeMajor(text) {
+export function parseNodeMajor(text: unknown): number | null {
   const m = /(\d+)/.exec(String(text ?? ''));
   return m ? Number(m[1]) : null;
 }
 
 /** Resolves a user.signingkey style value to a file path, or null when it is a literal public key / empty. */
-export function signingKeyPath(value, home = os.homedir()) {
+export function signingKeyPath(value: unknown, home: string = os.homedir()): string | null {
   const v = String(value ?? '').trim();
   if (!v || v.startsWith('key::') || /^(ssh|ecdsa|sk)-/.test(v)) return null;
   if (v === '~') return home;
@@ -51,13 +51,13 @@ export function signingKeyPath(value, home = os.homedir()) {
 }
 
 /** Base64 key material (second field) of a public key line or .pub file, or null. */
-export function keyMaterial(pubText) {
+export function keyMaterial(pubText: unknown): string | null {
   const m = /^\s*(?:key::)?(?:ssh-\S+|ecdsa-\S+|sk-\S+)\s+([A-Za-z0-9+/=]+)/m.exec(String(pubText ?? ''));
   return m ? m[1] : null;
 }
 
 /** Tracked files whose working copy has CRLF line endings (from `git ls-files --eol`). */
-export function findCrlfFiles(eolOutput) {
+export function findCrlfFiles(eolOutput: unknown): string[] {
   const files = [];
   for (const line of String(eolOutput ?? '').split(/\r?\n/)) {
     const m = /^i\/(\S+)\s+w\/(\S+)\s+attr\/([^\t]*)\t(.*)$/.exec(line);
@@ -70,7 +70,7 @@ export function findCrlfFiles(eolOutput) {
 }
 
 /** Which of the wanted paths are missing from the text of .git/info/exclude (leading/trailing slash tolerant)? */
-export function missingExcludes(excludeText, wanted = LOCAL_ONLY_PATHS) {
+export function missingExcludes(excludeText: unknown, wanted: string[] = LOCAL_ONLY_PATHS): string[] {
   const have = new Set(
     String(excludeText ?? '')
       .split(/\r?\n/)
@@ -81,7 +81,7 @@ export function missingExcludes(excludeText, wanted = LOCAL_ONLY_PATHS) {
 }
 
 /** OS specific installation hints. */
-export function hint(platform, tool) {
+export function hint(platform: string, tool: 'node' | 'gitleaks' | 'gh' | 'pnpm'): string {
   const key = platform === 'win32' ? 'win' : 'linux';
   const table = {
     node: {
@@ -107,17 +107,28 @@ export function hint(platform, tool) {
 
 // ---------------------------------------------------------------- command execution
 
+export type ExecResult = { ok: boolean; missing: boolean; out: string; err: string };
+export type Exec = (cmd: string, args?: string[]) => ExecResult;
+export type Level = 'ok' | 'warn' | 'error';
+export type CheckItem = { level: Level; name: string; detail: string; fix: string };
+
 /** Runs a command without a shell; never throws. */
-export function defaultExec(cmd, args = [], opts = {}) {
-  const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 15000, windowsHide: true, ...opts });
-  if (r.error) return { ok: false, missing: r.error.code === 'ENOENT', out: '', err: String(r.error.message) };
+export function defaultExec(cmd: string, args: string[] = []): ExecResult {
+  const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 15000, windowsHide: true });
+  if (r.error)
+    return {
+      ok: false,
+      missing: (r.error as NodeJS.ErrnoException).code === 'ENOENT',
+      out: '',
+      err: String(r.error.message),
+    };
   return { ok: r.status === 0, missing: false, out: (r.stdout ?? '').trim(), err: (r.stderr ?? '').trim() };
 }
 
 /** An absolute path stays, a relative one is taken relative to the root (forward slashes work on every OS). */
-const absOrUnder = (root, p) => (/^([a-z]:|[\\/])/i.test(p) ? p : `${slashes(root)}/${p}`);
+const absOrUnder = (root: string, p: string): string => (/^([a-z]:|[\\/])/i.test(p) ? p : `${slashes(root)}/${p}`);
 
-const item = (level, name, detail, fix = '') => ({ level, name, detail, fix });
+const item = (level: Level, name: string, detail: string, fix = ''): CheckItem => ({ level, name, detail, fix });
 
 // ---------------------------------------------------------------- checks
 
@@ -125,6 +136,16 @@ const item = (level, name, detail, fix = '') => ({ level, name, detail, fix });
  * Runs every check. Everything that touches the machine is injected:
  *   exec(cmd, args) -> { ok, missing, out, err }; fileExists(p); readText(p) (throws when unreadable).
  */
+export type RunChecksOptions = {
+  platform?: string;
+  nodeVersion?: string;
+  root?: string;
+  home?: string;
+  exec?: Exec;
+  fileExists?: (p: string) => boolean;
+  readText?: (p: string) => string;
+};
+
 export function runChecks({
   platform = process.platform,
   nodeVersion = process.version,
@@ -132,12 +153,12 @@ export function runChecks({
   home = os.homedir(),
   exec = defaultExec,
   fileExists = existsSync,
-  readText = (p) => readFileSync(p, 'utf8'),
-} = {}) {
-  const items = [];
-  const config = (key) => exec('git', ['config', '--get', key]).out;
+  readText = (p: string) => readFileSync(p, 'utf8'),
+}: RunChecksOptions = {}): CheckItem[] {
+  const items: CheckItem[] = [];
+  const config = (key: string): string => exec('git', ['config', '--get', key]).out;
   const signingFix = `${SIGNING_SETUP} (on Windows run it in Git Bash)`;
-  const safeRead = (p) => {
+  const safeRead = (p: string): string | null => {
     try {
       return readText(p);
     } catch {
@@ -305,15 +326,15 @@ export function runChecks({
   return items;
 }
 
-export function formatReport(items) {
-  const mark = { ok: 'ok   ', warn: 'warn ', error: 'FAIL ' };
+export function formatReport(items: CheckItem[]): string {
+  const mark: Record<Level, string> = { ok: 'ok   ', warn: 'warn ', error: 'FAIL ' };
   return items
     .map((i) => `${mark[i.level]} ${i.name}: ${i.detail}${i.fix && i.level !== 'ok' ? `\n       fix: ${i.fix}` : ''}`)
     .join('\n');
 }
 
-export function exitCodeFor(items) {
-  return items.some((i) => i.level === 'error') ? 1 : 0;
+export function exitCodeFor(items: CheckItem[]): number {
+  return items.some((i: CheckItem) => i.level === 'error') ? 1 : 0;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
