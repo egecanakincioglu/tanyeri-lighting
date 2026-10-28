@@ -13,7 +13,7 @@ echo "git hooks enabled (core.hooksPath=$hooks)"
 bash tooling/scripts/setup-commit-signing.sh
 # Show immediately what else this machine is missing (never fails the setup).
 if command -v node >/dev/null 2>&1; then
-  node tooling/scripts/doctor.mjs || true
+  node tooling/scripts/doctor.ts || true
 else
-  echo "node not found: install Node (see .node-version), then run: node tooling/scripts/doctor.mjs"
+  echo "node not found: install Node (see .node-version), then run: node tooling/scripts/doctor.ts"
 fi

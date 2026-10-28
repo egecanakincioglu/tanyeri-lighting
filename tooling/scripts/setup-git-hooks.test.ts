@@ -18,6 +18,8 @@ const bashOk = BASH !== null && spawnSync(BASH, ['--version'], { encoding: 'utf8
 const keygenOk = spawnSync('ssh-keygen', ['-?'], { encoding: 'utf8' }).error === undefined;
 const skip = !bashOk || !keygenOk ? 'bash or ssh-keygen is not available' : false;
 
+type Ctx = ReturnType<typeof sandbox>;
+
 function sandbox() {
   const dir = path.join(tmp, `t${counter++}`);
   const home = path.join(dir, 'home');
@@ -28,7 +30,7 @@ function sandbox() {
   for (const f of ['setup-git-hooks.sh', 'setup-commit-signing.sh'])
     copyFileSync(path.join(HERE, f), path.join(repo, 'tooling', 'scripts', f));
   // stands in for the real doctor: proves the setup calls it, and that its failure does not fail the setup
-  writeFileSync(path.join(repo, 'tooling', 'scripts', 'doctor.mjs'), "console.log('DOCTOR-RAN');\nprocess.exit(1);\n");
+  writeFileSync(path.join(repo, 'tooling', 'scripts', 'doctor.ts'), "console.log('DOCTOR-RAN');\nprocess.exit(1);\n");
   const globalConfig = path.join(dir, 'gitconfig');
   writeFileSync(globalConfig, '');
   const env = {
@@ -38,20 +40,20 @@ function sandbox() {
     GIT_CONFIG_GLOBAL: globalConfig,
     GIT_CONFIG_NOSYSTEM: '1',
   };
-  const git = (...args) => spawnSync('git', args, { cwd: repo, encoding: 'utf8', env }).stdout.trim();
+  const git = (...args: string[]) => spawnSync('git', args, { cwd: repo, encoding: 'utf8', env }).stdout.trim();
   git('init', '-q', '-b', 'main');
   git('config', 'user.email', 'owner@example.com');
   return { repo, env, git };
 }
 
-const run = (ctx) => {
-  const r = spawnSync(BASH, ['tooling/scripts/setup-git-hooks.sh'], { cwd: ctx.repo, encoding: 'utf8', env: ctx.env });
+const run = (ctx: Ctx) => {
+  const r = spawnSync(BASH as string, ['tooling/scripts/setup-git-hooks.sh'], { cwd: ctx.repo, encoding: 'utf8', env: ctx.env });
   return { status: r.status, out: r.stdout, err: r.stderr };
 };
 
 describe('setup-git-hooks.sh', { skip }, () => {
   test('the script is valid bash', () => {
-    assert.equal(spawnSync(BASH, ['-n', path.join(HERE, 'setup-git-hooks.sh')]).status, 0);
+    assert.equal(spawnSync(BASH as string, ['-n', path.join(HERE, 'setup-git-hooks.sh')]).status, 0);
   });
 
   test('sets the absolute hooks path and autocrlf=false, then signing and the doctor', () => {

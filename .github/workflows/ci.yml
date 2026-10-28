@@ -125,7 +125,7 @@ jobs:
       - name: Type check
         run: pnpm exec tsc --noEmit
       - name: Unit tests of the tooling
-        run: node --test "tooling/**/*.test.ts" "tooling/**/*.test.mjs"
+        run: node --test "tooling/**/*.test.ts"
       # Syntax check of every shell script and of the extensionless git hooks.
       - name: Shell syntax
         run: |
@@ -146,4 +146,4 @@ jobs:
       # Git Bash on the runner, the same shell the tooling targets on a developer's Windows machine.
       - name: Unit tests of the tooling
         shell: bash
-        run: node --test "tooling/**/*.test.ts" "tooling/**/*.test.mjs"
+        run: node --test "tooling/**/*.test.ts"
