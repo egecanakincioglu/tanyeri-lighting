@@ -3,6 +3,7 @@ import thresholds from './tooling/coverage-thresholds.json' with { type: 'json' 
 
 export default defineConfig({
   test: {
+    server: { deps: { inline: ['next-intl'] } },
     projects: [
       {
         extends: true,
@@ -14,7 +15,6 @@ export default defineConfig({
         },
       },
     ],
-    passWithNoTests: true,
     coverage: {
       provider: 'v8',
       include: ['src/server/**', 'src/lib/**'],
