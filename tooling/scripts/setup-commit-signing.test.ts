@@ -19,7 +19,9 @@ const bashOk = BASH !== null && spawnSync(BASH, ['--version'], { encoding: 'utf8
 const keygenOk = spawnSync('ssh-keygen', ['-?'], { encoding: 'utf8' }).error === undefined;
 const skip = !bashOk || !keygenOk ? 'bash or ssh-keygen is not available' : false;
 
-const fwd = (p) => p.replace(/\\/g, '/');
+const fwd = (p: string): string => p.replace(/\\/g, '/');
+
+type Ctx = ReturnType<typeof sandbox>;
 
 function sandbox() {
   const dir = path.join(tmp, `t${counter++}`);
@@ -36,7 +38,7 @@ function sandbox() {
     GIT_CONFIG_GLOBAL: globalConfig,
     GIT_CONFIG_NOSYSTEM: '1',
   };
-  const git = (cwd, ...args) => {
+  const git = (cwd: string, ...args: string[]) => {
     const r = spawnSync('git', args, { cwd, encoding: 'utf8', env });
     assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
     return r.stdout.trim();
@@ -45,14 +47,14 @@ function sandbox() {
   return { dir, home, repo, env, git };
 }
 
-const run = (ctx) => {
-  const r = spawnSync(BASH, [SCRIPT], { cwd: ctx.repo, encoding: 'utf8', env: ctx.env });
+const run = (ctx: Ctx) => {
+  const r = spawnSync(BASH as string, [SCRIPT], { cwd: ctx.repo, encoding: 'utf8', env: ctx.env });
   return { status: r.status, out: r.stdout, err: r.stderr };
 };
-const localGit = (ctx, ...args) =>
+const localGit = (ctx: Ctx, ...args: string[]) =>
   spawnSync('git', ['config', '--local', ...args], { cwd: ctx.repo, encoding: 'utf8', env: ctx.env }).stdout.trim();
-const local = (ctx, key) => localGit(ctx, '--get', key);
-const genKey = (ctx, name) => {
+const local = (ctx: Ctx, key: string) => localGit(ctx, '--get', key);
+const genKey = (ctx: Ctx, name: string) => {
   const key = path.join(ctx.home, '.ssh', name);
   const r = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-C', 'existing', '-f', key], {
     encoding: 'utf8',
@@ -63,7 +65,7 @@ const genKey = (ctx, name) => {
 
 describe('setup-commit-signing.sh', { skip }, () => {
   test('the script is valid bash', () => {
-    assert.equal(spawnSync(BASH, ['-n', SCRIPT]).status, 0);
+    assert.equal(spawnSync(BASH as string, ['-n', SCRIPT]).status, 0);
   });
 
   test('fails without user.email', () => {
