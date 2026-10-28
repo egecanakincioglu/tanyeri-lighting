@@ -1,0 +1,12 @@
+rules:
+  - id: no-process-env
+    languages: [typescript]
+    severity: ERROR
+    message: Read environment variables only through the validated env module (src/server/env.ts).
+    pattern: process.env
+    paths:
+      include:
+        - src/
+      exclude:
+        - src/server/env.ts
+        - src/server/env.test.ts
