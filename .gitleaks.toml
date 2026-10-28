@@ -1,0 +1,25 @@
+# Secret scan configuration (pre-commit hook and the CI full-history scan; gitleaks reads this file from the
+# scanned repository root). The default rules stay on. The custom rules exist because the default rules missed a
+# real database password in this repository's history: JSON/YAML-like fields, credentials in connection URLs and
+# Turkish mobile numbers are not recognised by them.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "json-secret-field"
+description = "Password, secret or token value in a JSON/YAML-like field"
+# Limited to config and data files: the real leak was in a JSON data file; secrets in source code are covered by the
+# default rules, the env-only policy and the static analysis rules, and matching code made test objects false positives.
+path = '''(?i)(\.(json|jsonc|ya?ml|toml|ini|conf|cfg|properties)$|(^|/)\.env[^/]*$)'''
+regex = '''(?i)["']?(password|passwd|pwd|secret|client_?secret|token|api_?key)["']?\s*[:=]\s*["']([^"'\s$]{6,})["']'''
+secretGroup = 2
+
+[[rules]]
+id = "url-credentials"
+description = "Credentials embedded in a connection URL"
+regex = '''[a-z][a-z0-9+.-]*://[^:\s/$@]+:[^@\s/$]+@[^\s/]+'''
+
+[[rules]]
+id = "tr-phone-number"
+description = "Turkish mobile phone number"
+regex = '''(?:\+?90|\b0)[\s-]?\(?5\d{2}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}\b'''
