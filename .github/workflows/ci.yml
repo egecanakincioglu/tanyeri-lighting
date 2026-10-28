@@ -140,6 +140,16 @@ jobs:
       - name: Lint
         if: ${{ !cancelled() }}
         run: pnpm lint
+      - name: Semgrep rule tests
+        if: ${{ !cancelled() }}
+        run: |
+          image="$(node tooling/scripts/ci-image.ts semgrep)"
+          docker run --rm -v "$PWD:/src" -w /src "$image" semgrep --test --metrics=off tooling/semgrep
+      - name: Semgrep scan
+        if: ${{ !cancelled() }}
+        run: |
+          image="$(node tooling/scripts/ci-image.ts semgrep)"
+          docker run --rm -v "$PWD:/src" -w /src "$image" semgrep scan --config tooling/semgrep --exclude tooling/semgrep --error --metrics=off
 
   test:
     name: test

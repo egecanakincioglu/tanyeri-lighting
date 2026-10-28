@@ -1,3 +1,5 @@
 pnpm-lock.yaml
 # Hand-written Turkish docs and tables; Prettier would reflow 15 Markdown files (about 770 lines)
 *.md
+# Semgrep rule examples are deliberately bad code
+tooling/semgrep/*.css
