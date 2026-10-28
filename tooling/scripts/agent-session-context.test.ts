@@ -1,4 +1,4 @@
-// Tests for agent-session-context.mjs. Real temporary git repositories; nothing is mocked.
+// Tests for agent-session-context.ts. Real temporary git repositories; nothing is mocked.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
@@ -25,24 +25,24 @@ import {
   openRoadmapItems,
   sectionLines,
   summarizeDoctor,
-} from './agent-session-context.mjs';
+} from './agent-session-context.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'agent-session-context.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'agent-session-context.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'ctx-test-'));
 
-function sh(cwd, ...args) {
+function sh(cwd: string, ...args: string[]): string {
   const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
   assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
   return r.stdout.trim();
 }
 
-function write(repo, rel, text) {
+function write(repo: string, rel: string, text: string): void {
   const file = path.join(repo, rel);
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
 }
 
-function makeRepo(name) {
+function makeRepo(name: string): string {
   const dir = path.join(root, name);
   mkdirSync(dir, { recursive: true });
   sh(dir, 'init', '-q', '-b', 'main');
@@ -98,7 +98,10 @@ function makeRepo(name) {
   return dir;
 }
 
-function runContext(repo, { agentDir, stdin = '{"session_id":"sess-1"}', args } = {}) {
+function runContext(
+  repo: string,
+  { agentDir, stdin = '{"session_id":"sess-1"}', args }: { agentDir?: string; stdin?: string; args?: string[] } = {},
+): string {
   const argv = args ?? (agentDir ? ['--agent-dir', agentDir] : []);
   const r = spawnSync('node', [SCRIPT, ...argv], {
     cwd: repo,
@@ -114,8 +117,8 @@ function runContext(repo, { agentDir, stdin = '{"session_id":"sess-1"}', args } 
   return out.hookSpecificOutput.additionalContext;
 }
 
-let repo;
-let agentDir;
+let repo: string;
+let agentDir: string;
 
 before(() => {
   repo = makeRepo('repo');
@@ -309,12 +312,12 @@ describe('session context', () => {
     writeFileSync(path.join(agent, 'handoff.md'), '# Devir notu\n');
     assert.ok(!runContext(dir, { agentDir: agent }).includes('Ortam kontrolü'));
 
-    write(dir, 'tooling/scripts/doctor.mjs', 'process.exit(3);\n');
+    write(dir, 'tooling/scripts/doctor.ts', 'process.exit(3);\n');
     assert.ok(runContext(dir, { agentDir: agent }).includes('doctor çalıştırılamadı'));
 
     write(
       dir,
-      'tooling/scripts/doctor.mjs',
+      'tooling/scripts/doctor.ts',
       `console.log(JSON.stringify([{name:'hooks',level:'error',detail:'unset'},{name:'gh',level:'warn',detail:'no login'},{name:'node',level:'ok'}])); process.exit(1);\n`,
     );
     const ctx = runContext(dir, { agentDir: agent });
@@ -323,7 +326,7 @@ describe('session context', () => {
     assert.ok(ctx.includes('- [uyarı] gh: no login'));
     assert.ok(!ctx.includes('node:'));
 
-    write(dir, 'tooling/scripts/doctor.mjs', `console.log(JSON.stringify([{name:'node',level:'ok'}]));\n`);
+    write(dir, 'tooling/scripts/doctor.ts', `console.log(JSON.stringify([{name:'node',level:'ok'}]));\n`);
     assert.ok(!runContext(dir, { agentDir: agent }).includes('Ortam kontrolü'));
   });
 

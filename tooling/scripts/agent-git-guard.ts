@@ -16,6 +16,19 @@ import { fileURLToPath } from 'node:url';
 
 class Deny extends Error {}
 
+type Word = { text: string; dyn: boolean; subs: Item[][] };
+type Item = { kind: 'cmd'; words: Word[] } | { kind: 'group'; items: Item[] };
+type Parser = { s: string; i: number; ps: boolean };
+type State = { cwd: string | null };
+type Shared = {
+  setupSeen: boolean;
+  signingSetupSeen: boolean;
+  hooksViolations: string[];
+  signingViolations: string[];
+};
+type Ctx = { depth: number; shared: Shared };
+type RepoInfo = { top: string; common: string };
+
 const IS_WIN = process.platform === 'win32';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MAX_DEPTH = 8;
@@ -27,15 +40,15 @@ const MAX_DEPTH = 8;
 const WORD_BREAK = new Set([' ', '\t', '\r', '\n', ';', '|', '(', ')']);
 
 // `ps` selects PowerShell quoting (backslash literal, backtick escape); default is POSIX sh / bash.
-function parseScript(src, ps = false) {
+function parseScript(src: string, ps = false): Item[] {
   return parseList({ s: src, i: 0, ps }, false);
 }
 
-function parseList(p, inGroup) {
+function parseList(p: Parser, inGroup: boolean): Item[] {
   const { s } = p;
-  const items = [];
-  let cur = [];
-  const pendingHeredocs = [];
+  const items: Item[] = [];
+  let cur: Word[] = [];
+  const pendingHeredocs: { delim: string; strip: boolean }[] = [];
   const flush = () => {
     if (cur.length) items.push({ kind: 'cmd', words: cur });
     cur = [];
@@ -87,10 +100,10 @@ function parseList(p, inGroup) {
   return items;
 }
 
-function readHeredocBodies(p, pending) {
+function readHeredocBodies(p: Parser, pending: { delim: string; strip: boolean }[]): void {
   const { s } = p;
   while (pending.length) {
-    const { delim, strip } = pending.shift();
+    const { delim, strip } = pending.shift() as { delim: string; strip: boolean };
     while (p.i < s.length) {
       let eol = s.indexOf('\n', p.i);
       if (eol === -1) eol = s.length;
@@ -102,9 +115,9 @@ function readHeredocBodies(p, pending) {
   }
 }
 
-function readWord(p) {
+function readWord(p: Parser): Word {
   const { s } = p;
-  const word = { text: '', dyn: false, subs: [] };
+  const word: Word = { text: '', dyn: false, subs: [] };
   const startI = p.i;
   while (p.i < s.length) {
     const c = s[p.i];
@@ -142,7 +155,7 @@ function readWord(p) {
 
 // PowerShell: backtick escapes the next char (backtick-newline continues the line); single quotes are literal
 // ('' is a quote); double quotes expand $ and use backtick or "" as escapes. Backslash is never special.
-function readPsQuoted(p, word, c) {
+function readPsQuoted(p: Parser, word: Word, c: string): void {
   const { s } = p;
   if (c === '`') {
     if (s[p.i + 1] === '\n') p.i += 2;
@@ -175,7 +188,7 @@ function readPsQuoted(p, word, c) {
   }
 }
 
-function readDoubleQuoted(p, word) {
+function readDoubleQuoted(p: Parser, word: Word): void {
   const { s } = p;
   while (p.i < s.length) {
     const c = s[p.i];
@@ -202,7 +215,7 @@ function readDoubleQuoted(p, word) {
   }
 }
 
-function readDollarOrBacktick(p, word) {
+function readDollarOrBacktick(p: Parser, word: Word): void {
   const { s } = p;
   const c = s[p.i];
   if (c === '`') {
@@ -243,7 +256,7 @@ function readDollarOrBacktick(p, word) {
 
 // ---------------------------------------------------------------- paths and repos
 
-function normPath(p) {
+function normPath(p: string): string {
   let n = p.replace(/\\/g, '/');
   if (IS_WIN) n = n.replace(/^\/cygdrive\/([a-zA-Z])(\/|$)/, '$1:/').replace(/^\/([a-zA-Z])(\/|$)/, '$1:/');
   if (n.length > 1 && n.endsWith('/') && !/^[A-Za-z]:\/$/.test(n)) n = n.replace(/\/+$/, '');
@@ -253,12 +266,12 @@ function normPath(p) {
 const gitEnv = { ...process.env };
 for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR']) delete gitEnv[k];
 
-function git(args, cwd) {
+function git(args: string[], cwd: string): { ok: boolean; out: string } {
   const r = spawnSync('git', args, { cwd, env: gitEnv, encoding: 'utf8', timeout: 10000 });
   return { ok: r.status === 0, out: (r.stdout ?? '').trim() };
 }
 
-function canonical(p) {
+function canonical(p: string): string {
   try {
     return realpathSync.native(p);
   } catch {
@@ -266,12 +279,13 @@ function canonical(p) {
   }
 }
 
-const toplevelCache = new Map();
+const toplevelCache = new Map<string, RepoInfo | 'notrepo' | 'missing'>();
 // Returns {top} for a directory inside a repository, 'notrepo' or 'missing'.
-function toplevelOf(dir) {
+function toplevelOf(dir: string): RepoInfo | 'notrepo' | 'missing' {
   const key = normPath(dir);
-  if (toplevelCache.has(key)) return toplevelCache.get(key);
-  let result;
+  const cached = toplevelCache.get(key);
+  if (cached !== undefined) return cached;
+  let result: RepoInfo | 'notrepo' | 'missing';
   let isDir = false;
   try {
     isDir = statSync(dir).isDirectory();
@@ -295,9 +309,10 @@ const thisRepo = (() => {
   return r;
 })();
 
-const mixedPathCache = new Map();
-function mixedPathFromMsys(p) {
-  if (mixedPathCache.has(p)) return mixedPathCache.get(p);
+const mixedPathCache = new Map<string, string | null>();
+function mixedPathFromMsys(p: string): string | null {
+  const cached = mixedPathCache.get(p);
+  if (cached !== undefined) return cached;
   const r = spawnSync('cygpath', ['-w', p], { encoding: 'utf8', timeout: 5000 });
   const v = r.status === 0 ? r.stdout.trim() : null;
   mixedPathCache.set(p, v);
@@ -305,7 +320,7 @@ function mixedPathFromMsys(p) {
 }
 
 // Resolve a directory argument against a base directory; null when it cannot be known statically.
-function resolveDir(base, word) {
+function resolveDir(base: string | null, word: Pick<Word, 'text' | 'dyn'>): string | null {
   if (word.dyn) return null;
   let arg = word.text;
   if (arg === '~' || arg.startsWith('~/')) arg = path.join(os.homedir(), arg.slice(1));
@@ -348,31 +363,31 @@ const ENV_ASSIGN = /^[A-Za-z_][A-Za-z0-9_]*=/;
 // Environment based git configuration can switch off signing or hooks without touching any config file.
 const GIT_CONFIG_ENV = /^GIT_CONFIG_(COUNT|KEY_|VALUE_|PARAMETERS|GLOBAL|SYSTEM|NOSYSTEM)/;
 
-function baseName(text) {
+function baseName(text: string): string {
   return path.posix.basename(text.replace(/\\/g, '/')).replace(/\.exe$/i, '');
 }
 
-function deny(reason) {
+function deny(reason: string): never {
   throw new Deny(reason);
 }
 
-function evalItems(items, state, ctx) {
+function evalItems(items: Item[], state: State, ctx: Ctx): void {
   for (const it of items) {
     if (it.kind === 'group') evalItems(it.items, { ...state }, ctx);
     else if (it.kind === 'cmd') evalCmd(it.words, state, ctx);
   }
 }
 
-function nested(ctx) {
+function nested(ctx: Ctx): Ctx {
   return { ...ctx, depth: ctx.depth + 1 };
 }
 
-function evalCmd(allWords, state, ctx) {
+function evalCmd(allWords: Word[], state: State, ctx: Ctx): void {
   if (ctx.depth > MAX_DEPTH) deny('Command nesting is too deep to inspect safely.');
   for (const w of allWords) for (const sub of w.subs) evalItems(sub, { ...state }, nested(ctx));
 
   // drop redirections
-  const words = [];
+  const words: Word[] = [];
   for (let i = 0; i < allWords.length; i++) {
     const t = allWords[i].text;
     if (/^\d*(>>?|<|>&|&>>?)$/.test(t)) i++;
@@ -381,7 +396,7 @@ function evalCmd(allWords, state, ctx) {
   }
   // leading environment assignments
   let gitDirEnv = false;
-  const noteEnv = (text) => {
+  const noteEnv = (text: string): void => {
     if (GIT_CONFIG_ENV.test(text))
       deny(
         'Overriding git configuration through GIT_CONFIG_* environment variables is forbidden (it could disable commit signing or hooks).',
@@ -447,7 +462,7 @@ function evalCmd(allWords, state, ctx) {
 }
 
 // Records a run of one of the project's setup scripts; returns true when `text` names one.
-function noteSetupScript(text, ctx) {
+function noteSetupScript(text: string, ctx: Ctx): boolean {
   const name = baseName(text);
   const hooks = name === 'setup-git-hooks' || name === 'setup-git-hooks.sh';
   const signing = name === 'setup-commit-signing' || name === 'setup-commit-signing.sh';
@@ -463,12 +478,12 @@ const RELEASE_REASON =
 const RELEASE_READ = new Set(['list', 'view', 'download']);
 
 // gh release: only the read subcommands pass; everything else (create, edit, delete, upload, ...) is denied.
-function evalGhRelease(t) {
+function evalGhRelease(t: string[]): void {
   const sub = t.slice(1).find((x) => !x.startsWith('-'));
   if (!sub || !RELEASE_READ.has(sub)) deny(RELEASE_REASON);
 }
 
-function evalGh(allArgs) {
+function evalGh(allArgs: Word[]): void {
   // global flags before the subcommand (gh -R owner/repo release create ...) must not hide it
   let start = 0;
   while (start < allArgs.length && allArgs[start].text.startsWith('-')) {
@@ -500,7 +515,7 @@ function evalGh(allArgs) {
 }
 
 // Merge commits only, always queued with --auto (the owner approved queueing in advance, rule 4/5).
-function evalPrMerge(t) {
+function evalPrMerge(t: string[]): void {
   if (t.includes('--admin')) deny('Admin-override merges are forbidden.');
   const WITH_VALUE = new Set([
     '-A',
@@ -572,14 +587,14 @@ const GH_API_WITH_VALUE = new Set([
   '--preview',
 ]);
 
-function evalGhApi(args) {
-  let method = null;
+function evalGhApi(args: Word[]): void {
+  let method: string | null = null;
   let implied = false; // -f / -F / --input make gh send a POST
-  let endpoint = null;
-  const values = [];
+  let endpoint: Word | null = null;
+  const values: string[] = [];
   for (let k = 0; k < args.length; k++) {
     const a = args[k].text;
-    let m;
+    let m: RegExpExecArray | null;
     if (a === '-X' || a === '--method') method = args[++k]?.text ?? '';
     else if ((m = /^--method=(.*)$/.exec(a)) || (m = /^-X(.+)$/.exec(a))) method = m[1];
     else if (a === '-f' || a === '-F' || a === '--field' || a === '--raw-field') {
@@ -625,7 +640,7 @@ function evalGhApi(args) {
 
 // True when an argument addresses the GitHub API host: URL or scheme-less, optional --opt= prefix, userinfo, port,
 // or a Host header naming it (the request may go to an IP address).
-function isGithubApiHost(arg) {
+function isGithubApiHost(arg: string): boolean {
   const value = arg.replace(/^-[^=]*=/, '');
   if (/^host:\s*api\.github\.com\.?(:\d+)?$/i.test(value)) return true;
   const authority = value
@@ -636,7 +651,7 @@ function isGithubApiHost(arg) {
 }
 
 // curl / wget / httpie talking to the GitHub API with anything other than a plain read.
-function evalHttpTool(args) {
+function evalHttpTool(args: Word[]): void {
   const t = args.map((w) => w.text);
   if (!t.some(isGithubApiHost)) return;
   const writes = t.some(
@@ -692,20 +707,21 @@ const COMMIT_OPTS_WITH_VALUE = new Set([
 ]);
 
 // Branch changes made earlier in the same command (e.g. `git switch -c x && git commit`).
-const branchOverride = new Map();
+const branchOverride = new Map<string, string>();
 
-function branchOf(top) {
+function branchOf(top: string): string {
   const k = normPath(top);
-  if (branchOverride.has(k)) return branchOverride.get(k);
+  const overridden = branchOverride.get(k);
+  if (overridden !== undefined) return overridden;
   const r = git(['symbolic-ref', '--short', 'HEAD'], top);
   return r.ok ? r.out : '';
 }
 
 const PROTECTED_SUBS = new Set(['commit', 'merge', 'push', 'rebase', 'reset', 'filter-branch', 'filter-repo']);
 
-function evalGit(args, state, ctx, gitDirEnv) {
-  const cdirs = [];
-  const cfgs = [];
+function evalGit(args: Word[], state: State, ctx: Ctx, gitDirEnv: boolean): void {
+  const cdirs: Word[] = [];
+  const cfgs: string[] = [];
   let usesGitDir = gitDirEnv;
   let i = 0;
   for (; i < args.length; i++) {
@@ -728,14 +744,14 @@ function evalGit(args, state, ctx, gitDirEnv) {
 
   // which repository does this command act on?
   let cwd = state.cwd;
-  let unresolvedC = null; // the -C argument that cannot be resolved statically
+  let unresolvedC: string | null = null; // the -C argument that cannot be resolved statically
   for (const d of cdirs) {
     if (!d) continue;
     cwd = resolveDir(cwd, d);
     if (cwd === null && unresolvedC === null) unresolvedC = d.text;
   }
   const affectsGlobal = sub === 'config' && restT.some((a) => a === '--global' || a === '--system');
-  let top; // this repository's toplevel, or null = another repository / not a repository: skip
+  let top: string | null; // this repository's toplevel, or null = another repository / not a repository: skip
   if (usesGitDir || affectsGlobal || cwd === null) top = thisRepo.top;
   else {
     const r = toplevelOf(cwd);
@@ -831,7 +847,7 @@ const SIGNING_SETTING =
   /^(user\.signingkey|gpg\.format|gpg\.program|gpg\.ssh\.program|gpg\.ssh\.allowedsignersfile|gpg\.openpgp\.program|gpg\.x509\.program|gpg\.minttl)$/i;
 
 // git -c key=value / --config-env: nothing may weaken signing for a single command either.
-function checkConfigOverride(c) {
+function checkConfigOverride(c: string): void {
   const eq = c.indexOf('=');
   const key = eq === -1 ? c : c.slice(0, eq);
   const value = eq === -1 ? 'true' : c.slice(eq + 1);
@@ -841,7 +857,7 @@ function checkConfigOverride(c) {
 }
 
 // Rewriting commits that already exist on a remote is forbidden (rule 11); purely local commits may be rewritten.
-function denyIfPushed(top, what) {
+function denyIfPushed(top: string, what: string): void {
   const r = git(['branch', '-r', '--contains', 'HEAD'], top);
   if (!r.ok) deny(`Cannot tell whether HEAD is already pushed, so ${what} is denied (fail closed).`);
   if (r.out) {
@@ -853,8 +869,8 @@ function denyIfPushed(top, what) {
 }
 
 // `git reset <commit>` moves the branch; it is a rewrite unless the target is HEAD or a descendant of HEAD.
-function evalReset(restT, top) {
-  let first = null;
+function evalReset(restT: string[], top: string): void {
+  let first: string | null = null;
   for (const a of restT) {
     if (a === '--' || a === '-p' || a === '--patch') return; // path reset: HEAD does not move
     if (a.startsWith('-')) continue;
@@ -875,7 +891,7 @@ const TAG_REASON =
 const VERSION_LIKE = /^v?\d[\w.+-]*$/;
 
 // A push source or destination that names a tag: refs/tags/..., a version-like name or an existing local tag.
-function isTagRef(name, top) {
+function isTagRef(name: string, top: string): boolean {
   const n = name.replace(/^\+/, '');
   if (n.startsWith('refs/tags/')) return true;
   if (n === '' || n.includes('*')) return false;
@@ -884,7 +900,7 @@ function isTagRef(name, top) {
   return git(['show-ref', '--verify', '--quiet', `refs/tags/${n}`], top).ok;
 }
 
-function evalPush(rest, branch, top) {
+function evalPush(rest: Word[], branch: string, top: string): void {
   const t = rest.map((w) => w.text);
   if (t.includes('--no-verify')) deny('Hook bypass (--no-verify) is forbidden.');
   if (t.includes('--mirror') || t.includes('--all'))
@@ -902,7 +918,7 @@ function evalPush(rest, branch, top) {
       /^-[a-zA-Z]*f[a-zA-Z]*$/.test(a),
   );
   if (force) deny(FORCE_REASON);
-  const positionals = [];
+  const positionals: Word[] = [];
   for (let k = 0; k < rest.length; k++) {
     const a = t[k];
     if (a === '--') {
@@ -935,8 +951,8 @@ function evalPush(rest, branch, top) {
   if (branch === 'main' && refspecs.length === 0) deny('Pushing from main is forbidden.');
 }
 
-function evalConfig(t, ctx) {
-  const pos = [];
+function evalConfig(t: string[], ctx: Ctx): void {
+  const pos: string[] = [];
   let read = false;
   let write = false;
   let unset = false;
@@ -954,7 +970,7 @@ function evalConfig(t, ctx) {
   );
   if (keyIdx === -1) return;
   const key = pos[keyIdx];
-  let isWrite;
+  let isWrite: boolean;
   if (write) isWrite = true;
   else if (read) isWrite = false;
   else if (pos[0] === 'set' || pos[0] === 'unset') isWrite = true;
@@ -979,9 +995,9 @@ function evalConfig(t, ctx) {
 
 // ---------------------------------------------------------------- entry point
 
-function main() {
+function main(): void {
   const raw = readFileSync(0, 'utf8');
-  const input = JSON.parse(raw);
+  const input = JSON.parse(raw) as { tool_name?: unknown; tool_input?: { command?: unknown }; cwd?: unknown } | null;
   if (input === null || typeof input !== 'object') throw new Error('hook input is not a JSON object');
   const cmd = input.tool_input?.command;
   if (cmd === undefined || cmd === null) return;
@@ -997,7 +1013,7 @@ function main() {
   if (typeof input.cwd === 'string' && input.cwd)
     cwd = resolveDir(process.cwd(), { text: input.cwd, dyn: false }) ?? cwd;
 
-  const ctx = {
+  const ctx: Ctx = {
     depth: 0,
     shared: { setupSeen: false, signingSetupSeen: false, hooksViolations: [], signingViolations: [] },
   };
@@ -1007,7 +1023,7 @@ function main() {
   if (ctx.shared.signingViolations.length && !ctx.shared.signingSetupSeen) deny(ctx.shared.signingViolations[0]);
 }
 
-function emitDeny(reason) {
+function emitDeny(reason: string): void {
   writeSync(
     1,
     `${JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason } })}\n`,

@@ -3,7 +3,7 @@
 // roadmap, last journal summary, plans, ADR titles and the doctor result, so a new session never needs
 // the owner to re-explain where things stand. Portable: Node only (no jq, stat, date, timeout).
 //
-//   node tooling/scripts/agent-session-context.mjs --agent-dir <path>
+//   node tooling/scripts/agent-session-context.ts --agent-dir <path>
 //
 // <path> is the local (git-ignored) agent folder holding `handoff.md` and a `state/` directory.
 // Reads {session_id} as JSON on stdin; prints {hookSpecificOutput:{hookEventName:"SessionStart",additionalContext}}.
@@ -32,14 +32,16 @@ const MAX_LIST = 20;
 
 // ---------------------------------------------------------------- helpers
 
-function run(cmd, args, { cwd, timeout = 15000 } = {}) {
+type RunResult = { ok: boolean; out: string; status?: number };
+
+function run(cmd: string, args: string[], { cwd, timeout = 15000 }: { cwd?: string; timeout?: number } = {}): RunResult {
   const r = spawnSync(cmd, args, { cwd, encoding: 'utf8', timeout, windowsHide: true });
   if (r.error || r.status === null) return { ok: false, out: '' };
   return { ok: r.status === 0, out: (r.stdout ?? '').replace(/\s+$/, ''), status: r.status };
 }
 
 // Resolve symlinks and Windows 8.3 short names so that paths from git and from the caller compare equal.
-function canonical(p) {
+function canonical(p: string): string {
   try {
     return realpathSync.native(p);
   } catch {
@@ -47,7 +49,7 @@ function canonical(p) {
   }
 }
 
-function readText(file) {
+function readText(file: string): string | null {
   try {
     return readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
   } catch {
@@ -55,18 +57,18 @@ function readText(file) {
   }
 }
 
-function pad(n) {
+function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
 
 /** Local time as YYYY-MM-DD HH:mm. */
-export function formatLocal(date) {
+export function formatLocal(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** Lines of `text` between a heading line matching `startRe` and the next line matching `stopRe` (exclusive). */
-export function sectionLines(text, startRe, stopRe) {
-  const out = [];
+export function sectionLines(text: string, startRe: RegExp, stopRe: RegExp): string[] {
+  const out: string[] = [];
   let on = false;
   for (const line of text.split('\n')) {
     if (startRe.test(line)) {
@@ -79,17 +81,17 @@ export function sectionLines(text, startRe, stopRe) {
   return out;
 }
 
-const joinTrim = (lines) => lines.join('\n').replace(/^\n+/, '').replace(/\n+$/, '');
+const joinTrim = (lines: string[]): string => lines.join('\n').replace(/^\n+/, '').replace(/\n+$/, '');
 
 /** At most `max` items; the rest is replaced by a single "N more" line. */
-export function capLines(lines, max) {
+export function capLines(lines: string[], max: number): string[] {
   if (lines.length <= max) return lines;
   return [...lines.slice(0, max), `... (+${lines.length - max} satır daha)`];
 }
 
 /** Open `- [ ]` roadmap items grouped by their `### ` heading (group heading printed once). */
-export function openRoadmapItems(text) {
-  const out = [];
+export function openRoadmapItems(text: string): string[] {
+  const out: string[] = [];
   let head = '';
   for (const line of text.split('\n')) {
     if (line.startsWith('### ')) head = line;
@@ -110,10 +112,17 @@ const FAIL = new Set(['FAILURE', 'CANCELLED', 'TIMED_OUT', 'ACTION_REQUIRED', 'S
 const PENDING = new Set(['PENDING', 'STALE']);
 
 /** One line per open pull request with pass/fail/pending counts. */
-export function formatPrLines(prs) {
+export type OpenPr = {
+  number: number;
+  title: string;
+  headRefName: string;
+  statusCheckRollup?: { conclusion?: string | null }[] | null;
+};
+
+export function formatPrLines(prs: OpenPr[]): string[] {
   return prs.map((pr) => {
     const cs = (pr.statusCheckRollup ?? []).map((c) => c?.conclusion || 'PENDING');
-    const count = (set) => cs.filter((c) => set.has(c)).length;
+    const count = (set: Set<string>) => cs.filter((c) => set.has(c)).length;
     return `#${pr.number} ${pr.title} [${pr.headRefName}] — checks: ${count(PASS)} pass / ${count(FAIL)} fail / ${count(PENDING)} pending`;
   });
 }
@@ -125,14 +134,17 @@ const DOCTOR_WARN = new Set(['warn', 'warning']);
  * Failures and warnings out of a doctor `--json` result. The shape is read tolerantly: an array of checks, or an
  * object holding such an array (`checks`, `results`, `items`) and/or `failures` / `warnings` arrays.
  */
-export function summarizeDoctor(data) {
-  const asItem = (x, level) =>
+export type DoctorEntry = { level: 'fail' | 'warn'; name: string; detail: string };
+
+// any: the doctor JSON is probed tolerantly with optional chaining, its shape is deliberately not fixed
+export function summarizeDoctor(data: any): { failures: DoctorEntry[]; warnings: DoctorEntry[] } {
+  const asItem = (x: any, level: 'fail' | 'warn'): DoctorEntry =>
     typeof x === 'string'
       ? { level, name: x, detail: '' }
       : { level, name: String(x?.name ?? x?.id ?? x?.check ?? '?'), detail: String(x?.detail ?? x?.message ?? '') };
-  const failures = [];
-  const warnings = [];
-  const take = (list) => {
+  const failures: DoctorEntry[] = [];
+  const warnings: DoctorEntry[] = [];
+  const take = (list: any[]) => {
     for (const x of list) {
       const raw = typeof x === 'string' ? '' : String(x?.level ?? x?.status ?? x?.severity ?? '').toLowerCase();
       if (DOCTOR_FAIL.has(raw)) failures.push(asItem(x, 'fail'));
@@ -142,18 +154,18 @@ export function summarizeDoctor(data) {
   if (Array.isArray(data)) take(data);
   else if (data && typeof data === 'object') {
     for (const key of ['checks', 'results', 'items']) if (Array.isArray(data[key])) take(data[key]);
-    if (Array.isArray(data.failures)) failures.push(...data.failures.map((x) => asItem(x, 'fail')));
-    if (Array.isArray(data.warnings)) warnings.push(...data.warnings.map((x) => asItem(x, 'warn')));
+    if (Array.isArray(data.failures)) failures.push(...data.failures.map((x: any) => asItem(x, 'fail')));
+    if (Array.isArray(data.warnings)) warnings.push(...data.warnings.map((x: any) => asItem(x, 'warn')));
   }
   return { failures, warnings };
 }
 
-function parseArgs(argv) {
+function parseArgs(argv: string[]): { agentDir: string | undefined } {
   const i = argv.indexOf('--agent-dir');
   return { agentDir: i !== -1 ? argv[i + 1] : undefined };
 }
 
-function listMd(dir, re) {
+function listMd(dir: string, re: RegExp): string[] {
   try {
     return readdirSync(dir)
       .filter((f) => re.test(f))
@@ -166,7 +178,9 @@ function listMd(dir, re) {
 
 // ---------------------------------------------------------------- sections
 
-function section(name, fn, ctx) {
+type Ctx = { root: string; agentDir: string; prs: OpenPr[] | null };
+
+function section(name: string, fn: (ctx: Ctx) => string | undefined, ctx: Ctx): string {
   try {
     return fn(ctx) ?? '';
   } catch (e) {
@@ -174,7 +188,7 @@ function section(name, fn, ctx) {
   }
 }
 
-function handoffSection({ agentDir }) {
+function handoffSection({ agentDir }: Ctx): string {
   const file = path.join(agentDir, 'handoff.md');
   if (!existsSync(file)) return '';
   const when = formatLocal(statSync(file).mtime);
@@ -182,15 +196,15 @@ function handoffSection({ agentDir }) {
   return `## Devir notu (güncelleme: ${when})\n${lines.join('\n')}\n\n`;
 }
 
-function counts(root, a, b) {
+function counts(root: string, a: string, b: string): { ahead: number; behind: number } | null {
   const r = run('git', ['rev-list', '--left-right', '--count', `${a}...${b}`], { cwd: root });
   if (!r.ok) return null;
   const [ahead, behind] = r.out.split(/\s+/).map(Number);
   return Number.isFinite(ahead) && Number.isFinite(behind) ? { ahead, behind } : null;
 }
 
-function gitStateSection({ root }) {
-  const g = (...args) => run('git', args, { cwd: root });
+function gitStateSection({ root }: Ctx): string {
+  const g = (...args: string[]) => run('git', args, { cwd: root });
   let out = '## Git durumu\n';
   const branch = g('symbolic-ref', '--short', 'HEAD').out;
   out += `- Dal: ${branch || '? (detached HEAD)'}\n`;
@@ -225,13 +239,15 @@ function gitStateSection({ root }) {
 }
 
 /** Local branches whose commits are not (all) on their upstream, or that have no upstream. */
-export function unpushedBranches(root) {
-  const g = (...args) => run('git', args, { cwd: root });
+export type UnpushedBranch = { name: string; upstream: string; count: number | null };
+
+export function unpushedBranches(root: string): UnpushedBranch[] {
+  const g = (...args: string[]) => run('git', args, { cwd: root });
   const hasRemotes = Boolean(g('for-each-ref', '--count=1', 'refs/remotes').out);
   const rows = g('for-each-ref', '--format=%(refname:short)%09%(upstream:short)', 'refs/heads')
     .out.split('\n')
     .filter(Boolean);
-  const out = [];
+  const out: UnpushedBranch[] = [];
   for (const row of rows) {
     const [name, upstream = ''] = row.split('\t');
     if (upstream) {
@@ -247,7 +263,7 @@ export function unpushedBranches(root) {
   return out;
 }
 
-function unpushedSection({ root }) {
+function unpushedSection({ root }: Ctx): string {
   const list = unpushedBranches(root);
   if (!list.length) return '';
   let out = "## Upstream'inde olmayan commit'li yerel dallar\n";
@@ -264,7 +280,7 @@ function unpushedSection({ root }) {
 }
 
 /** Open pull requests (gh), or null when GitHub is unreachable. */
-function fetchOpenPrs(root) {
+function fetchOpenPrs(root: string): OpenPr[] | null {
   const pr = run('gh', ['pr', 'list', '--state', 'open', '--json', 'number,title,headRefName,statusCheckRollup'], {
     cwd: root,
     timeout: NET_TIMEOUT,
@@ -278,14 +294,14 @@ function fetchOpenPrs(root) {
   }
 }
 
-function prSection({ prs }) {
+function prSection({ prs }: Ctx): string {
   let out = "## Açık PR'lar\n";
   if (prs === null) return `${out}(GitHub'a ulaşılamadı veya oturum açılmamış)\n\n`;
   out += prs.length ? `${capLines(formatPrLines(prs), MAX_LIST).join('\n')}\n` : '(açık PR yok)\n';
   return `${out}\n`;
 }
 
-function roadmapSection({ root }) {
+function roadmapSection({ root }: Ctx): string {
   const text = readText(path.join(root, 'docs/roadmap.md'));
   if (text === null) return '';
   const mevcut = joinTrim(sectionLines(text, /^## Mevcut durum/, /^## /));
@@ -297,7 +313,7 @@ function roadmapSection({ root }) {
   return `${out}\n`;
 }
 
-function journalSection({ root }) {
+function journalSection({ root }: Ctx): string {
   const latest = listMd(path.join(root, 'docs/journal'), /^[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$/).pop();
   if (!latest) return '';
   const text = readText(latest);
@@ -308,7 +324,7 @@ function journalSection({ root }) {
   return `## Son günlük özeti (docs/journal/${path.posix.basename(latest)})\n${body}\n\n`;
 }
 
-function plansSection({ root }) {
+function plansSection({ root }: Ctx): string {
   const files = listMd(path.join(root, 'docs/plans'), /\.md$/).filter((f) => path.posix.basename(f) !== 'README.md');
   if (!files.length) return '';
   const lines = files.map((f) => {
@@ -318,15 +334,15 @@ function plansSection({ root }) {
   return `## Planlar\n${capLines(lines, MAX_LIST).join('\n')}\n\n`;
 }
 
-function adrSection({ root }) {
+function adrSection({ root }: Ctx): string {
   const files = listMd(path.join(root, 'docs/adr'), /^[0-9].*\.md$/);
   const lines = files.map((f) => (readText(f) ?? '').split('\n')[0].replace(/^# /, ''));
   return lines.length ? `## Kararlar (ADR)\n${capLines(lines, MAX_LIST).join('\n')}\n\n` : '';
 }
 
 /** The doctor is written separately and may be missing or broken; this section never fails the hook. */
-function doctorSection({ root }) {
-  const script = path.join(root, 'tooling', 'scripts', 'doctor.mjs');
+function doctorSection({ root }: Ctx): string {
+  const script = path.join(root, 'tooling', 'scripts', 'doctor.ts');
   if (!existsSync(script)) return '';
   const r = spawnSync(process.execPath, [script, '--json'], {
     cwd: root,
@@ -334,17 +350,17 @@ function doctorSection({ root }) {
     timeout: 20000,
     windowsHide: true,
   });
-  let data;
+  let data: unknown;
   try {
     data = JSON.parse(r.stdout ?? '');
   } catch {
-    return '## Ortam kontrolü\n(doctor çalıştırılamadı veya çıktısı okunamadı: node tooling/scripts/doctor.mjs)\n\n';
+    return '## Ortam kontrolü\n(doctor çalıştırılamadı veya çıktısı okunamadı: node tooling/scripts/doctor.ts)\n\n';
   }
   const { failures, warnings } = summarizeDoctor(data);
   if (!failures.length && !warnings.length) return '';
-  const fmt = (tag) => (i) => `- [${tag}] ${i.name}${i.detail ? `: ${i.detail}` : ''}`;
+  const fmt = (tag: string) => (i: DoctorEntry) => `- [${tag}] ${i.name}${i.detail ? `: ${i.detail}` : ''}`;
   const lines = [...failures.map(fmt('HATA')), ...warnings.map(fmt('uyarı'))];
-  return `## Ortam kontrolü\n${capLines(lines, MAX_LIST).join('\n')}\n(ayrıntı: node tooling/scripts/doctor.mjs)\n\n`;
+  return `## Ortam kontrolü\n${capLines(lines, MAX_LIST).join('\n')}\n(ayrıntı: node tooling/scripts/doctor.ts)\n\n`;
 }
 
 // ---------------------------------------------------------------- main
@@ -358,7 +374,7 @@ function readStdinJson() {
   }
 }
 
-function recordSessionStart(agentDir, sessionId) {
+function recordSessionStart(agentDir: string, sessionId: string): void {
   const stateDir = path.join(agentDir, 'state');
   mkdirSync(stateDir, { recursive: true });
   const safe = sessionId.replace(/[^A-Za-z0-9._-]/g, '_');
@@ -374,8 +390,8 @@ function recordSessionStart(agentDir, sessionId) {
 }
 
 /** Warnings about the agent folder itself. */
-function agentDirWarnings(root, agentDir) {
-  const warnings = [];
+function agentDirWarnings(root: string, agentDir: string): string[] {
+  const warnings: string[] = [];
   const rel = path.relative(canonical(root), canonical(agentDir));
   const inside = rel && !rel.startsWith('..') && !path.isAbsolute(rel);
   if (inside && existsSync(agentDir)) {
@@ -394,13 +410,13 @@ function agentDirWarnings(root, agentDir) {
   return warnings;
 }
 
-function build() {
+function build(): string {
   const { agentDir: agentArg } = parseArgs(process.argv.slice(2));
   const rootRes = run('git', ['rev-parse', '--show-toplevel'], { cwd: process.cwd() });
   const root = rootRes.ok && rootRes.out ? rootRes.out : process.cwd();
   const agentDir = path.resolve(process.cwd(), agentArg ?? '.agent-dir-missing');
-  const ctx = { root, agentDir, prs: null };
-  const parts = [];
+  const ctx: Ctx = { root, agentDir, prs: null };
+  const parts: string[] = [];
 
   if (!agentArg) parts.push('## UYARI\n--agent-dir verilmedi; devir notu ve oturum durumu kaydedilemedi.\n\n');
   else {
@@ -436,12 +452,12 @@ function build() {
   return text.length > MAX_TOTAL_CHARS ? `${text.slice(0, MAX_TOTAL_CHARS)}\n... (bağlam kısaltıldı)\n` : text;
 }
 
-function emit(additionalContext) {
+function emit(additionalContext: string): void {
   writeSync(1, `${JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext } })}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  let text;
+  let text: string;
   try {
     text = build();
   } catch (e) {

@@ -1,4 +1,4 @@
-// Tests for agent-handoff-guard.mjs. Real temporary git repositories; nothing is mocked.
+// Tests for agent-handoff-guard.ts. Real temporary git repositories; nothing is mocked.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
@@ -15,13 +15,13 @@ import {
   shouldBlock,
   unpushedDecision,
   subsectionLines,
-} from './agent-handoff-guard.mjs';
+} from './agent-handoff-guard.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'agent-handoff-guard.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'agent-handoff-guard.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'handoff-test-'));
 let counter = 0;
 
-function sh(cwd, env, ...args) {
+function sh(cwd: string, env: NodeJS.ProcessEnv, ...args: string[]): string {
   const r = spawnSync('git', args, { cwd, encoding: 'utf8', env: { ...process.env, ...env } });
   assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
   return r.stdout.trim();
@@ -42,14 +42,14 @@ const FULL_JOURNAL = `# ${TODAY}
 ## Commit günlüğü
 `;
 
-function writeJournal(repo, text) {
+function writeJournal(repo: string, text: string): void {
   const file = path.join(repo, 'docs', 'journal', `${TODAY}.md`);
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
 }
 
 // Fresh repository with an ignored agent folder; one commit dated `commitAt`.
-function setup({ commitAt = NOW - 1000, readme = true } = {}) {
+function setup({ commitAt = NOW - 1000, readme = true }: { commitAt?: number; readme?: boolean } = {}) {
   const repo = path.join(root, `r${counter++}`);
   mkdirSync(repo, { recursive: true });
   const date = { GIT_COMMITTER_DATE: `${commitAt} +0000`, GIT_AUTHOR_DATE: `${commitAt} +0000` };
@@ -67,17 +67,17 @@ function setup({ commitAt = NOW - 1000, readme = true } = {}) {
   return { repo, agentDir, date };
 }
 
-function setStart(agentDir, sessionId, epoch) {
+function setStart(agentDir: string, sessionId: string, epoch: number): void {
   writeFileSync(path.join(agentDir, 'state', `session-${sessionId}.start`), `${epoch}\n`);
 }
 
-function setHandoff(agentDir, epoch, text = '# Devir notu\n') {
+function setHandoff(agentDir: string, epoch: number, text = '# Devir notu\n') {
   const file = path.join(agentDir, 'handoff.md');
   writeFileSync(file, text);
   utimesSync(file, epoch, epoch);
 }
 
-function run(repo, agentDir, input, args) {
+function run(repo: string, agentDir: string, input: unknown, args?: string[]) {
   const r = spawnSync('node', [SCRIPT, ...(args ?? ['--agent-dir', agentDir])], {
     cwd: repo,
     input: typeof input === 'string' ? input : JSON.stringify(input),
@@ -124,7 +124,7 @@ describe('decision core', () => {
 });
 
 describe('hook behaviour', () => {
-  let ctx;
+  let ctx: ReturnType<typeof setup>;
   beforeEach(() => {
     ctx = setup();
   });
@@ -216,12 +216,12 @@ describe('journal and push helpers', () => {
   });
   test('journal problem: missing file, empty sections, fine', () => {
     assert.equal(journalProblem('x.md', null), 'dosya yok');
-    assert.match(journalProblem('x.md', '### Yapılanlar\n\n### Yarım kalan / sıradaki\n- x\n'), /"Yapılanlar"/);
+    assert.match(journalProblem('x.md', '### Yapılanlar\n\n### Yarım kalan / sıradaki\n- x\n') as string, /"Yapılanlar"/);
     assert.match(
-      journalProblem('x.md', '### Yapılanlar\n- x\n### Yarım kalan / sıradaki\n\n## Commit günlüğü\n'),
+      journalProblem('x.md', '### Yapılanlar\n- x\n### Yarım kalan / sıradaki\n\n## Commit günlüğü\n') as string,
       /"Yarım kalan \/ sıradaki"/,
     );
-    assert.match(journalProblem('x.md', '## Özet\n'), /"Yapılanlar", "Yarım kalan \/ sıradaki"/);
+    assert.match(journalProblem('x.md', '## Özet\n') as string, /"Yapılanlar", "Yarım kalan \/ sıradaki"/);
     assert.equal(journalProblem('x.md', FULL_JOURNAL), null);
   });
   test('one problem is shown as is, several as a numbered list', () => {
@@ -233,14 +233,13 @@ describe('journal and push helpers', () => {
 });
 
 describe('unpushed branches rule', () => {
-  let ctx;
+  let ctx: ReturnType<typeof setup>;
   beforeEach(() => {
     ctx = setup();
     const bare = path.join(root, `bare${counter++}.git`);
     sh(root, {}, 'init', '-q', '--bare', '-b', 'main', bare);
     sh(ctx.repo, {}, 'remote', 'add', 'origin', bare);
     sh(ctx.repo, {}, 'push', '-q', 'origin', 'main');
-    ctx.bare = bare;
   });
 
   test('a feature branch without upstream, stale note: blocks and names what to fix', () => {
@@ -405,9 +404,9 @@ describe('unpushed decision core', () => {
   test('note exactly as new as the change: null', () =>
     assert.equal(unpushedDecision({ ...base, handoff: 100 }), null));
   test('stale note: problem text', () =>
-    assert.match(unpushedDecision({ ...base, handoff: 99 }), /eski; dosyayı bunlardan SONRA güncelle/));
+    assert.match(unpushedDecision({ ...base, handoff: 99 }) as string, /eski; dosyayı bunlardan SONRA güncelle/));
   test('missing note: stale and unnamed', () => {
-    const r = unpushedDecision({ ...base, handoff: 0, handoffText: '' });
+    const r = unpushedDecision({ ...base, handoff: 0, handoffText: '' }) as string;
     assert.match(r, /eski/);
     assert.match(r, /adını içermiyor: ci\/bootstrap/);
   });
@@ -465,7 +464,7 @@ describe('journal summary rule', () => {
 
   // Old main (no commit today) plus branch feat/other with a commit today; `journal` is committed on the branch
   // (null: the journal file is removed there). Ends on main.
-  function branchOnly(journal) {
+  function branchOnly(journal: string | null) {
     const c = setup({ commitAt: NOW - 3 * 86400 });
     sh(c.repo, {}, 'switch', '-q', '-c', 'feat/other');
     if (journal === null) rmSync(path.join(c.repo, 'docs', 'journal', `${TODAY}.md`));

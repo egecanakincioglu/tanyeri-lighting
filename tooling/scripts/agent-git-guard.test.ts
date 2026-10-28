@@ -1,4 +1,4 @@
-// Tests for agent-git-guard.mjs. Real git repositories in the OS temp dir; nothing is mocked.
+// Tests for agent-git-guard.ts. Real git repositories in the OS temp dir; nothing is mocked.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
@@ -7,17 +7,17 @@ import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const GUARD_SRC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'agent-git-guard.mjs');
+const GUARD_SRC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'agent-git-guard.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'guard-test-'));
 
-function sh(cwd, ...args) {
+function sh(cwd: string, ...args: string[]): string {
   const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
   assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
   return r.stdout.trim();
 }
 
 // A repository that carries its own copy of the guard (the guard judges "the repository it lives in").
-function makeRepo(name, { guard = true } = {}) {
+function makeRepo(name: string, { guard = true }: { guard?: boolean } = {}): string {
   const dir = path.join(root, name);
   mkdirSync(dir, { recursive: true });
   sh(dir, 'init', '-q', '-b', 'main');
@@ -26,15 +26,15 @@ function makeRepo(name, { guard = true } = {}) {
   sh(dir, 'config', 'commit.gpgsign', 'false');
   if (guard) {
     mkdirSync(path.join(dir, 'tooling', 'scripts'), { recursive: true });
-    copyFileSync(GUARD_SRC, path.join(dir, 'tooling', 'scripts', 'agent-git-guard.mjs'));
+    copyFileSync(GUARD_SRC, path.join(dir, 'tooling', 'scripts', 'agent-git-guard.ts'));
   }
   sh(dir, 'add', '-A');
   sh(dir, 'commit', '-q', '--allow-empty', '-m', 'chore: init');
   return dir;
 }
 
-function runGuardRaw(repo, stdin) {
-  const r = spawnSync('node', [path.join(repo, 'tooling', 'scripts', 'agent-git-guard.mjs')], {
+function runGuardRaw(repo: string, stdin: string) {
+  const r = spawnSync('node', [path.join(repo, 'tooling', 'scripts', 'agent-git-guard.ts')], {
     cwd: repo,
     input: stdin,
     encoding: 'utf8',
@@ -42,7 +42,9 @@ function runGuardRaw(repo, stdin) {
   return { status: r.status, stdout: r.stdout, stderr: r.stderr };
 }
 
-function decide(repo, command, extra = {}) {
+type Decision = { allowed: boolean; reason?: string };
+
+function decide(repo: string, command: string, extra: Record<string, unknown> = {}): Decision {
   const { status, stdout } = runGuardRaw(
     repo,
     JSON.stringify({ tool_name: 'Bash', tool_input: { command }, ...extra }),
@@ -55,21 +57,21 @@ function decide(repo, command, extra = {}) {
   return { allowed: false, reason: out.hookSpecificOutput.permissionDecisionReason };
 }
 
-const denied = (repo, command, match) => {
+const denied = (repo: string, command: string, match?: RegExp): void => {
   const d = decide(repo, command);
   assert.equal(d.allowed, false, `expected deny: ${command}`);
-  if (match) assert.match(d.reason, match, command);
+  if (match) assert.match(d.reason as string, match, command);
 };
-const allowed = (repo, command, extra) => {
+const allowed = (repo: string, command: string, extra?: Record<string, unknown>): void => {
   const d = decide(repo, command, extra);
   assert.equal(d.allowed, true, `expected allow: ${command} (${d.reason})`);
 };
 
-let onMain; // this repository, checked out on main
-let onFeature; // this repository, checked out on a feature branch
-let other; // a different repository on main (without a guard copy)
-let pushed; // feat/pushed: HEAD is contained in a remote-tracking branch
-let local; // pushed history plus one commit that exists only locally
+let onMain: string; // this repository, checked out on main
+let onFeature: string; // this repository, checked out on a feature branch
+let other: string; // a different repository on main (without a guard copy)
+let pushed: string; // feat/pushed: HEAD is contained in a remote-tracking branch
+let local: string; // pushed history plus one commit that exists only locally
 
 before(() => {
   onMain = makeRepo('on-main');
@@ -704,19 +706,19 @@ describe('commands that target another repository', () => {
 
 describe('shell-specific quoting of -C paths', () => {
   const WIN = process.platform === 'win32';
-  const dec = (repo, tool, command) => {
+  const dec = (repo: string, tool: string, command: string): Decision => {
     const { stdout } = runGuardRaw(repo, JSON.stringify({ tool_name: tool, tool_input: { command } }));
     if (stdout.trim() === '') return { allowed: true };
     return { allowed: false, reason: JSON.parse(stdout).hookSpecificOutput.permissionDecisionReason };
   };
-  const ok = (repo, tool, c) => assert.equal(dec(repo, tool, c).allowed, true, `${tool}: ${c}`);
-  const no = (repo, tool, c, match) => {
+  const ok = (repo: string, tool: string, c: string) => assert.equal(dec(repo, tool, c).allowed, true, `${tool}: ${c}`);
+  const no = (repo: string, tool: string, c: string, match?: RegExp) => {
     const d = dec(repo, tool, c);
     assert.equal(d.allowed, false, `${tool}: ${c}`);
-    if (match) assert.match(d.reason, match, c);
+    if (match) assert.match(d.reason as string, match, c);
   };
-  let featWt; // worktree of onMain on a feature branch
-  let mainWt; // worktree of onFeature on main
+  let featWt: string; // worktree of onMain on a feature branch
+  let mainWt: string; // worktree of onFeature on main
   before(() => {
     featWt = path.join(root, 'bs-feat-wt');
     sh(onMain, 'worktree', 'add', '-q', '-b', 'feat/bs-wt', featWt);
