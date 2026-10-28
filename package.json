@@ -18,6 +18,7 @@
     "db:up": "node tooling/scripts/db.ts up",
     "db:down": "node tooling/scripts/db.ts down",
     "knip": "knip",
+    "release:prepare": "node tooling/scripts/release-prepare.ts",
     "site-audit": "node tooling/site-audit/run.ts",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p tsconfig.tooling.json",
     "test": "vitest run --coverage",
