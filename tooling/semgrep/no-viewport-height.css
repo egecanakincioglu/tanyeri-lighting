@@ -1,0 +1,8 @@
+.a {
+  # ruleid: no-viewport-height
+  height: 100vh;
+}
+.b {
+  # ok: no-viewport-height
+  height: 100dvh;
+}

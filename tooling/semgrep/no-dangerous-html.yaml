@@ -1,0 +1,8 @@
+rules:
+  - id: no-dangerous-html
+    languages: [typescript]
+    severity: ERROR
+    message: dangerouslySetInnerHTML is forbidden; render content as React nodes.
+    pattern-either:
+      - pattern: <$EL dangerouslySetInnerHTML={...} />
+      - pattern: <$EL dangerouslySetInnerHTML={...}>...</$EL>

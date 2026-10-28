@@ -1,0 +1,8 @@
+rules:
+  - id: no-raw-sql
+    languages: [typescript]
+    severity: ERROR
+    message: Unsafe raw SQL is forbidden; use the typed Prisma query API.
+    pattern-either:
+      - pattern: $DB.$queryRawUnsafe(...)
+      - pattern: $DB.$executeRawUnsafe(...)
