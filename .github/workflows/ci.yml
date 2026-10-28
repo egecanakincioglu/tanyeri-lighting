@@ -153,6 +153,9 @@ jobs:
       - name: Dependency audit
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-audit.ts
+      - name: Production licenses
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-licenses.ts
 
   test:
     name: test
