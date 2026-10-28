@@ -31,11 +31,14 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: node tooling/scripts/release-check.ts verify "$TAG"
-      - name: Release notes come from CHANGELOG.md
+      - name: Release notes come from releases/ and CHANGELOG.md
+        id: notes
         env:
           TAG: ${{ github.ref_name }}
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
-        run: node tooling/scripts/release-check.ts notes "$TAG" "$NOTES_FILE"
+        run: |
+          node tooling/scripts/release-check.ts notes "$TAG" "$NOTES_FILE"
+          echo "title=$(node tooling/scripts/release-check.ts title "$TAG")" >> "$GITHUB_OUTPUT"
       - name: Deploy to production
         env:
           TAG: ${{ github.ref_name }}
@@ -48,5 +51,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          TITLE: ${{ steps.notes.outputs.title }}
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
-        run: gh release create "$TAG" --title "$TAG" --notes-file "$NOTES_FILE"
+        run: gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE"
