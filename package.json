@@ -19,7 +19,7 @@
     "db:down": "node tooling/scripts/db.ts down",
     "knip": "knip",
     "site-audit": "node tooling/site-audit/run.ts",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tooling.json",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p tsconfig.tooling.json",
     "test": "vitest run --coverage",
     "format": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .git/info/exclude",
     "format:check": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .git/info/exclude"
