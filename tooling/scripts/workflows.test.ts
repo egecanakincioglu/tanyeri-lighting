@@ -10,7 +10,10 @@ const DIR = path.join(ROOT, '.github', 'workflows');
 const files = readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f));
 const read = (f: string) => readFileSync(path.join(DIR, f), 'utf8');
 /** Lines without full-line comments. */
-const codeLines = (f: string) => read(f).split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
+const codeLines = (f: string) =>
+  read(f)
+    .split(/\r?\n/)
+    .filter((l) => !/^\s*#/.test(l));
 
 /** Job blocks: jobs are the 2-space-indented keys under `jobs:`. */
 function jobs(f: string) {
@@ -86,7 +89,7 @@ describe('every workflow', () => {
 describe('required check names', () => {
   const names = new Map();
   for (const f of files) for (const j of jobs(f)) names.set(jobName(j), f);
-  for (const n of ['policy', 'tooling (linux)', 'tooling (windows)', 'pr-text']) {
+  for (const n of ['policy', 'quality', 'tooling (linux)', 'tooling (windows)', 'pr-text']) {
     test(`job "${n}" exists`, () => assert.ok(names.has(n), `missing job ${n}`));
   }
 });
