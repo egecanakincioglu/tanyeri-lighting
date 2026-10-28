@@ -109,8 +109,8 @@ export function hint(platform: string, tool: 'node' | 'gitleaks' | 'gh' | 'pnpm'
 // ---------------------------------------------------------------- command execution
 
 export type ExecResult = { ok: boolean; missing: boolean; out: string; err: string };
-export type Exec = (cmd: string, args?: string[]) => ExecResult;
-export type Level = 'ok' | 'warn' | 'error';
+type Exec = (cmd: string, args?: string[]) => ExecResult;
+type Level = 'ok' | 'warn' | 'error';
 export type CheckItem = { level: Level; name: string; detail: string; fix: string };
 
 /** Runs a command without a shell (a .cmd shim through cmd.exe); never throws. */

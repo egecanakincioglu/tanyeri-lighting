@@ -156,6 +156,9 @@ jobs:
       - name: Production licenses
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-licenses.ts
+      - name: Dead code and unused dependencies
+        if: ${{ !cancelled() }}
+        run: pnpm knip
 
   test:
     name: test

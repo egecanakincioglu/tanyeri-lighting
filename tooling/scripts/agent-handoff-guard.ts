@@ -101,7 +101,7 @@ export function unpushedDecision({
 }
 
 /** Turkish problem text for a missing or empty journal summary. `file` is the journal path relative to the root. */
-export function journalReason(file: string, problem: string): string {
+function journalReason(file: string, problem: string): string {
   return `Bugün commit yapıldı ama bugünün günlüğünün özeti eksik (${file}: ${problem}). Günün Özet bölümünü güncelle (main'e doğrudan yazılmaz; ilgili dalda):"### Yapılanlar" ve "### Yarım kalan / sıradaki" altında en az birer madde olmalı (kısa, Türkçe); böylece repo düzeyindeki devir notu güncel kalır.`;
 }
 
@@ -181,7 +181,7 @@ function staleHandoffProblem(root: string, agentDir: string, input: HookInput): 
 }
 
 /** Local branches (other than main) whose commits are not on their upstream, or on any remote when they have none. */
-export function unpushedBranches(root: string): UnpushedBranch[] {
+function unpushedBranches(root: string): UnpushedBranch[] {
   if (!git(['for-each-ref', '--count=1', 'refs/remotes'], root).out) return []; // no remote to push to: nothing to say
   const rows = git(['for-each-ref', '--format=%(refname:short)%09%(upstream:short)', 'refs/heads'], root)
     .out.split(/\r?\n/)
