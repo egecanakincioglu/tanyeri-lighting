@@ -1,5 +1,5 @@
-// A pull request that changes the version in package.json must also change CHANGELOG.md, and the version may only
-// go up (SemVer).
+// A pull request that changes the version in package.json must also change CHANGELOG.md, carry a finished notes file
+// releases/vX.Y.Z.md for the new version, and the version may only go up (SemVer).
 //
 //   node tooling/scripts/check-release-version.ts --base <sha> --head <sha>
 //
@@ -7,6 +7,7 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hasPlaceholder, notesHeading, notesPath } from './release-check.ts';
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
 
@@ -22,7 +23,8 @@ export function compareVersions(a: string, b: string): number | null {
   return 0;
 }
 
-type Snapshot = { version: string; changelog: string | null };
+/** `notes` is the content of the notes file of `version` (null when it does not exist). */
+type Snapshot = { version: string; changelog: string | null; notes: string | null };
 
 /** Problems found when going from the base version/changelog to the head ones (empty when none). */
 export function check(base: Snapshot, head: Snapshot): string[] {
@@ -32,6 +34,11 @@ export function check(base: Snapshot, head: Snapshot): string[] {
   if (order === null) problems.push(`version must be X.Y.Z (base ${base.version}, head ${head.version})`);
   else if (order <= 0) problems.push(`version must go up, but it went from ${base.version} to ${head.version}`);
   if (base.changelog === head.changelog) problems.push('the version changed but CHANGELOG.md did not');
+  const file = notesPath(head.version);
+  if (head.notes === null) problems.push(`the version changed but ${file} does not exist`);
+  else if (hasPlaceholder(head.notes)) problems.push(`${file} still contains a "<!-- fill in" comment`);
+  else if (notesHeading(head.notes, head.version) === null)
+    problems.push(`the first line of ${file} must be "# v${head.version} — <title>"`);
   return problems;
 }
 
@@ -59,7 +66,9 @@ export function main(argv: string[], cwd: string = process.cwd()): number {
     const changelog = show(ref, 'CHANGELOG.md', cwd);
     if (typeof pkg !== 'string' || changelog === undefined) return null;
     const version = (JSON.parse(pkg) as { version?: unknown }).version;
-    return typeof version === 'string' ? { version, changelog } : null;
+    if (typeof version !== 'string') return null;
+    const notes = show(ref, notesPath(version), cwd);
+    return notes === undefined ? null : { version, changelog, notes };
   };
   let before: Snapshot | null;
   let after: Snapshot | null;
@@ -75,7 +84,7 @@ export function main(argv: string[], cwd: string = process.cwd()): number {
   }
   const problems = check(before, after);
   if (problems.length === 0) {
-    process.stdout.write('release version: unchanged, or bumped upward with a changelog entry\n');
+    process.stdout.write('release version: unchanged, or bumped upward with a changelog entry and finished notes\n');
     return 0;
   }
   for (const p of problems) process.stderr.write(`release version: ${p}\n`);
