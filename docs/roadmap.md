@@ -4,9 +4,9 @@
 
 ## Mevcut durum
 
-- **Faz:** Faz 3 (uygulama iskeleti ve kalite temeli) sürüyor: araç zinciri, koruma ve kalite işleri birleşti; uygulama kodu henüz yok. Uygulamayı yeni, temiz bir repoda sıfırdan yazıyorum.
+- **Faz:** Faz 3 tamamlandı (v0.1.0, 2026-10-28); Faz 4 (sunucu temeli) başlıyor. Canlı: https://tanyeri-lighting.vercel.app — 1.0.0'a kadar arama motorlarına kapalı. Uygulamayı yeni, temiz bir repoda sıfırdan yazıyorum.
 - **Son güncelleme:** 2026-10-28.
-- **Sıradaki adım:** Faz 3'ün kapanışı: sürüm hattı ([ADR 0011](adr/0011-surumleme-ve-yayin.md)) ve ilk sürüm v0.1.0. Faz 4 (sunucu temeli) Faz 3 kapanınca başlar.
+- **Sıradaki adım:** Faz 4: önce açık soruları (S-02–S-06) karara bağlıyorum; ilk maddeler ortam doğrulamasının tam hali ve nonce'lu CSP.
 - **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `build` ve üç `site-audit` kolunu eklemek; Faz 3'te Vercel ve Neon hesap adımları (Neon Frankfurt bölgesinde); Vercel token'ı ve repo değişkenleri (ADR 0011); Faz 9'da üretimi Search Console ve Bing'e eklemek; Faz 5'te logo.
 
 ## İlerleme
@@ -18,11 +18,11 @@
 - [x] ~~Faz 0 — Yerel hazırlık~~ — 2026-10-28, yerel
 - [x] ~~Faz 1 — Eski repo ve geçmiş (yerelde temizlendi ve yedeklendi, eski repoya force push edildi, sonra eski repo silindi; yeni repoya taşınmadı)~~ — 2026-10-28, elle
 - [x] ~~Yeni repo, repo ayarları ve `main` dal koruması~~ — 2026-10-28, elle
-- [ ] Faz 2 — Yönetişim altyapısı (PR #1–#8 birleşti; kalanlar: doküman işleri ve Faz 3'te tooling TypeScript'e geçince yapılacak iki koruma)
+- [ ] Faz 2 — Yönetişim altyapısı (PR #1–#8 birleşti; kalan: eski fork'u tutan hesaba mesaj (elle))
 
 ### Uygulama (PR ile)
 
-- [ ] Faz 3 — Uygulama iskeleti ve kalite temeli (tooling'in TypeScript'e geçişi, Vercel ve Neon dahil)
+- [x] ~~Faz 3 — Uygulama iskeleti ve kalite temeli (tooling'in TypeScript'e geçişi, Vercel ve Neon dahil)~~ — 2026-10-28, v0.1.0
 - [ ] Faz 4 — Sunucu temeli
 - [ ] Faz 5 — Marka ve tasarım sistemi
 - [ ] Faz 6 — Herkese açık site (iki dilli)

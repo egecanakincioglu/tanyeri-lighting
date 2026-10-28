@@ -90,6 +90,18 @@ Faz 3'ün kalan işleri (`build`, `site-audit`) geldiğinde bu listeye ve plana 
 - Çalıştırıcının kaybolması, ağ zaman aşımı veya GitHub kesintisi gibi altyapı hataları için PR başına en fazla bir kez `gh run rerun <id> --failed` çalıştırılır. Yeniden koşu günlüğe yazılır.
 - Gerçek test, lint veya derleme hatası yeniden koşulmaz; kodu düzeltirim.
 
+## Sürüm çıkarma
+
+Sürüm ne zaman çıkacak, onu ben karar veririm; `main`'e birleşen işler kendiliğinden canlıya gitmez. Adımların ayrıntısı [ADR 0011](../adr/0011-surumleme-ve-yayin.md)'de; burada sırayla yaptığım işleri yazıyorum.
+
+1. Sürüm dalını `chore/release-vX-Y-Z` adıyla açarım. Noktalar dal adı kuralına takıldığı için `vX.Y.Z` yerine tireli ad kullanırım.
+2. `pnpm release:prepare` sonraki sürümü önerir; `--version X.Y.Z` ile başka bir sürüm verebilirim, `--dry-run` yalnız gösterir. Komut `package.json` ile `CHANGELOG.md` dosyasını yazar. Commit'i `chore(release): vX.Y.Z` başlığıyla atar ve PR'ı açarım. Bu PR için auto-merge açmam.
+3. Prova: `gh workflow run release-rehearsal.yml -f ref=chore/release-vX-Y-Z`. Önizleme adresini ve Vercel derleme log'unu (Prisma istemcisi, `prisma migrate deploy`, `next build`) kontrol ederim.
+4. PR'ı `--auto` ile birleştiririm. Sonra `main`'deki birleşme commit'ine imzalı etiketi koyar ve elle push'larım: `git tag -s vX.Y.Z -m "vX.Y.Z"` ve `git push origin vX.Y.Z`. Etiketi yalnız ben push'larım: yerel asistan yapılandırmasının git koruması etiket push'unu ve GitHub Release açmayı reddeder; canlıya çıkışın son adımı bende kalır.
+5. `release` iş akışı etiketin `main` üzerinde olduğunu ve `package.json` sürümüyle aynı olduğunu denetler. Sonra GitHub'daki commit'ten Vercel REST API ile üretime dağıtır (Vercel CLI kullanılmıyor; alt bağımlılıklarında yüksek açıklar vardı) ve `CHANGELOG.md`'deki bölümle GitHub Release açar.
+6. Canlıyı kontrol ederim. Sorun çıkarsa Vercel'de bir önceki üretim dağıtımına dönerim; düzeltme yeni bir PATCH sürümüyle gelir.
+7. Canlı site 1.0.0'a kadar `noindex` kalır; 1.0.0'da üretimde `SITE_INDEXING=on` yaparım.
+
 ## Paralel PR'lar
 
 - Dal geride kalırsa (strict kuralı) `git merge origin/main` ile güncellerim.
