@@ -1,0 +1,29 @@
+* text=auto eol=lf
+
+# shell scripts and git hooks (no extension) always LF
+*.sh text eol=lf
+tooling/git-hooks/* text eol=lf
+
+# images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.svg binary
+
+# fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+
+# documents / archives
+*.pdf binary
+*.zip binary
+
+# generated lockfiles: not a diff, not counted in language stats
+package-lock.json -diff linguist-generated
+pnpm-lock.yaml -diff linguist-generated
