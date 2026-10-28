@@ -137,6 +137,9 @@ jobs:
       - name: Format check
         if: ${{ !cancelled() }}
         run: pnpm format:check
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: pnpm lint
 
   test:
     name: test
