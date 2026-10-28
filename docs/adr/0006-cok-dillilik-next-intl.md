@@ -42,6 +42,7 @@ Uyacağım kurallar:
    - Her adres `/tr/...` ya da `/en/...` ile başlar; iki dilin adres yapısı simetrik kalır.
    - Kök `/` isteği `Accept-Language` başlığına göre `/tr`'ye veya `/en`'e yönlendirilir; eşleşme yoksa `/tr`'ye gider.
    - Yönlendirmeyi next-intl'in dil algılamasıyla yaparım. Bu davranışı, çerezin başlığa göre önceliği dahil, Faz 3'te testle doğrularım.
+9. **Adresler:** her dil kendi dilinde adres kullanır (next-intl `pathnames`, ör. `/tr/urunler` ve `/en/products`); dinamik parçalar (ürün anahtarı gibi) dilden bağımsızdır. İki dilin adres yapısı kural 8'deki gibi simetrik kalır. Karar tarihi 2026-10-28 ([tasarım incelemesi](../research/2026-10-28-tasarim-incelemesi.md)).
 
 ## Sonuçlar
 
