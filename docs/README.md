@@ -7,6 +7,6 @@ Bu klasör projenin tek doğruluk kaynağı; her iş, onu anlatan dokümanla ayn
 - [plans/](plans/2026-10-27-revizyon.md) — uygulama planları
 - [journal/](journal/README.md) — günlük
 - [adr/](adr/README.md) — mimari kararlar
-- [research/](research/2026-10-28-teknoloji-dogrulamasi.md) — araştırmalar: [teknoloji doğrulaması](research/2026-10-28-teknoloji-dogrulamasi.md), [tasarım incelemesi](research/2026-10-28-tasarim-incelemesi.md)
+- [research/](research/2026-10-28-teknoloji-dogrulamasi.md) — araştırmalar: [teknoloji doğrulaması](research/2026-10-28-teknoloji-dogrulamasi.md), [tasarım incelemesi](research/2026-10-28-tasarim-incelemesi.md), [kalite hedefleri](research/2026-10-28-kalite-hedefleri.md)
 
 Eklenecek klasörler (ilk dokümanları geldiğinde burada listelenecek): `guides/` (rehberler), `runbooks/` (işletim talimatları), `security/` (güvenlik denetimi kayıtları).
