@@ -1,0 +1,52 @@
+name: release
+
+# Production is deployed only from a vX.Y.Z tag. The tag must point at a commit on main whose package.json
+# version matches it. Vercel builds the tagged commit from GitHub.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: The tag is on main and matches package.json
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node tooling/scripts/release-check.ts verify "$TAG"
+      - name: Release notes come from CHANGELOG.md
+        env:
+          TAG: ${{ github.ref_name }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: node tooling/scripts/release-check.ts notes "$TAG" "$NOTES_FILE"
+      - name: Deploy to production
+        env:
+          TAG: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: node tooling/scripts/vercel-deploy.ts --target production --ref "$TAG" --sha "$SHA"
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: gh release create "$TAG" --title "$TAG" --notes-file "$NOTES_FILE"
