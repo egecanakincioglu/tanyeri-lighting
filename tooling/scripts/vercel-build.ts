@@ -1,31 +1,37 @@
 #!/usr/bin/env node
-// Vercel build command (vercel.json "buildCommand"). Preview deployments apply the Prisma migrations to the preview
-// database before building; production never applies them here (production stays closed until Phase 9).
+// Vercel build command (vercel.json "buildCommand"). Deployments come only from the release workflows, so preview and
+// production builds both apply the Prisma migrations before building. The Prisma client is generated in every build
+// because Vercel may restore node_modules from its cache without running the postinstall script.
 //
-// Exit codes: 0 ok, 1 failure (missing DATABASE_URL_UNPOOLED in preview, or a failing step), otherwise the failing step's code.
+// Exit codes: 0 ok, 1 failure (missing DATABASE_URL_UNPOOLED in preview or production, or a failing step), otherwise the failing step's code.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-type Step = 'migrate' | 'build';
+type Step = 'generate' | 'migrate' | 'build';
 export type Plan = { steps: Step[]; info?: string; error?: string };
 
 export function plan(env: Record<string, string | undefined>): Plan {
-  if (env['VERCEL_ENV'] !== 'preview') {
-    return { steps: ['build'], info: 'Migrations are not applied outside preview.' };
+  if (env['VERCEL_ENV'] !== 'preview' && env['VERCEL_ENV'] !== 'production') {
+    return { steps: ['generate', 'build'], info: 'Migrations are not applied outside preview and production.' };
   }
   if (!env['DATABASE_URL_UNPOOLED']) {
-    return { steps: [], error: 'DATABASE_URL_UNPOOLED is not set; cannot apply migrations in a preview build.' };
+    return {
+      steps: [],
+      error: 'DATABASE_URL_UNPOOLED is not set; cannot apply migrations in a preview or production build.',
+    };
   }
-  return { steps: ['migrate', 'build'] };
+  return { steps: ['generate', 'migrate', 'build'] };
 }
 
 // The project's own CLIs, run through the current Node so no shell or global shim is needed (Windows and Linux).
+const PRISMA = path.join('node_modules', 'prisma', 'build', 'index.js');
 const BIN: Record<Step, string> = {
-  migrate: path.join('node_modules', 'prisma', 'build', 'index.js'),
+  generate: PRISMA,
+  migrate: PRISMA,
   build: path.join('node_modules', 'next', 'dist', 'bin', 'next'),
 };
-const ARGS: Record<Step, string[]> = { migrate: ['migrate', 'deploy'], build: ['build'] };
+const ARGS: Record<Step, string[]> = { generate: ['generate'], migrate: ['migrate', 'deploy'], build: ['build'] };
 
 function main(env: Record<string, string | undefined>): number {
   const { steps, info, error } = plan(env);
