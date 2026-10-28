@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getEnv, parseEnv } from './env.ts';
+import { getEnv, isIndexingEnabled, parseEnv } from './env.ts';
 
 const valid = {
   DATABASE_URL: 'postgresql://pool.example.com:5432/tanyeri',
@@ -46,5 +46,29 @@ describe('getEnv', () => {
     const first = getEnv();
     vi.stubEnv('DATABASE_URL', 'not-a-url');
     expect(getEnv()).toBe(first);
+  });
+});
+
+describe('isIndexingEnabled', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('is off when the variable is missing', () => {
+    expect(isIndexingEnabled({})).toBe(false);
+  });
+
+  it('is on only for "on"', () => {
+    expect(isIndexingEnabled({ SITE_INDEXING: 'on' })).toBe(true);
+    expect(isIndexingEnabled({ SITE_INDEXING: 'off' })).toBe(false);
+  });
+
+  it('rejects any other value and names the variable', () => {
+    expect(() => isIndexingEnabled({ SITE_INDEXING: 'yes' })).toThrow(/SITE_INDEXING/);
+  });
+
+  it('reads process.env by default', () => {
+    vi.stubEnv('SITE_INDEXING', 'on');
+    expect(isIndexingEnabled()).toBe(true);
   });
 });

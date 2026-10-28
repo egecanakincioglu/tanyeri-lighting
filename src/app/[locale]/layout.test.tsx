@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../messages/en.json' with { type: 'json' };
 import tr from '../../../messages/tr.json' with { type: 'json' };
 import RootLayout, { generateMetadata } from './layout.tsx';
@@ -35,6 +35,25 @@ describe('RootLayout', () => {
   it.each(['tr', 'en'])('returns the localized document title for %s', async (locale) => {
     await expect(generateMetadata(metadataProps(locale))).resolves.toMatchObject({
       title: 'Tanyeri',
+    });
+  });
+
+  describe('robots', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('keeps the site out of search indexes by default', async () => {
+      vi.stubEnv('SITE_INDEXING', undefined);
+      await expect(generateMetadata(metadataProps('tr'))).resolves.toMatchObject({
+        robots: { index: false, follow: false },
+      });
+    });
+
+    it('sets no robots rule when indexing is on', async () => {
+      vi.stubEnv('SITE_INDEXING', 'on');
+      const metadata = await generateMetadata(metadataProps('tr'));
+      expect(metadata).not.toHaveProperty('robots');
     });
   });
 });
