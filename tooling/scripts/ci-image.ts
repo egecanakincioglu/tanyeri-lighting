@@ -22,6 +22,11 @@ export function parseManifest(text: unknown): Map<string, string> {
   return stages;
 }
 
+/** The manifest text, for callers that resolve an image themselves. */
+export function readManifest(): string {
+  return readFileSync(MANIFEST, 'utf8');
+}
+
 /** The digest-pinned reference of a stage, or null when the stage is missing or has no sha256 digest. */
 export function resolveImage(text: unknown, stage: string): string | null {
   const ref = parseManifest(text).get(stage);
@@ -38,7 +43,7 @@ export function imageVersion(text: unknown, stage: string): string | null {
 
 export function main(
   argv: string[],
-  manifestText: string = readFileSync(MANIFEST, 'utf8'),
+  manifestText: string = readManifest(),
   out: (s: string) => void = console.log,
   err: (s: string) => void = console.error,
 ): number {
