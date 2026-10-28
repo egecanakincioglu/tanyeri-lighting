@@ -6,7 +6,7 @@
 #   --all      every tracked path (CI)
 set -euo pipefail
 
-forbidden='(^|/)\.env($|\.)|^database/|^server/uploads/|\.(pem|key|p12|pfx)$|(^|/)id_(rsa|ed25519)|(^|/)\.mcp\.json$|^PRODUCT\.md$|^DESIGN\.md$|^design-system/|^docs/brand-guidelines\.md$'
+forbidden='(^|/)\.env($|\.)|^database/|^server/uploads/|\.(pem|key|p12|pfx)$|(^|/)id_(rsa|ed25519)|(^|/)\.mcp\.json$|^PRODUCT\.md$|^DESIGN\.md$|^design-system/|^docs/brand-guidelines\.md$|^docs/old-source-code/'
 
 mode="${1:?mode required: --staged | --all}"
 case "$mode" in
