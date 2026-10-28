@@ -123,10 +123,11 @@ describe('release workflows', () => {
       for (const l of lines.filter((x) => /^\s*run:/.test(x))) assert.ok(!l.includes('${{'), `${f}: ${l.trim()}`);
     }
   });
-  test('the deploys build on Vercel (no --prebuilt)', () => {
-    for (const f of ['release.yml', 'release-rehearsal.yml']) assert.ok(!read(f).includes('--prebuilt'), f);
-    assert.match(read('release.yml'), /vercel deploy --prod /);
-    assert.ok(!/--prod|--target/.test(read('release-rehearsal.yml')));
+  test('the deploys go through the REST API script, never the Vercel CLI', () => {
+    for (const f of ['release.yml', 'release-rehearsal.yml'])
+      assert.ok(!/\bvercel (deploy|pull|build)/.test(read(f)), f);
+    assert.match(read('release.yml'), /vercel-deploy\.ts --target production /);
+    assert.match(read('release-rehearsal.yml'), /vercel-deploy\.ts --target preview /);
   });
   test('the rehearsal is manual only', () => {
     assert.match(read('release-rehearsal.yml'), /^on:\n {2}workflow_dispatch:/m);
