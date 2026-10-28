@@ -3,25 +3,16 @@
 // gitleaks-rules.test.ts.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { resolveBash } from '../scripts/lib/bash.ts';
+import { fakeGitleaks, installScannerStubs, PINNED_GITLEAKS as PINNED, stubBin } from '../scripts/lib/scanner-stubs.ts';
 
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
-
-// the pinned gitleaks version, read from the manifest the hook reads
-const PINNED = /gitleaks:v?([^@\s]+)@/.exec(readFileSync(path.join(tooling, 'ci-images', 'Dockerfile'), 'utf8'))?.[1] as string;
-const stubBin = (dir: string, name: string, body: string): void => {
-  writeFileSync(path.join(dir, name), `#!/usr/bin/env bash\n${body}\n`);
-  chmodSync(path.join(dir, name), 0o755);
-};
-// a fake gitleaks that reports `version` and otherwise runs `body`
-const fakeGitleaks = (version: string, body: string): string =>
-  `if [ "\${1:-}" = version ]; then echo ${version}; exit 0; fi\n${body}`;
 
 // a repo on main with the check scripts committed (hooks off), switched to `branch`
 type Git = (...args: string[]) => SpawnSyncReturns<string>;
@@ -31,7 +22,7 @@ const withRepo = (branch: string, fn: (repo: string, git: Git) => void): void =>
   const stub = path.join(dir, '.stub-bin');
   try {
     mkdirSync(stub);
-    stubBin(stub, 'gitleaks', fakeGitleaks(PINNED, 'exit 0'));
+    installScannerStubs(stub);
     const repo = path.join(dir, 'repo');
     mkdirSync(path.join(repo, 'tooling', 'scripts'), { recursive: true });
     mkdirSync(path.join(repo, 'tooling', 'ci-images'), { recursive: true });
