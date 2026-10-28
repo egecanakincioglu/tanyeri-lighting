@@ -123,6 +123,7 @@ describe('main in a temporary repository', () => {
 
     assert.equal(run('--dry-run'), 0);
     assert.equal(existsSync(path.join(root, 'CHANGELOG.md')), false);
+    assert.equal(existsSync(path.join(root, 'releases')), false);
     assert.match(read('package.json'), /"0\.0\.0"/);
 
     assert.equal(run('--version', '0.0.0'), 1);
@@ -135,6 +136,23 @@ describe('main in a temporary repository', () => {
       /^# Changelog\n\nAll notable changes[^\n]*\n\n## \[0\.1\.0\] - 2026-10-28\n\n### Features\n- first \([0-9a-f]+\)/,
     );
 
+    assert.equal(
+      read('releases/v0.1.0.md'),
+      [
+        '# v0.1.0 — <!-- fill in -->',
+        '',
+        '> <!-- fill in: summary, number of commits since the previous release, migrations -->',
+        '> 2 commit(s) since the start.',
+        '',
+        '---',
+        '',
+        '## Technical notes',
+        '',
+        '- Migrations: <!-- fill in -->',
+        '',
+      ].join('\n'),
+    );
+
     git('tag', 'v0.1.0');
     assert.equal(run(), 1);
     commit('fix: third');
@@ -143,6 +161,14 @@ describe('main in a temporary repository', () => {
     assert.match(read('package.json'), /"0\.1\.1"/);
     const log = read('CHANGELOG.md');
     assert.ok(log.indexOf('## [0.1.1]') < log.indexOf('## [0.1.0]'));
+    assert.match(read('releases/v0.1.1.md'), /> 1 commit\(s\) since v0\.1\.0\./);
+  });
+
+  test('an existing notes file is left untouched', () => {
+    writeFileSync(path.join(root, 'releases', 'v0.1.2.md'), 'written by hand\n');
+    commit('fix: fifth');
+    assert.equal(run('--version', '0.1.2'), 0);
+    assert.equal(read('releases/v0.1.2.md'), 'written by hand\n');
   });
 
   test('a changelog that cannot be read is an error, not a missing file', () => {

@@ -1,5 +1,6 @@
 // Prepares a release: computes the next SemVer version from the Conventional Commits since the last v* tag, writes it
-// to package.json and puts a new section at the top of CHANGELOG.md. It does not tag, push or publish.
+// to package.json, puts a new section at the top of CHANGELOG.md and creates a draft releases/vX.Y.Z.md when that
+// file does not exist yet (an existing one is never touched). It does not tag, push or publish.
 //
 //   node tooling/scripts/release-prepare.ts [--version X.Y.Z] [--dry-run]
 //
@@ -7,9 +8,10 @@
 // when none of them is present the suggestion is PATCH. Exit codes: 0 ok, 1 invalid version or nothing to release,
 // 2 usage or environment error. Runs in the working directory (a git repository with a package.json).
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { notesPath, PLACEHOLDER } from './release-check.ts';
 
 export interface Commit {
   sha: string;
@@ -73,6 +75,36 @@ export function renderSection(version: string, date: string, commits: Commit[]):
   let out = `## [${version}] - ${date}\n`;
   for (const [title, lines] of groups) if (lines.length) out += `\n### ${title}\n${lines.join('\n')}\n`;
   return out;
+}
+
+/** The draft of releases/vX.Y.Z.md; every placeholder must be filled before the release can be published. */
+export function renderNotesDraft(version: string, tag: string | null, count: number): string {
+  return [
+    `# v${version} — ${PLACEHOLDER}`,
+    '',
+    '> <!-- fill in: summary, number of commits since the previous release, migrations -->',
+    `> ${count} commit(s) since ${tag ?? 'the start'}.`,
+    '',
+    '---',
+    '',
+    '## Technical notes',
+    '',
+    `- Migrations: ${PLACEHOLDER}`,
+    '',
+  ].join('\n');
+}
+
+/** Creates the notes draft; returns false when the file already exists (it is left untouched). */
+function writeNotesDraft(cwd: string, version: string, draft: string): boolean {
+  const file = path.join(cwd, notesPath(version));
+  mkdirSync(path.dirname(file), { recursive: true });
+  try {
+    writeFileSync(file, draft, { flag: 'wx' });
+    return true;
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'EEXIST') return false;
+    throw e;
+  }
 }
 
 /** Puts `section` above the newest existing section (or at the end when there is none). */
@@ -160,6 +192,8 @@ export function main(
     if (!dryRun) {
       writeFileSync(pkgPath, setPackageVersion(pkgText, version));
       writeFileSync(changelogPath, insertSection(changelog, section));
+      if (writeNotesDraft(cwd, version, renderNotesDraft(version, tag, commits.length)))
+        process.stdout.write(`Draft ${notesPath(version)} created: fill in every ${PLACEHOLDER} before tagging\n`);
     }
     process.stdout.write(
       `${dryRun ? 'Dry run: nothing written. ' : ''}Release ${version} (from ${base}, ${commits.length} commit(s) since ${tag ?? 'the start'})\n\n${section}`,
