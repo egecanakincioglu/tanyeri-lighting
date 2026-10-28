@@ -12,6 +12,7 @@ Bu klasörde projenin mimari kararları duruyor: her biri numaralı, tarihli ve 
 | [0006](0006-cok-dillilik-next-intl.md) | Çok dillilik: next-intl, her zaman önekli `/tr` ve `/en`, `proxy.ts` | Kabul edildi | 2026-10-28 |
 | [0007](0007-test-stratejisi.md) | Test stratejisi: Vitest + Testing Library, gerçek Postgres, %80 kapsam, testsiz kod kapısı | Kabul edildi | 2026-10-28 |
 | [0008](0008-ci-ve-koruma-katmanlari.md) | CI ve koruma katmanları: GitHub'ın barındırdığı çalıştırıcılar, zorunlu kontroller, dal koruması, CodeQL, Semgrep (yalnız proje kuralları), gitleaks, Dependabot | Kabul edildi | 2026-10-28 |
+| [0009](0009-kalite-hedefleri.md) | Kalite hedefleri: SEO, yapay zekâ aramasında görünürlük, erişilebilirlik, performans, ajan erişimi ve duyarlı tasarımda ölçülebilir tam puan; `site-audit` kapıları | Kabul edildi | 2026-10-28 |
 
 Bazı ADR'lerin Sonuçlar bölümünde "Açık kalanlar" maddeleri var. Bunlar ana karara bağlı, henüz karara bağlamadığım uygulama ayrıntıları; her birinin karara bağlanacağı faz yanında yazıyor.
 
@@ -21,6 +22,7 @@ Bazı ADR'lerin Sonuçlar bölümünde "Açık kalanlar" maddeleri var. Bunlar a
 - **Kabul edildi:** karar verdim, uygulanıyor.
 - **Reddedildi:** değerlendirdim, uygulamıyorum.
 - **Yerini aldı: ADR NNNN:** yeni bir karar bunun yerini aldı.
+- **Kabul edildi; bir kısmı ADR NNNN ile değişti:** kararın bir kısmının yerini yeni bir ADR aldı; değişen kısım yeni ADR'de, eski metin değiştirilmez.
 
 ## Yeni ADR
 

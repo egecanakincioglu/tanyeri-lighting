@@ -1,6 +1,6 @@
 # ADR 0007: Test stratejisi — Vitest + Testing Library, gerçek Postgres, %80 kapsam, testsiz kod kapısı
 
-Durum: Kabul edildi
+Durum: Kabul edildi; bir kısmı ADR 0009 ile değişti (sayfa denetimleri gerçek tarayıcıda, tek işlevsel senaryo)
 Tarih: 2026-10-28
 
 ## Bağlam

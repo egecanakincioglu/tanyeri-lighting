@@ -1,6 +1,6 @@
 # ADR 0008: CI ve koruma katmanları — GitHub'ın barındırdığı çalıştırıcılar, zorunlu kontroller, dal koruması, CodeQL, Semgrep, gitleaks, Dependabot
 
-Durum: Kabul edildi
+Durum: Kabul edildi; bir kısmı ADR 0009 ile değişti ("Lighthouse kapıları yok" ifadesi ve zorunlu kontrol listesi)
 2026-10-28 güncellemesi: kurulum sırasında aynı gün netleşen ayrıntıları (zorunlu kontrol listesi, CodeQL'in zorunlu olması, gitleaks'in digest'li imajla çalışması, Dependabot ekosistemleri) uygulamaya geçmeden işledim; karar değişmedi.
 Tarih: 2026-10-28
 
