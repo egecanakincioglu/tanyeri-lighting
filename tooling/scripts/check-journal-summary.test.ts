@@ -1,4 +1,4 @@
-// Tests for check-journal-summary.mjs: pure parsing plus the CLI against real temporary git repositories.
+// Tests for check-journal-summary.ts: pure parsing plus the CLI against real temporary git repositories.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -6,9 +6,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { commitHeadingLine, emptySections, parseHunks, touchesSummary } from './check-journal-summary.mjs';
+import { commitHeadingLine, emptySections, parseHunks, touchesSummary } from './check-journal-summary.ts';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-journal-summary.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-journal-summary.ts');
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'journal-sum-'));
 let counter = 0;
 after(() => rmSync(root, { recursive: true, force: true }));
@@ -113,7 +113,7 @@ describe('CLI', () => {
   ];
   const COMMIT_AT = 15;
 
-  function sh(cwd, ...args) {
+  function sh(cwd: string, ...args: string[]): string {
     const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
     assert.equal(r.status, 0, `git ${args.join(' ')} failed: ${r.stderr}`);
     return r.stdout.trim();
@@ -135,7 +135,7 @@ describe('CLI', () => {
     sh(repo, 'switch', '-q', '-c', 'feat/x');
     return { repo, base };
   }
-  function change(repo, fn, file = 'docs/journal/2026-10-12.md') {
+  function change(repo: string, fn: (lines: string[]) => void, file = 'docs/journal/2026-10-12.md') {
     const lines = SUMMARY.slice();
     fn(lines);
     writeFileSync(path.join(repo, file), lines.join('\n'));
@@ -143,7 +143,7 @@ describe('CLI', () => {
     sh(repo, 'commit', '-q', '-m', 'chore: change');
     return sh(repo, 'rev-parse', 'HEAD');
   }
-  const run = (repo, base, head) =>
+  const run = (repo: string, base: string, head: string) =>
     spawnSync('node', [SCRIPT, '--base', base, '--head', head], { cwd: repo, encoding: 'utf8' });
 
   test('only a commit line added: fails', () => {

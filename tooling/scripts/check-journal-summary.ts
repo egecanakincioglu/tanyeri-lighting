@@ -5,7 +5,7 @@
 //   2. In every journal file it touches, each Özet subsection ("### Yapılanlar", "### Kararlar / öğrenilenler",
 //      "### Yarım kalan / sıradaki") holds at least one bullet, so no section is silently left empty.
 //
-//   node tooling/scripts/check-journal-summary.mjs --base <sha> --head <sha>
+//   node tooling/scripts/check-journal-summary.ts --base <sha> --head <sha>
 //
 // Exit codes: 0 ok, 1 rule violated, 2 usage or git error. Portable: Node only.
 import { spawnSync } from 'node:child_process';
@@ -17,7 +17,7 @@ const COMMIT_HEADING = /^## Commit günlüğü\s*$/;
 export const SECTIONS = ['### Yapılanlar', '### Kararlar / öğrenilenler', '### Yarım kalan / sıradaki'];
 const BULLET = /^[ \t]*[-*+][ \t]+\S/;
 
-function git(args, cwd) {
+function git(args: string[], cwd?: string): { ok: boolean; out: string; err: string } {
   const r = spawnSync('git', args, {
     cwd,
     encoding: 'utf8',
@@ -36,9 +36,10 @@ function git(args, cwd) {
  * Parses `git diff -U0` output into { 'docs/journal/x.md': [{ start, count }] } (new-side line ranges).
  * A hunk with count 0 is a pure deletion that happened after line `start`.
  */
-export function parseHunks(diffText) {
-  const files = {};
-  let current = null;
+export type Hunk = { start: number; count: number };
+export function parseHunks(diffText: string): Record<string, Hunk[]> {
+  const files: Record<string, Hunk[]> = {};
+  let current: string | null = null;
   for (const line of diffText.split(/\r?\n/)) {
     const f = /^\+\+\+ b\/(.+)$/.exec(line);
     if (f) {
@@ -57,19 +58,19 @@ export function parseHunks(diffText) {
 }
 
 /** Line number (1-based) of the "## Commit günlüğü" heading in `text`, or Infinity when there is none. */
-export function commitHeadingLine(text) {
+export function commitHeadingLine(text: string): number {
   const lines = text.split(/\r?\n/);
   const i = lines.findIndex((l) => COMMIT_HEADING.test(l));
   return i === -1 ? Infinity : i + 1;
 }
 
 /** True when any hunk adds, changes or removes a line above the heading at `headingLine`. */
-export function touchesSummary(hunks, headingLine) {
+export function touchesSummary(hunks: Hunk[], headingLine: number): boolean {
   return hunks.some((h) => h.start < headingLine);
 }
 
 /** The Özet subsections of `text` that have no bullet (a missing subsection counts as empty). */
-export function emptySections(text) {
+export function emptySections(text: string): string[] {
   const lines = text.split(/\r?\n/);
   const end = commitHeadingLine(text) - 1;
   const summary = lines.slice(0, Number.isFinite(end) ? end : lines.length);
@@ -87,15 +88,19 @@ export function emptySections(text) {
  * Journal files changed in base...head: { touched: every added or modified file, summaryChanged: those whose
  * Özet part changed, empty: { file: [missing-bullet subsections] } }. Throws on git errors.
  */
-export function inspect({ base, head, cwd = process.cwd() }) {
+export function inspect({ base, head, cwd = process.cwd() }: { base: string; head: string; cwd?: string }): {
+  touched: string[];
+  summaryChanged: string[];
+  empty: Record<string, string[]>;
+} {
   const diff = git(
     ['diff', '-U0', '--no-color', '--no-renames', '--diff-filter=AM', `${base}...${head}`, '--', ':(top)docs/journal'],
     cwd,
   );
   if (!diff.ok) throw new Error(`git diff failed: ${diff.err.trim()}`);
-  const touched = [];
-  const summaryChanged = [];
-  const empty = {};
+  const touched: string[] = [];
+  const summaryChanged: string[] = [];
+  const empty: Record<string, string[]> = {};
   for (const [file, hunks] of Object.entries(parseHunks(diff.out))) {
     if (!JOURNAL_FILE.test(file)) continue;
     const show = git(['show', `${head}:${file}`], cwd);
@@ -108,8 +113,8 @@ export function inspect({ base, head, cwd = process.cwd() }) {
   return { touched, summaryChanged, empty };
 }
 
-export function main(argv, cwd = process.cwd()) {
-  const get = (flag) => {
+export function main(argv: string[], cwd: string = process.cwd()): number {
+  const get = (flag: string): string | undefined => {
     const i = argv.indexOf(flag);
     return i === -1 ? undefined : argv[i + 1];
   };
@@ -119,11 +124,11 @@ export function main(argv, cwd = process.cwd()) {
     process.stderr.write('check-journal-summary: --base <sha> and --head <sha> are required\n');
     return 2;
   }
-  let result;
+  let result: ReturnType<typeof inspect>;
   try {
     result = inspect({ base, head, cwd });
   } catch (e) {
-    process.stderr.write(`check-journal-summary: ${e.message}\n`);
+    process.stderr.write(`check-journal-summary: ${(e as Error).message}\n`);
     return 2;
   }
   let status = 0;

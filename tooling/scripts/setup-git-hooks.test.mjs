@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolveBash } from './lib/bash.mjs';
+import { resolveBash } from './lib/bash.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const tmp = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'tanyeri-hooks-'));

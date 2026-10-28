@@ -1,29 +1,29 @@
-// Tests for check-signed-commits.mjs with an injected git listing and an injected fetch.
+// Tests for check-signed-commits.ts with an injected git listing and an injected fetch.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
-import { main } from './check-signed-commits.mjs';
+import { main } from './check-signed-commits.ts';
 
-const ENV = { REPO: 'o/r', GH_TOKEN: 't', BASE_SHA: 'b', HEAD_SHA: 'h' };
+const ENV: NodeJS.ProcessEnv = { REPO: 'o/r', GH_TOKEN: 't', BASE_SHA: 'b', HEAD_SHA: 'h' };
 const sink = () => {
   let text = '';
   return {
-    write: (s) => (text += s),
+    write: (s: string) => (text += s),
     get text() {
       return text;
     },
   };
 };
-const answer = (map) => async (url) => {
-  const sha = url.split('/').pop();
+const answer = (map: Record<string, unknown>) => async (url: string) => {
+  const sha = url.split('/').pop() as string;
   const v = map[sha];
   if (v === 'fail') return { ok: false, status: 500, json: async () => ({}) };
   return { ok: true, status: 200, json: async () => ({ commit: { verification: v } }) };
 };
-const run = async (shas, map, env = ENV, argv = []) => {
+const run = async (shas: string[], map: Record<string, unknown>, env: NodeJS.ProcessEnv = ENV, argv: string[] = []) => {
   const out = sink();
   const err = sink();
   const code = await main(argv, env, { exec: () => ({ ok: true, shas }), fetchImpl: answer(map), out, err });
@@ -79,7 +79,7 @@ describe('real git listing', () => {
   test('merge commits are excluded from the checked commits', async () => {
     const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'signed-test-'));
     try {
-      const git = (...a) => {
+      const git = (...a: string[]) => {
         const r = spawnSync(
           'git',
           [
@@ -115,9 +115,9 @@ describe('real git listing', () => {
       const mainSha = git('rev-parse', 'HEAD');
       git('merge', '-q', '--no-ff', '-m', 'merge', 'side');
       const head = git('rev-parse', 'HEAD');
-      const asked = [];
-      const fetchImpl = async (url) => {
-        asked.push(url.split('/').pop());
+      const asked: string[] = [];
+      const fetchImpl = async (url: string) => {
+        asked.push(url.split('/').pop() as string);
         return {
           ok: true,
           status: 200,

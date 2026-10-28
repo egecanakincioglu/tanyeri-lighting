@@ -45,4 +45,4 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: node tooling/scripts/check-roadmap-update.mjs --base "$BASE_SHA" --head "$HEAD_SHA"
+        run: node tooling/scripts/check-roadmap-update.ts --base "$BASE_SHA" --head "$HEAD_SHA"
