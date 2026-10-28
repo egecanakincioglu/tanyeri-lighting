@@ -28,7 +28,10 @@ function gitRevList(base: string, head: string, cwd?: string): RevList {
 }
 
 /** Verification of one commit: { verified, reason }. Throws on an API failure. */
-type FetchLike = (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<any> }>; // any: the GitHub API body is only probed with optional chaining
+type FetchLike = (
+  url: string,
+  init?: RequestInit,
+) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>;
 
 export async function commitVerification({
   repo,
@@ -50,7 +53,7 @@ export async function commitVerification({
     },
   });
   if (!res.ok) throw new Error(`GitHub API answered ${res.status} for commit ${sha}`);
-  const body = await res.json();
+  const body = (await res.json()) as { commit?: { verification?: { verified?: unknown; reason?: string } } } | null;
   const v = body?.commit?.verification ?? {};
   return { verified: v.verified === true, reason: v.reason ?? 'unknown' };
 }
