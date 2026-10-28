@@ -11,7 +11,7 @@ Eski kodda hiç test yoktu. Plan §1 hedeflerimden biri testsiz kodun `main`'e g
 - Entegrasyon testleri gerçek Postgres üzerinde: yerelde Docker Compose, CI'da servis konteyneri. Veritabanı taklit edilmez; yalnız dış HTTP çağrıları (ör. Google) taklit edilir.
 - Tarayıcı test aracı yok. Arayüz değişiklikleri masaüstü (1440) ve mobil (390) genişlikte tarayıcıda görsel olarak kontrol edilir; PR gövdesindeki "Görsel kontrol" bölümü doldurulur.
 - Kapsam eşiği: sunucu katmanında (`src/server`, `src/lib`) %80 satır. Eşik yalnız yükselir. Bileşenler eşiğe dahil değil ama testleri yazılır.
-- Testsiz kod kapısı: `src/` altında TypeScript ekleyen veya değiştiren her PR aynı PR'da test ekler veya değiştirir. Yalnız silme yapan PR'lar ve yalnız stil, içerik veya doküman değişiklikleri muaf. Kapı commit tipine bakar: `feat`, `fix`, `refactor`, `perf`, `revert` commit'leri kapsamda; `style`, `docs`, `ci`, `build`, `chore`, `test` muaf.
+- Testsiz kod kapısı: `src/` altında TypeScript ekleyen veya değiştiren her PR aynı PR'da test ekler veya değiştirir. Yalnız silme yapan PR'lar ve yalnız stil, içerik veya doküman değişiklikleri muaf. Kapı commit tipine bakar: `style` (yalnız biçim) dışındaki her commit kapsamda; tip `chore`, `ci` ya da `build` olsa bile `src/` altında TypeScript değiştiren commit test ister.
 
 Doğruladığım gerçekler ([araştırma kaydı](../research/2026-10-28-teknoloji-dogrulamasi.md), bölüm 11):
 
@@ -45,7 +45,7 @@ Uyacağım kurallar:
    - Eşikler glob başına verilir, ör. `thresholds: { 'src/server/**': { lines: 80 }, 'src/lib/**': { lines: 80 } }`.
    - Eşik değerini düşüren bir değişiklik CI `policy` işinde reddedilir ("yalnız yükselir"). `autoUpdate` kullanılmaz; eşiği elle ve ayrı bir commit'le yükseltirim.
 4. **Geçiş dönemi yok** (plan §2, D1): kapsam eşiği ilk günden `src/server/**` ve `src/lib/**`'te geçerli.
-5. **Testsiz kod kapısı:** CI `policy` işi PR'daki commit tiplerine ve değişen yollara bakar. `src/` altında TypeScript değiştiren `feat`/`fix`/`refactor`/`perf`/`revert` commit'leri varsa PR'da bir test dosyası da değişmiş olmalıdır. Kuralın kendisi `node --test` ile testlidir.
+5. **Testsiz kod kapısı:** CI `policy` işi PR'daki commit'lere ve değişen yollara bakar. `src/` altında TypeScript ekleyen veya değiştiren her commit, tipi ne olursa olsun, PR'da en az bir test dosyasının eklenmesini veya değiştirilmesini ister. Yalnız `style` tipli (yalnız biçim) commit'ler ve yalnız silme yapan değişiklikler muaftır; test dosyaları, `*.d.ts` ve `__tests__/` altındaki dosyalar kapı dışındadır; merge commit'leri sayılmaz. Kuralın kendisi `node --test` ile testlidir.
 6. **Taklit sınırı:** veritabanı ve Prisma taklit edilmez. Yalnız dış HTTP servisleri (Google Ads API, SMTP) taklit edilir.
 7. **Görsel kontrol:** arayüze dokunan her PR'da masaüstü (1440) ve mobil (390) genişlikte tarayıcı kontrolü yapılır ve PR şablonundaki "Görsel kontrol" bölümü doldurulur (plan kural 9).
 8. Yerelde `pnpm test` ile CI'daki `test` işi aynı komutları çalıştırır: aynı Postgres ana sürümü, aynı migration'lar.
