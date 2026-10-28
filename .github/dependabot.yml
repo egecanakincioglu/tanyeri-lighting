@@ -48,8 +48,12 @@ updates:
         update-types:
           - 'minor'
           - 'patch'
-    # Prisma is pinned to 7.x on purpose: npm latest is an 8.x release candidate and the auth library supports up to 7.
     ignore:
+      # The next TypeScript major waits until typescript-eslint and Next.js support it; major moves are deliberate PRs.
+      - dependency-name: 'typescript'
+        update-types:
+          - 'version-update:semver-major'
+      # Prisma is pinned to 7.x on purpose: npm latest is an 8.x release candidate and the auth library supports up to 7.
       - dependency-name: 'prisma'
         update-types:
           - 'version-update:semver-major'
