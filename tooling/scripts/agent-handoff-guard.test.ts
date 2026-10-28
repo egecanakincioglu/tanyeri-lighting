@@ -216,7 +216,10 @@ describe('journal and push helpers', () => {
   });
   test('journal problem: missing file, empty sections, fine', () => {
     assert.equal(journalProblem('x.md', null), 'dosya yok');
-    assert.match(journalProblem('x.md', '### Yapılanlar\n\n### Yarım kalan / sıradaki\n- x\n') as string, /"Yapılanlar"/);
+    assert.match(
+      journalProblem('x.md', '### Yapılanlar\n\n### Yarım kalan / sıradaki\n- x\n') as string,
+      /"Yapılanlar"/,
+    );
     assert.match(
       journalProblem('x.md', '### Yapılanlar\n- x\n### Yarım kalan / sıradaki\n\n## Commit günlüğü\n') as string,
       /"Yarım kalan \/ sıradaki"/,

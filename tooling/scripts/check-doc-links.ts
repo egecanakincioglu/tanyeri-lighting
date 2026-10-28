@@ -31,7 +31,9 @@ export function checkLinks(root: string): { files: string[]; broken: string[] } 
   ]);
   const broken: string[] = [];
   for (const file of files) {
-    const text = readFileSync(path.join(root, file), 'utf8').replace(FENCE, '').replace(/`[^`\n]*`/g, '');
+    const text = readFileSync(path.join(root, file), 'utf8')
+      .replace(FENCE, '')
+      .replace(/`[^`\n]*`/g, '');
     for (const m of text.matchAll(LINK)) {
       const target = path.normalize(path.join(root, path.dirname(file), m[1]));
       if (!existsSync(target)) broken.push(`${file} -> ${m[1]}`);

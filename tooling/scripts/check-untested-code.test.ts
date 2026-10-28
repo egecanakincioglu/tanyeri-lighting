@@ -33,7 +33,16 @@ describe('file classification', () => {
       assert.equal(isGatedSource(f), false, f);
   });
   test('test files', () => {
-    for (const f of ['a.test.ts', 'src/a.test.tsx', 'x.test.mts', 'x.test.cts', 'tooling/a.test.mjs', 'a.spec.ts', 'a.spec.js', 'src/__tests__/a.ts'])
+    for (const f of [
+      'a.test.ts',
+      'src/a.test.tsx',
+      'x.test.mts',
+      'x.test.cts',
+      'tooling/a.test.mjs',
+      'a.spec.ts',
+      'a.spec.js',
+      'src/__tests__/a.ts',
+    ])
       assert.equal(isTestFile(f), true, f);
     for (const f of ['src/a.ts', 'a.test.js', 'test.ts', 'src/latest.ts', 'a.test.md'])
       assert.equal(isTestFile(f), false, f);

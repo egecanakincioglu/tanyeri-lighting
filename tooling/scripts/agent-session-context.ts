@@ -34,7 +34,11 @@ const MAX_LIST = 20;
 
 type RunResult = { ok: boolean; out: string; status?: number };
 
-function run(cmd: string, args: string[], { cwd, timeout = 15000 }: { cwd?: string; timeout?: number } = {}): RunResult {
+function run(
+  cmd: string,
+  args: string[],
+  { cwd, timeout = 15000 }: { cwd?: string; timeout?: number } = {},
+): RunResult {
   const r = spawnSync(cmd, args, { cwd, encoding: 'utf8', timeout, windowsHide: true });
   if (r.error || r.status === null) return { ok: false, out: '' };
   return { ok: r.status === 0, out: (r.stdout ?? '').replace(/\s+$/, ''), status: r.status };
@@ -225,7 +229,7 @@ function gitStateSection({ root }: Ctx): string {
     if (m) out += `- Yerel main, origin/main'e göre: ${m.ahead} ileride / ${m.behind} geride\n`;
     else out += '- (origin/main bulunamadı)\n';
     if (m && m.behind > 0 && branch === 'main')
-      out += '- UYARI: main origin/main\'in gerisinde; çalışmadan önce `git pull --ff-only`.\n';
+      out += "- UYARI: main origin/main'in gerisinde; çalışmadan önce `git pull --ff-only`.\n";
     if (branch && branch !== 'main') {
       const up = g('rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}');
       const c = up.ok ? counts(root, 'HEAD', '@{u}') : null;
@@ -233,7 +237,7 @@ function gitStateSection({ root }: Ctx): string {
       else out += `- Dal ${branch}: upstream yok (henüz push edilmemiş)\n`;
     }
   } else {
-    out += "- origin tanımlı değil (yerel çalışma); ileride/geride sayıları yok\n";
+    out += '- origin tanımlı değil (yerel çalışma); ileride/geride sayıları yok\n';
   }
   return `${out}\n`;
 }

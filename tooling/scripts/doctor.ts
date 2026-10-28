@@ -231,7 +231,8 @@ export function runChecks({
     let pubText = null;
     let problem = null;
     if (keyFile === null) {
-      if (keySetting) pubText = keySetting; // a literal public key
+      if (keySetting)
+        pubText = keySetting; // a literal public key
       else problem = 'user.signingkey is not set';
     } else {
       const pubFile = keyFile.endsWith('.pub') ? keyFile : `${keyFile}.pub`;
@@ -319,7 +320,12 @@ export function runChecks({
     items.push(item('ok', 'pnpm', `v${viaCorepack.out} via 'corepack pnpm'`));
   else if (viaCorepack?.ok)
     items.push(
-      item('warn', 'pnpm', `corepack pnpm is v${viaCorepack.out}, package.json pins ${pinned ?? 'nothing'}`, hint(platform, 'pnpm')),
+      item(
+        'warn',
+        'pnpm',
+        `corepack pnpm is v${viaCorepack.out}, package.json pins ${pinned ?? 'nothing'}`,
+        hint(platform, 'pnpm'),
+      ),
     );
   else items.push(item('warn', 'pnpm', 'pnpm is not available (not required yet)', hint(platform, 'pnpm')));
 

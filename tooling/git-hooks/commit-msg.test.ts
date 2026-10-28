@@ -2,7 +2,16 @@
 // core.hooksPath points at the real hooks. A stub gitleaks binary keeps docker out of the test.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
@@ -104,7 +113,7 @@ describe('commit-msg hook', { skip: bash ? false : 'bash not found' }, () => {
       assert.match(r.stderr, /journal/);
     });
   });
-  test('the journal line must carry this commit\'s header', () => {
+  test("the journal line must carry this commit's header", () => {
     withRepo((repo, git) => {
       write(repo, 'a.txt', 'x\n');
       write(repo, `docs/journal/${today}.md`, '- `feat: other thing` - x\n');

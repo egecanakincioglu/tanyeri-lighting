@@ -25,11 +25,22 @@ const names = [
 
 // the old client brand, built from pieces for the same reason
 const brand = ['af', 'ra'].join('');
-const brandCases = [brand, brand.toUpperCase(), `${brand} Lighting`, `${brand}-main`, `${brand}_signing`, `${brand}lighting`, `${brand}.png`];
+const brandCases = [
+  brand,
+  brand.toUpperCase(),
+  `${brand} Lighting`,
+  `${brand}-main`,
+  `${brand}_signing`,
+  `${brand}lighting`,
+  `${brand}.png`,
+];
 const harmless = ['afr', 'aid'].join(''); // contains the brand but is an ordinary word
 const harmlessTr = [['s', brand].join(''), ['s', brand, 'n'].join('')]; // Turkish words that contain it
 
-const withRepo = <T>(files: Record<string, string>, fn: (dir: string, git: (...args: string[]) => SpawnSyncReturns<string>) => T): T => {
+const withRepo = <T>(
+  files: Record<string, string>,
+  fn: (dir: string, git: (...args: string[]) => SpawnSyncReturns<string>) => T,
+): T => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-terms-')));
   try {
     const git = (...args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
@@ -114,7 +125,11 @@ describe('check-forbidden-terms', { skip: bash ? false : 'bash not found' }, () 
   describe('--text', () => {
     test('clean text passes', () => assert.equal(text('feat: add cart\n\nbody\n').code, 0));
     test('comment lines are scanned too', () => {
-      for (const input of [`feat: x\n# ${names[0]}\n`, 'feat: x\n\n## Generated with a tool\n', `## ${names[3]} notes\n`]) {
+      for (const input of [
+        `feat: x\n# ${names[0]}\n`,
+        'feat: x\n\n## Generated with a tool\n',
+        `## ${names[3]} notes\n`,
+      ]) {
         assert.equal(text(input).code, 1, input);
       }
     });
@@ -157,7 +172,7 @@ describe('check-forbidden-terms', { skip: bash ? false : 'bash not found' }, () 
       }
     });
     test('reads a file argument', () => {
-      withRepo({ 'MSG': `feat: x\n\n${names[0]}\n` }, (dir) => {
+      withRepo({ MSG: `feat: x\n\n${names[0]}\n` }, (dir) => {
         const r = spawnSync(bash, [script, '--text', 'MSG'], { cwd: dir, encoding: 'utf8' });
         assert.equal(r.status, 1);
       });

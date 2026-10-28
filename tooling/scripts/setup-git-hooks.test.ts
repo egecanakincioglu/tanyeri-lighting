@@ -47,7 +47,11 @@ function sandbox() {
 }
 
 const run = (ctx: Ctx) => {
-  const r = spawnSync(BASH as string, ['tooling/scripts/setup-git-hooks.sh'], { cwd: ctx.repo, encoding: 'utf8', env: ctx.env });
+  const r = spawnSync(BASH as string, ['tooling/scripts/setup-git-hooks.sh'], {
+    cwd: ctx.repo,
+    encoding: 'utf8',
+    env: ctx.env,
+  });
   return { status: r.status, out: r.stdout, err: r.stderr };
 };
 
