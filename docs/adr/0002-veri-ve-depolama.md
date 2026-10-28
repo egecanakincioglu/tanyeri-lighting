@@ -1,6 +1,6 @@
 # ADR 0002: Veri ve depolama — Postgres (Neon), Prisma, Vercel Blob
 
-Durum: Kabul edildi
+Durum: Kabul edildi; bir kısmı [ADR 0011](0011-surumleme-ve-yayin.md) ile değişti
 Tarih: 2026-10-28
 
 ## Bağlam
