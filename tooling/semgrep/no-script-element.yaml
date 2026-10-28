@@ -1,0 +1,11 @@
+rules:
+  - id: no-script-element
+    languages: [typescript]
+    severity: ERROR
+    message: A JSX script element is allowed only in src/components/json-ld.tsx.
+    pattern-either:
+      - pattern: <script ... />
+      - pattern: <script ...>...</script>
+    paths:
+      exclude:
+        - src/components/json-ld.tsx

@@ -1,0 +1,11 @@
+rules:
+  - id: no-viewport-height
+    languages: [generic]
+    severity: ERROR
+    message: Do not use 100vh, h-screen or min-h-screen; use dynamic viewport units (dvh) instead.
+    pattern-regex: (?<![\w-])(100vh|h-screen|min-h-screen)(?![\w-])
+    paths:
+      include:
+        - '*.css'
+        - '*.ts'
+        - '*.tsx'

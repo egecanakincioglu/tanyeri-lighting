@@ -1,0 +1,8 @@
+rules:
+  - id: no-eval
+    languages: [typescript]
+    severity: ERROR
+    message: eval and the Function constructor run arbitrary code and are forbidden.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
