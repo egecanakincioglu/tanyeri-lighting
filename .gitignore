@@ -75,3 +75,6 @@ gitleaks-report*
 
 # Generated Prisma client
 src/generated/
+
+# Site audit output
+/site-audit-report/
