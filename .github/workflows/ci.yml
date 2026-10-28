@@ -103,6 +103,12 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node tooling/scripts/check-site-audit-thresholds.ts --base "$BASE_SHA" --head "$HEAD_SHA"
+      - name: Version bumps come with a changelog entry and only go up
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-release-version.ts --base "$BASE_SHA" --head "$HEAD_SHA"
       - name: Doc links
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-doc-links.ts
