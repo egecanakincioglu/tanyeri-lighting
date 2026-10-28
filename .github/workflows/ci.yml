@@ -103,6 +103,9 @@ jobs:
       - name: Docs are Turkish and have ASCII kebab-case names
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-docs-language.ts
+      - name: packageManager is pinned to an exact version with a hash
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-package-manager.ts
       - name: Scan tracked files and paths for forbidden terms
         if: ${{ !cancelled() }}
         run: tooling/scripts/check-forbidden-terms.sh --all
