@@ -75,16 +75,18 @@ describe('decision', () => {
     assert.equal(r.ok, false);
     assert.deepEqual(r.offenders, [{ sha: 'feat: x', header: 'feat: x', files: ['src/a.ts', 'src/b.tsx'] }]);
   });
-  test('every gated type is checked', () => {
-    for (const t of ['feat', 'fix', 'refactor', 'perf', 'revert'])
+  test('every commit type except style is checked', () => {
+    for (const t of ['feat', 'fix', 'refactor', 'perf', 'revert', 'docs', 'ci', 'build', 'chore', 'test'])
       assert.equal(evaluate([c(`${t}: x`, 'M src/a.ts')]).ok, false, t);
   });
-  test('exempt types never offend', () => {
-    for (const t of ['style', 'docs', 'ci', 'build', 'chore', 'test'])
-      assert.equal(evaluate([c(`${t}: x`, 'M src/a.ts')]).ok, true, t);
+  test('a style commit never offends', () => {
+    assert.equal(evaluate([c('style(x): format', 'M src/a.ts')]).ok, true);
   });
-  test('a header without a type is not gated', () => {
-    assert.equal(evaluate([c('Update stuff', 'M src/a.ts')]).ok, true);
+  test('a header without a type is gated', () => {
+    assert.equal(evaluate([c('Update stuff', 'M src/a.ts')]).ok, false);
+  });
+  test('a chore touching source is satisfied by a test in the range', () => {
+    assert.equal(evaluate([c('chore: x', 'M src/a.ts'), c('test: x', 'A src/a.test.ts')]).ok, true);
   });
   test('a test file anywhere in the range satisfies every offender, also from another commit', () => {
     const r = evaluate([c('fix: x', 'M src/a.ts'), c('test: x', 'A src/a.test.ts')]);
@@ -175,10 +177,29 @@ describe('CLI', () => {
     commit('refactor: tidy', { 'src/old.ts': 'export const old = 2;\n', 'src/old.test.ts': 'export const t = 1;\n' });
     assert.equal(run(repo, base, head()).status, 0);
   });
-  test('exempt commit types pass without a test', () => {
+  test('a style commit passes without a test', () => {
     const { repo, base, commit, head } = makeRepo();
     commit('style: format', { 'src/old.ts': 'export const   old = 1;\n' });
+    assert.equal(run(repo, base, head()).status, 0);
+  });
+  test('chore, ci, build, test and docs commits that change source need a test', () => {
+    for (const t of ['chore', 'ci', 'build', 'test', 'docs']) {
+      const { repo, base, commit, head } = makeRepo();
+      commit(`${t}: change`, { 'src/more.ts': 'export {};\n' });
+      const r = run(repo, base, head());
+      assert.equal(r.status, 1, t);
+      assert.match(r.stderr, new RegExp(`${t}: change`));
+    }
+  });
+  test('a chore that changes source passes when the range changes a test', () => {
+    const { repo, base, commit, head } = makeRepo();
     commit('chore: deps', { 'src/more.ts': 'export {};\n' });
+    commit('test: cover', { 'src/more.test.ts': 'export {};\n' });
+    assert.equal(run(repo, base, head()).status, 0);
+  });
+  test('a chore that changes only non-source files passes', () => {
+    const { repo, base, commit, head } = makeRepo();
+    commit('chore: tooling', { 'tooling/x.mjs': 'export {};\n', 'package.json': '{}\n' });
     assert.equal(run(repo, base, head()).status, 0);
   });
   test('a deletion-only refactor passes', () => {

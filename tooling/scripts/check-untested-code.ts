@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Untested code never reaches main: when a commit of type feat, fix, refactor, perf or revert adds or modifies
+// Untested code never reaches main: when a commit of any type except style adds or modifies
 // production source (src/**/*.{ts,tsx,mts,cts}, test files and *.d.ts excluded), the whole range base..head must
 // also add or modify at least one test file (*.test.{ts,tsx,mts,cts,mjs} or *.spec.*, anywhere).
-// Commits of type style, docs, ci, build, chore and test are exempt, and so are deletion-only changes.
+// Commits of type style (formatting only) are exempt, and so are deletion-only changes.
 //
 //   node tooling/scripts/check-untested-code.ts --base <sha> --head <sha>
 //
@@ -12,7 +12,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const GATED_TYPES = new Set<string | null>(['feat', 'fix', 'refactor', 'perf', 'revert']);
+const EXEMPT_TYPE = 'style';
 const HEADER = /^([a-z]+)(?:\([^)]*\))?!?:/;
 const SOURCE = /(?:^|\/)src\/.+\.(?:ts|tsx|mts|cts)$/;
 const TEST_FILE = /\.(?:test\.(?:ts|tsx|mts|cts|mjs)|spec\.[^/]+)$/;
@@ -56,7 +56,7 @@ export function evaluate(commits: Commit[]): {
   const testFiles = commits.flatMap((c) => c.files.filter((f) => alive(f) && isTestFile(f.file)).map((f) => f.file));
   const offenders: { sha: string; header: string; files: string[] }[] = [];
   for (const c of commits) {
-    if (!GATED_TYPES.has(commitType(c.header))) continue;
+    if (commitType(c.header) === EXEMPT_TYPE) continue;
     const files = c.files.filter((f) => alive(f) && isGatedSource(f.file)).map((f) => f.file);
     if (files.length) offenders.push({ sha: c.sha, header: c.header, files });
   }
@@ -110,7 +110,7 @@ export function main(argv: string[], cwd: string = process.cwd()): number {
   }
   process.stderr.write(
     'untested code: add or change at least one *.test.* / *.spec.* file in this pull request, or, if the change ' +
-      'cannot change behavior, use a commit type that is exempt (style, docs, ci, build, chore, test).\n',
+      'cannot change behavior, make it a `style` commit if it only formats code.\n',
   );
   return 1;
 }
