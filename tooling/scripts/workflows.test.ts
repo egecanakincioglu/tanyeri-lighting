@@ -89,7 +89,7 @@ describe('every workflow', () => {
 describe('required check names', () => {
   const names = new Map();
   for (const f of files) for (const j of jobs(f)) names.set(jobName(j), f);
-  for (const n of ['policy', 'quality', 'tooling (linux)', 'tooling (windows)', 'pr-text']) {
+  for (const n of ['policy', 'quality', 'test', 'tooling (linux)', 'tooling (windows)', 'pr-text']) {
     test(`job "${n}" exists`, () => assert.ok(names.has(n), `missing job ${n}`));
   }
 });
