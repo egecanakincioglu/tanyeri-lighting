@@ -104,3 +104,31 @@ describe('dependabot.yml', () => {
     assert.match(text, /dependency-name: '@prisma\/\*'/);
   });
 });
+
+describe('release workflows', () => {
+  test('release.yml runs only on version tags and is the only workflow that can write contents', () => {
+    assert.match(read('release.yml'), /^on:\n {2}push:\n {4}tags: \['v\*\.\*\.\*'\]\n/m);
+    for (const f of files) {
+      const writes = /contents:\s*write/.test(read(f));
+      assert.equal(writes, f === 'release.yml', f);
+    }
+  });
+  test('the production deploy and the rehearsal use the Vercel secrets only through env', () => {
+    for (const f of ['release.yml', 'release-rehearsal.yml']) {
+      const lines = codeLines(f);
+      assert.ok(
+        lines.some((l) => /^\s*VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/.test(l)),
+        f,
+      );
+      for (const l of lines.filter((x) => /^\s*run:/.test(x))) assert.ok(!l.includes('${{'), `${f}: ${l.trim()}`);
+    }
+  });
+  test('the deploys build on Vercel (no --prebuilt)', () => {
+    for (const f of ['release.yml', 'release-rehearsal.yml']) assert.ok(!read(f).includes('--prebuilt'), f);
+    assert.match(read('release.yml'), /vercel deploy --prod /);
+    assert.ok(!/--prod|--target/.test(read('release-rehearsal.yml')));
+  });
+  test('the rehearsal is manual only', () => {
+    assert.match(read('release-rehearsal.yml'), /^on:\n {2}workflow_dispatch:/m);
+  });
+});

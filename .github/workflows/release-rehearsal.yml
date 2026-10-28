@@ -1,0 +1,44 @@
+name: release-rehearsal
+
+# Run by hand before every release: deploys a branch (normally the release pull request's) to a Vercel preview
+# so the exact code can be checked before the tag goes to production. The build happens on Vercel.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch to deploy to a preview
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    name: rehearse
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: Install
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Deploy a preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          url="$(pnpm exec vercel deploy --yes --token "$VERCEL_TOKEN")"
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
