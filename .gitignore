@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Caches
+.eslintcache
+.cache/
+.prettiercache
+
+# Tests and coverage
+coverage/
+.nyc_output/
+
+# Environment files (.env.example is the only tracked one)
+.env
+.env.*
+!.env.example
+
+# Secrets, private keys and database dumps (mirrors tooling/scripts/check-forbidden-paths.sh)
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+/database/
+/server/uploads/
+*.dump
+
+# Local-only design files
+/PRODUCT.md
+/DESIGN.md
+/design-system/
+/docs/brand-guidelines.md
+
+# Vercel
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+.directory
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local tool reports
+*.sarif
+semgrep-report*
+gitleaks-report*
+
+# Local read-only reference of the legacy site; never tracked
+/docs/old-source-code/
