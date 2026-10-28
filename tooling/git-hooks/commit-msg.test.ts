@@ -1,13 +1,14 @@
 // End-to-end test of the commit-msg hook (and the pre-commit hook next to it) in a throwaway repo whose
-// core.hooksPath points at the real hooks. A stub gitleaks binary keeps docker out of the test.
+// core.hooksPath points at the real hooks. Stub scanners keep gitleaks and docker out of the test.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { resolveBash } from '../scripts/lib/bash.ts';
+import { installScannerStubs } from '../scripts/lib/scanner-stubs.ts';
 
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
@@ -24,8 +25,7 @@ const withRepo = (fn: (repo: string, git: Git) => void): void => {
   try {
     const stub = path.join(dir, 'stub-bin');
     mkdirSync(stub);
-    writeFileSync(path.join(stub, 'gitleaks'), '#!/usr/bin/env bash\nexit 0\n');
-    chmodSync(path.join(stub, 'gitleaks'), 0o755);
+    installScannerStubs(stub);
     const repo = path.join(dir, 'repo');
     mkdirSync(path.join(repo, 'tooling', 'scripts'), { recursive: true });
     mkdirSync(path.join(repo, 'tooling', 'ci-images'), { recursive: true });
