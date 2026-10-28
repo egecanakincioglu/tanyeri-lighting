@@ -12,15 +12,32 @@ fi
 
 # The image comes from the CI image manifest (single source of truth); sed keeps the hook independent of Node.
 gitleaks_image="$(sed -n 's/^FROM \(.*\) AS gitleaks$/\1/p' "$root/tooling/ci-images/Dockerfile" | tr -d '\r')"
-# A container engine counts only if its daemon is actually reachable (the CLI alone is not enough).
+# The pinned version is the image tag (ghcr.io/gitleaks/gitleaks:v1.2.3@sha256:...) without the leading "v".
+pinned="${gitleaks_image#*:}"
+pinned="${pinned%%@*}"
+pinned="${pinned#v}"
+if [ -z "$gitleaks_image" ] || [ -z "$pinned" ]; then
+  echo "pre-commit: cannot read the pinned gitleaks image from tooling/ci-images/Dockerfile; commit rejected" >&2
+  exit 1
+fi
+# A PATH binary counts only when it is exactly the pinned version; a container engine counts only if its daemon is
+# actually reachable (the CLI alone is not enough).
 # MSYS_NO_PATHCONV stops Git Bash on Windows from rewriting "-w /repo" and the volume path; it is harmless elsewhere.
 # $root is the form git reports ("C:/..." on Windows), which docker and podman accept as a volume source.
+local_version=""
 if command -v gitleaks >/dev/null 2>&1; then
+  local_version="$(gitleaks version 2>/dev/null | tr -d '\r' | head -n 1)"
+  local_version="${local_version#v}"
+fi
+if [ "$local_version" = "$pinned" ]; then
   gitleaks git --pre-commit --staged --redact --no-banner
 elif command -v docker >/dev/null 2>&1 && docker info --format "{{.ServerVersion}}" >/dev/null 2>&1; then
   MSYS_NO_PATHCONV=1 docker run --rm -v "$root:/repo" -w /repo "$gitleaks_image" git --pre-commit --staged --redact --no-banner
 elif command -v podman >/dev/null 2>&1 && podman info >/dev/null 2>&1; then
   MSYS_NO_PATHCONV=1 podman run --rm -v "$root:/repo" -w /repo "$gitleaks_image" git --pre-commit --staged --redact --no-banner
 else
-  echo "pre-commit: warning: gitleaks not found (no binary, docker or podman); skipping secret scan" >&2
+  echo "pre-commit: no usable secret scanner; commit rejected (the secret scan is never skipped)." >&2
+  echo "  Install gitleaks $pinned (found: ${local_version:-none}) or start Docker/Podman to use the pinned image." >&2
+  echo "  Run: node tooling/scripts/doctor.ts" >&2
+  exit 1
 fi

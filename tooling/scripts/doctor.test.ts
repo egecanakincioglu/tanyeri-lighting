@@ -55,6 +55,7 @@ function healthy(): Env {
   };
   const files: Record<string, string> = {
     [`${ROOT}/.node-version`]: '24\n',
+    [`${ROOT}/tooling/ci-images/Dockerfile`]: `FROM ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:${'a'.repeat(64)} AS gitleaks\n`,
     [`${HOME}/.ssh/k.pub`]: `${PUB}\n`,
     [`${HOME}/.ssh/signers`]: `dev@example.com ssh-ed25519 ${KEY}\n`,
     [`${ROOT}/.git/info/exclude`]: `# comment\n${LOCAL_DIR}/\n/.mcp.json\n`,
@@ -257,8 +258,9 @@ describe('runChecks', () => {
     assert.equal(run(e).by['line endings'].level, 'warn');
   });
 
-  test('gitleaks: binary, container runtime, or neither', () => {
+  test('gitleaks: pinned binary, container runtime, or neither', () => {
     const e = healthy();
+    assert.equal(run(e).by.gitleaks.level, 'ok');
     e.cmds['gitleaks version'] = null;
     assert.equal(run(e).by.gitleaks.level, 'error');
     assert.match(run(e).by.gitleaks.fix, /Gitleaks/i);
@@ -267,6 +269,25 @@ describe('runChecks', () => {
     assert.equal(run(e).by.gitleaks.level, 'ok');
     e.cmds['docker info'] = false;
     assert.match(run(e).by.gitleaks.detail, /podman/);
+  });
+
+  test('gitleaks: a binary that differs from the pinned version warns with an engine and fails without', () => {
+    const e = healthy();
+    e.cmds['gitleaks version'] = '8.20.0';
+    assert.equal(run(e).by.gitleaks.level, 'error');
+    assert.match(run(e).by.gitleaks.detail, /8\.20\.0 differs from the pinned 8\.30\.1/);
+    e.cmds['docker info'] = '27.0';
+    assert.equal(run(e).by.gitleaks.level, 'warn');
+    assert.match(run(e).by.gitleaks.detail, /pinned image is used through docker/);
+    e.cmds['gitleaks version'] = 'v8.30.1';
+    assert.equal(run(e).by.gitleaks.level, 'ok');
+  });
+
+  test('gitleaks: an unreadable manifest fails', () => {
+    const e = healthy();
+    delete e.files[`${ROOT}/tooling/ci-images/Dockerfile`];
+    assert.equal(run(e).by.gitleaks.level, 'error');
+    assert.match(run(e).by.gitleaks.detail, /pinned version cannot be read/);
   });
 
   test('gh: not installed and not authenticated both fail', () => {

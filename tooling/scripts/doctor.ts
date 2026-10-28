@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { imageVersion } from './ci-image.ts';
 
 const HOOKS_DIR = 'tooling/git-hooks';
 const SIGNING_SETUP = 'tooling/scripts/setup-commit-signing.sh';
@@ -288,17 +289,36 @@ export function runChecks({
     }
   }
 
-  // gitleaks: the binary, or a container runtime that can run the image
+  // gitleaks: the binary at the pinned version, or a container runtime that can run the pinned image; the
+  // pre-commit hook rejects commits otherwise, so "neither" is a failure
+  const pinnedLeaks = imageVersion(root ? safeRead(`${slashes(root)}/tooling/ci-images/Dockerfile`) : null, 'gitleaks');
   const leaks = exec('gitleaks', ['version']);
-  const runtime = leaks.ok ? null : ['docker', 'podman'].find((c) => exec(c, ['info']).ok);
-  if (leaks.ok) items.push(item('ok', 'gitleaks', `binary ${leaks.out}`));
-  else if (runtime) items.push(item('ok', 'gitleaks', `no binary, but ${runtime} is reachable`));
+  const leaksVersion = leaks.ok ? leaks.out.replace(/^v/, '') : null;
+  const runtime = ['docker', 'podman'].find((c) => exec(c, ['info']).ok);
+  if (!pinnedLeaks)
+    items.push(
+      item('error', 'gitleaks', 'the pinned version cannot be read from tooling/ci-images/Dockerfile', 'git restore tooling/ci-images/Dockerfile'),
+    );
+  else if (leaksVersion === pinnedLeaks) items.push(item('ok', 'gitleaks', `binary ${leaksVersion}`));
+  else if (runtime)
+    items.push(
+      leaksVersion
+        ? item(
+            'warn',
+            'gitleaks',
+            `binary ${leaksVersion} differs from the pinned ${pinnedLeaks}; the pinned image is used through ${runtime}`,
+            hint(platform, 'gitleaks'),
+          )
+        : item('ok', 'gitleaks', `no binary, but ${runtime} is reachable for the pinned ${pinnedLeaks} image`),
+    );
   else
     items.push(
       item(
         'error',
         'gitleaks',
-        'neither the gitleaks binary nor a docker/podman daemon is available',
+        leaksVersion
+          ? `binary ${leaksVersion} differs from the pinned ${pinnedLeaks} and no docker/podman daemon is available`
+          : 'neither the gitleaks binary nor a docker/podman daemon is available',
         hint(platform, 'gitleaks'),
       ),
     );
