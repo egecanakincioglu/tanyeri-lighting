@@ -249,6 +249,46 @@ describe('force pushes to any branch', () => {
   });
 });
 
+describe('only a single version tag may be pushed by the assistant', () => {
+  test('one full vX.Y.Z tag to origin is allowed', () => {
+    for (const c of ['git push origin v1.2.3', 'git push origin refs/tags/v1.2.3', 'git -C . push origin v0.10.0']) {
+      allowed(onFeature, c);
+      allowed(onMain, c);
+    }
+  });
+  test('every other tag push is denied', () => {
+    sh(onFeature, 'tag', 'latest');
+    for (const c of [
+      'git push --tags',
+      'git push origin --tags',
+      'git push --follow-tags origin v1.2.3',
+      'git push --all origin v1.2.3',
+      'git push --mirror origin v1.2.3',
+      'git push --prune origin v1.2.3',
+      'git push --delete origin v1.2.3',
+      'git push -d origin v1.2.3',
+      'git push origin :v1.2.3',
+      'git push origin :refs/tags/v1.2.3',
+      'git push --force origin v1.2.3',
+      'git push -f origin v1.2.3',
+      'git push --force-with-lease origin v1.2.3',
+      'git push origin +v1.2.3',
+      'git push origin v1.2',
+      'git push origin v1.2.3-rc.1',
+      'git push origin latest',
+      'git push origin 1.2.3',
+      'git push origin main v1.2.3',
+      'git push origin v1.2.3 v1.2.4',
+      'git push origin HEAD:refs/tags/v1.2.3',
+      'git push upstream v1.2.3',
+      'git push origin tag v1.2.3',
+    ]) {
+      denied(onFeature, c);
+    }
+  });
+  test('the denial names the allowed form', () => denied(onFeature, 'git push origin v1.2', /git push origin vX.Y.Z/));
+});
+
 describe('tags are never pushed by the assistant', () => {
   test('tag pushes in every form are denied', () => {
     for (const c of [
@@ -258,21 +298,21 @@ describe('tags are never pushed by the assistant', () => {
       'git push --follow-tags',
       'git push --follow-tags origin feat/demo',
       'git push --mirror',
-      'git push origin v2026.10.12',
+      'git push origin v2026.10',
       'git push origin refs/tags/x',
-      'git push origin +v2026.10.12',
-      'git push origin tag v2026.10.12',
+      'git push origin +v2026.10',
+      'git push origin tag v2026.10',
       'git push origin :refs/tags/x',
-      'git push origin :v2026.10.12',
+      'git push origin :v2026.10',
       'git push origin HEAD:refs/tags/x',
       'git push origin refs/tags/x:refs/tags/y',
       'git -C . push --tags',
-      'git push origin "v2026.10.12"',
+      'git push origin "v2026.10"',
       "git push origin 'refs/tags/x'",
       'git push origin feat/demo --tags',
       'FOO=1 git push --follow-tags',
       'git status && git push --tags',
-      'sudo git push origin v1.2.3',
+      'sudo git push origin v1.2.3-rc.1',
       'bash -c "git push --tags"',
     ]) {
       denied(onFeature, c);

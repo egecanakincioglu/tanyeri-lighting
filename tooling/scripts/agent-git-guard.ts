@@ -3,7 +3,8 @@
 // Denies: commits/merges on main, pushes to main, force pushes to any branch, hook bypass (--no-verify),
 // writing core.hooksPath, admin-override merges, commit-signing bypass, rewriting already-pushed history,
 // non-merge-commit or non-queued pull request merges, writes to repository/account settings through
-// gh or the GitHub API, pushing tags and creating releases (the prod gate).
+// gh or the GitHub API, pushing tags (except one full vX.Y.Z version tag to origin) and creating releases.
+// The project owner decides when a release is cut; deleting tags, forcing, bulk pushes and releases stay forbidden.
 //
 // Portable: Node only (no jq, no bash, no GNU tools), so it behaves the same on Linux and Windows.
 // Fail closed: any internal error or unparsable input is a deny, never an allow.
@@ -885,7 +886,8 @@ function evalReset(restT: string[], top: string): void {
 }
 
 const TAG_REASON =
-  'Pushing tags is forbidden for the assistant: a pushed version tag starts a release and only the project owner pushes it by hand.';
+  'Pushing tags is forbidden for the assistant except one version tag: git push origin vX.Y.Z (or refs/tags/vX.Y.Z), no other options.';
+const VERSION_TAG = /^(refs\/tags\/)?v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const VERSION_LIKE = /^v?\d[\w.+-]*$/;
 
 // A push source or destination that names a tag: refs/tags/..., a version-like name or an existing local tag.
@@ -927,6 +929,17 @@ function evalPush(rest: Word[], branch: string, top: string): void {
     else if (!a.startsWith('-')) positionals.push(rest[k]);
   }
   const refspecs = positionals.slice(1); // the first positional is the remote
+  const [remote, only] = positionals;
+  const plain = (w: Word | undefined): w is Word => w !== undefined && !w.dyn;
+  if (
+    positionals.length === 2 &&
+    !t.some((a) => a.startsWith('-')) &&
+    plain(remote) &&
+    remote.text === 'origin' &&
+    plain(only) &&
+    VERSION_TAG.test(only.text)
+  )
+    return; // a single release tag push
   if (refspecs[0]?.text === 'tag') deny(TAG_REASON); // git push <remote> tag <name>
   let targetsMain = false;
   let forcePlus = false;
