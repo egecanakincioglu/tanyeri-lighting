@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+"$root/tooling/scripts/check-commit-msg.sh" "$1"
+"$root/tooling/scripts/check-forbidden-terms.sh" --text "$1"
+# first non-comment line (awk reads the file directly, so there is no pipe to close early)
+header="$(awk '!/^#/ { print; exit }' "$1")"
+"$root/tooling/scripts/check-journal-entry.sh" --staged "$header"
