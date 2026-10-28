@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const TAG = /^v(\d+\.\d+\.\d+)$/;
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** The version in a `vX.Y.Z` tag, or null when the tag has another shape. */
 export function versionOfTag(tag: string): string | null {
@@ -19,8 +20,8 @@ export function versionOfTag(tag: string): string | null {
 /** The notes of one version: the lines under `## [version] - date` up to the next `## [` heading, trimmed. */
 export function changelogSection(changelog: string, version: string): string | null {
   const lines = changelog.split(/\r?\n/);
-  const heading = new RegExp(`^## \\[${version.replaceAll('.', '\\.')}\\] - \\d{4}-\\d{2}-\\d{2}\\s*$`);
-  const start = lines.findIndex((l) => heading.test(l));
+  const prefix = `## [${version}] - `;
+  const start = lines.findIndex((l) => l.startsWith(prefix) && DATE.test(l.slice(prefix.length).trim()));
   if (start === -1) return null;
   const rest = lines.slice(start + 1);
   const end = rest.findIndex((l) => l.startsWith('## ['));
