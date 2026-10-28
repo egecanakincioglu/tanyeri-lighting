@@ -58,6 +58,8 @@ async function startServer(): Promise<ChildProcess> {
   const next = require.resolve('next/dist/bin/next');
   const child = spawn(process.execPath, [next, 'start', '-p', String(PORT)], {
     stdio: ['ignore', 'inherit', 'inherit'],
+    // The audit measures the site as it will be once indexing is open (Lighthouse flags noindex as not crawlable).
+    env: { ...process.env, SITE_INDEXING: 'on' },
     detached: process.platform !== 'win32',
   });
   const deadline = Date.now() + 60_000;

@@ -26,3 +26,15 @@ export function getEnv(): Env {
   cached ??= parseEnv(process.env);
   return cached;
 }
+
+const indexingSchema = z.enum(['on', 'off']).default('off');
+
+// Separate from getEnv(): it must work where the database variables are absent (build, site audit).
+// Read on every call, not cached, so the value is never frozen at an unexpected moment.
+export function isIndexingEnabled(source: Record<string, string | undefined> = process.env): boolean {
+  const result = indexingSchema.safeParse(source.SITE_INDEXING);
+  if (!result.success) {
+    throw new Error('Invalid environment variables:\nSITE_INDEXING: must be "on" or "off"');
+  }
+  return result.data === 'on';
+}
