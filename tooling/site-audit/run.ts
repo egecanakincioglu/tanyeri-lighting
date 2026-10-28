@@ -2,16 +2,18 @@
 // Site audit (ADR 0009 rule 13). Starts `next start` on port 3000 (run `pnpm build` first), audits every page of
 // pages.ts in a real Chrome and stops the server again.
 //
-//   node tooling/site-audit/run.ts --leg pages
+//   node tooling/site-audit/run.ts --leg pages|mobile|desktop
 //
-// Report: site-audit-report/report.json and screenshots/. Exit codes: 0 ok, 1 audit failures, 2 setup problem
+// The mobile and desktop legs run Lighthouse (3 runs per page, median) against thresholds.json.
+// Report: site-audit-report/report.json, screenshots/ (pages) and Lighthouse JSON and HTML (mobile, desktop). Exit codes: 0 ok, 1 audit failures, 2 setup problem
 // (usage, Chrome missing, server did not start).
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import type AxeCore from 'axe-core';
+import lighthouse, { desktopConfig } from 'lighthouse';
 import puppeteer, { type Page } from 'puppeteer-core';
 import {
   consoleProblems,
@@ -25,6 +27,15 @@ import {
 import { findChrome } from './chrome.ts';
 import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } from './devices.ts';
 import { PAGES } from './pages.ts';
+import {
+  agenticFailures,
+  judge,
+  medianRun,
+  medianScores,
+  transferOf,
+  type LhrLike,
+  type Thresholds,
+} from './scoring.ts';
 
 const PORT = 3000;
 const BASE = `http://localhost:${PORT}`;
@@ -206,10 +217,65 @@ async function browserChecks(): Promise<string> {
   }
 }
 
+const RUNS = 3;
+const warnings: string[] = [];
+
+async function lighthouseChecks(leg: 'mobile' | 'desktop'): Promise<string> {
+  const executablePath = findChrome(process.env, process.platform, existsSync);
+  if (!executablePath) throw new Error('Chrome not found; set CHROME_PATH');
+  const thresholds = JSON.parse(readFileSync(new URL('./thresholds.json', import.meta.url), 'utf8')) as Thresholds;
+  const browser = await puppeteer.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
+  try {
+    const version = await browser.version();
+    const warm = await browser.newPage();
+    for (const p of PAGES) await warm.goto(BASE + p, { waitUntil: 'networkidle0' });
+    await warm.close();
+    const summary: Record<string, unknown> = {};
+    for (const p of PAGES) {
+      const slug = p.slice(1).replaceAll('/', '-');
+      const runs: LhrLike[] = [];
+      for (let i = 1; i <= RUNS; i++) {
+        const page = await browser.newPage();
+        const result = await lighthouse(
+          BASE + p,
+          { logLevel: 'error', output: ['json', 'html'] },
+          leg === 'desktop' ? desktopConfig : undefined,
+          page,
+        );
+        await page.close();
+        if (!result || !Array.isArray(result.report)) throw new Error(`Lighthouse returned no report for ${p}`);
+        const [json, html] = result.report;
+        writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${i}.json`), json!);
+        writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${i}.html`), html!);
+        runs.push(result.lhr as unknown as LhrLike);
+      }
+      const scores = medianScores(runs);
+      const run = medianRun(runs);
+      const transfer = transferOf(run);
+      const verdict = judge(`${leg} ${p}`, scores, transfer, agenticFailures(run), thresholds);
+      failures.push(...verdict.failures);
+      warnings.push(...verdict.warnings);
+      summary[p] = { scores, transfer };
+      console.log(`${leg} ${p}: ${JSON.stringify(scores)} ${JSON.stringify(transfer)}`);
+    }
+    writeFileSync(path.join(REPORT_DIR, `median-${leg}.json`), JSON.stringify(summary, null, 2));
+    return version;
+  } finally {
+    await browser.close();
+  }
+}
+
+function reportWarnings(): void {
+  for (const w of warnings) console.log(`::warning title=site-audit::${w}`);
+  const file = process.env.GITHUB_STEP_SUMMARY;
+  if (file && warnings.length > 0) appendFileSync(file, warnings.map((w) => `- ${w}\n`).join(''));
+}
+
 async function main(): Promise<number> {
   const { values } = parseArgs({ options: { leg: { type: 'string' } }, strict: true });
-  if (values.leg !== 'pages') {
-    console.error('usage: node tooling/site-audit/run.ts --leg pages');
+  const leg = values.leg;
+  if (leg !== 'pages' && leg !== 'mobile' && leg !== 'desktop') {
+    console.error('usage: node tooling/site-audit/run.ts --leg pages|mobile|desktop');
     return 2;
   }
   const started = Date.now();
@@ -220,8 +286,12 @@ async function main(): Promise<number> {
   let chrome = 'unknown';
   try {
     server = await startServer();
-    await httpChecks();
-    chrome = await browserChecks();
+    if (leg === 'pages') {
+      await httpChecks();
+      chrome = await browserChecks();
+    } else {
+      chrome = await lighthouseChecks(leg);
+    }
   } catch (err) {
     console.error(`site-audit: ${(err as Error).stack ?? String(err)}`);
     return 2;
@@ -232,10 +302,13 @@ async function main(): Promise<number> {
   const seconds = Math.round((Date.now() - started) / 1000);
   writeFileSync(
     path.join(REPORT_DIR, 'report.json'),
-    JSON.stringify({ leg: 'pages', chrome, pages: PAGES, seconds, failures }, null, 2),
+    JSON.stringify({ leg, chrome, pages: PAGES, seconds, failures, warnings }, null, 2),
   );
   for (const f of failures) console.error(`FAIL ${f}`);
-  console.log(`site-audit (pages): ${failures.length} failure(s), ${seconds} s, ${chrome}`);
+  reportWarnings();
+  console.log(
+    `site-audit (${leg}): ${failures.length} failure(s), ${warnings.length} warning(s), ${seconds} s, ${chrome}`,
+  );
   return failures.length === 0 ? 0 : 1;
 }
 

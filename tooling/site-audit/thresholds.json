@@ -1,0 +1,5 @@
+{
+  "categories": { "performance": 90, "accessibility": 90, "best-practices": 90, "seo": 90 },
+  "expected": 95,
+  "budgets": { "scriptKB": 180, "stylesheetKB": 30, "fontFiles": 2, "fontKB": 100, "totalKB": 500 }
+}
