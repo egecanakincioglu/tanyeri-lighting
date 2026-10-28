@@ -26,7 +26,7 @@ Kurgusal bir aydınlatma markası için Türkçe ve İngilizce, ürün kataloglu
 
 ## Kapsam
 
-- Herkese açık sayfalar: ana sayfa, hakkımızda, hizmetler, ürünler, kategoriler ve kataloglar, projeler, referanslar, vizyon, iletişim, gizlilik, kullanım şartları.
+- Herkese açık sayfalar: ana sayfa, ürünler (kategoriler ve ürün sayfaları), kataloglar, hizmetler, projeler, referanslar, hakkımızda (vizyon dahil), iletişim, gizlilik, kullanım şartları.
 - Yönetim paneli: içerik ve ürün yönetimi, mesajlar, ziyaret istatistikleri.
 - Salt okunur demo admin.
 - Opsiyonel Google Ads modülü.
