@@ -23,6 +23,12 @@ const names = [
   ['pony', 'tail'],
 ].map((p) => p.join(''));
 
+// the old client brand, built from pieces for the same reason
+const brand = ['af', 'ra'].join('');
+const brandCases = [brand, brand.toUpperCase(), `${brand} Lighting`, `${brand}-main`, `${brand}_signing`, `${brand}lighting`, `${brand}.png`];
+const harmless = ['afr', 'aid'].join(''); // contains the brand but is an ordinary word
+const harmlessTr = [['s', brand].join(''), ['s', brand, 'n'].join('')]; // Turkish words that contain it
+
 const withRepo = <T>(files: Record<string, string>, fn: (dir: string, git: (...args: string[]) => SpawnSyncReturns<string>) => T): T => {
   const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-terms-')));
   try {
@@ -65,6 +71,33 @@ describe('check-forbidden-terms', { skip: bash ? false : 'bash not found' }, () 
         assert.equal(r.code, 1);
         assert.match(r.err, /forbidden term in path/);
       });
+      for (const c of brandCases) {
+        test(`old brand "${c}" is caught in content`, () => {
+          const r = run(mode, { 'a.txt': `built for ${c} once\n` });
+          assert.equal(r.code, 1);
+          assert.match(r.err, /old brand name in (staged|tracked) content/);
+        });
+      }
+      test('old brand in a path is caught', () => {
+        const r = run(mode, { [`public/${brand}-favicon.png`]: 'x\n' });
+        assert.equal(r.code, 1);
+        assert.match(r.err, /old brand name in path/);
+      });
+      test('ordinary words that contain the brand pass', () => {
+        const words = [harmless, ...harmlessTr, harmless.toUpperCase()].join(' ');
+        assert.equal(run(mode, { 'a.txt': `${words}\n`, [`${harmlessTr[0]}.txt`]: 'x\n' }).code, 0);
+      });
+      test('the root README.md may name the old brand in its content', () => {
+        assert.equal(run(mode, { 'README.md': `Once called "${brand} Lighting".\n` }).code, 0);
+      });
+      test('the README exception does not cover other files or other forbidden terms', () => {
+        const cases: Record<string, string>[] = [
+          { 'README.md': 'ok\n', 'docs/README.md': `${brand} Lighting\n` },
+          { 'README.md': 'ok\n', 'NOTES.md': `${brand} Lighting\n` },
+          { 'README.md': `${brand} and ${names[0]}\n` },
+        ];
+        for (const files of cases) assert.equal(run(mode, files).code, 1, JSON.stringify(files));
+      });
       test('.mcp.json is rejected at the root and in a subfolder', () => {
         for (const p of ['.mcp.json', 'apps/web/.mcp.json']) {
           const r = run(mode, { [p]: '{}\n' });
@@ -92,6 +125,16 @@ describe('check-forbidden-terms', { skip: bash ? false : 'bash not found' }, () 
       const cut = '# ------------------------ >8 ------------------------';
       assert.equal(text(`feat: x\n\nbody\n${cut}\ndiff mentions ${names[0]}\n`).code, 0);
       assert.equal(text(`feat: x\n\n${names[0]}\n${cut}\nfine\n`).code, 1);
+    });
+    for (const c of brandCases) {
+      test(`old brand "${c}" is rejected`, () => {
+        const r = text(`feat: x\n\nquotes the README: ${c}\n`);
+        assert.equal(r.code, 1);
+        assert.match(r.err, /old brand name in text/);
+      });
+    }
+    test('ordinary words that contain the brand pass', () => {
+      assert.equal(text(`feat: x\n\n${harmless} ${harmlessTr.join(' ')}\n`).code, 0);
     });
     for (const name of names) {
       test(`${name} is rejected`, () => {
