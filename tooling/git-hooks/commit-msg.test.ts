@@ -104,7 +104,7 @@ describe('commit-msg hook', { skip: bash ? false : 'bash not found' }, () => {
       assert.match(r.stderr, /journal/);
     });
   });
-  test('the journal line must carry this commit\'s header', () => {
+  test("the journal line must carry this commit's header", () => {
     withRepo((repo, git) => {
       write(repo, 'a.txt', 'x\n');
       write(repo, `docs/journal/${today}.md`, '- `feat: other thing` - x\n');

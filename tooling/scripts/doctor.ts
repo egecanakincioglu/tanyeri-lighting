@@ -297,7 +297,12 @@ export function runChecks({
   const runtime = ['docker', 'podman'].find((c) => exec(c, ['info']).ok);
   if (!pinnedLeaks)
     items.push(
-      item('error', 'gitleaks', 'the pinned version cannot be read from tooling/ci-images/Dockerfile', 'git restore tooling/ci-images/Dockerfile'),
+      item(
+        'error',
+        'gitleaks',
+        'the pinned version cannot be read from tooling/ci-images/Dockerfile',
+        'git restore tooling/ci-images/Dockerfile',
+      ),
     );
   else if (leaksVersion === pinnedLeaks) items.push(item('ok', 'gitleaks', `binary ${leaksVersion}`));
   else if (runtime)
