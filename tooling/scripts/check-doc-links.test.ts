@@ -85,6 +85,30 @@ describe('check-doc-links', () => {
     assert.equal(r.code, 0, r.err);
   });
 
+  describe('git-ignored paths', () => {
+    const files = { 'docs/legacy/a.md': '[x](missing.md)\n', 'docs/ok.md': 'ok\n' };
+    const repo = (ignore: string, init: boolean) => {
+      const dir = tree(files);
+      writeFileSync(path.join(dir, '.gitignore'), ignore);
+      if (init) assert.equal(spawnSync('git', ['init', '-q'], { cwd: dir }).status, 0);
+      return dir;
+    };
+    test('an ignored folder is not scanned', () => {
+      const r = run(['--root', repo('docs/legacy/\n', true)]);
+      assert.equal(r.code, 0, r.err);
+      assert.match(r.out, /^checked 1 files, 0 broken links$/m);
+    });
+    test('the same file is reported when it is not ignored', () => {
+      const r = run(['--root', repo('unrelated\n', true)]);
+      assert.equal(r.code, 1);
+      assert.match(r.err, /docs\/legacy\/a\.md -> missing\.md/);
+    });
+    test('outside a git repository nothing is filtered', () => {
+      const r = run(['--root', repo('docs/legacy/\n', false)]);
+      assert.equal(r.code, 1);
+      assert.match(r.err, /docs\/legacy\/a\.md -> missing\.md/);
+    });
+  });
   test('the real repository has no broken links', () => {
     const r = run([], HERE);
     assert.equal(r.code, 0, r.err);

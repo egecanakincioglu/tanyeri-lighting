@@ -50,6 +50,8 @@ const rejected = [
   'DESIGN.md',
   'design-system/tokens.css',
   'docs/brand-guidelines.md',
+  'docs/old-source-code/README.md',
+  'docs/old-source-code/src/app/page.tsx',
 ];
 const allowed = [
   '.env.example',
@@ -63,6 +65,8 @@ const allowed = [
   'docs/DESIGN.md',
   'docs/design-system.md',
   'README.md',
+  'docs/old-source-code-notes.md',
+  'docs/guides/old-source-code/notes.md',
 ];
 
 describe('check-forbidden-paths.sh', { skip: bash ? false : 'bash not found' }, () => {
@@ -95,6 +99,22 @@ describe('check-forbidden-paths.sh', { skip: bash ? false : 'bash not found' }, 
       git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'x');
       assert.equal(spawnSync(bash, [script, '--staged'], { cwd: dir }).status, 0);
       assert.equal(spawnSync(bash, [script, '--all'], { cwd: dir }).status, 1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  test('--staged rejects a force-added file under an ignored docs/old-source-code/', () => {
+    const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'forbidden-paths-')));
+    try {
+      const git = (...args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+      git('init', '-q');
+      writeFileSync(path.join(dir, '.gitignore'), 'docs/old-source-code/\n');
+      mkdirSync(path.join(dir, 'docs/old-source-code'), { recursive: true });
+      writeFileSync(path.join(dir, 'docs/old-source-code/a.ts'), 'x\n');
+      git('add', '-f', 'docs/old-source-code/a.ts');
+      const r = spawnSync(bash, [script, '--staged'], { cwd: dir, encoding: 'utf8' });
+      assert.equal(r.status, 1);
+      assert.match(r.stderr, /docs\/old-source-code\/a\.ts/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
