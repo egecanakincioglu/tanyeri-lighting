@@ -6,8 +6,8 @@
 
 - **Faz:** Faz 3 (uygulama iskeleti ve kalite temeli) sürüyor: araç zinciri, koruma ve kalite işleri birleşti; uygulama kodu henüz yok. Uygulamayı yeni, temiz bir repoda sıfırdan yazıyorum.
 - **Son güncelleme:** 2026-10-28.
-- **Sıradaki adım:** Faz 3'ün kapanışı: Vercel ve Neon kurulumu (elle), önizleme veritabanına migration kararı ve doğrulama PR'ı. Faz 4 (sunucu temeli) Faz 3 kapanınca başlar.
-- **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `build` ve üç `site-audit` kolunu eklemek; Faz 3'te Vercel ve Neon hesap adımları (Neon Frankfurt bölgesinde); Faz 9'da üretimi Search Console ve Bing'e eklemek; Faz 5'te logo.
+- **Sıradaki adım:** Faz 3'ün kapanışı: sürüm hattı ([ADR 0011](adr/0011-surumleme-ve-yayin.md)) ve ilk sürüm v0.1.0. Faz 4 (sunucu temeli) Faz 3 kapanınca başlar.
+- **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `build` ve üç `site-audit` kolunu eklemek; Faz 3'te Vercel ve Neon hesap adımları (Neon Frankfurt bölgesinde); Vercel token'ı ve repo değişkenleri (ADR 0011); Faz 9'da üretimi Search Console ve Bing'e eklemek; Faz 5'te logo.
 
 ## İlerleme
 
