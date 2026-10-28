@@ -249,9 +249,9 @@ function gitStateSection({ root }: Ctx): string {
 }
 
 /** Local branches whose commits are not (all) on their upstream, or that have no upstream. */
-export type UnpushedBranch = { name: string; upstream: string; count: number | null };
+type UnpushedBranch = { name: string; upstream: string; count: number | null };
 
-export function unpushedBranches(root: string): UnpushedBranch[] {
+function unpushedBranches(root: string): UnpushedBranch[] {
   const g = (...args: string[]) => run('git', args, { cwd: root });
   const hasRemotes = Boolean(g('for-each-ref', '--count=1', 'refs/remotes').out);
   const rows = g('for-each-ref', '--format=%(refname:short)%09%(upstream:short)', 'refs/heads')
