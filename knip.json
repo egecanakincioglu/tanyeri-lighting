@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": ["tooling/semgrep/**"],
+  "ignoreDependencies": ["@prisma/client"],
   "ignoreBinaries": ["ssh-keygen", "cygpath"]
 }
