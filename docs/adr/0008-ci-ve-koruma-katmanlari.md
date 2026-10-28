@@ -64,14 +64,14 @@ Plan §2, §3 ve §4'teki kararı kaydediyorum: **GitHub'ın barındırdığı �
 
 Uyacağım kurallar:
 
-1. **İş akışları:** `.github/workflows/ci.yml` (`policy`, `tooling (linux)`, `tooling (windows)`; Faz 3'te `quality`, `test`, `build`), `.github/workflows/pr-text.yml` (`pr-text`) ve `.github/workflows/codeql.yml` (`analyze (javascript-typescript)`). İş adları zorunlu kontrol adlarıyla birebir aynı. `tooling (windows)` dışında hepsi `ubuntu-latest` standart çalıştırıcıda; büyük çalıştırıcı kullanılmaz.
+1. **İş akışları:** `.github/workflows/ci.yml` (`policy`, `tooling (linux)`, `tooling (windows)`; Faz 3'te `quality`, `test`, `build`), `.github/workflows/pr-text.yml` (`pr-text`) ve `.github/workflows/codeql.yml` (`analyze (javascript-typescript)` ve `analyze (actions)`). İş adları zorunlu kontrol adlarıyla birebir aynı. `tooling (windows)` dışında hepsi `ubuntu-latest` standart çalıştırıcıda; büyük çalıştırıcı kullanılmaz.
 2. **İşlerin içeriği** (plan §4):
    - `policy`: dal adı; PR'daki her commit (başlık, gövde, yasaklı terim, imza); günlük satırı; testsiz kod kapısı ve kapsam eşiğinin düşürülmemesi ([ADR 0007](0007-test-stratejisi.md)); bütün geçmişte sır taraması; yasak yollar.
    - `pr-text`: PR başlığı, yasaklı terimler, roadmap satırı.
    - `quality`: Prettier, ESLint CLI (flat config; `next lint` yok), `tsc --noEmit` (uygulama ve `tooling/` birlikte; plan §2, D5), ölü kod ve kullanılmayan bağımlılık taraması, `pnpm audit` (high/critical kırmızı, süreli istisna listesi), Semgrep, lisans politikası.
    - `test`: Vitest, Postgres servis konteyneriyle ve kapsam eşiğiyle.
    - `build`: `next build`.
-3. **Dal koruması (`main`):** PR zorunlu (0 onay); zorunlu kontroller `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)` ve `CodeQL`, Faz 3'ten sonra `quality`, `test`, `build`; strict (dal güncel olmalı); imzalı commit zorunlu; force push ve dal silme kapalı; yöneticiler dahil. Repo ayarları: yalnız merge commit, dal otomatik silme, auto-merge açık, dal güncelleme önerisi açık.
+3. **Dal koruması (`main`):** PR zorunlu (0 onay); zorunlu kontroller `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)` ve `CodeQL`, Faz 3'ten sonra `quality`, `test`, `build` ve `analyze (actions)`; strict (dal güncel olmalı); imzalı commit zorunlu; force push ve dal silme kapalı; yöneticiler dahil. Repo ayarları: yalnız merge commit, dal otomatik silme, auto-merge açık, dal güncelleme önerisi açık.
 4. **Action'lar:** yalnız GitHub'ın (`actions/*`, `github/*`) ve doğrulanmış yayıncıların action'ları; her biri tam commit SHA'sıyla, yanında sürüm yorumu. Doğrulanmış olmayan araçlar action olarak değil, sürümü ve bütünlüğü sabit ikili dosya ya da paket olarak çalıştırılır.
 5. **CodeQL ana SAST tarayıcısı:** repoda bir iş akışıyla (gelişmiş kurulum).
    - Sorgu seti `security-extended`; diller `javascript-typescript` ve `actions`.
