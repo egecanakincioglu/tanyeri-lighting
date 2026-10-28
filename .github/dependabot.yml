@@ -60,5 +60,9 @@ updates:
       - dependency-name: '@prisma/*'
         update-types:
           - 'version-update:semver-major'
+      # @types/node follows the Node runtime major (24, see .node-version); the major moves together with the runtime in a deliberate PR.
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     commit-message:
       prefix: 'build'
