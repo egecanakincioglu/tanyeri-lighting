@@ -1,7 +1,7 @@
 // Tests for release-prepare.ts: pure helpers and a run against a temporary git repository.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
@@ -143,5 +143,12 @@ describe('main in a temporary repository', () => {
     assert.match(read('package.json'), /"0\.1\.1"/);
     const log = read('CHANGELOG.md');
     assert.ok(log.indexOf('## [0.1.1]') < log.indexOf('## [0.1.0]'));
+  });
+
+  test('a changelog that cannot be read is an error, not a missing file', () => {
+    rmSync(path.join(root, 'CHANGELOG.md'));
+    mkdirSync(path.join(root, 'CHANGELOG.md'));
+    commit('fix: fourth');
+    assert.equal(run(), 2);
   });
 });
