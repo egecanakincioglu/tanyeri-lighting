@@ -11,6 +11,9 @@ vi.mock('next-intl/server', () => ({
     Promise.resolve((key: 'title') => ({ tr, en })[locale][namespace][key]),
 }));
 
+// connection() only works inside a request; opting into dynamic rendering is its whole effect.
+vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
+
 // Typed with the generated route contract so the test fails to compile if it changes.
 const layoutProps = (locale: string, children: ReactNode = null): LayoutProps<'/[locale]'> => ({
   children,

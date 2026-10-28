@@ -38,3 +38,8 @@ export function isIndexingEnabled(source: Record<string, string | undefined> = p
   }
   return result.data === 'on';
 }
+
+// Same reason as isIndexingEnabled: no database variables needed, read on every call.
+export function isDevelopment(source: Record<string, string | undefined> = process.env): boolean {
+  return source.NODE_ENV === 'development';
+}
