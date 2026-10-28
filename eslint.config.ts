@@ -3,7 +3,14 @@ import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
 
 export default defineConfig([
-  globalIgnores(['.next/**', 'coverage/**', 'docs/old-source-code/**', 'next-env.d.ts', 'tooling/semgrep/**']),
+  globalIgnores([
+    '.next/**',
+    'coverage/**',
+    'docs/old-source-code/**',
+    'next-env.d.ts',
+    'src/generated/**',
+    'tooling/semgrep/**',
+  ]),
   ...nextCoreWebVitals,
   ...nextTypescript,
 ]);

@@ -12,6 +12,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
     "lint": "eslint src tooling \"*.ts\" --max-warnings 0",
     "db:up": "node tooling/scripts/db.ts up",
     "db:down": "node tooling/scripts/db.ts down",
@@ -26,6 +28,7 @@
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
     "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitest/coverage-v8": "5.0.5",
@@ -39,8 +42,12 @@
     "vitest": "5.0.5"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "next": "16.4.3",
     "next-intl": "4.14.9",
+    "pg": "8.23.1",
+    "prisma": "7.10.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "zod": "4.6.7"
