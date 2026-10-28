@@ -150,6 +150,9 @@ jobs:
         run: |
           image="$(node tooling/scripts/ci-image.ts semgrep)"
           docker run --rm -v "$PWD:/src" -w /src "$image" semgrep scan --config tooling/semgrep --exclude tooling/semgrep --error --metrics=off
+      - name: Dependency audit
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-audit.ts
 
   test:
     name: test
