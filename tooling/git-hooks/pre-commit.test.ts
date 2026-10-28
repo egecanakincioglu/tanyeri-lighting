@@ -3,12 +3,13 @@
 // gitleaks-rules.test.ts.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { resolveBash } from '../scripts/lib/bash.ts';
+import { fakeGitleaks, installScannerStubs, PINNED_GITLEAKS as PINNED, stubBin } from '../scripts/lib/scanner-stubs.ts';
 
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
@@ -21,8 +22,7 @@ const withRepo = (branch: string, fn: (repo: string, git: Git) => void): void =>
   const stub = path.join(dir, '.stub-bin');
   try {
     mkdirSync(stub);
-    writeFileSync(path.join(stub, 'gitleaks'), '#!/usr/bin/env bash\nexit 0\n');
-    chmodSync(path.join(stub, 'gitleaks'), 0o755);
+    installScannerStubs(stub);
     const repo = path.join(dir, 'repo');
     mkdirSync(path.join(repo, 'tooling', 'scripts'), { recursive: true });
     mkdirSync(path.join(repo, 'tooling', 'ci-images'), { recursive: true });
@@ -98,12 +98,52 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
   });
   test('a failing secret scan blocks the commit', () => {
     withRepo('feat/x', (repo, git) => {
-      writeFileSync(path.join(repo, '..', '.stub-bin', 'gitleaks'), '#!/usr/bin/env bash\necho leak >&2\nexit 1\n');
+      stubBin(path.join(repo, '..', '.stub-bin'), 'gitleaks', fakeGitleaks(PINNED, 'echo leak >&2\nexit 1'));
       writeFileSync(path.join(repo, 'a.txt'), 'x\n');
       git('add', '-A');
       const r = git('commit', '-m', 'feat: x');
       assert.notEqual(r.status, 0);
       assert.match(r.stderr, /leak/);
+    });
+  });
+
+  // runs the hook directly with the stub dir first on PATH
+  const runHook = (repo: string): SpawnSyncReturns<string> =>
+    spawnSync(bash, [path.join(tooling, 'git-hooks', 'pre-commit')], {
+      cwd: repo,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${path.join(repo, '..', '.stub-bin')}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}` },
+    });
+  const stage = (repo: string, git: Git): void => {
+    writeFileSync(path.join(repo, 'a.txt'), 'x\n');
+    git('add', '-A');
+  };
+
+  test('a PATH gitleaks of another version is not used; the pinned image runs through docker', () => {
+    withRepo('feat/x', (repo, git) => {
+      const stub = path.join(repo, '..', '.stub-bin');
+      stubBin(stub, 'gitleaks', fakeGitleaks('0.0.1', 'echo wrong-binary-used >&2\nexit 1'));
+      stubBin(stub, 'docker', 'if [ "${1:-}" = info ]; then exit 0; fi\necho "docker $*" >&2\nexit 0');
+      stage(repo, git);
+      const r = runHook(repo);
+      assert.equal(r.status, 0, r.stderr);
+      assert.doesNotMatch(r.stderr, /wrong-binary-used/);
+      assert.match(r.stderr, new RegExp(`docker run .*gitleaks:v${PINNED.replaceAll('.', '\\.')}@sha256:`));
+    });
+  });
+
+  test('a commit is rejected, never skipped, when no scanner is usable', () => {
+    withRepo('feat/x', (repo, git) => {
+      const stub = path.join(repo, '..', '.stub-bin');
+      stubBin(stub, 'gitleaks', fakeGitleaks('0.0.1', 'exit 0'));
+      stubBin(stub, 'docker', 'exit 1');
+      stubBin(stub, 'podman', 'exit 1');
+      stage(repo, git);
+      const r = runHook(repo);
+      assert.equal(r.status, 1);
+      assert.match(r.stderr, /no usable secret scanner; commit rejected/);
+      assert.match(r.stderr, new RegExp(`gitleaks ${PINNED.replaceAll('.', '\\.')}`));
+      assert.match(r.stderr, /doctor\.ts/);
     });
   });
 });
