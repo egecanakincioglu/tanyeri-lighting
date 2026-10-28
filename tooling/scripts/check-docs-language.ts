@@ -5,6 +5,7 @@
 //   - every docs/**/*.md contains Turkish text.
 // The language check is a heuristic: at least one of the Turkish letters ç ğ ı ö ş ü Ç Ğ İ Ö Ş Ü must appear
 // outside code blocks and inline code (code would otherwise let an English page pass).
+// Paths git ignores (for example the local legacy guide) are skipped.
 // It cannot prove a page is entirely Turkish, but an English page without a single such letter is caught.
 //
 //   node tooling/scripts/check-docs-language.ts [--docs <dir>]
@@ -13,6 +14,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutGitIgnored } from './lib/git-ignored.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIR_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -31,23 +33,36 @@ export const hasTurkishText = (text: string): boolean => TURKISH.test(stripCode(
 
 /** Problems found under `docsDir`, as human readable strings (empty when everything is fine). */
 export function checkDocs(docsDir: string): string[] {
-  const problems: string[] = [];
+  const entries: { rel: string; isDir: boolean }[] = [];
   const walk = (dir: string, rel: string): void => {
     for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const relPath = rel ? `${rel}/${entry.name}` : entry.name;
-      if (entry.isDirectory()) {
-        if (!isValidDirName(entry.name)) problems.push(`docs/${relPath}/: folder name must be ASCII kebab-case`);
-        walk(path.join(dir, entry.name), relPath);
-      } else {
-        if (!isValidFileName(entry.name))
-          problems.push(`docs/${relPath}: file name must be ASCII kebab-case (README.md is the only exception)`);
-        if (entry.name.endsWith('.md') && !hasTurkishText(readFileSync(path.join(dir, entry.name), 'utf8'))) {
-          problems.push(`docs/${relPath}: no Turkish text found; documentation under docs/ is written in Turkish`);
-        }
-      }
+      const isDir = entry.isDirectory();
+      entries.push({ rel: relPath, isDir });
+      if (isDir) walk(path.join(dir, entry.name), relPath);
     }
   };
   walk(docsDir, '');
+  const kept = new Set(
+    withoutGitIgnored(
+      docsDir,
+      entries.map((e) => e.rel),
+    ),
+  );
+  const problems: string[] = [];
+  for (const { rel, isDir } of entries) {
+    if (!kept.has(rel)) continue;
+    const name = rel.slice(rel.lastIndexOf('/') + 1);
+    if (isDir) {
+      if (!isValidDirName(name)) problems.push(`docs/${rel}/: folder name must be ASCII kebab-case`);
+    } else {
+      if (!isValidFileName(name))
+        problems.push(`docs/${rel}: file name must be ASCII kebab-case (README.md is the only exception)`);
+      if (name.endsWith('.md') && !hasTurkishText(readFileSync(path.join(docsDir, rel), 'utf8'))) {
+        problems.push(`docs/${rel}: no Turkish text found; documentation under docs/ is written in Turkish`);
+      }
+    }
+  }
   return problems;
 }
 
