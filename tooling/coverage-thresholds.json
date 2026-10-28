@@ -1,0 +1,4 @@
+{
+  "src/server/**": { "lines": 80 },
+  "src/lib/**": { "lines": 80 }
+}
