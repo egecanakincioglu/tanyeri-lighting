@@ -315,6 +315,15 @@ describe('unpushed branches rule', () => {
     assert.equal(run(ctx.repo, ctx.agentDir, { session_id: 's1' }).blocked, false);
   });
 
+  test('unpushed branch and no note file at all: blocks as stale and naming nothing', () => {
+    sh(ctx.repo, {}, 'switch', '-q', '-c', 'feat/x');
+    sh(ctx.repo, ctx.date, 'commit', '-q', '--allow-empty', '-m', 'chore: work');
+    rmSync(path.join(ctx.agentDir, 'handoff.md'), { force: true });
+    const r = run(ctx.repo, ctx.agentDir, { session_id: 's1' });
+    assert.equal(r.blocked, true);
+    assert.ok(r.out.reason.includes('şu dalların adını içermiyor: feat/x'));
+  });
+
   test('after pushing the branch: allows even without a note', () => {
     sh(ctx.repo, {}, 'switch', '-q', '-c', 'feat/x');
     sh(ctx.repo, ctx.date, 'commit', '-q', '--allow-empty', '-m', 'chore: work');

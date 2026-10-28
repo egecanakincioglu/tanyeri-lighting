@@ -15,7 +15,7 @@
 // A reminder must never trap the session: on any internal error it prints a note to stderr and exits 0, and a
 // failure while evaluating one rule never hides the others. `stop_hook_active` prevents block loops.
 import { spawnSync } from 'node:child_process';
-import { readFileSync, realpathSync, statSync, writeSync } from 'node:fs';
+import { closeSync, fstatSync, openSync, readFileSync, realpathSync, statSync, writeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -211,8 +211,14 @@ function unpushedProblem(root, agentDir) {
   let handoff = 0;
   let handoffText = '';
   try {
-    handoff = Math.floor(statSync(file).mtimeMs / 1000);
-    handoffText = readFileSync(file, 'utf8');
+    // One descriptor for both reads: no window between checking the file and using it.
+    const fd = openSync(file, 'r');
+    try {
+      handoff = Math.floor(fstatSync(fd).mtimeMs / 1000);
+      handoffText = readFileSync(fd, 'utf8');
+    } finally {
+      closeSync(fd);
+    }
   } catch {
     /* a missing note counts as stale and naming nothing */
   }

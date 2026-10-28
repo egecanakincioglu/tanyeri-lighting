@@ -12,7 +12,14 @@ import { resolveImage } from './ci-image.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const image = resolveImage(readFileSync(path.join(root, 'tooling', 'ci-images', 'Dockerfile'), 'utf8'), 'gitleaks');
 const docker = spawnSync('docker', ['info', '--format', '{{.ServerVersion}}'], { encoding: 'utf8' });
-const skip = docker.status === 0 ? false : 'docker is not available (no reachable daemon); gitleaks rules not exercised';
+// Windows runners have docker but run Windows containers, which can not start this Linux image.
+const engineOs = docker.status === 0 ? spawnSync('docker', ['info', '--format', '{{.OSType}}'], { encoding: 'utf8' }).stdout.trim() : '';
+const skip =
+  docker.status !== 0
+    ? 'docker is not available (no reachable daemon); gitleaks rules not exercised'
+    : engineOs !== 'linux'
+      ? `docker runs ${engineOs || 'unknown'} containers, not linux; gitleaks rules not exercised`
+      : false;
 
 describe('.gitleaks.toml custom rules', { skip }, () => {
   test('detects a JSON password, URL credentials and a Turkish mobile number', () => {

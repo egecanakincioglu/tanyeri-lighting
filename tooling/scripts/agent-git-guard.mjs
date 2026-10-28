@@ -623,10 +623,22 @@ function evalGhApi(args) {
   if (PROTECTED_API.some((re) => re.test(raw))) deny(`gh api write to "${raw}" is forbidden. ${OWNER_ONLY}`);
 }
 
+// True when an argument addresses the GitHub API host: URL or scheme-less, optional --opt= prefix, userinfo, port,
+// or a Host header naming it (the request may go to an IP address).
+function isGithubApiHost(arg) {
+  const value = arg.replace(/^-[^=]*=/, '');
+  if (/^host:\s*api\.github\.com\.?(:\d+)?$/i.test(value)) return true;
+  const authority = value
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
+    .split(/[/?#]/, 1)[0];
+  const host = authority.slice(authority.lastIndexOf('@') + 1).replace(/:\d*$/, '');
+  return host.replace(/\.$/, '').toLowerCase() === 'api.github.com';
+}
+
 // curl / wget / httpie talking to the GitHub API with anything other than a plain read.
 function evalHttpTool(args) {
   const t = args.map((w) => w.text);
-  if (!t.some((a) => /api\.github\.com/i.test(a))) return;
+  if (!t.some(isGithubApiHost)) return;
   const writes = t.some(
     (a, k) =>
       /^-(d|F|T)$/.test(a) ||

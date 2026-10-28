@@ -24,11 +24,20 @@ export function roadmapFiles(changedFiles) {
   return changedFiles.filter((f) => f === ROADMAP || PLAN.test(f));
 }
 
+// Repeats until stable so nesting such as "<!<!---->--" cannot rebuild an opener; an unterminated one hides the rest.
+function stripComments(input) {
+  let text = input;
+  for (let prev = null; prev !== text; ) {
+    prev = text;
+    text = text.replace(/<!--[\s\S]*?-->/g, '');
+  }
+  const open = text.indexOf('<!--');
+  return open === -1 ? text : text.slice(0, open);
+}
+
 /** The reason of a valid `Roadmap: n/a - <reason>` line in the PR body, or null. */
 export function naReason(body) {
-  const text = String(body ?? '')
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/\r/g, '');
+  const text = stripComments(String(body ?? '')).replace(/\r/g, '');
   const m = NA_LINE.exec(text);
   if (!m) return null;
   const reason = m[1].trim();

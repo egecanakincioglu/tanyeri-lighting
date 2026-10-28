@@ -567,6 +567,42 @@ describe('repository and account settings', () => {
     allowed(onFeature, 'curl -sS -X GET https://api.github.com/repos/x/y');
     allowed(onFeature, 'curl -d x https://example.com/hook');
   });
+
+  test('a Host header naming the GitHub API counts, one naming another host does not', () => {
+    denied(onFeature, 'curl -k -X DELETE -H "Host: api.github.com" https://140.82.112.6/repos/o/r');
+    denied(onFeature, 'curl -XDELETE --header "host:api.github.com" https://1.2.3.4/repos/o/r');
+    denied(onFeature, 'wget --method=DELETE "--header=Host: api.github.com" https://1.2.3.4/repos/o/r');
+    denied(onFeature, 'http DELETE 1.2.3.4/repos/o/r Host:api.github.com');
+    denied(onFeature, 'curl -X DELETE -H "Host: API.GitHub.com.:443" https://1.2.3.4/x');
+    allowed(onFeature, 'curl -X DELETE -H "Host: example.com" https://1.2.3.4/x');
+    allowed(onFeature, 'curl -X DELETE -H "Host: api.github.com.evil.example" https://1.2.3.4/x');
+  });
+
+  test('the GitHub API host is recognised in every spelling, and only the host', () => {
+    for (const url of [
+      'https://api.github.com/repos/x/y',
+      'http://api.github.com/repos/x/y',
+      'api.github.com/repos/x/y',
+      'API.GitHub.COM/repos/x/y',
+      'https://x@api.github.com/repos/x/y',
+      'https://user:pw@api.github.com:443/repos/x/y', // gitleaks:allow
+      'api.github.com:443/repos/x/y',
+      'https://api.github.com',
+      'api.github.com',
+      '--url=https://api.github.com/repos/x/y',
+    ]) {
+      denied(onFeature, `curl -X DELETE ${url}`);
+    }
+    for (const url of [
+      'https://evil.example/api.github.com',
+      'https://api.github.com.evil.example/',
+      'https://evil.example/?u=api.github.com',
+      'https://api.github.com@evil.example/x',
+      'https://notapi.github.com/x',
+    ]) {
+      allowed(onFeature, `curl -X DELETE ${url}`);
+    }
+  });
 });
 
 describe('gh pr merge', () => {

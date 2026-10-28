@@ -1,0 +1,60 @@
+version: 2
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    # New versions wait 7 days; security updates ignore the cooldown.
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    commit-message:
+      prefix: 'ci'
+  # Keeps the image digests in the CI image manifest fresh.
+  - package-ecosystem: 'docker'
+    directory: '/tooling/ci-images'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    commit-message:
+      prefix: 'build'
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    # Prisma is pinned to 7.x on purpose: npm latest is an 8.x release candidate and the auth library supports up to 7.
+    ignore:
+      - dependency-name: 'prisma'
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: '@prisma/*'
+        update-types:
+          - 'version-update:semver-major'
+    commit-message:
+      prefix: 'build'
