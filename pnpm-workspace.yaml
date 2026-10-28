@@ -2,3 +2,5 @@ allowBuilds:
   '@parcel/watcher': false
   '@swc/core': false
   unrs-resolver: false
+  '@prisma/engines': true
+  prisma: true
