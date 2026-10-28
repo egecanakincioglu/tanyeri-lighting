@@ -10,11 +10,17 @@ import { fileURLToPath } from 'node:url';
 import { resolveImage } from './ci-image.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const image = resolveImage(readFileSync(path.join(root, 'tooling', 'ci-images', 'Dockerfile'), 'utf8'), 'gitleaks') as string;
+const image = resolveImage(
+  readFileSync(path.join(root, 'tooling', 'ci-images', 'Dockerfile'), 'utf8'),
+  'gitleaks',
+) as string;
 type Finding = { RuleID: string; File: string };
 const docker = spawnSync('docker', ['info', '--format', '{{.ServerVersion}}'], { encoding: 'utf8' });
 // Windows runners have docker but run Windows containers, which can not start this Linux image.
-const engineOs = docker.status === 0 ? spawnSync('docker', ['info', '--format', '{{.OSType}}'], { encoding: 'utf8' }).stdout.trim() : '';
+const engineOs =
+  docker.status === 0
+    ? spawnSync('docker', ['info', '--format', '{{.OSType}}'], { encoding: 'utf8' }).stdout.trim()
+    : '';
 const skip =
   docker.status !== 0
     ? 'docker is not available (no reachable daemon); gitleaks rules not exercised'
@@ -41,9 +47,26 @@ describe('.gitleaks.toml custom rules', { skip }, () => {
       git('-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'seed');
       const r = spawnSync(
         'docker',
-        ['run', '--rm', '-v', `${repo}:/repo:ro`, '-v', `${out}:/out`, image, 'git', '/repo',
-          '--config', '/repo/.gitleaks.toml', '--report-format', 'json', '--report-path', '/out/r.json',
-          '--exit-code', '0', '--no-banner'],
+        [
+          'run',
+          '--rm',
+          '-v',
+          `${repo}:/repo:ro`,
+          '-v',
+          `${out}:/out`,
+          image,
+          'git',
+          '/repo',
+          '--config',
+          '/repo/.gitleaks.toml',
+          '--report-format',
+          'json',
+          '--report-path',
+          '/out/r.json',
+          '--exit-code',
+          '0',
+          '--no-banner',
+        ],
         { encoding: 'utf8', env: { ...process.env, MSYS_NO_PATHCONV: '1' } },
       );
       assert.equal(r.status, 0, r.stderr);

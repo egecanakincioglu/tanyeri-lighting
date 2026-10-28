@@ -27,7 +27,7 @@ export function roadmapFiles(changedFiles: string[]): string[] {
 // Repeats until stable so nesting such as "<!<!---->--" cannot rebuild an opener; an unterminated one hides the rest.
 function stripComments(input: string): string {
   let text = input;
-  for (let prev: string | null = null; prev !== text; ) {
+  for (let prev: string | null = null; prev !== text;) {
     prev = text;
     text = text.replace(/<!--[\s\S]*?-->/g, '');
   }
@@ -46,7 +46,10 @@ export function naReason(body: unknown): string | null {
 }
 
 /** Decision: { ok, message }. */
-export function evaluate({ changedFiles, body }: { changedFiles: string[]; body: unknown }): { ok: boolean; message: string } {
+export function evaluate({ changedFiles, body }: { changedFiles: string[]; body: unknown }): {
+  ok: boolean;
+  message: string;
+} {
   const touched = roadmapFiles(changedFiles);
   if (touched.length) return { ok: true, message: `roadmap: updated (${touched.join(', ')})` };
   const reason = naReason(body);

@@ -21,7 +21,10 @@ describe('pre-push hook', { skip: bash ? false : 'bash not found' }, () => {
     assert.match(r.stderr, /pushing to main is not allowed/);
   });
   test('refuses when main is one of several refs', () => {
-    assert.equal(feed(`refs/heads/a ${sha} refs/heads/a ${sha}\nrefs/heads/b ${sha} refs/heads/main ${sha}\n`).status, 1);
+    assert.equal(
+      feed(`refs/heads/a ${sha} refs/heads/a ${sha}\nrefs/heads/b ${sha} refs/heads/main ${sha}\n`).status,
+      1,
+    );
   });
   test('allows other branches, tags and similarly named refs', () => {
     assert.equal(feed(`refs/heads/feat/x ${sha} refs/heads/feat/x ${sha}\n`).status, 0);

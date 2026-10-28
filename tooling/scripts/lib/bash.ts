@@ -45,7 +45,11 @@ export interface ResolveBashOptions {
   run?: (cmd: string, args: string[]) => string | null;
   existsFn?: (p: string) => boolean;
 }
-export function resolveBash({ platform = process.platform, run = defaultRun, existsFn = existsSync }: ResolveBashOptions = {}): string | null {
+export function resolveBash({
+  platform = process.platform,
+  run = defaultRun,
+  existsFn = existsSync,
+}: ResolveBashOptions = {}): string | null {
   if (platform !== 'win32') return 'bash';
   const execPath = run('git', ['--exec-path']);
   return execPath ? gitBashFromExecPath(execPath, existsFn) : null;
