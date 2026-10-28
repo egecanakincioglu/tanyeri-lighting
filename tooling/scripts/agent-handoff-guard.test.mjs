@@ -49,7 +49,7 @@ function writeJournal(repo, text) {
 }
 
 // Fresh repository with an ignored agent folder; one commit dated `commitAt`.
-function setup({ commitAt = NOW - 1000 } = {}) {
+function setup({ commitAt = NOW - 1000, readme = true } = {}) {
   const repo = path.join(root, `r${counter++}`);
   mkdirSync(repo, { recursive: true });
   const date = { GIT_COMMITTER_DATE: `${commitAt} +0000`, GIT_AUTHOR_DATE: `${commitAt} +0000` };
@@ -58,6 +58,7 @@ function setup({ commitAt = NOW - 1000 } = {}) {
   sh(repo, {}, 'config', 'user.email', 'tester@example.com');
   writeFileSync(path.join(repo, 'tracked.txt'), 'one\n');
   writeJournal(repo, FULL_JOURNAL);
+  if (readme) writeFileSync(path.join(repo, 'docs', 'journal', 'README.md'), '# Günlük');
   appendFileSync(path.join(repo, '.git', 'info', 'exclude'), '.agentcfg/\n');
   sh(repo, {}, 'add', 'tracked.txt', 'docs');
   sh(repo, date, 'commit', '-q', '-m', 'chore: init');
@@ -504,6 +505,27 @@ describe('journal summary rule', () => {
     const r = run(c.repo, c.agentDir, { session_id: 's1' });
     assert.equal(r.blocked, true);
     assert.ok(r.out.reason.includes('"main" dalı'));
+  });
+});
+
+describe('journal summary rule: journal baseline', () => {
+  test('a branch whose tree has no journal README (journal not started) is not reported', () => {
+    const c = setup({ commitAt: NOW - 5, readme: false });
+    rmSync(path.join(c.repo, 'docs', 'journal', `${TODAY}.md`));
+    assert.equal(run(c.repo, c.agentDir, { session_id: 's1' }).blocked, false);
+  });
+
+  test('another ref without the README is skipped, the current one with it is still reported', () => {
+    const c = setup({ commitAt: NOW - 5, readme: false });
+    sh(c.repo, {}, 'switch', '-q', '-c', 'feat/late');
+    writeFileSync(path.join(c.repo, 'docs', 'journal', 'README.md'), '# Günlük');
+    rmSync(path.join(c.repo, 'docs', 'journal', `${TODAY}.md`));
+    sh(c.repo, c.date, 'add', '-A');
+    sh(c.repo, c.date, 'commit', '-q', '-m', 'docs: start journal');
+    const r = run(c.repo, c.agentDir, { session_id: 's1' });
+    assert.equal(r.blocked, true);
+    assert.ok(r.out.reason.includes('"feat/late" dalı'));
+    assert.ok(!r.out.reason.includes('"main" dalı'));
   });
 });
 

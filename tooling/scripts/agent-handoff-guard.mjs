@@ -15,7 +15,7 @@
 // A reminder must never trap the session: on any internal error it prints a note to stderr and exits 0, and a
 // failure while evaluating one rule never hides the others. `stop_hook_active` prevents block loops.
 import { spawnSync } from 'node:child_process';
-import { closeSync, fstatSync, openSync, readFileSync, realpathSync, statSync, writeSync } from 'node:fs';
+import { closeSync, existsSync, fstatSync, openSync, readFileSync, realpathSync, statSync, writeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -236,6 +236,7 @@ function journalSummaryProblem(root) {
   const now = new Date();
   const since = `${localDate(now)} 00:00:00`;
   const rel = `docs/journal/${localDate(now)}.md`;
+  const README = 'docs/journal/README.md';
   const hasToday = (ref) => {
     const args = ['log', ref, '--no-merges', `--since=${since}`, '-1', '--format=%H'];
     if (email) args.push(`--author=${email}`);
@@ -245,7 +246,8 @@ function journalSummaryProblem(root) {
 
   // Candidate refs: every local branch plus detached worktree HEADs. Each one that holds a commit of ours today
   // must carry the summary at its own tip (the journal rule is per commit/PR; main cannot be written directly,
-  // so today's work normally lives on a branch). The checked-out branch of this worktree is judged by the file
+  // so today's work normally lives on a branch). A ref whose tree has no docs/journal/README.md predates the
+  // journal, so the rule does not apply to it. The checked-out branch of this worktree is judged by the file
   // on disk (uncommitted edits count); every other ref is read with `git show <ref>:<path>`.
   const current = git(['symbolic-ref', '--short', 'HEAD'], root);
   const currentLabel = current.ok && current.out ? current.out : 'HEAD';
@@ -267,12 +269,14 @@ function journalSummaryProblem(root) {
     if (!hasToday(ref)) continue;
     let text = null;
     if (ref === currentLabel) {
+      if (!existsSync(path.join(root, README))) continue;
       try {
         text = readFileSync(path.join(root, rel), 'utf8');
       } catch {
         text = null;
       }
     } else {
+      if (!git(['cat-file', '-e', `${ref}:${README}`], root).ok) continue;
       const shown = git(['show', `${ref}:${rel}`], root);
       text = shown.ok ? shown.out : null;
     }
