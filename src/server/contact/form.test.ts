@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { HONEYPOT_FIELD, isHoneypotFilled, MAX_LENGTH, parseContactForm } from './form.ts';
+import { HONEYPOT_FIELD, isHoneypotFilled, MAX_LENGTH, parseContactForm, submittedValues } from './form.ts';
 
 const VALID = {
   name: 'Ayse Yilmaz',
@@ -120,5 +120,24 @@ describe('isHoneypotFilled', () => {
   it('is true when the field has any content', () => {
     expect(isHoneypotFilled(form({ [HONEYPOT_FIELD]: 'https://spam.example' }))).toBe(true);
     expect(isHoneypotFilled(form({ [HONEYPOT_FIELD]: new File(['x'], 'x.txt') }))).toBe(true);
+  });
+});
+
+describe('submittedValues', () => {
+  it('returns the four text fields untrimmed', () => {
+    expect(submittedValues(form({ name: '  Ayse ', message: ' hi\n' }))).toEqual({
+      name: '  Ayse ',
+      email: VALID.email,
+      subject: VALID.subject,
+      message: ' hi\n',
+    });
+  });
+
+  it('turns missing fields and uploaded files into empty text and leaves the honeypot out', () => {
+    const data = form({ subject: new File(['x'], 'x.txt'), [HONEYPOT_FIELD]: 'spam' });
+    data.delete('email');
+    const values = submittedValues(data);
+    expect(values).toEqual({ name: VALID.name, email: '', subject: '', message: VALID.message });
+    expect(Object.keys(values)).not.toContain(HONEYPOT_FIELD);
   });
 });

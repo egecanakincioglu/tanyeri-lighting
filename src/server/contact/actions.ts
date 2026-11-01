@@ -3,7 +3,7 @@
 import { headers } from 'next/headers';
 import { isDemoMode } from '../env.ts';
 import { checkRateLimit } from '../rate-limit/index.ts';
-import { isHoneypotFilled, parseContactForm } from './form.ts';
+import { isHoneypotFilled, parseContactForm, submittedValues } from './form.ts';
 import type { ContactState } from './form.ts';
 import { createContactMessage } from './service.ts';
 
@@ -17,10 +17,11 @@ export async function submitContactMessage(_previous: ContactState | null, formD
 
   // Validation runs before the limit, so a typo does not use up one of the visitor's submissions.
   const parsed = parseContactForm(formData);
-  if (!parsed.success) return { status: 'invalid', fieldErrors: parsed.fieldErrors };
+  if (!parsed.success) return { status: 'invalid', fieldErrors: parsed.fieldErrors, values: submittedValues(formData) };
 
   const limit = await checkRateLimit({ ...RATE_LIMIT, headers: await headers() });
-  if (!limit.ok) return { status: 'rate-limited', retryAfterSeconds: limit.retryAfterSeconds };
+  if (!limit.ok)
+    return { status: 'rate-limited', retryAfterSeconds: limit.retryAfterSeconds, values: submittedValues(formData) };
 
   const { name, email, subject, message } = parsed.data;
   if (isDemoMode()) return { status: 'demo', summary: { name, email, subject, message } };

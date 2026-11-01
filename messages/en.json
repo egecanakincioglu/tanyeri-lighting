@@ -63,5 +63,34 @@
   },
   "NotFound": {
     "title": "Page not found"
+  },
+  "Contact": {
+    "title": "Contact",
+    "introTitle": "Let's talk about your project",
+    "productSubject": "Product enquiry: {name} ({code})",
+    "introText": "Write to us with a product question or a project. We reply as soon as we can.",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "hours": "Working hours",
+    "form": {
+      "name": "Your name",
+      "email": "Your email",
+      "subject": "Subject",
+      "message": "Your message",
+      "send": "Send message",
+      "sending": "Sending…"
+    },
+    "errors": {
+      "required": "This field is required.",
+      "too_long": "This text is too long.",
+      "invalid": "Enter a valid value."
+    },
+    "invalidSummary": "Your message was not sent. Check the fields marked below.",
+    "rateLimited": "You have sent too many messages. Try again in {minutes} minutes.",
+    "okTitle": "Message sent",
+    "okText": "Thank you. We have received your message and will reply soon.",
+    "demoTitle": "Demo: your message was not saved",
+    "demoNote": "This site is a demo, so the message was not saved or sent. This is what you wrote."
   }
 }
