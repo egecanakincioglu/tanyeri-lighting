@@ -21,18 +21,23 @@ describe('Logo', () => {
     expect(screen.getByRole('img', { name: 'Tanyeri Lighting' }).getAttribute('src')).toBe('/brand/logo.svg');
   });
 
-  it.each(['header', 'full'] as const)('reserves its aspect ratio with a fixed width and height as %s', (variant) => {
-    render(<Logo label="Tanyeri Lighting" variant={variant} />);
-    const img = screen.getByRole('img');
-    expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
-    expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
-  });
-
-  it('takes its size from the className prop and sets no style attribute', () => {
-    const { container } = render(<Logo label="Tanyeri Lighting" className="h-6 w-auto" />);
-    expect(container.querySelector('img')?.getAttribute('class')).toBe('h-6 w-auto');
-    expect(container.querySelector('[style]')).toBeNull();
-  });
+  it.each([
+    ['header', 'logo-header.svg', 220, 44],
+    ['full', 'logo.svg', 280, 68],
+  ] as const)(
+    'sets the on-screen size as %s and matches the file at twice that size',
+    (variant, file, width, height) => {
+      const { container } = render(<Logo label="Tanyeri Lighting" variant={variant} />);
+      const img = screen.getByRole('img');
+      expect(img.getAttribute('width')).toBe(String(width));
+      expect(img.getAttribute('height')).toBe(String(height));
+      // Fixed attributes with no class or style leave nothing for a flex-col parent to stretch.
+      expect(img.getAttribute('class')).toBeNull();
+      expect(container.querySelector('[style]')).toBeNull();
+      const svg = readFileSync(join(brandDir, file), 'utf8');
+      expect(svg).toContain(`width="${width * 2}" height="${height * 2}" viewBox=`);
+    },
+  );
 
   it.each(['logo-header.svg', 'logo.svg'])(
     'ships %s as outlined paths without scripts, comments or metadata',
