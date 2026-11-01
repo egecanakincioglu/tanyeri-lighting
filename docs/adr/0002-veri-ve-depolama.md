@@ -56,11 +56,16 @@ Uyacağım kurallar:
    - Önizleme başına Neon dalı açılmaz; entegrasyonun önizleme dalı özelliği kapalı tutulur.
    - Önizleme ortamının `DATABASE_URL`'i yalnız Preview ortamına tanımlanır. Önizleme dağıtımları üretim veritabanına hiçbir zaman bağlanmaz ve oraya migration uygulamaz.
 8. **Dosya yükleme: yalnız sunucudan, en fazla 4 MB.**
-   - Yükleme bir route handler ya da Server Action üzerinden gelir. Önce boyut sınırı uygulanır.
-   - İçerik türü dosya adından veya `Content-Type`'tan değil, sihirli baytlardan belirlenir; izin listesinde olmayan tür reddedilir.
-   - Görseller sharp ile yeniden kodlanır ve meta verisi temizlenir; ancak ondan sonra Vercel Blob'a yazılır.
+   - Yükleme bir route handler ya da Server Action üzerinden gelir; uç Faz 7'de yetki korumasıyla yazılır. Önce boyut sınırı uygulanır.
+   - İçerik türü dosya adından veya `Content-Type`'tan değil, sihirli baytlardan belirlenir. İzin listesi JPEG, PNG, WebP ve PDF'tir; SVG yoktur. Listede olmayan tür reddedilir.
+   - Görseller WebP'ye (kalite 82) yeniden kodlanır: uzun kenar en fazla 2048 px, giriş en fazla 50 megapiksel (açılınca belleği şişiren görsele karşı). EXIF, GPS ve ICC bilgileri temizlenir; yön piksele işlenir. Bu adımlar Blob'a yazmadan önce yapılır.
+   - PDF yeniden kodlanmaz; yalnız boyut ve sihirli bayt denetiminden geçer.
+   - Dosya adı üretilir (`<uuid>.<uzantı>`); ziyaretçinin verdiği ad hiçbir yerde kullanılmaz.
+   - Blob erişim türü `public`. Sitedeki bütün dosyalar zaten herkese açık; `private` her dosyayı bir sunucu fonksiyonundan geçirip Hobby kotasını harcardı.
+   - `BLOB_READ_WRITE_TOKEN` yoksa depolama kapalıdır; `isStorageEnabled()` bunu söyler ve yükleme kapalı kalır.
    - İstemciden Blob'a doğrudan yükleme yok.
    - Blob erişimi `src/server/storage` arayüzünün arkasındadır ([ADR 0001](0001-mimari-nextjs-16-app-router.md), kilitlenmeme kuralı). Demo görselleri seed klasöründen yüklenir.
+   - Testlerde gerçek SDK, `VERCEL_BLOB_API_URL` ile yerel bir sahte HTTP sunucusuna yönlenir; testler gerçek Blob'a istek atmaz.
 9. Testler gerçek Postgres'te çalışır: yerelde Docker Compose, CI'da servis konteyneri. Veritabanı taklit edilmez ([ADR 0007](0007-test-stratejisi.md)).
 
 ## Sonuçlar
@@ -78,7 +83,7 @@ Uyacağım kurallar:
 - Açık kalanlar (bu ADR'de karara bağlanmadı):
   - Migration'ların üretimde hangi adımda uygulanacağı: Vercel derlemesi mi, ayrı bir iş mi? Ön önerim derlemede `prisma migrate deploy` ve `DATABASE_URL_UNPOOLED`. Önizleme dağıtımları Faz 3'te başladığı için (plan §2, D4) Faz 3'te, önizlemeleri kurduğum PR'da karara bağlarım; üretim dağıtımı Faz 9'da açılır.
   - Önizleme veritabanına migration'ın nasıl uygulanacağı da aynı kararda ele alınır.
-  - Blob mağazasının erişim türü (`public` veya `private`): ön önerim katalog içeriği için `public`. Faz 4'teki yükleme PR'ında karara bağlarım.
+  - Kapandı (2026-11-01): Blob mağazasının erişim türü `public`. Ayrıntısı kural 8'de.
 - Takip: Prisma 8 genel sürüme çıkınca ayrı bir ADR ile değerlendirilir.
 
 ## Kaynaklar
