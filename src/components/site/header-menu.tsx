@@ -5,7 +5,7 @@ import { Link, usePathname } from '../../i18n/navigation.ts';
 import type { StaticPath, routing } from '../../i18n/routing.ts';
 import { CONTAINER } from './container.ts';
 
-export type MenuLink = { label: string; href: StaticPath };
+type MenuLink = { label: string; href: StaticPath };
 export type MenuItem = { label: string; href?: StaticPath; children?: MenuLink[] };
 
 type Locale = (typeof routing.locales)[number];
@@ -311,7 +311,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
                 locale={language.locale}
                 lang={language.locale}
                 hrefLang={language.locale}
-                aria-label={language.name}
+                aria-label={`${language.code}, ${language.name}`}
                 aria-current={language.locale === locale ? 'true' : undefined}
                 className={`relative flex min-h-touch min-w-10 items-center justify-center px-2 text-[0.8125rem] tracking-wide transition-colors duration-200 hover:text-ink motion-reduce:transition-none ${language.locale === locale ? 'font-bold text-ink' : 'font-medium text-muted'} ${index > 0 ? 'before:absolute before:top-1/2 before:left-0 before:-mt-1.5 before:h-3 before:w-px before:bg-hairline' : ''}`}
               >
@@ -343,7 +343,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
         ref={sideRef}
         id="side-menu"
         role="dialog"
-        aria-modal="true"
+        aria-modal={sideOpen || undefined}
         aria-label={labels.menu}
         inert={!sideOpen}
         onClick={(event) => {

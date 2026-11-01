@@ -78,9 +78,9 @@ describe('Header', () => {
     navigation.pathname = '/tr/urunler';
     renderHeader();
     const group = screen.getByRole('group', { name: 'Dil' });
-    expect(within(group).getByRole('link', { name: 'English' }).getAttribute('href')).toBe('/en/products');
-    expect(within(group).getByRole('link', { name: 'Türkçe' }).getAttribute('aria-current')).toBe('true');
-    expect(within(group).getByRole('link', { name: 'English' }).getAttribute('aria-current')).toBeNull();
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products');
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('aria-current')).toBe('true');
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('aria-current')).toBeNull();
   });
 
   it('adds the shadow after 4 px of scroll and removes it again', () => {
@@ -242,10 +242,12 @@ describe('Header', () => {
       const open = screen.getByRole('button', { name: 'Menüyü aç' });
       const dialog = document.getElementById('side-menu') as HTMLElement;
       expect(dialog.hasAttribute('inert')).toBe(true);
+      expect(dialog.hasAttribute('aria-modal')).toBe(false);
 
       fireEvent.click(open);
       expect(open.getAttribute('aria-expanded')).toBe('true');
       expect(dialog.hasAttribute('inert')).toBe(false);
+      expect(dialog.getAttribute('aria-modal')).toBe('true');
       expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: 'Menüyü kapat' }));
       expect(document.documentElement.style.overflow).toBe('hidden');
       expect(screen.getByRole('main').hasAttribute('inert')).toBe(true);
