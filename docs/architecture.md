@@ -181,6 +181,8 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Public pages render under `src/app/[locale]/(site)/layout.tsx`, which provides the skip link, header, the single `<main id="main">` landmark and the footer. The wrapper is full height, so the footer sits at the bottom of short pages.
 - The menu is defined once in `src/components/site/nav.ts` and feeds the header, the side menu and the footer. `header-menu.tsx` is the only client part of the header.
 - The footer reads site settings, social links and the two legal pages from the database and omits empty rows, so the `site-audit` job runs against a seeded database.
+- The home page has three blocks: the banner, the highlights grid (three promo boards, then six featured products) and the work areas. Each block renders nothing when its content is empty. An empty banner title hides the banner.
+- Remote images need `images.remotePatterns` in `next.config.ts` before uploaded files are used on public pages. The file sets `images.deviceSizes` with an extra 1440 step, so the browser does not jump past the image audit's upper bound on dense phones.
 - Page addresses are keyed by the English path in `src/i18n/routing.ts`. Turkish pages use Turkish addresses, for example `/tr/urunler` and `/en/products`. Internal links use `Link` from `src/i18n/navigation.ts` with `prefetch={false}`.
 - `[locale]/layout.tsx` provides an intl provider without messages. Client components get their texts as props.
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
