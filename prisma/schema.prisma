@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -105,4 +104,66 @@ model ContactMessage {
 
   @@index([createdAt])
   @@map("contactMessage")
+}
+
+// Every bilingual field below is two required columns, `<field>Tr` and `<field>En`; a page never falls back from one
+// language to the other (ADR 0006). src/server/content maps them to a { tr, en } pair.
+
+// Contact and identity details of the business. At most one row, with the fixed id "site".
+model SiteSettings {
+  id             String   @id
+  siteNameTr     String
+  siteNameEn     String
+  logoUrl        String?
+  phone          String
+  email          String
+  addressTr      String
+  addressEn      String
+  workingHoursTr String
+  workingHoursEn String
+  serviceAreaTr  String
+  serviceAreaEn  String
+  languagesTr    String
+  languagesEn    String
+  updatedAt      DateTime @updatedAt
+
+  @@map("siteSettings")
+}
+
+model SocialLink {
+  id        String   @id @default(uuid(7))
+  platform  String
+  labelTr   String
+  labelEn   String
+  url       String
+  position  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([position])
+  @@map("socialLink")
+}
+
+// Title and description of a public page. The key is one of PAGE_KEYS in src/server/content/schemas.ts.
+model PageMetadata {
+  pageKey       String   @id
+  titleTr       String
+  titleEn       String
+  descriptionTr String
+  descriptionEn String
+  updatedAt     DateTime @updatedAt
+
+  @@map("pageMetadata")
+}
+
+// The legal pages, keyed "privacy" and "terms". The bodies are limited Markdown stored as plain text.
+model LegalPage {
+  pageKey   String   @id
+  titleTr   String
+  titleEn   String
+  bodyTr    String
+  bodyEn    String
+  updatedAt DateTime @updatedAt
+
+  @@map("legalPage")
 }
