@@ -33,11 +33,12 @@ Done:
 - Seed and first admin user (`pnpm db:seed`), and password recovery without email (`pnpm admin:reset-password`).
 - Optional SMTP email: the `sendEmail` module and the password reset link by email.
 - Rate limiting for public forms: the `checkRateLimit` module on a Postgres counter table.
-- Demo mode guard: content writes and state-changing account endpoints are refused. The demo banner and the contact form behavior in demo mode stay planned (phases 5 and 6).
+- Demo mode guard: content writes and state-changing account endpoints are refused. The demo banner stays planned (phase 5).
+- Contact messages, server side: the `contactMessage` table, the public contact Server Action with honeypot, validation, rate limit and demo summary, and the list, read and delete services. The contact page and form UI are planned (phase 6); the message screens in the admin panel are planned (phase 7).
 
 Next:
 
-- Content schemas: site settings, categories, products, catalogs, home page blocks, services, projects, references and contact messages.
+- Content schemas: site settings, categories, products, catalogs, home page blocks, services, projects, references and visits.
 - Runbook for rotating secrets.
 
 ## Later phases
