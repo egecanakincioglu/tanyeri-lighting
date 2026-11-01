@@ -18,6 +18,6 @@ describe('NotFound', () => {
       </NextIntlClientProvider>,
     );
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(title);
-    expect(screen.getByRole('img', { name: 'Tanyeri' })).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Tanyeri Lighting' })).toBeTruthy();
   });
 });

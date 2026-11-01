@@ -1,48 +1,53 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import axe from 'axe-core';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Logo } from './logo.tsx';
+
+const brandDir = join(import.meta.dirname, '..', '..', 'public', 'brand');
 
 describe('Logo', () => {
   afterEach(cleanup);
 
-  it('names the mark-only variant through the label prop', () => {
-    render(<Logo label="Tanyeri" />);
-    expect(screen.getByRole('img', { name: 'Tanyeri' })).toBeTruthy();
-    expect(screen.queryByText('TANYERİ')).toBeNull();
+  it('names the header lockup through the label prop', () => {
+    render(<Logo label="Tanyeri Lighting" />);
+    const img = screen.getByRole('img', { name: 'Tanyeri Lighting' });
+    expect(img.getAttribute('src')).toBe('/brand/logo-header.svg');
   });
 
-  it('shows the wordmark next to the mark with one accessible name', () => {
-    render(<Logo label="Tanyeri ana sayfa" variant="wordmark" />);
-    expect(screen.getAllByRole('img')).toHaveLength(1);
-    expect(screen.getByRole('img', { name: 'Tanyeri ana sayfa' }).textContent).toBe('TANYERİ');
+  it('shows the full lockup for the full variant', () => {
+    render(<Logo label="Tanyeri Lighting" variant="full" />);
+    expect(screen.getByRole('img', { name: 'Tanyeri Lighting' }).getAttribute('src')).toBe('/brand/logo.svg');
   });
 
-  it('takes its size from the className prop', () => {
-    const { container } = render(<Logo label="Tanyeri" className="size-4" />);
-    expect(container.querySelector('svg')?.getAttribute('class')).toContain('size-4');
+  it.each(['header', 'full'] as const)('reserves its aspect ratio with a fixed width and height as %s', (variant) => {
+    render(<Logo label="Tanyeri Lighting" variant={variant} />);
+    const img = screen.getByRole('img');
+    expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
+    expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
   });
 
-  it.each(['mark', 'wordmark'] as const)(
-    'crops the %s viewBox to the drawing so its left edge is at x=0',
-    (variant) => {
-      const { container } = render(<Logo label="Tanyeri" variant={variant} />);
-      expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('3 3 26 26');
-    },
-  );
-
-  it('colors the mark from tokens and sets no style attribute', () => {
-    const { container } = render(<Logo label="Tanyeri" variant="wordmark" />);
-    expect(container.querySelector('.fill-brand-slab')).toBeTruthy();
-    expect(container.querySelector('.fill-brand-beam')).toBeTruthy();
+  it('takes its size from the className prop and sets no style attribute', () => {
+    const { container } = render(<Logo label="Tanyeri Lighting" className="h-6 w-auto" />);
+    expect(container.querySelector('img')?.getAttribute('class')).toBe('h-6 w-auto');
     expect(container.querySelector('[style]')).toBeNull();
   });
 
-  it.each(['mark', 'wordmark'] as const)('has no axe violations as %s', async (variant) => {
+  it.each(['logo-header.svg', 'logo.svg'])(
+    'ships %s as outlined paths without scripts, comments or metadata',
+    (file) => {
+      const svg = readFileSync(join(brandDir, file), 'utf8');
+      expect(svg).toContain('<path');
+      expect(svg).not.toMatch(/<(script|text|metadata|title)|<!--|inkscape|sodipodi/i);
+    },
+  );
+
+  it.each(['header', 'full'] as const)('has no axe violations as %s', async (variant) => {
     const { container } = render(
       <main>
         <h1>Page title</h1>
-        <Logo label="Tanyeri" variant={variant} />
+        <Logo label="Tanyeri Lighting" variant={variant} />
       </main>,
     );
     const { violations } = await axe.run(container);
