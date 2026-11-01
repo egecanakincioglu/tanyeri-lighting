@@ -37,10 +37,11 @@ Done:
 - Contact messages, server side: the `contactMessage` table, the public contact Server Action with honeypot, validation, rate limit and demo summary, and the list, read and delete services. The contact page and form UI are planned (phase 6); the message screens in the admin panel are planned (phase 7).
 - Content schema 1: site settings, social links, page metadata and legal pages, with bilingual fields and a limited Markdown renderer.
 - Content schema 4: projects (with before/after images) and references, with bilingual fields and ordering.
+- Content schema 2: categories (at most 8), products with slug redirects, and catalogs, with bilingual fields and ordering.
 
 Next:
 
-- Content schemas: categories, products, catalogs, home page blocks, services and visits.
+- Content schemas: home page blocks, services and visits.
 - Runbook for rotating secrets.
 
 ## Later phases
