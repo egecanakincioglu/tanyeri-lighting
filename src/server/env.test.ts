@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getEnv, isDevelopment, isIndexingEnabled, isProduction, parseEnv } from './env.ts';
+import { getBlobToken, getEnv, isDevelopment, isIndexingEnabled, isProduction, parseEnv } from './env.ts';
 
 const valid = {
   DATABASE_URL: 'postgresql://pool.example.com:5432/tanyeri',
@@ -122,5 +122,26 @@ describe('isProduction', () => {
   it('reads process.env by default', () => {
     vi.stubEnv('NODE_ENV', 'production');
     expect(isProduction()).toBe(true);
+  });
+});
+
+describe('getBlobToken', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('returns the token when it is set', () => {
+    expect(getBlobToken({ BLOB_READ_WRITE_TOKEN: ' vercel_blob_rw_store_abc ' })).toBe('vercel_blob_rw_store_abc');
+  });
+
+  it('treats a missing, empty or blank token as unset', () => {
+    expect(getBlobToken({})).toBeUndefined();
+    expect(getBlobToken({ BLOB_READ_WRITE_TOKEN: '' })).toBeUndefined();
+    expect(getBlobToken({ BLOB_READ_WRITE_TOKEN: '   ' })).toBeUndefined();
+  });
+
+  it('reads process.env by default', () => {
+    vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_store_abc');
+    expect(getBlobToken()).toBe('vercel_blob_rw_store_abc');
   });
 });

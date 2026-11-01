@@ -51,3 +51,10 @@ export function isDevelopment(source: Record<string, string | undefined> = proce
 export function isProduction(source: Record<string, string | undefined> = process.env): boolean {
   return source.NODE_ENV === 'production';
 }
+
+// Optional: without it file storage is off. Empty counts as unset, so a blank line in .env keeps it off.
+// Separate from getEnv() for the same reason as isIndexingEnabled, and read on every call.
+export function getBlobToken(source: Record<string, string | undefined> = process.env): string | undefined {
+  const token = source.BLOB_READ_WRITE_TOKEN?.trim();
+  return token ? token : undefined;
+}
