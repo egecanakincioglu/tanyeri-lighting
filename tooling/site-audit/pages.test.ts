@@ -43,13 +43,31 @@ test('addresses follow the localized pathnames', () => {
   assert.equal(address('/unlisted', 'tr'), '/tr/unlisted');
 });
 
+/** A static address must be listed as is; a template ending in a parameter, by any listed address that fills it. */
+function isListed(expected: string, pages: readonly string[]): boolean {
+  const open = expected.indexOf('[');
+  if (open === -1) return pages.includes(expected);
+  const prefix = expected.slice(0, open);
+  return pages.some((p) => p.startsWith(prefix) && p.length > prefix.length && !p.slice(prefix.length).includes('/'));
+}
+
+test('a template with a parameter is listed by one address that fills it', () => {
+  const pages = ['/tr', '/tr/urunler', '/tr/urunler/lamba'];
+  assert.ok(isListed('/tr/urunler/[slug]', pages));
+  assert.ok(!isListed('/tr/urunler/[slug]', ['/tr', '/tr/urunler']));
+  assert.ok(!isListed('/tr/urunler/[slug]', ['/tr/urunler/a/b']));
+  assert.ok(!isListed('/tr/urunler/[slug]', ['/en/products/lamba']));
+  assert.ok(isListed('/tr/urunler', pages));
+  assert.ok(!isListed('/tr/hizmetler', pages));
+});
+
 // A folder-derived address that the site would redirect (307) to its localized form must not be in the list: the
 // audit does not accept redirects, so each template is listed under its real localized address.
 test('every page template has its localized address per locale in the audit list', () => {
   for (const route of routes(SITE)) {
     for (const locale of LOCALES) {
       const expected = address(route, locale);
-      assert.ok(PAGES.includes(expected), `missing ${expected} in tooling/site-audit/pages.ts`);
+      assert.ok(isListed(expected, PAGES), `missing ${expected} in tooling/site-audit/pages.ts`);
     }
   }
 });
