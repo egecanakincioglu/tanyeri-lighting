@@ -7,6 +7,12 @@ import {
   PAGE_KEYS,
   pageKeySchema,
   pageMetadataSchema,
+  projectIdSchema,
+  projectOrderSchema,
+  projectSchema,
+  referenceIdSchema,
+  referenceOrderSchema,
+  referenceSchema,
   siteSettingsSchema,
   socialLinkIdSchema,
   socialLinkOrderSchema,
@@ -232,5 +238,105 @@ describe('legalPageSchema', () => {
     expect(legalPageSchema.safeParse({ ...valid, title: pair('a'.repeat(151), 'b') }).success).toBe(false);
     expect(legalPageSchema.safeParse({ ...valid, body: pair('a'.repeat(50_001), 'b') }).success).toBe(false);
     expect(legalPageSchema.safeParse({ ...valid, body: pair('a'.repeat(50_000), 'b') }).success).toBe(true);
+  });
+});
+
+describe('projectSchema', () => {
+  const valid = {
+    title: pair('Örnek Villa', 'Sample Villa'),
+    description: pair('## Önce ve sonra\n\nMetin.', '## Before and after\n\nText.'),
+    beforeImageUrl: 'https://store.public.blob.vercel-storage.com/before.webp',
+    afterImageUrl: 'https://store.public.blob.vercel-storage.com/after.webp',
+  };
+
+  it('accepts a project and trims the text', () => {
+    expect(projectSchema.parse(valid)).toEqual(valid);
+    expect(projectSchema.parse({ ...valid, title: pair(' Örnek Villa ', ' Sample Villa ') }).title).toEqual(
+      valid.title,
+    );
+  });
+
+  it.each(['title', 'description'] as const)('requires %s in both languages', (field) => {
+    expect(projectSchema.safeParse({ ...valid, [field]: { tr: 'Merhaba' } }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...valid, [field]: pair('Merhaba', ' ') }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...valid, [field]: undefined }).success).toBe(false);
+  });
+
+  it('limits the title to 150 and the description to 5000 characters', () => {
+    expect(projectSchema.safeParse({ ...valid, title: pair('a'.repeat(150), 'b') }).success).toBe(true);
+    expect(projectSchema.safeParse({ ...valid, title: pair('a'.repeat(151), 'b') }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...valid, description: pair('a'.repeat(5000), 'b') }).success).toBe(true);
+    expect(projectSchema.safeParse({ ...valid, description: pair('a', 'b'.repeat(5001)) }).success).toBe(false);
+  });
+
+  it.each(['beforeImageUrl', 'afterImageUrl'] as const)('accepts only an https address for %s', (field) => {
+    for (const url of [
+      'http://example.com/a.webp',
+      'javascript:alert(1)',
+      'data:image/png;base64,AAAA',
+      'a.webp',
+      '',
+    ]) {
+      expect(projectSchema.safeParse({ ...valid, [field]: url }).success).toBe(false);
+    }
+    expect(projectSchema.safeParse({ ...valid, [field]: undefined }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...valid, [field]: `https://example.com/${'a'.repeat(2048)}` }).success).toBe(
+      false,
+    );
+  });
+
+  it('checks ids and an order list', () => {
+    expect(projectIdSchema.safeParse('').success).toBe(false);
+    expect(projectIdSchema.safeParse('a'.repeat(65)).success).toBe(false);
+    expect(projectOrderSchema.parse(['a', 'b'])).toEqual(['a', 'b']);
+    expect(projectOrderSchema.safeParse(['a', 1]).success).toBe(false);
+    expect(projectOrderSchema.safeParse('a').success).toBe(false);
+  });
+});
+
+describe('referenceSchema', () => {
+  const valid = {
+    imageUrl: 'https://store.public.blob.vercel-storage.com/logo.webp',
+    name: 'Example Hotel',
+    title: pair('Otel aydınlatması', 'Hotel lighting'),
+    description: pair('Lobi ve odalar.', 'Lobby and rooms.'),
+  };
+
+  it('accepts a reference and trims the text', () => {
+    expect(referenceSchema.parse(valid)).toEqual(valid);
+    expect(referenceSchema.parse({ ...valid, name: ' Example Hotel ' }).name).toBe('Example Hotel');
+  });
+
+  it.each(['title', 'description'] as const)('requires %s in both languages', (field) => {
+    expect(referenceSchema.safeParse({ ...valid, [field]: { tr: 'Merhaba' } }).success).toBe(false);
+    expect(referenceSchema.safeParse({ ...valid, [field]: pair('', 'Hello') }).success).toBe(false);
+    expect(referenceSchema.safeParse({ ...valid, [field]: undefined }).success).toBe(false);
+  });
+
+  it('requires a single name of 1 to 100 characters', () => {
+    expect(referenceSchema.safeParse({ ...valid, name: '  ' }).success).toBe(false);
+    expect(referenceSchema.safeParse({ ...valid, name: pair('Örnek', 'Example') }).success).toBe(false);
+    expect(referenceSchema.safeParse({ ...valid, name: 'n'.repeat(100) }).success).toBe(true);
+    expect(referenceSchema.safeParse({ ...valid, name: 'n'.repeat(101) }).success).toBe(false);
+  });
+
+  it('limits the title to 100 and the description to 500 characters', () => {
+    expect(referenceSchema.safeParse({ ...valid, title: pair('a'.repeat(100), 'b') }).success).toBe(true);
+    expect(referenceSchema.safeParse({ ...valid, title: pair('a'.repeat(101), 'b') }).success).toBe(false);
+    expect(referenceSchema.safeParse({ ...valid, description: pair('a'.repeat(500), 'b') }).success).toBe(true);
+    expect(referenceSchema.safeParse({ ...valid, description: pair('a', 'b'.repeat(501)) }).success).toBe(false);
+  });
+
+  it('accepts only an https image address', () => {
+    for (const imageUrl of ['http://example.com/a.webp', 'javascript:alert(1)', 'ftp://example.com/a.webp', 'logo']) {
+      expect(referenceSchema.safeParse({ ...valid, imageUrl }).success).toBe(false);
+    }
+    expect(referenceSchema.safeParse({ ...valid, imageUrl: undefined }).success).toBe(false);
+  });
+
+  it('checks ids and an order list', () => {
+    expect(referenceIdSchema.safeParse('').success).toBe(false);
+    expect(referenceOrderSchema.parse(['a'])).toEqual(['a']);
+    expect(referenceOrderSchema.safeParse([null]).success).toBe(false);
   });
 });
