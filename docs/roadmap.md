@@ -44,10 +44,14 @@ Done:
 
 - Done: design tokens, local fonts, logo.
 
+## Phase 6: public site (bilingual)
+
+- Done: fictional demo content and the `pnpm db:seed:demo` command, with demo photos and a catalog under `public/demo`.
+
 ## Later phases
 
 - **Phase 5:** logo, colors and typography; design tokens; base components; demo banner; favicon, manifest and Open Graph image.
-- **Phase 6:** all public pages in both languages, demo content, SEO, structured data and visit tracking.
+- **Phase 6:** all public pages in both languages, SEO, structured data and visit tracking.
 - **Phase 7:** sign-in and account pages, content management screens, messages, visit statistics and the Google Ads screen.
 - **Phase 8:** security review, accessibility review, performance work and a pixel-perfect pass on all widths.
 - **Phase 9:** production environment, the 1.0.0 release with indexing turned on, and a release and rollback runbook.
