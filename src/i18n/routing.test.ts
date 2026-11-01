@@ -18,4 +18,11 @@ describe('routing', () => {
       }
     }
   });
+
+  it('uses Turkish addresses for Turkish pages and the English path for English', () => {
+    expect(routing.pathnames['/products']).toEqual({ tr: '/urunler', en: '/products' });
+    expect(routing.pathnames['/products/[slug]']).toEqual({ tr: '/urunler/[slug]', en: '/products/[slug]' });
+    expect(routing.pathnames['/contact']).toEqual({ tr: '/iletisim', en: '/contact' });
+    expect(routing.pathnames['/terms']).toEqual({ tr: '/kullanim-kosullari', en: '/terms' });
+  });
 });
