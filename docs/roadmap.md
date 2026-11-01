@@ -29,11 +29,11 @@ Done:
 - Security headers and a nonce-based Content Security Policy.
 - Better Auth core: email and password, sessions in the database, rate limits in Postgres.
 - File storage with an upload pipeline on Vercel Blob (4 MB limit, file type check, image re-encoding).
+- Authorization guard on every admin page, action and route handler, enforced by a static check.
 
 Next:
 
 - Seed and first admin user.
-- Authorization guard on every admin page, action and route handler.
 - Demo mode guard (all content writes refused).
 - Rate limiting for public forms.
 - Optional SMTP email.
