@@ -40,7 +40,8 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Cookies are `HttpOnly` and `SameSite=Lax`, and `Secure` in production. The origin and CSRF checks stay on in every environment. `BETTER_AUTH_URL` is the only trusted origin.
 - Resetting a password revokes all sessions of the user (`revokeSessionsOnPasswordReset`).
 - Sign-in and password reset requests go from the browser directly to `/api/auth/*`. They are not made through server-side `auth.api` calls, because server-side calls are not rate limited.
-- Planned: the first admin is created by a seed script (`pnpm db:seed`) from environment variables, and the sign-in pages.
+- The first admin comes from `pnpm db:seed`. The seed is idempotent and never prints the password. It needs `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, the `BETTER_AUTH_*` variables, `ADMIN_EMAIL` and an `ADMIN_PASSWORD` of at least 12 characters.
+- Planned: the sign-in pages.
 
 ## Authorization
 
@@ -72,10 +73,14 @@ The proxy does only two things: locale routing and security headers. It is not t
 ## Email
 
 - Planned: SMTP is optional. Without SMTP variables, email is off.
-- With SMTP, password reset and email change verification are sent by email. Without it, the "forgot password" link is hidden and password recovery is a command run on the server (`pnpm admin:reset-password`).
+- With SMTP, password reset and email change verification are sent by email. Without it, the "forgot password" link is hidden and password recovery is a command run on the server (`pnpm admin:reset-password`). This exists today:
+  - `printf '%s\n' '<new password>' | pnpm admin:reset-password --email <address>`
+  - The password comes only from standard input, never from the arguments.
+  - The command stores a new hash and ends all sessions of the user. It exits with code 1 for an unknown email or a password shorter than 12 characters.
 
 ## Demo mode
 
+- `DEMO_MODE` is read in `src/server/env.ts`. It is `true` or `false`, the default is `false`, and any other value is an error. The guard that uses it is still planned.
 - Planned: with `DEMO_MODE=true`, every content write is refused on the server by a single guard. Changing or resetting a password and updating a user are refused too.
 - A banner on the site says that the brand is fictional and that nothing is for sale. The contact form does not store messages in demo mode. It shows a summary to the sender with a note that the message was not saved.
 - The public demo is read-only and uses a demo admin account.
@@ -102,7 +107,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 ## Testing
 
-- Vitest for unit tests (jsdom, Testing Library) and integration tests on a real PostgreSQL. Integration tests are named `*.int.test.ts`. HTTP calls to outside services, such as Blob, are replaced in tests; the database is not ([ADR 0007](adr/0007-testing-strategy.md)).
+- Vitest for unit tests (jsdom, Testing Library) and integration tests on a real PostgreSQL. Integration tests are named `*.int.test.ts`; the files share one database, so they run one after another. HTTP calls to outside services, such as Blob, are replaced in tests; the database is not ([ADR 0007](adr/0007-testing-strategy.md)).
 - The coverage gate is 80% of lines for `src/server` and `src/lib`. A pull request that changes TypeScript under `src/` must change tests.
 - The repository tools have their own tests and run on Linux and Windows.
 - CI, branch protection and the Semgrep, CodeQL and gitleaks scans are described in [ADR 0008](adr/0008-ci-and-protection-layers.md) and the [Git workflow guide](guides/git-workflow.md).
@@ -131,4 +136,4 @@ src/
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```
 
-Planned additions: `src/components`, `src/lib` (shared pure helpers), `prisma/seed.ts`, `public/`, `docs/runbooks/` and `docs/security/`.
+Planned additions: `src/components`, `src/lib` (shared pure helpers), `public/`, `docs/runbooks/` and `docs/security/`.
