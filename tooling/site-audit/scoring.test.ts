@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   agenticFailures,
+  discardReason,
+  nextStep,
   judge,
   median,
   medianRun,
@@ -95,4 +97,28 @@ test('judge: a failed agentic audit is red', () => {
   const v = judge('p', scores, small, ['llms.txt'], t);
   assert.equal(v.failures.length, 1);
   assert.match(v.failures[0]!, /llms\.txt/);
+});
+
+const scored = (score: number | null): LhrLike => ({
+  categories: Object.fromEntries(
+    ['performance', 'accessibility', 'best-practices', 'seo'].map((id) => [id, { score }]),
+  ),
+  audits: {},
+});
+
+test('discardReason keeps a valid run, including a real low score', () => {
+  assert.equal(discardReason(scored(0.9)), null);
+  assert.equal(discardReason(scored(0)), null);
+});
+
+test('discardReason drops a run with a null score or a runtime error', () => {
+  assert.match(discardReason(scored(null))!, /no score for performance/);
+  assert.match(discardReason({ ...scored(0.9), runtimeError: { code: 'NO_NAVSTART' } })!, /NO_NAVSTART/);
+});
+
+test('nextStep is done with enough valid runs, retries while attempts remain, then failed', () => {
+  assert.equal(nextStep(3, 3, 3, 2), 'done');
+  assert.equal(nextStep(2, 3, 3, 2), 'retry');
+  assert.equal(nextStep(1, 4, 3, 2), 'retry');
+  assert.equal(nextStep(2, 5, 3, 2), 'failed');
 });

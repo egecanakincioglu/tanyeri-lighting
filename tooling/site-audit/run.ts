@@ -4,7 +4,7 @@
 //
 //   node tooling/site-audit/run.ts --leg pages|mobile|desktop
 //
-// The mobile and desktop legs run Lighthouse (3 runs per page, median) against thresholds.json.
+// The mobile and desktop legs run Lighthouse (3 valid runs per page, up to 2 extra attempts for runs Lighthouse failed to record, median) against thresholds.json.
 // Report: site-audit-report/report.json, screenshots/ (pages) and Lighthouse JSON and HTML (mobile, desktop). Exit codes: 0 ok, 1 audit failures, 2 setup problem
 // (usage, Chrome missing, server did not start).
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
@@ -29,9 +29,11 @@ import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } f
 import { PAGES } from './pages.ts';
 import {
   agenticFailures,
+  discardReason,
   judge,
   medianRun,
   medianScores,
+  nextStep,
   transferOf,
   type LhrLike,
   type Thresholds,
@@ -220,6 +222,7 @@ async function browserChecks(): Promise<string> {
 }
 
 const RUNS = 3;
+const MAX_RETRIES = 2;
 const warnings: string[] = [];
 
 async function lighthouseChecks(leg: 'mobile' | 'desktop'): Promise<string> {
@@ -236,20 +239,41 @@ async function lighthouseChecks(leg: 'mobile' | 'desktop'): Promise<string> {
     for (const p of PAGES) {
       const slug = p.slice(1).replaceAll('/', '-');
       const runs: LhrLike[] = [];
-      for (let i = 1; i <= RUNS; i++) {
+      let attempts = 0;
+      let step = nextStep(0, 0, RUNS, MAX_RETRIES);
+      while (step === 'retry') {
+        attempts++;
         const page = await browser.newPage();
-        const result = await lighthouse(
-          BASE + p,
-          { logLevel: 'error', output: ['json', 'html'] },
-          leg === 'desktop' ? desktopConfig : undefined,
-          page,
+        let lhr: LhrLike | undefined;
+        let reason: string | null;
+        try {
+          const result = await lighthouse(
+            BASE + p,
+            { logLevel: 'error', output: ['json', 'html'] },
+            leg === 'desktop' ? desktopConfig : undefined,
+            page,
+          );
+          if (!result || !Array.isArray(result.report)) throw new Error(`Lighthouse returned no report for ${p}`);
+          const [json, html] = result.report;
+          writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${attempts}.json`), json!);
+          writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${attempts}.html`), html!);
+          lhr = result.lhr as unknown as LhrLike;
+          reason = discardReason(lhr);
+        } catch (err) {
+          reason = `Lighthouse threw: ${(err as Error).message}`;
+        } finally {
+          await page.close();
+        }
+        if (reason === null && lhr) runs.push(lhr);
+        else console.log(`${leg} ${p}: discarded run ${attempts} (${reason})`);
+        step = nextStep(runs.length, attempts, RUNS, MAX_RETRIES);
+      }
+      if (step === 'failed') {
+        fail(
+          `${leg} ${p}`,
+          `measurement failed: only ${runs.length} of ${RUNS} valid Lighthouse runs after ${attempts} attempts`,
         );
-        await page.close();
-        if (!result || !Array.isArray(result.report)) throw new Error(`Lighthouse returned no report for ${p}`);
-        const [json, html] = result.report;
-        writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${i}.json`), json!);
-        writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${i}.html`), html!);
-        runs.push(result.lhr as unknown as LhrLike);
+        continue;
       }
       const scores = medianScores(runs);
       const run = medianRun(runs);
