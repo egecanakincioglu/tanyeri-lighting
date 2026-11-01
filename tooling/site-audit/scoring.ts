@@ -11,6 +11,7 @@ export interface Thresholds {
 
 /** The part of a Lighthouse result this tooling reads. */
 export interface LhrLike {
+  runtimeError?: { code?: string; message?: string };
   categories: Record<string, { score: number | null; auditRefs?: { id: string }[] }>;
   audits: Record<
     string,
@@ -36,6 +37,24 @@ export function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 1 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+}
+
+/** Why a run cannot be used (Lighthouse failed to record it, e.g. NO_NAVSTART), or null for a valid run. */
+export function discardReason(lhr: LhrLike): string | null {
+  if (lhr.runtimeError) return `runtime error ${lhr.runtimeError.code ?? lhr.runtimeError.message ?? 'unknown'}`;
+  const missing = CATEGORY_IDS.filter((id) => typeof lhr.categories[id]?.score !== 'number');
+  return missing.length > 0 ? `no score for ${missing.join(', ')}` : null;
+}
+
+/** Whether to keep measuring a page: enough valid runs, retries left, or the measurement itself failed. */
+export function nextStep(
+  valid: number,
+  attempts: number,
+  needed: number,
+  maxRetries: number,
+): 'done' | 'retry' | 'failed' {
+  if (valid >= needed) return 'done';
+  return attempts < needed + maxRetries ? 'retry' : 'failed';
 }
 
 /** Category score on the 0-100 scale; a category Lighthouse did not score counts as 0. */
