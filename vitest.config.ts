@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import { TEST_URL } from './src/test/integration-env.ts';
+import { TEST_AUTH_SECRET, TEST_AUTH_URL, TEST_URL } from './src/test/integration-env.ts';
 import thresholds from './tooling/coverage-thresholds.json' with { type: 'json' };
 
 export default defineConfig({
@@ -22,7 +22,12 @@ export default defineConfig({
           environment: 'node',
           include: ['src/**/*.int.test.ts'],
           globalSetup: ['src/test/integration-setup.ts'],
-          env: { DATABASE_URL: TEST_URL, DATABASE_URL_UNPOOLED: TEST_URL },
+          env: {
+            DATABASE_URL: TEST_URL,
+            DATABASE_URL_UNPOOLED: TEST_URL,
+            BETTER_AUTH_SECRET: TEST_AUTH_SECRET,
+            BETTER_AUTH_URL: TEST_AUTH_URL,
+          },
         },
       },
     ],

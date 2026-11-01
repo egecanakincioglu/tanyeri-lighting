@@ -6,7 +6,7 @@
 
 - **Faz:** Faz 3 tamamlandı (v0.1.0, 2026-10-28); Faz 4 (sunucu temeli) başlıyor. Canlı: https://tanyeri-lighting.vercel.app — 1.0.0'a kadar arama motorlarına kapalı. Uygulamayı yeni, temiz bir repoda sıfırdan yazıyorum.
 - **Son güncelleme:** 2026-11-01.
-- **Sıradaki adım:** Faz 4 açık soruları (S-02–S-06) 2026-11-01'de karara bağlandı; Faz 4 Better Auth ile başlıyor.
+- **Sıradaki adım:** Faz 4: Better Auth çekirdeği 2026-11-01'de eklendi (`feat/auth-core`); sıradaki seed, `pnpm db:seed` ile ilk admin.
 - **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `build` ve üç `site-audit` kolunu eklemek; Faz 3'te Vercel ve Neon hesap adımları (Neon Frankfurt bölgesinde); Vercel token'ı ve repo değişkenleri (ADR 0011); Faz 9'da üretimi Search Console ve Bing'e eklemek; Faz 5'te logo.
 
 ## İlerleme

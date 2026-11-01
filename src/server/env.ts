@@ -7,6 +7,10 @@ const databaseUrl = z
 const envSchema = z.object({
   DATABASE_URL: databaseUrl,
   DATABASE_URL_UNPOOLED: databaseUrl,
+  // Signs and encrypts auth data; the library warns below 32 characters.
+  BETTER_AUTH_SECRET: z.string().min(32),
+  // The site's own address: the only trusted origin and the base of every auth URL.
+  BETTER_AUTH_URL: z.url({ protocol: /^https?$/ }),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -42,4 +46,8 @@ export function isIndexingEnabled(source: Record<string, string | undefined> = p
 // Same reason as isIndexingEnabled: no database variables needed, read on every call.
 export function isDevelopment(source: Record<string, string | undefined> = process.env): boolean {
   return source.NODE_ENV === 'development';
+}
+
+export function isProduction(source: Record<string, string | undefined> = process.env): boolean {
+  return source.NODE_ENV === 'production';
 }
