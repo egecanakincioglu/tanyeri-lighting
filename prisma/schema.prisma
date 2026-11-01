@@ -239,6 +239,7 @@ model Product {
   createdAt  DateTime              @default(now())
   updatedAt  DateTime              @updatedAt
   redirects  ProductSlugRedirect[]
+  featured   FeaturedProduct?
 
   @@index([categoryId, sortOrder])
   @@map("product")
@@ -258,15 +259,113 @@ model ProductSlugRedirect {
 
 // A downloadable PDF catalog. The file itself is stored by the storage module; this row keeps its address and size.
 model Catalog {
+  id          String       @id @default(uuid(7))
+  nameTr      String
+  nameEn      String
+  pdfUrl      String
+  sizeBytes   Int
+  sortOrder   Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  promoBoards PromoBoard[]
+
+  @@index([sortOrder])
+  @@map("catalog")
+}
+
+// The banner at the top of the home page. At most one row, with the fixed id "home". Each action is a button that
+// opens one of the public pages (a PAGE_KEYS value, checked in src/server/content/schemas.ts).
+model HomeBanner {
+  id               String   @id
+  imageUrl         String
+  titleTr          String
+  titleEn          String
+  descriptionTr    String
+  descriptionEn    String
+  primaryLabelTr   String
+  primaryLabelEn   String
+  primaryTarget    String
+  secondaryLabelTr String
+  secondaryLabelEn String
+  secondaryTarget  String
+  updatedAt        DateTime @updatedAt
+
+  @@map("homeBanner")
+}
+
+// The products shown on the home page, in display order. A product that is deleted leaves the list.
+model FeaturedProduct {
   id        String   @id @default(uuid(7))
-  nameTr    String
-  nameEn    String
-  pdfUrl    String
-  sizeBytes Int
+  productId String   @unique
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sortOrder Int
+  createdAt DateTime @default(now())
+
+  @@index([sortOrder])
+  @@map("featuredProduct")
+}
+
+// A picture on the home page that links to a catalog. A catalog that a board links to cannot be deleted.
+model PromoBoard {
+  id        String   @id @default(uuid(7))
+  imageUrl  String
+  titleTr   String
+  titleEn   String
+  catalogId String
+  catalog   Catalog  @relation(fields: [catalogId], references: [id], onDelete: Restrict)
   sortOrder Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sortOrder])
-  @@map("catalog")
+  @@index([catalogId])
+  @@map("promoBoard")
+}
+
+// A kind of place the business lights (the former "work areas"). The description is short plain text.
+model ApplicationArea {
+  id            String   @id @default(uuid(7))
+  imageUrl      String
+  titleTr       String
+  titleEn       String
+  descriptionTr String
+  descriptionEn String
+  sortOrder     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("applicationArea")
+}
+
+// A card of the services page. The description is limited Markdown stored as plain text. The note is optional: both
+// columns are empty strings when there is none, never only one of them.
+model Service {
+  id            String   @id @default(uuid(7))
+  imageUrl      String
+  titleTr       String
+  titleEn       String
+  descriptionTr String
+  descriptionEn String
+  noteTr        String
+  noteEn        String
+  sortOrder     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("service")
+}
+
+// The about page, with the vision as a section of it. At most one row, with the fixed id "about". Both texts are
+// limited Markdown stored as plain text.
+model AboutPage {
+  id        String   @id
+  bodyTr    String
+  bodyEn    String
+  visionTr  String
+  visionEn  String
+  updatedAt DateTime @updatedAt
+
+  @@map("aboutPage")
 }
