@@ -25,6 +25,8 @@ See the [development setup guide](docs/guides/development-setup.md) for Node 24,
 - All required CI checks must be green before a pull request is merged. Merges use a merge commit only; squash and rebase merges are disabled, and branches are deleted after the merge.
 - Do not use `--no-verify`, force pushes, or history rewrites on pushed branches.
 
+By contributing, you agree that your contribution is provided under the same license as the project, the PolyForm Noncommercial License 1.0.0 (see [LICENSE](LICENSE)).
+
 Fill in the pull request template (`.github/pull_request_template.md`).
 
 ## Local checks

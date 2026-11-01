@@ -42,6 +42,22 @@ describe('every workflow', () => {
       }
     });
 
+    test(`${f}: no checkout keeps the token in the git config`, () => {
+      const lines = codeLines(f);
+      lines.forEach((l, i) => {
+        if (!/uses:\s*actions\/checkout@/.test(l)) return;
+        const step: string[] = [];
+        for (const next of lines.slice(i + 1)) {
+          if (/^\s*- /.test(next)) break;
+          step.push(next);
+        }
+        assert.ok(
+          step.some((s) => /^\s*persist-credentials:\s*false\s*$/.test(s)),
+          `checkout near line ${i + 1}`,
+        );
+      });
+    });
+
     test(`${f}: top-level permissions set contents: read`, () => {
       const lines = read(f).split(/\r?\n/);
       const i = lines.findIndex((l) => /^permissions:\s*$/.test(l));
@@ -89,7 +105,18 @@ describe('every workflow', () => {
 describe('required check names', () => {
   const names = new Map();
   for (const f of files) for (const j of jobs(f)) names.set(jobName(j), f);
-  for (const n of ['policy', 'quality', 'test', 'build', 'tooling (linux)', 'tooling (windows)', 'pr-text']) {
+  const required = [
+    'policy',
+    'quality',
+    'semgrep-registry',
+    'zizmor',
+    'test',
+    'build',
+    'tooling (linux)',
+    'tooling (windows)',
+    'pr-text',
+  ];
+  for (const n of required) {
     test(`job "${n}" exists`, () => assert.ok(names.has(n), `missing job ${n}`));
   }
 });
@@ -128,6 +155,9 @@ describe('release workflows', () => {
       assert.ok(!/\bvercel (deploy|pull|build)/.test(read(f)), f);
     assert.match(read('release.yml'), /vercel-deploy\.ts --target production /);
     assert.match(read('release-rehearsal.yml'), /vercel-deploy\.ts --target preview /);
+  });
+  test('the release job does not restore caches', () => {
+    assert.match(read('release.yml'), /^\s+package-manager-cache: false\s*$/m);
   });
   test('the rehearsal is manual only', () => {
     assert.match(read('release-rehearsal.yml'), /^on:\n {2}workflow_dispatch:/m);

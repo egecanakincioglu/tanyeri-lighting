@@ -1,6 +1,6 @@
 # Tanyeri Lighting
 
-Tanyeri Lighting is an open-source website and admin panel for Tanyeri, a fictional lighting brand. The site is bilingual (Turkish and English) and is planned to have a product catalog, projects, references and a contact form. An admin panel manages all content. The project is written with Next.js 16, TypeScript, PostgreSQL and Prisma, and it is built to run on Vercel without depending on it.
+Tanyeri Lighting is a source-available website and admin panel for Tanyeri, a fictional lighting brand. The site is bilingual (Turkish and English) and is planned to have a product catalog, projects, references and a contact form. An admin panel manages all content. The project is written with Next.js 16, TypeScript, PostgreSQL and Prisma, and it is built to run on Vercel without depending on it.
 
 ## Status
 
@@ -9,7 +9,7 @@ Tanyeri Lighting is an open-source website and admin panel for Tanyeri, a fictio
 - **What works today:** a localized placeholder page at `/tr` and `/en`, validated environment variables, security headers with a nonce-based Content Security Policy, the Better Auth core (sign-in routes, sessions in the database, rate limits in Postgres), and an upload pipeline for files. The CI checks and the release pipeline are complete.
 - **What does not exist yet:** the content (products, projects, references, pages), the public pages, the admin panel, the demo mode and the contact form. See the [roadmap](docs/roadmap.md).
 
-This project started in 2023 as "Afra Lighting", a website built for a client. The rewrite closes the known security problems of that version from the ground up and publishes the new version as open source. The old code and its history are not part of this repository.
+This project started in 2023 as "Afra Lighting", a website built for a client. The rewrite closes the known security problems of that version from the ground up and publishes the new version as source-available code under a noncommercial license. The old code and its history are not part of this repository.
 
 ## Live demo
 
@@ -130,16 +130,17 @@ Coverage is measured for `src/server` and `src/lib`. The line coverage gate is 8
 
 ## Quality gates
 
-Branch protection requires 13 checks on every pull request:
+Branch protection requires 12 checks on every pull request:
 
 - `policy`: branch name, commit messages, signed commits, tests with source changes, thresholds that only go up, documentation links and language, forbidden terms and paths, secret scan of the full history.
 - `pr-text`: pull request title and text.
 - `quality`: type check, formatting, ESLint, Semgrep project rules, dependency audit, production licenses, dead code.
+- `semgrep-registry`: the community rule sets of the Semgrep registry (TypeScript, React, Node.js, OWASP Top Ten, security audit). The rules are fetched at run time and are not pinned.
+- `zizmor`: security audit of the GitHub Actions workflows.
 - `test`: unit and integration tests with the coverage gate.
 - `build`: the production build.
 - `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)`: the page audit in real Chrome.
 - `tooling (linux)` and `tooling (windows)`: tests of the repository tools.
-- `analyze (javascript-typescript)`, `analyze (actions)` and `CodeQL`: CodeQL scans.
 
 The page audit checks horizontal overflow on ten device views and on a 320 to 2560 px width sweep, accessibility with axe (WCAG 2.2 AA), and console and CSP errors. Lighthouse runs on mobile and on desktop. Each of its four categories (performance, accessibility, best practices, SEO) must score at least 90; the target is 95 or more. Transfer budgets limit mobile JavaScript to 180 KB, CSS to 30 KB and the total to 500 KB. The thresholds are in `tooling/site-audit/thresholds.json` and can only be tightened. See [ADR 0009](docs/adr/0009-quality-targets.md) and [ADR 0010](docs/adr/0010-quality-thresholds.md).
 
@@ -164,7 +165,7 @@ src/
   test/        helpers for integration tests
   proxy.ts     locale routing and security headers
 tooling/
-  ci-images/   pinned images for gitleaks, Semgrep and Postgres
+  ci-images/   pinned images for gitleaks, Semgrep, zizmor and Postgres
   git-hooks/   pre-commit, commit-msg, pre-push
   scripts/     setup scripts, checks, doctor, release scripts (with tests)
   semgrep/     project-specific Semgrep rules
@@ -184,4 +185,6 @@ tooling/
 
 ## License
 
-[MIT](LICENSE)
+The project is under the [PolyForm Noncommercial License 1.0.0](LICENSE). Anyone may read, study, modify and use the code, or parts of it, for any noncommercial purpose, such as personal use, education, research or work for a nonprofit. Commercial use is not allowed. Versions published before this change (up to and including v0.1.0) stay under the MIT license.
+
+The license is not approved by the Open Source Initiative, so the project is source-available, not open source.

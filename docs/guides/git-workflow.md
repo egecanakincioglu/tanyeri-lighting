@@ -75,14 +75,14 @@ CI jobs (`.github/workflows/`):
 | `policy` | Branch name; the message of every commit in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links and language; every admin page, route handler and Server Action calls the session guard; forbidden terms and paths; secret scan of the full history; the `packageManager` pin |
 | `pr-text` | Pull request title (Conventional Commits) and forbidden terms in title and body |
 | `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, `pnpm audit`, production licenses, dead code and unused dependencies |
+| `semgrep-registry` | The community rule sets of the Semgrep registry (`p/typescript`, `p/react`, `p/nodejs`, `p/owasp-top-ten`, `p/security-audit`). The rules are fetched at run time and are not pinned, so a new upstream rule can fail this job without a change in the repository |
+| `zizmor` | Security audit of the workflow files at medium severity or higher, including the online audits |
 | `test` | Vitest unit and integration tests with the coverage gate |
 | `build` | `pnpm build` |
 | `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | The page audit: overflow, axe, console and CSP errors, and Lighthouse on mobile and desktop |
 | `tooling (linux)` and `tooling (windows)` | Tests of the repository tools and syntax of the shell scripts, on both operating systems |
-| `analyze (javascript-typescript)` and `CodeQL` | CodeQL scan with the `security-extended` queries |
-| `analyze (actions)` | CodeQL scan of the GitHub Actions workflows |
 
-Branch protection on `main` requires a pull request and these 13 checks: `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)`, `CodeQL`, `quality`, `analyze (actions)`, `test`, `build`, `site-audit (pages)`, `site-audit (mobile)` and `site-audit (desktop)`. The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. Merges are merge commits only, and the branch is deleted after the merge.
+Branch protection on `main` requires a pull request and these 12 checks: `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `quality`, `semgrep-registry`, `zizmor`, `test`, `build`, `site-audit (pages)`, `site-audit (mobile)` and `site-audit (desktop)`. The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. Merges are merge commits only, and the branch is deleted after the merge.
 
 ## Infrastructure failures
 
