@@ -1,33 +1,33 @@
-# Mimari kararlar (ADR)
+# Architecture decisions (ADR)
 
-Bu klasörde projenin mimari kararları duruyor: her biri numaralı, tarihli ve durumlu. Bir karar değişince eski ADR silinmez ya da yeniden yazılmaz; yeni bir ADR açılır ve eskisinin durum satırı "Yerini aldı: ADR NNNN" olur. Kararlardan önceki araştırmalar [research/](../research/2026-10-28-teknoloji-dogrulamasi.md) altında.
+This folder holds the architecture decisions of the project. Each one is numbered, dated and has a status. When a decision changes, the old ADR is not deleted or rewritten. A new ADR is opened, and the status line of the old one becomes "Superseded: ADR NNNN". For the overall picture, see [architecture.md](../architecture.md).
 
-| No | Karar | Durum | Tarih |
+| No | Decision | Status | Date |
 |---|---|---|---|
-| [0001](0001-mimari-nextjs-16-app-router.md) | Mimari: Next.js 16 App Router; Vercel'de çalışır ama kilitlenmez; bütün sayfalarda nonce tabanlı CSP | Kabul edildi | 2026-10-28 |
-| [0002](0002-veri-ve-depolama.md) | Veri ve depolama: Postgres (Neon), Prisma 7, Vercel Blob; paylaşılan önizleme veritabanı; sunucudan yükleme | Kabul edildi; bir kısmı [0011](0011-surumleme-ve-yayin.md) ile değişti | 2026-10-28 |
-| [0003](0003-kimlik-dogrulama.md) | Kimlik doğrulama: Better Auth (e-posta/şifre, veritabanında oturum) | Kabul edildi | 2026-10-28 |
-| [0004](0004-rate-limit.md) | Rate limit: Postgres üzerinde, ek servis yok | Kabul edildi | 2026-10-28 |
-| [0005](0005-stil-tailwind-css-4.md) | Stil: Tailwind CSS 4, SCSS yok | Kabul edildi | 2026-10-28 |
-| [0006](0006-cok-dillilik-next-intl.md) | Çok dillilik: next-intl, her zaman önekli `/tr` ve `/en`, `proxy.ts` | Kabul edildi | 2026-10-28 |
-| [0007](0007-test-stratejisi.md) | Test stratejisi: Vitest + Testing Library, gerçek Postgres, %80 kapsam, testsiz kod kapısı | Kabul edildi | 2026-10-28 |
-| [0008](0008-ci-ve-koruma-katmanlari.md) | CI ve koruma katmanları: GitHub'ın barındırdığı çalıştırıcılar, zorunlu kontroller, dal koruması, CodeQL, Semgrep (yalnız proje kuralları), gitleaks, Dependabot | Kabul edildi | 2026-10-28 |
-| [0009](0009-kalite-hedefleri.md) | Kalite hedefleri: SEO, yapay zekâ aramasında görünürlük, erişilebilirlik, performans, ajan erişimi ve duyarlı tasarımda ölçülebilir tam puan; `site-audit` kapıları | Kabul edildi; bir kısmı [0010](0010-kalite-esikleri.md) ve [0011](0011-surumleme-ve-yayin.md) ile değişti | 2026-10-28 |
-| [0010](0010-kalite-esikleri.md) | Kalite eşikleri: Lighthouse kapısı 90, beklenen 95+; geç/kal denetimler aynen; mobilde metin LCP zorunluluğu yok | Kabul edildi | 2026-10-28 |
-| [0011](0011-surumleme-ve-yayin.md) | Sürümleme ve yayın: SemVer, yalnız sürüm etiketi canlıya, her sürümden önce önizlemede prova, 1.0.0'a kadar noindex | Kabul edildi | 2026-10-28 |
+| [0001](0001-architecture-nextjs-16-app-router.md) | Architecture: Next.js 16 App Router; runs on Vercel but is not locked to it; nonce-based CSP on all pages | Accepted | 2026-10-28 |
+| [0002](0002-data-and-storage.md) | Data and storage: Postgres (Neon), Prisma 7, Vercel Blob; shared preview database; upload through the server | Accepted; partly changed by [0011](0011-versioning-and-releases.md) | 2026-10-28 |
+| [0003](0003-authentication.md) | Authentication: Better Auth (email/password, session in the database) | Accepted | 2026-10-28 |
+| [0004](0004-rate-limiting.md) | Rate limiting: on Postgres, no extra service | Accepted | 2026-10-28 |
+| [0005](0005-styling-tailwind-css-4.md) | Styling: Tailwind CSS 4, no SCSS | Accepted | 2026-10-28 |
+| [0006](0006-internationalization-next-intl.md) | Internationalization: next-intl, always-prefixed `/tr` and `/en`, `proxy.ts` | Accepted | 2026-10-28 |
+| [0007](0007-testing-strategy.md) | Testing strategy: Vitest + Testing Library, real Postgres, 80% coverage, untested-code gate | Accepted | 2026-10-28 |
+| [0008](0008-ci-and-protection-layers.md) | CI and protection layers: GitHub-hosted runners, required checks, branch protection, CodeQL, Semgrep (project rules only), gitleaks, Dependabot | Accepted | 2026-10-28 |
+| [0009](0009-quality-targets.md) | Quality targets: measurable full score in SEO, AI search visibility, accessibility, performance, agent access and responsive design; `site-audit` gates | Accepted; partly changed by [0010](0010-quality-thresholds.md) and [0011](0011-versioning-and-releases.md) | 2026-10-28 |
+| [0010](0010-quality-thresholds.md) | Quality thresholds: Lighthouse gate at 90, expected 95+; pass/fail audits unchanged; no text-LCP requirement on mobile | Accepted | 2026-10-28 |
+| [0011](0011-versioning-and-releases.md) | Versioning and releases: SemVer, only a release tag goes live, rehearsal in preview before each release, noindex until 1.0.0 | Accepted | 2026-10-28 |
 
-Bazı ADR'lerin Sonuçlar bölümünde "Açık kalanlar" maddeleri var. Bunlar ana karara bağlı, henüz karara bağlamadığım uygulama ayrıntıları; her birinin karara bağlanacağı faz yanında yazıyor.
+Some ADRs have "Open items" in their Consequences section. These are implementation details that depend on the main decision but are not decided yet; the phase in which each will be decided is written next to it.
 
-## Durumlar
+## Statuses
 
-- **Önerildi:** karar yazıldı, onayımı bekliyor.
-- **Kabul edildi:** karar verdim, uygulanıyor.
-- **Reddedildi:** değerlendirdim, uygulamıyorum.
-- **Yerini aldı: ADR NNNN:** yeni bir karar bunun yerini aldı.
-- **Kabul edildi; bir kısmı ADR NNNN ile değişti:** kararın bir kısmının yerini yeni bir ADR aldı; değişen kısım yeni ADR'de, eski metin değiştirilmez.
+- Proposed: the decision is written and waits for approval.
+- Accepted: the decision is made and is being applied.
+- Rejected: the option was considered and is not applied.
+- Superseded: ADR NNNN: a new decision replaced this one.
+- Accepted; partly changed by ADR NNNN: a new ADR replaced part of the decision; the changed part is in the new ADR, and the old text is not changed.
 
-## Yeni ADR
+## New ADR
 
-1. [sablon.md](sablon.md) dosyasını bir sonraki numarayla `NNNN-kebab-case.md` adıyla kopyalarım (ASCII, Türkçe karakter yok).
-2. Bölümleri doldururum: Bağlam, Seçenekler (karşılaştırma tablosu), Karar, Sonuçlar, Kaynaklar. Her gerçek için bir kaynak ya da araştırma kaydı bağlantısı eklerim.
-3. Bu tabloya satırını eklerim; ADR'yi uygulayan PR'lar ADR'ye bağlantı verir.
+1. Copy [template.md](template.md) to `NNNN-kebab-case.md` with the next number (ASCII only).
+2. Fill in the sections: Context, Options (comparison table), Decision, Consequences, Sources. Add a source link for every fact.
+3. Add a row to the table above. PRs that implement the ADR link to it.
