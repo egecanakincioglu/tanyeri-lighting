@@ -159,13 +159,13 @@ const legalPages = {
 };
 
 const categories = [
-  { key: 'gomme-spot', name: pair('Gömme Spot', 'Recessed Spots') },
-  { key: 'sarkit', name: pair('Sarkıt', 'Pendants') },
-  { key: 'panel', name: pair('Panel', 'Panels') },
-  { key: 'lineer', name: pair('Lineer', 'Linear') },
-  { key: 'ray-spot', name: pair('Ray Spot', 'Track Spots') },
-  { key: 'dis-mekan', name: pair('Dış Mekan', 'Outdoor') },
-].map((category) => categorySchema.parse(category));
+  ['gomme-spot', 'Gömme Spot', 'Recessed Spots'],
+  ['sarkit', 'Sarkıt', 'Pendants'],
+  ['panel', 'Panel', 'Panels'],
+  ['lineer', 'Lineer', 'Linear'],
+  ['ray-spot', 'Ray Spot', 'Track Spots'],
+  ['dis-mekan', 'Dış Mekan', 'Outdoor'],
+].map(([categoryKey, tr, en]) => categorySchema.parse({ key: categoryKey, name: pair(tr, en) }));
 
 const colors = {
   black: pair('Siyah', 'Black'),
