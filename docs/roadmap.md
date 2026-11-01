@@ -1,31 +1,56 @@
-# Yol Haritası
+# Roadmap
 
-> Vizyon: [vision.md](vision.md) · Ayrıntılı adımlar: [revizyon planı](plans/2026-10-27-revizyon.md) · Kararlar: [adr/](adr/README.md) · Günlük: [journal/](journal/README.md)
+The project is developed in phases. The architecture is described in [architecture.md](architecture.md), and the decisions behind it are in the [ADRs](adr/README.md).
 
-## Mevcut durum
+## Status
 
-- **Faz:** Faz 3 tamamlandı (v0.1.0, 2026-10-28); Faz 4 (sunucu temeli) başlıyor. Canlı: https://tanyeri-lighting.vercel.app — 1.0.0'a kadar arama motorlarına kapalı. Uygulamayı yeni, temiz bir repoda sıfırdan yazıyorum.
-- **Son güncelleme:** 2026-11-01.
-- **Sıradaki adım:** Faz 4: Better Auth çekirdeği 2026-11-01'de eklendi (`feat/auth-core`); sıradaki seed, `pnpm db:seed` ile ilk admin.
-- **Elle yapacaklarım:** eski fork'u tutan hesaba mesaj; Faz 3'te zorunlu kontrollere `build` ve üç `site-audit` kolunu eklemek; Faz 3'te Vercel ve Neon hesap adımları (Neon Frankfurt bölgesinde); Vercel token'ı ve repo değişkenleri (ADR 0011); Faz 9'da üretimi Search Console ve Bing'e eklemek; Faz 5'te logo.
+- **Current phase:** phase 4, server foundation.
+- **Released:** v0.1.0 (application skeleton, quality gates and release pipeline).
+- **Live demo:** https://tanyeri-lighting.vercel.app. It stays out of search indexes until 1.0.0.
 
-## İlerleme
+## Phases
 
-> Kural: biten madde aynı PR'da işaretlenir ve üstü çizilir (`- [x] ~~madde~~ — tarih, PR #N`).
+| Phase | Scope | Status |
+|---|---|---|
+| 0-2 | Repository setup and governance | Done |
+| 3 | Application skeleton and quality gates | Done (v0.1.0) |
+| 4 | Server foundation | In progress |
+| 5 | Brand and design system | Planned |
+| 6 | Public site (bilingual) | Planned |
+| 7 | Admin panel | Planned |
+| 8 | Hardening | Planned |
+| 9 | Launch (1.0.0) | Planned |
 
-### Kurulum
+## Phase 4: server foundation
 
-- [x] ~~Faz 0 — Yerel hazırlık~~ — 2026-10-28, yerel
-- [x] ~~Faz 1 — Eski repo ve geçmiş (yerelde temizlendi ve yedeklendi, eski repoya force push edildi, sonra eski repo silindi; yeni repoya taşınmadı)~~ — 2026-10-28, elle
-- [x] ~~Yeni repo, repo ayarları ve `main` dal koruması~~ — 2026-10-28, elle
-- [ ] Faz 2 — Yönetişim altyapısı (PR'lar birleşti; kalan: eski fork'u tutan hesaba mesaj (elle))
+Done:
 
-### Uygulama (PR ile)
+- Environment validation per module.
+- Security headers and a nonce-based Content Security Policy.
+- Better Auth core: email and password, sessions in the database, rate limits in Postgres.
+- File storage with an upload pipeline on Vercel Blob (4 MB limit, file type check, image re-encoding).
 
-- [x] ~~Faz 3 — Uygulama iskeleti ve kalite temeli (tooling'in TypeScript'e geçişi, Vercel ve Neon dahil)~~ — 2026-10-28, v0.1.0
-- [ ] Faz 4 — Sunucu temeli
-- [ ] Faz 5 — Marka ve tasarım sistemi
-- [ ] Faz 6 — Herkese açık site (iki dilli)
-- [ ] Faz 7 — Yönetim paneli
-- [ ] Faz 8 — Sağlamlaştırma
-- [ ] Faz 9 — Yayın
+Next:
+
+- Seed and first admin user.
+- Authorization guard on every admin page, action and route handler.
+- Demo mode guard (all content writes refused).
+- Rate limiting for public forms.
+- Optional SMTP email.
+- Content schemas: site settings, categories, products, catalogs, home page blocks, services, projects, references and contact messages.
+- Runbook for rotating secrets.
+
+## Later phases
+
+- **Phase 5:** logo, colors and typography; design tokens; base components; demo banner; favicon, manifest and Open Graph image.
+- **Phase 6:** all public pages in both languages, demo content, SEO, structured data and visit tracking.
+- **Phase 7:** sign-in and account pages, content management screens, messages, visit statistics and the Google Ads screen.
+- **Phase 8:** security review, accessibility review, performance work and a pixel-perfect pass on all widths.
+- **Phase 9:** production environment, the 1.0.0 release with indexing turned on, and a release and rollback runbook.
+
+## Manual steps
+
+- Set the production environment variables and create the production Blob store at launch.
+- Register the site in Search Console and Bing Webmaster Tools at launch.
+- Set the repository topics, description and website link at launch.
+- Create the logo (phase 5).

@@ -1,14 +1,12 @@
-# Dokümanlar
+# Documentation
 
-Bu klasör projenin tek doğruluk kaynağı; her iş, onu anlatan dokümanla aynı PR'da güncellenir.
+This folder describes what the project is, how it is built and how to work on it.
 
-- [vision.md](vision.md) — amaç, ilkeler, kapsam
-- [roadmap.md](roadmap.md) — fazlar ve mevcut durum
-- [plans/](plans/2026-10-27-revizyon.md) — uygulama planları
-- [journal/](journal/README.md) — günlük
-- [adr/](adr/README.md) — mimari kararlar
-- [research/](research/2026-10-28-teknoloji-dogrulamasi.md) — araştırmalar: [teknoloji doğrulaması](research/2026-10-28-teknoloji-dogrulamasi.md), [tasarım incelemesi](research/2026-10-28-tasarim-incelemesi.md), [kalite hedefleri](research/2026-10-28-kalite-hedefleri.md)
+- [vision.md](vision.md): purpose, principles and scope
+- [architecture.md](architecture.md): how the application is built, and what exists today
+- [roadmap.md](roadmap.md): phases and current status
+- [adr/](adr/README.md): architecture decision records
+- [guides/development-setup.md](guides/development-setup.md): set up the project and run it locally
+- [guides/git-workflow.md](guides/git-workflow.md): branches, commits, pull requests, CI checks and releases
 
-- [guides/](guides/git-workflow.md) — rehberler: [git iş akışı](guides/git-workflow.md), [geliştirme ortamı](guides/gelistirme-ortami.md)
-
-Eklenecek klasörler (ilk dokümanları geldiğinde burada listelenecek): `runbooks/` (işletim talimatları), `security/` (güvenlik denetimi kayıtları).
+All documentation is written in English. File and folder names are ASCII kebab-case. For contributing, see [CONTRIBUTING.md](../CONTRIBUTING.md); for reporting a vulnerability, see [SECURITY.md](../SECURITY.md).
