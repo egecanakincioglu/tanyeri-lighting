@@ -214,7 +214,7 @@ src/
   app/         App Router
   i18n/        routing and request configuration
   server/      env, db, auth, storage, rate-limit, demo guard, contact, content
-  components/  shared components (the logo and the Markdown renderer, site header and footer)
+  components/  shared components (logo, Markdown renderer, container, button, card, pagination, site image, section title, site header and footer)
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```
