@@ -17,7 +17,7 @@ export function Pagination({ label, items }: PaginationProps) {
     <nav aria-label={label}>
       <ul className="flex flex-wrap items-center justify-center gap-1.5">
         {items.map((item) => (
-          <li key={item.href}>
+          <li key={item.label}>
             <Link
               href={item.href}
               aria-current={item.current ? 'page' : undefined}

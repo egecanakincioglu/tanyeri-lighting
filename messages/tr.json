@@ -39,6 +39,28 @@
     "boardLink": "Hemen İncele",
     "areasTitle": "Çalışma Alanlarımız"
   },
+  "Products": {
+    "title": "Ürünlerimiz",
+    "swipeHint": "Kategoriler arasında geçiş yapmak için kaydırın",
+    "categories": "Ürün kategorileri",
+    "all": "Tümü",
+    "pages": "Sayfalar",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "empty": "Bu kategoride henüz ürün yok."
+  },
+  "Product": {
+    "back": "Tüm ürünler",
+    "request": "Bilgi talep et",
+    "details": "Ürün bilgileri",
+    "code": "Ürün kodu",
+    "category": "Kategori",
+    "color": "Renk",
+    "material": "Malzeme",
+    "power": "Güç",
+    "dimensions": "Ölçüler",
+    "description": "{name}, {category}. Ürün kodu: {code}."
+  },
   "NotFound": {
     "title": "Sayfa bulunamadı"
   }
