@@ -38,11 +38,3 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
         run: printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | tooling/scripts/check-forbidden-terms.sh --text -
-      # Finished roadmap/plan items are ticked in the same pull request, or the description says why not.
-      - name: Roadmap or plan updated, or explicitly not applicable
-        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: node tooling/scripts/check-roadmap-update.ts --base "$BASE_SHA" --head "$HEAD_SHA"

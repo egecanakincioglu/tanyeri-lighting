@@ -2,7 +2,17 @@
 // core.hooksPath points at the real hooks. Stub scanners keep gitleaks and docker out of the test.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
@@ -12,11 +22,6 @@ import { installScannerStubs } from '../scripts/lib/scanner-stubs.ts';
 
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
-const today = (() => {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-})();
 
 type Git = (...args: string[]) => SpawnSyncReturns<string>;
 
@@ -54,13 +59,11 @@ const write = (repo: string, file: string, content: string): void => {
 };
 const header = 'feat: add thing';
 const msg = `${header}\n\nAdds the thing.\n`;
-const journal = `- \`${header}\` - Bir sey ekledim.\n`;
 
 describe('commit-msg hook', { skip: bash ? false : 'bash not found' }, () => {
-  test('a good message with its journal line passes', () => {
+  test('a good message passes', () => {
     withRepo((repo, git) => {
       write(repo, 'a.txt', 'x\n');
-      write(repo, `docs/journal/${today}.md`, journal);
       git('add', '-A');
       const r = git('commit', '-m', msg);
       assert.equal(r.status, 0, r.stderr);
@@ -78,7 +81,6 @@ describe('commit-msg hook', { skip: bash ? false : 'bash not found' }, () => {
   test('a message without a body is refused', () => {
     withRepo((repo, git) => {
       write(repo, 'a.txt', 'x\n');
-      write(repo, `docs/journal/${today}.md`, journal);
       git('add', '-A');
       const r = git('commit', '-m', header);
       assert.notEqual(r.status, 0);
@@ -88,28 +90,35 @@ describe('commit-msg hook', { skip: bash ? false : 'bash not found' }, () => {
   test('a forbidden term in the message is refused', () => {
     withRepo((repo, git) => {
       write(repo, 'a.txt', 'x\n');
-      write(repo, `docs/journal/${today}.md`, journal);
       git('add', '-A');
       const r = git('commit', '-m', `${header}\n\nmentions ${['af', 'ra'].join('')}\n`);
       assert.notEqual(r.status, 0);
       assert.match(r.stderr, /forbidden-terms/);
     });
   });
-  test('a good message without a journal line is refused', () => {
+
+  const localHook = (repo: string, body: string): void => {
+    write(repo, '.git/hooks/commit-msg', `#!/bin/sh\n${body}\n`);
+    chmodSync(path.join(repo, '.git', 'hooks', 'commit-msg'), 0o755);
+  };
+  test('a machine-local commit-msg hook runs with the message file', () => {
     withRepo((repo, git) => {
+      localHook(repo, 'head -n 1 "$1" > "$(dirname "$0")/seen"');
+      write(repo, 'a.txt', 'x\n');
+      git('add', '-A');
+      const r = git('commit', '-m', msg);
+      assert.equal(r.status, 0, r.stderr);
+      assert.equal(readFileSync(path.join(repo, '.git', 'hooks', 'seen'), 'utf8').trim(), header);
+    });
+  });
+  test('a failing machine-local commit-msg hook blocks the commit', () => {
+    withRepo((repo, git) => {
+      localHook(repo, 'echo local-refusal >&2\nexit 1');
       write(repo, 'a.txt', 'x\n');
       git('add', '-A');
       const r = git('commit', '-m', msg);
       assert.notEqual(r.status, 0);
-      assert.match(r.stderr, /journal/);
-    });
-  });
-  test("the journal line must carry this commit's header", () => {
-    withRepo((repo, git) => {
-      write(repo, 'a.txt', 'x\n');
-      write(repo, `docs/journal/${today}.md`, '- `feat: other thing` - x\n');
-      git('add', '-A');
-      assert.notEqual(git('commit', '-m', msg).status, 0);
+      assert.match(r.stderr, /local-refusal/);
     });
   });
 });

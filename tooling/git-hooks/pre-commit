@@ -41,3 +41,9 @@ else
   echo "  Run: node tooling/scripts/doctor.ts" >&2
   exit 1
 fi
+
+# run an optional machine-local hook of the same name
+local_hook="$(git rev-parse --path-format=absolute --git-common-dir)/hooks/pre-commit"
+if [ -x "$local_hook" ]; then
+  "$local_hook" "$@"
+fi

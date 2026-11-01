@@ -3,7 +3,17 @@
 // gitleaks-rules.test.ts.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
@@ -87,7 +97,7 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
     withRepo('feat/x', (repo, git) => {
       writeFileSync(path.join(repo, 'a.txt'), 'x\n');
       git('add', '-A');
-      // run directly: the commit-msg hook would additionally demand a message body and a journal line
+      // run directly: the commit-msg hook would additionally demand a message body
       const r = spawnSync(bash, [path.join(tooling, 'git-hooks', 'pre-commit')], {
         cwd: repo,
         encoding: 'utf8',
@@ -124,6 +134,30 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
     writeFileSync(path.join(repo, 'a.txt'), 'x\n');
     git('add', '-A');
   };
+
+  const localHook = (repo: string, body: string): void => {
+    const file = path.join(repo, '.git', 'hooks', 'pre-commit');
+    writeFileSync(file, `#!/bin/sh\n${body}\n`);
+    chmodSync(file, 0o755);
+  };
+  test('a machine-local pre-commit hook runs after the checks', () => {
+    withRepo('feat/x', (repo, git) => {
+      localHook(repo, 'echo ran > "$(dirname "$0")/seen"');
+      stage(repo, git);
+      const r = runHook(repo);
+      assert.equal(r.status, 0, r.stderr);
+      assert.equal(readFileSync(path.join(repo, '.git', 'hooks', 'seen'), 'utf8').trim(), 'ran');
+    });
+  });
+  test('a failing machine-local pre-commit hook blocks the commit', () => {
+    withRepo('feat/x', (repo, git) => {
+      localHook(repo, 'echo local-refusal >&2\nexit 1');
+      stage(repo, git);
+      const r = git('commit', '-m', 'feat: x');
+      assert.notEqual(r.status, 0);
+      assert.match(r.stderr, /local-refusal/);
+    });
+  });
 
   test('a PATH gitleaks of another version is not used; the pinned image runs through docker', () => {
     withRepo('feat/x', (repo, git) => {
