@@ -11,4 +11,10 @@ export const PAGES: readonly string[] = [
   '/tr/hakkimizda',
   '/tr/vizyon',
   '/tr/hizmetler',
+  '/tr/iletisim',
+  '/en/contact',
+  '/tr/gizlilik',
+  '/en/privacy',
+  '/tr/kullanim-kosullari',
+  '/en/terms',
 ];
