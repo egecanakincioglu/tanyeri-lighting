@@ -1,30 +1,29 @@
-# Git iş akışı
+# Git workflow
 
-Bu rehber, repoda bir değişikliğin dal, commit, pull request ve birleştirme yolculuğunu anlatır ve her adımı hangi korumanın zorladığını yazar. Kuralların kaynağı [plan §3](../plans/2026-10-27-revizyon.md), koruma katmanlarının tam tablosu [plan §4](../plans/2026-10-27-revizyon.md)'tür; bu dosya ikisinin işlenmiş hali. Kural değişirse önce plan, sonra bu rehber güncellenir.
+This guide describes how a change travels from a branch to `main`, and which protection enforces each step. The protection layers are explained further in [ADR 0008](../adr/0008-ci-and-protection-layers.md). Commands for running the checks locally are in the [development setup guide](development-setup.md).
 
-## Akış
+## Flow
 
-1. Her iş kendi dalında yapılır: `git switch -c <type>/<kebab-case>` (örnek: `feat/urun-listesi`). `main`'e doğrudan commit atılamaz; pre-commit hook'u ve CI dal adını denetler.
-2. Değişiklik atomik commit'lere bölünür: her commit tek bir mantıksal değişiklik.
-3. Yerelde denerim: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test` (komutların açıklaması [geliştirme ortamı rehberinde](gelistirme-ortami.md)).
-4. Dal push edilir: `git push -u origin <dal>`.
-5. Pull request açılır; gövdeyi `.github/pull_request_template.md` şablonundan doldururum.
-6. Kuyruğa alınır: `gh pr merge <N> --auto --merge --delete-branch`.
-7. Zorunlu kontroller yeşil olunca GitHub birleştirir ve dalı siler.
-8. Yerel `main` güncellenir: `git switch main && git pull --ff-only`.
+1. Each piece of work gets its own branch: `git switch -c <type>/<kebab-case>` (for example `feat/product-list`). Direct commits to `main` are blocked; the pre-commit hook and CI check the branch name.
+2. Split the change into atomic commits: one logical change per commit.
+3. Run the checks locally: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test`.
+4. Push the branch: `git push -u origin <branch>`.
+5. Open a pull request and fill in `.github/pull_request_template.md`.
+6. Queue the merge: `gh pr merge <N> --auto --merge --delete-branch`.
+7. GitHub merges and deletes the branch when all required checks are green.
+8. Update the local `main`: `git switch main && git pull --ff-only`.
 
-Birleştirme yalnız merge commit'le yapılır; squash ve rebase kapalıdır. Dalı `main` ile güncellerken `git merge origin/main` kullanırım, rebase yapmam: push'lanmış geçmiş yeniden yazılmaz.
+Pull requests are merged with a merge commit only; squash and rebase merges are disabled. To update a branch with `main`, use `git merge origin/main`, not a rebase: pushed history is never rewritten.
 
-## Commit mesajı
+## Commit messages
 
-- Başlık: `<type>(<scope>)?: <küçük harfle özet>`, en fazla 72 karakter, sonunda nokta yok, yalnız ASCII.
-- Tipler: `feat` `fix` `docs` `chore` `refactor` `test` `ci` `perf` `build` `style` `revert`.
-- Başlıktan sonra bir boş satır ve en az bir satır İngilizce gövde. Merge commit'leri bu kuralın dışında.
-- Hiçbir trailer yazmam; `Signed-off-by` gibi `...-by:` satırları yasak.
-- Her commit aynı commit içinde günlüğe kendi satırını ekler (aşağıya bakın).
-- Commit'ler imzalıdır. İmzasız commit merge edilemez.
+- Header: `<type>(<scope>)?: <lowercase summary>`, at most 72 characters, no trailing period, ASCII only.
+- Types: `feat` `fix` `docs` `chore` `refactor` `test` `ci` `perf` `build` `style` `revert`.
+- After the header, one blank line and at least one line of English body. Merge commits are exempt.
+- No trailers. Lines such as `Signed-off-by` and any other `...-by:` line are rejected.
+- Commits are signed. A commit without a verified signature cannot be merged.
 
-Örnek:
+Example:
 
 ```text
 feat(core): add file access policy
@@ -32,79 +31,77 @@ feat(core): add file access policy
 Restrict uploads to an allowlist of extensions and sizes.
 ```
 
-## Günlük ve plan işareti
+## Tests for source changes
 
-- Her commit, o günün dosyasında (`docs/journal/YYYY-MM-DD.md`) "Commit günlüğü" bölümüne `` - `<başlık>` — Türkçe açıklama. `` satırı ekler. CI her commit için bu satırı arar.
-- Her PR o günün Özet'ini günceller. Yapılanlar, Kararlar / öğrenilenler ve Yarım kalan / sıradaki bölümlerinin her birinde en az bir madde olmalı.
-- Dosya adı commit gününün tarihidir; gece yarısından sonra yeni dosya açılır.
-- Plan veya roadmap maddesi biterse `- [x] ~~madde~~ — YYYY-MM-DD, PR #N` biçiminde işaretlenir. PR numarası PR açıldıktan sonra belli olur; işaret o zaman aynı dalda ayrı bir `docs(plans)` commit'iyle girer, push edilir.
-- Hiçbir plan maddesini bitirmeyen PR, gövdesine tek satır yazar: `Roadmap: n/a - <gerekçe>`. CI bu satırı ya da bir roadmap/plan dosyasının değişmesini ister.
+- A pull request that adds or changes TypeScript under `src/` also adds or changes tests. Exempt are pull requests that only delete code and pull requests that only change styles, content or documentation.
+- Line coverage of `src/server` and `src/lib` cannot drop below 80%. The thresholds are in `tooling/coverage-thresholds.json` and only go up; CI rejects a lower value.
 
-## Testsiz kod kapısı
+## User interface changes
 
-- `src/` altında TypeScript ekleyen ya da değiştiren PR, aynı PR'da test ekler ya da değiştirir. Muaf olanlar: yalnız silme yapan PR'lar ile yalnız stil, içerik veya doküman değişiklikleri.
-- `src/server` ve `src/lib` kapsamı satırların %80'inin altına inemez. Eşikler `tooling/coverage-thresholds.json` içindedir ve yalnız yükselir; CI düşürmeyi reddeder.
+- A pull request that touches the user interface is checked in a browser at phone (390), tablet portrait (768), tablet landscape (1024) and desktop (1440) widths. If it touches the fixed header, the menu or a dialog, it is also checked at phone landscape (844x390).
+- The "Visual check" section of the pull request template is filled in.
+- Overflow, touch target size, accessibility, image sizes and console errors are checked automatically by the `site-audit` jobs ([ADR 0009](../adr/0009-quality-targets.md)).
 
-## Arayüz değişikliği
+## Documentation
 
-- Arayüze dokunan PR'da tarayıcıda telefon (390), dikey tablet (768), yatay tablet (1024) ve masaüstü (1440) genişliklerinde görsel kontrol yapılır; sabit header, menü veya iletişim kutusuna dokunulduysa yatay telefon (844×390) da. Önce/sonra görüntüler yalnız benim makinemde kalır, repoya girmez.
-- PR gövdesindeki "Görsel kontrol" bölümü doldurulur. Taşma, dokunma hedefi, erişilebilirlik, görsel boyutu ve konsol hataları Faz 3'ten sonra `site-audit` işinde otomatik denetlenir ([ADR 0009](../adr/0009-kalite-hedefleri.md)).
+- Everything under `docs/` is written in English. File and folder names are ASCII kebab-case (`README.md` is the only uppercase name).
+- The docs check in the `policy` job requires English text and these names. `node tooling/scripts/check-docs-language.ts` runs it locally.
+- `node tooling/scripts/check-doc-links.ts` fails on a relative Markdown link that points to a missing file.
+- A change and the documentation that describes it go in the same pull request.
 
-## Yasaklar
+## Not allowed
 
-- `--no-verify` ile hook atlamak.
-- `core.hooksPath` değerini kurulum betiği dışında değiştirmek.
-- `--admin` ile birleştirmek; repo ayarlarını iş akışı içinde komutla değiştirmek.
-- `main`'e doğrudan commit, merge veya push.
-- Force push; push'lanmış geçmişi yeniden yazmak.
-- Yasaklı terim ya da yasak yol: `.env*` (yalnız `.env.example` hariç), anahtar ve sertifikalar, veritabanı dökümleri, yerel tasarım dosyaları, eski kod rehberi.
+- Skipping hooks with `--no-verify`.
+- Changing `core.hooksPath` outside the setup script.
+- Merging with `--admin`, or changing repository settings from the workflow.
+- Committing, merging or pushing directly to `main`.
+- Force pushes and rewriting pushed history.
+- Forbidden terms and forbidden paths: `.env*` (except `.env.example`), keys and certificates, database dumps and local design files.
 
-## Koruma katmanları
+## Protection layers
 
-Yerel hook'lar (`core.hooksPath=tooling/git-hooks`, kurulum: `setup-git-hooks.sh`):
+Local hooks (`core.hooksPath=tooling/git-hooks`, installed by `setup-git-hooks.sh`):
 
-| Hook | Ne denetler |
+| Hook | What it checks |
 |---|---|
-| `pre-commit` | `main` dalı, dal adı, yasaklı terim ve yasak yol (staged), staged değişikliklerde sır taraması (gitleaks; tarayıcı yoksa commit reddedilir) |
-| `commit-msg` | Conventional Commits başlığı, zorunlu gövde, yalnız ASCII, yasaklı terim, imza satırı, günlük satırı |
-| `pre-push` | `main`'e push |
+| `pre-commit` | The `main` branch, the branch name, forbidden terms and paths in staged files, and a secret scan of the staged changes (gitleaks; the commit is rejected when no scanner is available) |
+| `commit-msg` | Conventional Commits header, required body, ASCII only, forbidden terms, no trailer lines |
+| `pre-push` | A push to `main` |
 
-CI işleri (`.github/workflows/`):
+CI jobs (`.github/workflows/`):
 
-| İş | Ne denetler |
+| Job | What it checks |
 |---|---|
-| `policy` | Dal adı; PR'daki her commit'in mesajı ve günlük satırı; Özet'in dolu olması; kapsam; testsiz kod kapısı; roadmap ve plan işareti; imzalı commit; doküman bağlantıları ve dili; yasaklı terim ve yasak yol; tüm geçmişte sır taraması; `packageManager` alanı |
-| `pr-text` | PR başlığı (Conventional Commits), başlık ve gövdede yasaklı terim, roadmap satırı |
-| `quality` | Tip denetimi, Prettier, ESLint, Semgrep kuralları ve testleri, `pnpm audit`, üretim lisansları, ölü kod ve kullanılmayan bağımlılık |
-| `test` | Vitest birim testleri ve kapsam eşiği |
-| `tooling (linux)` ve `tooling (windows)` | Repo araçlarının testleri ve kabuk betiklerinin sözdizimi, iki işletim sisteminde |
-| `analyze (javascript-typescript)` ve `CodeQL` | CodeQL taraması (`security-extended`) |
-| `analyze (actions)` | Actions iş akışlarının CodeQL taraması |
+| `policy` | Branch name; the message of every commit in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links and language; forbidden terms and paths; secret scan of the full history; the `packageManager` pin |
+| `pr-text` | Pull request title (Conventional Commits) and forbidden terms in title and body |
+| `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, `pnpm audit`, production licenses, dead code and unused dependencies |
+| `test` | Vitest unit and integration tests with the coverage gate |
+| `build` | `pnpm build` |
+| `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | The page audit: overflow, axe, console and CSP errors, and Lighthouse on mobile and desktop |
+| `tooling (linux)` and `tooling (windows)` | Tests of the repository tools and syntax of the shell scripts, on both operating systems |
+| `analyze (javascript-typescript)` and `CodeQL` | CodeQL scan with the `security-extended` queries |
+| `analyze (actions)` | CodeQL scan of the GitHub Actions workflows |
 
-Dal koruması (`main`): PR zorunlu; zorunlu kontroller `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)`, `CodeQL`, `quality`, `analyze (actions)` ve `test`; strict; imzalı commit zorunlu; force push ve dal silme kapalı; yöneticiler de dahil. Birleştirme yalnız merge commit'le, dal otomatik silinir.
+Branch protection on `main` requires a pull request and these 13 checks: `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)`, `CodeQL`, `quality`, `analyze (actions)`, `test`, `build`, `site-audit (pages)`, `site-audit (mobile)` and `site-audit (desktop)`. The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. Merges are merge commits only, and the branch is deleted after the merge.
 
-Faz 3'ün kalan işleri (`build`, `site-audit`) geldiğinde bu listeye ve plana birlikte eklenir.
+## Infrastructure failures
 
-## Altyapı kırmızısı
+- For a failure of the infrastructure (a lost runner, a network timeout or a GitHub outage), run `gh run rerun <id> --failed` at most once per pull request.
+- A real test, lint or build failure is not rerun; fix the code instead.
 
-- Çalıştırıcının kaybolması, ağ zaman aşımı veya GitHub kesintisi gibi altyapı hataları için PR başına en fazla bir kez `gh run rerun <id> --failed` çalıştırılır. Yeniden koşu günlüğe yazılır.
-- Gerçek test, lint veya derleme hatası yeniden koşulmaz; kodu düzeltirim.
+## Releases
 
-## Sürüm çıkarma
+The project decides when to release; merging into `main` does not deploy by itself. The details are in [ADR 0011](../adr/0011-versioning-and-releases.md). The steps are:
 
-Sürüm ne zaman çıkacak, onu ben karar veririm; `main`'e birleşen işler kendiliğinden canlıya gitmez. Adımların ayrıntısı [ADR 0011](../adr/0011-surumleme-ve-yayin.md)'de; burada sırayla yaptığım işleri yazıyorum.
+1. Open the release branch as `chore/release-vX-Y-Z`. Dashes replace the dots because dots do not fit the branch name rule.
+2. Run `pnpm release:prepare`. It suggests the next version; `--version X.Y.Z` sets another one and `--dry-run` only prints the result. The command writes `package.json` and `CHANGELOG.md` and creates a draft of the release notes as `releases/vX.Y.Z.md`; an existing note is never touched. Fill in the note in English: the first line is `# vX.Y.Z — <theme>`, followed by a summary (commit count since the previous release, migrations), topic sections and a `## Technical notes` section. Fill in every `<!-- fill in` comment of the draft; the `policy` check and the `release` workflow reject a note that still has one. Commit with the header `chore(release): vX.Y.Z` and open the pull request. Do not enable auto-merge for this pull request yet.
+3. Rehearse: `gh workflow run release-rehearsal.yml -f ref=chore/release-vX-Y-Z`. Check the preview address and the Vercel build log (Prisma client, `prisma migrate deploy`, `next build`).
+4. Merge the pull request with `--auto`. Then create a signed tag on the merge commit on `main` and push it: `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`. Push exactly one full `vX.Y.Z` tag to `origin`. Do not delete or force tags, do not push tags in bulk, and do not create the GitHub release by hand: the workflow creates it.
+5. The `release` workflow checks that the tag is on `main` and equals the `package.json` version. It then deploys the tagged commit to production through the Vercel REST API (the Vercel CLI is not used) and creates the GitHub release. The release title comes from the first line of the note. The body is the note, followed by a collapsed "Commit list" taken from `CHANGELOG.md`.
+6. Check the live site. If something is wrong, roll back to the previous production deployment in Vercel. The fix ships as a new PATCH release.
+7. The live site stays `noindex` until 1.0.0. With 1.0.0, set `SITE_INDEXING=on` in production.
 
-1. Sürüm dalını `chore/release-vX-Y-Z` adıyla açarım. Noktalar dal adı kuralına takıldığı için `vX.Y.Z` yerine tireli ad kullanırım.
-2. `pnpm release:prepare` sonraki sürümü önerir; `--version X.Y.Z` ile başka bir sürüm verebilirim, `--dry-run` yalnız gösterir. Komut `package.json` ile `CHANGELOG.md` dosyasını yazar ve sürüm notu taslağını `releases/vX.Y.Z.md` olarak oluşturur; var olan bir nota dokunmaz. Notu İngilizce ve ayrıntılı doldururum: ilk satır `# vX.Y.Z — <tema>`, ardından özet (önceki sürümden bu yana commit sayısı, migration'lar), konu bölümleri ve `## Technical notes`. Taslaktaki `<!-- fill in` yorumlarının hepsini doldururum; biri kalırsa `policy` PR'ı, `release` iş akışı da yayını reddeder. Commit'i `chore(release): vX.Y.Z` başlığıyla atar ve PR'ı açarım. Bu PR için auto-merge açmam.
-3. Prova: `gh workflow run release-rehearsal.yml -f ref=chore/release-vX-Y-Z`. Önizleme adresini ve Vercel derleme log'unu (Prisma istemcisi, `prisma migrate deploy`, `next build`) kontrol ederim.
-4. PR'ı `--auto` ile birleştiririm. Sonra `main`'deki birleşme commit'ine imzalı etiketi koyup push'larım: `git tag -s vX.Y.Z -m "vX.Y.Z"` ve `git push origin vX.Y.Z`. Ne zaman sürüm çıkılacağına ben karar veririm; karar verince sürümü baştan sona, etiket dahil, aynı akışta çıkarırım. `origin`'e yalnız tek bir tam `vX.Y.Z` etiketi push'larım; etiketi silmem, zorlamam, toplu etiket push'lamam ve GitHub Release'i elle açmam.
-5. `release` iş akışı etiketin `main` üzerinde olduğunu ve `package.json` sürümüyle aynı olduğunu denetler. Sonra GitHub'daki commit'ten Vercel REST API ile üretime dağıtır (Vercel CLI kullanılmıyor; alt bağımlılıklarında yüksek açıklar vardı) ve GitHub Release açar: başlık notun ilk satırından gelir, gövde notun kendisi ve altında katlanmış "Commit list" olarak `CHANGELOG.md`'deki bölümdür.
-6. Canlıyı kontrol ederim. Sorun çıkarsa Vercel'de bir önceki üretim dağıtımına dönerim; düzeltme yeni bir PATCH sürümüyle gelir.
-7. Canlı site 1.0.0'a kadar `noindex` kalır; 1.0.0'da üretimde `SITE_INDEXING=on` yaparım.
+## Parallel pull requests
 
-## Paralel PR'lar
-
-- Dal geride kalırsa (strict kuralı) `git merge origin/main` ile güncellerim.
-- Günlük dosyası çakışırsa iki tarafın satırlarını da korurum: Commit günlüğünde önce `main`'den gelen satırlar, sonra bu dalın satırları. Özet maddelerinde ikisi de kalır.
-- Plan işaretleri çakışırsa iki tarafın işaretleri de kalır.
-- Kod veya içerik dosyasında çakışma olursa merge iptal edilir ve çakışma ayrıca ele alınır; otomatik çözmem.
+- If a branch falls behind (the checks are strict), update it with `git merge origin/main`.
+- If a conflict appears in a code or content file, abort the merge and resolve the conflict deliberately; it is not resolved automatically.
