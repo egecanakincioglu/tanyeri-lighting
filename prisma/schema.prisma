@@ -90,3 +90,19 @@ model RateLimitCounter {
   @@index([windowStart])
   @@map("rateLimitCounter")
 }
+
+// Messages from the public contact form. No IP address and no browser identification string are kept; "locale" is
+// the language the visitor used on the site ("tr" or "en"), so a reply can be written in it.
+model ContactMessage {
+  id        String    @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  locale    String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([createdAt])
+  @@map("contactMessage")
+}

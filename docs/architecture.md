@@ -30,7 +30,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - PostgreSQL 18 with Prisma 7 migrations and the `@prisma/adapter-pg` driver adapter. Production uses Neon; local development and CI use the Postgres image pinned in `tooling/ci-images/Dockerfile` ([ADR 0002](adr/0002-data-and-storage.md)).
 - The app connects with the pooled address (`DATABASE_URL`). Migrations and the Prisma CLI use the direct address (`DATABASE_URL_UNPOOLED`).
-- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). Planned: site settings, categories, products, catalogs, home page blocks, services, projects, references, messages and visits.
+- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Planned: site settings, categories, products, catalogs, home page blocks, services, projects, references and visits.
 - There is no raw SQL in application code; a Semgrep rule enforces this.
 - Environment variables are validated with zod in one module (`src/server/env.ts`). Each module adds its own variables. Validation runs on first use, not on import, so `next build` works without the variables. Reading `process.env` anywhere else is blocked by a Semgrep rule.
 
@@ -54,7 +54,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   - The default export of every page and layout under `src/app/[locale]/(admin)` calls `guardPage`.
   - Every exported method in `src/app/api/**/route.ts` calls `guardHandler`.
   - Every export of a top-level `'use server'` file calls `guardAction`.
-- Public entry points are allowlisted in the check, each with a reason: the sign-in page and `api/auth/[...all]`. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
+- Public entry points are allowlisted in the check, each with a reason: the sign-in page, `api/auth/[...all]` and the contact Server Action, `src/server/contact/actions.ts`. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
 - The check is shallow by design: it looks for the call inside the exported function and does not follow helper calls. Review covers the rest.
 
 ## Rate limiting
@@ -66,7 +66,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The key is the HMAC-SHA256 of `<scope>:<address>`, under a key derived from `BETTER_AUTH_SECRET` with the label `rate-limit`, so no plain IP address is stored.
 - On Vercel (`VERCEL=1`) the client address is the first value of `x-forwarded-for`. Outside Vercel, or when the header is missing, every request shares one bucket. IPv6 addresses are grouped by /64, and an IPv4-mapped IPv6 address counts as IPv4.
 - When a window opens, rows older than 24 hours are removed, in batches of 100.
-- The limit and window values for the contact form are set together with the messages work.
+- The contact form allows 5 submissions per 3600 seconds per client address (scope `contact`).
 - There is no in-memory limiter and no extra service, because instances on Vercel do not share memory.
 
 ## File storage
@@ -96,8 +96,20 @@ The proxy does only two things: locale routing and security headers. It is not t
 - A `hooks.before` deny list in `src/server/demo/auth-hooks.ts` refuses state-changing account endpoints with 403 ("This action is disabled in demo mode"): change password, change email, update user, update session, delete user, password reset request and reset, verification email, session revocation and provider linking.
 - Sign-in, sign-out and get-session stay open, so the demo admin can still sign in and read everything.
 - A test fails when a Better Auth upgrade adds an endpoint that is on neither the blocked list nor the open list.
-- Planned: a banner on the site says that the brand is fictional and that nothing is for sale. The contact form does not store messages in demo mode. It shows a summary to the sender with a note that the message was not saved.
+- In demo mode the contact form does not store messages. It returns a summary for the sender with a note that the message was not saved. This is the server side; the form UI is planned.
+- Planned: a banner on the site says that the brand is fictional and that nothing is for sale.
 - The public demo is read-only and uses a demo admin account.
+
+## Contact form
+
+- The public Server Action is `submitContactMessage` in `src/server/contact/actions.ts`. It runs in this order:
+  1. A filled honeypot field (`website`) returns ok and stores nothing.
+  2. Validation runs before the rate limit, so a typo does not use up a submission.
+  3. The rate limit applies (see Rate limiting).
+  4. In demo mode the action returns the summary. Otherwise it stores the message.
+- Field errors are codes (`required`, `too_long`, `invalid`) that the UI translates. Limits: name 100, email 254, subject 150, message 5000 characters.
+- The services in `src/server/contact/service.ts` are `listMessages({ limit, cursor })` (newest first, limit 1 to 100, default 20), `markMessageRead` and `deleteMessage`. They are not guarded themselves. Admin entry points must call `guardAction` first. The write services refuse in demo mode.
+- Planned: the contact page with the form, and the message screens in the admin panel.
 
 ## Security headers and CSP
 
@@ -145,7 +157,7 @@ releases/      release notes
 src/
   app/         App Router
   i18n/        routing and request configuration
-  server/      env, db, auth, storage, rate-limit, demo guard (planned: services)
+  server/      env, db, auth, storage, rate-limit, demo guard, contact (planned: services)
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```
