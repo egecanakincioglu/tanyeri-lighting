@@ -47,6 +47,9 @@ Copy `.env.example` to `.env` and adjust it. Never commit `.env`. The applicatio
 | `BETTER_AUTH_URL` | yes | The site's own address (scheme and host); the only origin the auth routes trust. |
 | `SITE_INDEXING` | no | `off` (default) sends `noindex`; `on` lets crawlers index the site. It stays `off` until 1.0.0. |
 | `BLOB_READ_WRITE_TOKEN` | no | Vercel Blob token. Without it, uploads are off. Use a separate development store, never the production one. |
+| `DEMO_MODE` | no | `true` or `false` (default `false`); any other value is an error. The guard that uses it is still planned. |
+| `ADMIN_EMAIL` | for the seed | Email address of the first admin. Only `pnpm db:seed` reads it; the running site does not. |
+| `ADMIN_PASSWORD` | for the seed | Password of the first admin, at least 12 characters. It is stored only as a hash and is never printed. |
 
 The defaults in `.env.example` match the local database from `pnpm db:up`. Generate a secret with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
 
@@ -56,9 +59,13 @@ The local database is PostgreSQL 18. `pnpm db:up` starts the container and `pnpm
 
 `pnpm db:migrate` runs `prisma migrate dev`. The Prisma CLI loads `.env` itself; real environment variables take precedence over `.env`. Run Prisma commands from the repository root.
 
+After the first migration, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` and run `pnpm db:seed`. It creates the first admin. Running it again is safe: if the email already exists, nothing changes. It needs `DATABASE_URL`, `DATABASE_URL_UNPOOLED` and the `BETTER_AUTH_*` variables as well.
+
+If an admin forgets the password and email is not configured, set a new one on the server with `printf '%s\n' '<new password>' | pnpm admin:reset-password --email <address>`. The password is read from standard input only. The command ends all sessions of that user and exits with code 1 for an unknown email or a password shorter than 12 characters.
+
 The command works the same in Git Bash and PowerShell. When the schema changes, `migrate dev` creates a new migration; add the generated files to the same pull request.
 
-Integration tests are named `*.int.test.ts` and connect to a real PostgreSQL. Each run drops and recreates only the local `tanyeri_test` database and applies all migrations from scratch. `pnpm db:up` must be running before these tests.
+Integration tests are named `*.int.test.ts` and connect to a real PostgreSQL. Each run drops and recreates only the local `tanyeri_test` database and applies all migrations from scratch. The test files share that database, so they run one after another. `pnpm db:up` must be running before these tests.
 
 The Prisma client is generated into `src/generated/prisma` during installation (`postinstall`). The folder is not committed and is excluded from coverage and Semgrep scans.
 
@@ -70,7 +77,9 @@ All of these are scripts in `package.json`, run with `pnpm <name>`:
 - `pnpm build`: creates the production build (`next build`).
 - `pnpm start`: runs the built app (`next start`); run `build` first.
 - `pnpm test`: runs Vitest with coverage (`vitest run --coverage`).
-- `pnpm lint`: runs ESLint on `src`, `tooling` and the root `.ts` files with zero tolerance for warnings.
+- `pnpm db:seed`: creates the first admin from `ADMIN_EMAIL` and `ADMIN_PASSWORD`; safe to repeat.
+- `pnpm admin:reset-password --email <address>`: sets a new admin password read from standard input.
+- `pnpm lint`: runs ESLint on `src`, `tooling`, `prisma` and the root `.ts` files with zero tolerance for warnings.
 - `pnpm typecheck`: runs `next typegen` and the TypeScript check for the app and for the tooling configuration.
 - `pnpm format`: formats files with Prettier (writes).
 - `pnpm format:check`: checks formatting without writing. CI runs this.
