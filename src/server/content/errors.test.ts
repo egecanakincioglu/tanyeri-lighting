@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { Prisma } from '../../generated/prisma/client.ts';
-import { isRecordNotFound, mapUniqueViolation, ValueTakenError } from './errors.ts';
+import { isForeignKeyViolation, isRecordNotFound, mapUniqueViolation, ValueTakenError } from './errors.ts';
 
 function prismaError(code: string, meta?: Record<string, unknown>) {
   return new Prisma.PrismaClientKnownRequestError('failed', { code, clientVersion: 'test', meta });
@@ -66,5 +66,13 @@ describe('isRecordNotFound', () => {
     expect(isRecordNotFound(prismaError('P2025'))).toBe(true);
     expect(isRecordNotFound(prismaError('P2002'))).toBe(false);
     expect(isRecordNotFound(new Error('x'))).toBe(false);
+  });
+});
+
+describe('isForeignKeyViolation', () => {
+  it('is true only for the foreign key code', () => {
+    expect(isForeignKeyViolation(prismaError('P2003'))).toBe(true);
+    expect(isForeignKeyViolation(prismaError('P2025'))).toBe(false);
+    expect(isForeignKeyViolation(new Error('x'))).toBe(false);
   });
 });

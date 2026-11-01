@@ -2,7 +2,7 @@ import type { Catalog as CatalogRow } from '../../generated/prisma/client.ts';
 import { getDb } from '../db.ts';
 import { assertWritable } from '../demo/guard.ts';
 import { fromColumns, toColumns } from './bilingual.ts';
-import { ContentNotFoundError, isRecordNotFound } from './errors.ts';
+import { CatalogInUseError, ContentNotFoundError, isForeignKeyViolation, isRecordNotFound } from './errors.ts';
 import { assertCompleteOrder, nextPosition } from './order.ts';
 import { type Catalog, catalogSchema, type CatalogInput, idListSchema, idSchema } from './schemas.ts';
 
@@ -43,10 +43,18 @@ export async function updateCatalog(id: unknown, input: unknown): Promise<Catalo
   }
 }
 
+// A catalog that a promo board links to is kept: the foreign key refuses the delete, so a board created at the same
+// moment cannot slip through a separate check.
 export async function deleteCatalog(id: unknown): Promise<void> {
   assertWritable();
-  const result = await getDb().catalog.deleteMany({ where: { id: idSchema.parse(id) } });
-  if (result.count === 0) throw new ContentNotFoundError('Catalog');
+  const catalogId = idSchema.parse(id);
+  try {
+    const result = await getDb().catalog.deleteMany({ where: { id: catalogId } });
+    if (result.count === 0) throw new ContentNotFoundError('Catalog');
+  } catch (error) {
+    if (isForeignKeyViolation(error)) throw new CatalogInUseError();
+    throw error;
+  }
 }
 
 // `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { bilingual } from './bilingual.ts';
+import { type Bilingual, bilingual, optionalBilingual } from './bilingual.ts';
 import { isValidPhone } from './phone.ts';
 
 // The input rules of the content services. Lengths are hard limits for storage and layout; search-engine length
@@ -158,3 +158,66 @@ export const catalogSchema = z.object({
 
 export type CatalogInput = z.infer<typeof catalogSchema>;
 export type Catalog = CatalogInput & { id: string };
+
+// A button of the home banner: its text and the public page it opens.
+const bannerActionSchema = z.strictObject({
+  label: bilingual(40),
+  target: pageKeySchema,
+});
+
+export const homeBannerSchema = z.strictObject({
+  imageUrl: httpsUrl,
+  title: bilingual(120),
+  description: bilingual(400),
+  primaryAction: bannerActionSchema,
+  secondaryAction: bannerActionSchema,
+});
+
+export type HomeBanner = z.infer<typeof homeBannerSchema>;
+
+// The order of the list is the order on the home page. Each product can appear once.
+export const featuredProductIdsSchema = idListSchema.refine((ids) => new Set(ids).size === ids.length, {
+  message: 'Each product can be featured once',
+});
+
+export const promoBoardSchema = z.strictObject({
+  imageUrl: httpsUrl,
+  title: bilingual(100),
+  // The catalog the board links to.
+  catalogId: idSchema,
+});
+
+export type PromoBoardInput = z.infer<typeof promoBoardSchema>;
+// The name and file address of the linked catalog are read along, so a page needs no second query.
+export type PromoBoard = PromoBoardInput & { id: string; catalogName: Bilingual; catalogPdfUrl: string };
+
+export const applicationAreaSchema = z.strictObject({
+  imageUrl: httpsUrl,
+  title: bilingual(100),
+  // Short plain text.
+  description: bilingual(300),
+});
+
+export type ApplicationAreaInput = z.infer<typeof applicationAreaSchema>;
+export type ApplicationArea = ApplicationAreaInput & { id: string };
+
+export const serviceSchema = z.strictObject({
+  imageUrl: httpsUrl,
+  title: bilingual(100),
+  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
+  description: bilingual(5000),
+  // An extra remark under the card: filled in both languages, or empty in both.
+  note: optionalBilingual(500),
+});
+
+export type ServiceInput = z.infer<typeof serviceSchema>;
+export type Service = ServiceInput & { id: string };
+
+export const aboutPageSchema = z.strictObject({
+  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
+  body: bilingual(50_000),
+  // The vision is a section of the about page.
+  vision: bilingual(50_000),
+});
+
+export type AboutPage = z.infer<typeof aboutPageSchema>;

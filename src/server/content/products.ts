@@ -6,11 +6,12 @@ import { ContentNotFoundError, mapUniqueViolation, ValueTakenError } from './err
 import { assertCompleteOrder, nextPosition } from './order.ts';
 import { idListSchema, idSchema, type Product, productSchema, type ProductInput } from './schemas.ts';
 
-const withCategory = { category: { select: { key: true } } } satisfies Prisma.ProductInclude;
+export const withCategory = { category: { select: { key: true } } } satisfies Prisma.ProductInclude;
 
 type ProductRow = Prisma.ProductGetPayload<{ include: typeof withCategory }>;
 
-function fromRow(row: ProductRow): Product {
+// Shared with the featured product list, which reads products through its own table.
+export function productFromRow(row: ProductRow): Product {
   return {
     id: row.id,
     categoryId: row.categoryId,
@@ -48,7 +49,7 @@ export async function listProducts(categoryKey?: string): Promise<Product[]> {
     orderBy: [{ category: { sortOrder: 'asc' } }, { sortOrder: 'asc' }, { id: 'asc' }],
     include: withCategory,
   });
-  return rows.map(fromRow);
+  return rows.map(productFromRow);
 }
 
 export type ProductLookup = { product: Product } | { redirectTo: string };
@@ -57,7 +58,7 @@ export type ProductLookup = { product: Product } | { redirectTo: string };
 export async function getProductBySlug(slug: string): Promise<ProductLookup | null> {
   const db = getDb();
   const row = await db.product.findUnique({ where: { slug }, include: withCategory });
-  if (row) return { product: fromRow(row) };
+  if (row) return { product: productFromRow(row) };
   const redirect = await db.productSlugRedirect.findUnique({
     where: { oldSlug: slug },
     select: { product: { select: { slug: true } } },
@@ -106,7 +107,7 @@ export async function createProduct(input: unknown): Promise<Product> {
         include: withCategory,
       });
     });
-    return fromRow(row);
+    return productFromRow(row);
   } catch (error) {
     throw mapUniqueViolation(error);
   }
@@ -137,7 +138,7 @@ export async function updateProduct(id: unknown, input: unknown): Promise<Produc
       }
       return tx.product.update({ where: { id: productId }, data: { ...columns, sortOrder }, include: withCategory });
     });
-    return fromRow(row);
+    return productFromRow(row);
   } catch (error) {
     throw mapUniqueViolation(error);
   }

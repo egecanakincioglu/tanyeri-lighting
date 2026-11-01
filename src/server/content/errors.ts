@@ -76,7 +76,20 @@ export function mapUniqueViolation(error: unknown): unknown {
   return new ValueTakenError(takenField(constraintNames(error.meta)));
 }
 
+// A promo board still links to the catalog, so it cannot be deleted.
+export class CatalogInUseError extends Error {
+  constructor() {
+    super('A promo board still links to the catalog');
+    this.name = 'CatalogInUseError';
+  }
+}
+
 // Prisma reports an update or delete of a missing row with code P2025.
 export function isRecordNotFound(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
+}
+
+// Prisma reports a write that breaks a foreign key (a row that is missing, or still referenced) with code P2003.
+export function isForeignKeyViolation(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003';
 }

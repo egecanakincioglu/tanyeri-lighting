@@ -20,6 +20,7 @@ async function urls(): Promise<string[]> {
 
 describe('catalogs on a real database', () => {
   beforeEach(async () => {
+    await getDb().promoBoard.deleteMany();
     await getDb().catalog.deleteMany();
   });
 
