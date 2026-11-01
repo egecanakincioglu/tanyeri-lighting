@@ -8,11 +8,15 @@ import { LOCALES, PAGES } from './pages.ts';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SITE = path.join(ROOT, 'src', 'app', '[locale]', '(site)');
 
-/** Routes of every page.tsx under the site group, route groups removed ('' is the home page). */
+/**
+ * Routes of every page.tsx under the site group, route groups removed ('' is the home page). Catch-all routes only
+ * answer 404, so they are not page templates.
+ */
 function routes(dir: string, prefix = ''): string[] {
   const out: string[] = [];
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     if (e.isDirectory()) {
+      if (e.name.startsWith('[...')) continue;
       const seg = /^\(.*\)$/.test(e.name) ? '' : `/${e.name}`;
       out.push(...routes(path.join(dir, e.name), prefix + seg));
     } else if (e.name === 'page.tsx') out.push(prefix);
