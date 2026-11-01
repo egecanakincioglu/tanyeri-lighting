@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { bilingual, fromColumns, toColumns } from './bilingual.ts';
+import { bilingual, fromColumns, optionalBilingual, toColumns } from './bilingual.ts';
 
 describe('bilingual', () => {
   const schema = bilingual(10);
@@ -39,6 +39,41 @@ describe('bilingual', () => {
   it('rejects values that are not text', () => {
     expect(schema.safeParse({ tr: 1, en: 'Hello' }).success).toBe(false);
     expect(schema.safeParse(null).success).toBe(false);
+  });
+});
+
+describe('optionalBilingual', () => {
+  const schema = optionalBilingual(10);
+
+  it('accepts a filled pair and trims both values', () => {
+    expect(schema.parse({ tr: ' Merhaba ', en: ' Hello ' })).toEqual({ tr: 'Merhaba', en: 'Hello' });
+  });
+
+  it('accepts a pair of empty strings, also after trimming, as "none"', () => {
+    expect(schema.parse({ tr: '', en: '' })).toEqual({ tr: '', en: '' });
+    expect(schema.parse({ tr: '  ', en: ' ' })).toEqual({ tr: '', en: '' });
+  });
+
+  it.each([
+    ['only the Turkish value', { tr: 'Merhaba', en: '' }],
+    ['only the English value', { tr: '', en: 'Hello' }],
+    ['a blank English value', { tr: 'Merhaba', en: '   ' }],
+    ['a blank Turkish value', { tr: '   ', en: 'Hello' }],
+  ])('rejects a pair with %s', (_, value) => {
+    expect(schema.safeParse(value).success).toBe(false);
+  });
+
+  it('rejects a missing language and values that are not text', () => {
+    expect(schema.safeParse({ tr: 'Merhaba' }).success).toBe(false);
+    expect(schema.safeParse({}).success).toBe(false);
+    expect(schema.safeParse({ tr: 1, en: 'Hello' }).success).toBe(false);
+    expect(schema.safeParse(null).success).toBe(false);
+  });
+
+  it('enforces the length limit on each language after trimming', () => {
+    expect(schema.safeParse({ tr: 'a'.repeat(10), en: ` ${'b'.repeat(10)} ` }).success).toBe(true);
+    expect(schema.safeParse({ tr: 'a'.repeat(11), en: 'b' }).success).toBe(false);
+    expect(schema.safeParse({ tr: 'a', en: 'b'.repeat(11) }).success).toBe(false);
   });
 });
 
