@@ -35,7 +35,9 @@
     "poweredBy": "Powered by"
   },
   "Home": {
-    "placeholder": "Site hazırlanıyor."
+    "highlightsTitle": "Favori Ürünlerimiz",
+    "boardLink": "Hemen İncele",
+    "areasTitle": "Çalışma Alanlarımız"
   },
   "NotFound": {
     "title": "Sayfa bulunamadı"

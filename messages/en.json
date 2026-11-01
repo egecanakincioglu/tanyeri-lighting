@@ -35,7 +35,9 @@
     "poweredBy": "Powered by"
   },
   "Home": {
-    "placeholder": "The site is being prepared."
+    "highlightsTitle": "Our Favorite Products",
+    "boardLink": "Explore now",
+    "areasTitle": "Our Work Areas"
   },
   "NotFound": {
     "title": "Page not found"
