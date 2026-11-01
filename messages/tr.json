@@ -2,6 +2,10 @@
   "Metadata": {
     "title": "Tanyeri"
   },
+  "DemoBand": {
+    "label": "Demo bildirimi",
+    "text": "Kurgusal marka: bu bir demo sitedir, hiçbir ürün satışta değildir."
+  },
   "Header": {
     "skip": "İçeriğe geç",
     "logoLabel": "Tanyeri Lighting, ana sayfa",
@@ -38,6 +42,19 @@
     "highlightsTitle": "Favori Ürünlerimiz",
     "boardLink": "Hemen İncele",
     "areasTitle": "Çalışma Alanlarımız"
+  },
+  "Catalogs": {
+    "view": "Görüntüle",
+    "download": "İndir",
+    "viewLabel": "Görüntüle: {name} (PDF, yeni sekmede açılır)",
+    "downloadLabel": "İndir: {name} (PDF, {size})"
+  },
+  "Projects": {
+    "intro": "Profesyonel çözümlerimizin etkisini görsel olarak keşfedin",
+    "compare": "Karşılaştırmak için kaydırma çubuğunu sürükleyin veya ok tuşlarını kullanın",
+    "before": "Öncesi",
+    "after": "Sonrası",
+    "valueText": "%{before} öncesi, %{after} sonrası"
   },
   "NotFound": {
     "title": "Sayfa bulunamadı"

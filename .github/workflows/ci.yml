@@ -243,6 +243,7 @@ jobs:
     timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: 1
+      DEMO_MODE: 'true'
       # The pages read the database, so the audit runs against the demo content. These values protect nothing.
       DATABASE_URL: postgresql://postgres@localhost:5432/tanyeri
       DATABASE_URL_UNPOOLED: postgresql://postgres@localhost:5432/tanyeri

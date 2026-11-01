@@ -2,6 +2,10 @@
   "Metadata": {
     "title": "Tanyeri"
   },
+  "DemoBand": {
+    "label": "Demo notice",
+    "text": "Fictional brand: this is a demo site and nothing is for sale."
+  },
   "Header": {
     "skip": "Skip to content",
     "logoLabel": "Tanyeri Lighting, home",
@@ -38,6 +42,19 @@
     "highlightsTitle": "Our Favorite Products",
     "boardLink": "Explore now",
     "areasTitle": "Our Work Areas"
+  },
+  "Catalogs": {
+    "view": "View",
+    "download": "Download",
+    "viewLabel": "View {name} (PDF, opens in a new tab)",
+    "downloadLabel": "Download {name} (PDF, {size})"
+  },
+  "Projects": {
+    "intro": "See the effect of our professional solutions for yourself",
+    "compare": "Drag the slider or use the arrow keys to compare",
+    "before": "Before",
+    "after": "After",
+    "valueText": "{before}% before, {after}% after"
   },
   "NotFound": {
     "title": "Page not found"

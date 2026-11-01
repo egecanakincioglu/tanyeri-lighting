@@ -180,6 +180,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - One light theme; design tokens are in one `@theme` block in `src/app/globals.css`. Figtree is the only font: one self-hosted variable woff2 of about 20 KB in `src/app/fonts/`, with its OFL license, loaded through `next/font/local`. A test rejects external font URLs and `next/font/google`. Logo files are static SVGs in `public/brand/`. Each logo has one fixed on-screen size, set by the image width and height attributes, and each file declares exactly twice that size.
 - The icon, apple-touch icon and default share image live in `src/app/`, the manifest icons in `public/icons/`. All come from the logo artwork.
 - Public pages render under `src/app/[locale]/(site)/layout.tsx`, which provides the skip link, header, the single `<main id="main">` landmark and the footer. The wrapper is full height, so the footer sits at the bottom of short pages.
+- In demo mode every public page shows a notice above the header saying that the brand is fictional and nothing is for sale. The `site-audit` job runs with demo mode on.
 - The menu is defined once in `src/components/site/nav.ts` and feeds the header, the side menu and the footer. `header-menu.tsx` is the only client part of the header.
 - The footer reads site settings, social links and the two legal pages from the database and omits empty rows, so the `site-audit` job runs against a seeded database.
 - The home page has three blocks: the banner, the highlights grid (three promo boards, then six featured products) and the work areas. Each block renders nothing when its content is empty. An empty banner title hides the banner.
@@ -192,6 +193,10 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
+- The catalogs page lists each catalog with its size, a view link (the browser's own PDF viewer, in a new tab) and a download link.
+- The projects page compares before and after photos with a native range input, which works by keyboard and without dragging.
+- The references grid uses 1, 2, 3 and 5 columns.
+- The demo catalog is an eight page PDF, and the seed stores its real size.
 
 ## Testing
 

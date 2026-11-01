@@ -23,6 +23,13 @@ describe('Button', () => {
     expect(screen.getByText('Two').className).toContain('border-white/70');
   });
 
+  it('draws the outline variant with a hairline border on white', () => {
+    render(<Button variant="outline">Three</Button>);
+    const { className } = screen.getByText('Three');
+    expect(className).toContain('border-hairline');
+    expect(className).toContain('bg-surface');
+  });
+
   it('keeps a 44 px touch target', () => {
     render(<Button>Save</Button>);
     expect(screen.getByRole('button').className).toContain('min-h-touch');
