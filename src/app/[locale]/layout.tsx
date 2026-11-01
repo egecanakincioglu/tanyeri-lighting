@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { hasLocale } from 'next-intl';
+import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import localFont from 'next/font/local';
 import { notFound } from 'next/navigation';
@@ -31,7 +31,12 @@ export default async function RootLayout({ children, params }: LayoutProps<'/[lo
 
   return (
     <html lang={locale} className={`${figtree.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* The client components get their texts as props, so no messages are sent to the browser. */}
+        <NextIntlClientProvider locale={locale} messages={null}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
     </html>
   );
 }

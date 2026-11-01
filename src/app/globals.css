@@ -16,6 +16,9 @@
   --color-hairline: #d9d9d9;
   --color-error: #b3261e;
   --color-success: #1b6b3a;
+  /* Pure white and black, for text on photos and for overlays such as the menu backdrop. */
+  --color-white: #ffffff;
+  --color-black: #000000;
 
   --text-*: initial;
   --text-xs: 0.75rem;
@@ -80,6 +83,31 @@
 @layer base {
   :root {
     --gutter: clamp(1rem, 4vw, 4rem);
+    /* Height of the sticky header bar; anchors and focused elements stop below it. */
+    --header-h: 4rem;
+  }
+
+  html {
+    scroll-padding-top: var(--header-h);
+  }
+
+  @media (min-width: 48rem) {
+    :root {
+      --header-h: 4.25rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    :root {
+      --header-h: 4.5rem;
+    }
+  }
+
+  /* The header is not sticky on short screens. */
+  @media (max-height: 500px) {
+    html {
+      scroll-padding-top: 0;
+    }
   }
 
   @media (min-width: 90rem) {

@@ -2,6 +2,38 @@
   "Metadata": {
     "title": "Tanyeri"
   },
+  "Header": {
+    "skip": "İçeriğe geç",
+    "logoLabel": "Tanyeri Lighting, ana sayfa",
+    "menu": "Menü",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "language": "Dil",
+    "languageTr": "Türkçe",
+    "languageEn": "English",
+    "home": "Anasayfa",
+    "corporate": "Kurumsal",
+    "about": "Hakkımızda",
+    "vision": "Vizyonumuz",
+    "references": "Referanslarımız",
+    "services": "Hizmetler",
+    "projects": "Projeler",
+    "products": "Ürünler",
+    "catalogs": "Kataloglar",
+    "categories": "Kategoriler",
+    "contact": "İletişim"
+  },
+  "Footer": {
+    "tagline": "Konuttan endüstriyel tesise, her mekân için enerji verimli ve estetik aydınlatma çözümleri tasarlıyor, üretiyor ve uyguluyoruz.",
+    "siteNav": "Site",
+    "contact": "İletişim",
+    "address": "Adres",
+    "phone": "Telefon",
+    "email": "E-posta",
+    "hours": "Çalışma saatleri",
+    "copyright": "© {year} {name}. Tüm hakları saklıdır.",
+    "poweredBy": "Powered by"
+  },
   "Home": {
     "placeholder": "Site hazırlanıyor."
   },

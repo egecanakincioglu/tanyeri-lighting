@@ -56,6 +56,8 @@ const tokenNames = [
   'hairline',
   'error',
   'success',
+  'white',
+  'black',
 ];
 
 function colors(css: string): Record<string, string> {
@@ -83,6 +85,11 @@ describe('color tokens', () => {
   it('defines every semantic color once, for the single light theme', () => {
     expect(Object.keys(palette).sort()).toEqual([...tokenNames].sort());
     expect(css).not.toContain('data-theme');
+  });
+
+  it('defines pure white and black for overlays and text on photos', () => {
+    expect(palette['white']).toBe('#ffffff');
+    expect(palette['black']).toBe('#000000');
   });
 
   it('keeps text pairs at 4.5:1 or more', () => {
