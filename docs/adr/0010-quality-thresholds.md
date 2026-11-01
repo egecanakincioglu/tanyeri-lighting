@@ -32,6 +32,7 @@ Rules:
    - 90–94: the job stays green; the page and category are written as a GitHub warning annotation and listed in the job summary.
    - 95 and above: the expected level.
    - The thresholds are in `tooling/site-audit/thresholds.json`; they only go up and never below 90. `policy` rejects loosening; tightening is a separate commit.
+   - A run that Lighthouse fails to record is discarded and retried, with at most 2 extra attempts per page; a page without 3 valid runs fails as a measurement failure, not as a low score.
 2. The pass/fail audits do not change. They give no score, so the 90/95 split does not apply to them: axe violations 0; all applicable audits of "Agentic Browsing" pass; horizontal overflow 0; `target-size` violations 0; console errors and CSP violations 0; SEO and GEO HTTP checks; the contact form works without JavaScript (ADR 0009, rules 1 and 5).
 3. The text-LCP requirement on mobile is removed. Rule 4 of ADR 0009 and the "LCP element is text" check in `site-audit (mobile)` no longer apply. An image can be the LCP element. The image in the first screen is loaded as in ADR 0009, rule 6: with `preload`, `fetchPriority="high"` and the correct `sizes`.
 4. The first-screen design rule stays. The first screen of the home page has a single `h1` with a value proposition and action buttons. This is now a design requirement, not a performance one. (The design review found that the old site's biggest gap was the lack of text and actions in the first screen; the fix is an `h1` with a value proposition and two actions in the banner.)
