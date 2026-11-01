@@ -92,3 +92,53 @@ export function isDemoMode(source: Record<string, string | undefined> = process.
   }
   return result.data === 'true';
 }
+
+export type SmtpConfig = { host: string; port: number; user: string; password: string; from: string };
+
+// A plain address or "Name <address>".
+const smtpFrom = z.string().refine((value) => {
+  const address = /<([^<>]+)>\s*$/.exec(value)?.[1] ?? value;
+  return z.email().safeParse(address.trim()).success;
+}, 'must be an email address or "Name <address>"');
+
+const smtpFields = {
+  SMTP_HOST: z.string(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535),
+  SMTP_USER: z.string(),
+  SMTP_PASSWORD: z.string(),
+  SMTP_FROM: smtpFrom,
+};
+
+const smtpNames = Object.keys(smtpFields) as (keyof typeof smtpFields)[];
+
+// Optional, all or none: without the group email is off. Empty counts as unset, so blank lines in .env keep it off.
+// A partly set group is an error that names the missing variables, never the values.
+// Separate from getEnv() for the same reason as getBlobToken, and read on every call.
+export function getSmtpConfig(source: Record<string, string | undefined> = process.env): SmtpConfig | undefined {
+  const values = Object.fromEntries(smtpNames.map((name) => [name, source[name]?.trim() || undefined]));
+  if (smtpNames.every((name) => values[name] === undefined)) return undefined;
+
+  const problems: string[] = [];
+  for (const name of smtpNames) {
+    const value = values[name];
+    if (value === undefined) {
+      problems.push(`${name}: required when any other SMTP variable is set`);
+      continue;
+    }
+    const result = smtpFields[name].safeParse(value);
+    if (!result.success) problems.push(`${name}: ${result.error.issues[0]?.message}`);
+  }
+  if (problems.length > 0) throw new Error(`Invalid environment variables:\n${problems.join('\n')}`);
+
+  return {
+    host: values.SMTP_HOST!,
+    port: Number(values.SMTP_PORT),
+    user: values.SMTP_USER!,
+    password: values.SMTP_PASSWORD!,
+    from: values.SMTP_FROM!,
+  };
+}
+
+export function isEmailEnabled(source: Record<string, string | undefined> = process.env): boolean {
+  return getSmtpConfig(source) !== undefined;
+}

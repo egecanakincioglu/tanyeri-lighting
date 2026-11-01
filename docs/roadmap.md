@@ -31,12 +31,12 @@ Done:
 - File storage with an upload pipeline on Vercel Blob (4 MB limit, file type check, image re-encoding).
 - Authorization guard on every admin page, action and route handler, enforced by a static check.
 - Seed and first admin user (`pnpm db:seed`), and password recovery without email (`pnpm admin:reset-password`).
+- Optional SMTP email: the `sendEmail` module and the password reset link by email.
 
 Next:
 
 - Demo mode guard (all content writes refused).
 - Rate limiting for public forms.
-- Optional SMTP email.
 - Content schemas: site settings, categories, products, catalogs, home page blocks, services, projects, references and contact messages.
 - Runbook for rotating secrets.
 

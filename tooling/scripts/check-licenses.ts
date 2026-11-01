@@ -12,6 +12,8 @@ import { pnpmStdout } from './pnpm-json.ts';
 const ALLOWED = new Set([
   'MIT',
   'ISC',
+  // MIT without the attribution clause: strictly more permissive than MIT.
+  'MIT-0',
   'BSD-2-Clause',
   'BSD-3-Clause',
   'Apache-2.0',

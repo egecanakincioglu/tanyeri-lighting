@@ -46,6 +46,7 @@ Copy `.env.example` to `.env` and adjust it. Never commit `.env`. The applicatio
 | `BETTER_AUTH_SECRET` | yes | Signs and encrypts authentication data; at least 32 characters. |
 | `BETTER_AUTH_URL` | yes | The site's own address (scheme and host); the only origin the auth routes trust. |
 | `SITE_INDEXING` | no | `off` (default) sends `noindex`; `on` lets crawlers index the site. It stays `off` until 1.0.0. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | no, all or none | Email through SMTP. With all five set, the password reset link is sent by email. With none set, email is off and recovery is `pnpm admin:reset-password`. A partly set group is an error. Port 465 uses TLS from the start. `SMTP_FROM` is an address or `Name <address>`. |
 | `BLOB_READ_WRITE_TOKEN` | no | Vercel Blob token. Without it, uploads are off. Use a separate development store, never the production one. |
 | `DEMO_MODE` | no | `true` or `false` (default `false`); any other value is an error. The guard that uses it is still planned. |
 | `ADMIN_EMAIL` | for the seed | Email address of the first admin. Only `pnpm db:seed` reads it; the running site does not. |

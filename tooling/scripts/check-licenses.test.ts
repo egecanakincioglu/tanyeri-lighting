@@ -5,6 +5,7 @@ import { evaluate, isAllowed } from './check-licenses.ts';
 
 describe('isAllowed', () => {
   test('an allowed license passes', () => assert.equal(isAllowed('MIT', 'a'), true));
+  test('MIT-0 passes', () => assert.equal(isAllowed('MIT-0', 'a'), true));
   test('GPL fails', () => assert.equal(isAllowed('GPL-3.0-only', 'a'), false));
   test('AGPL and unknown fail', () => {
     assert.equal(isAllowed('AGPL-3.0-or-later', 'a'), false);
