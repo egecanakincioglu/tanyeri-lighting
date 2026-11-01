@@ -3,6 +3,7 @@ import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { routing } from '../../src/i18n/routing.ts';
 import { LOCALES, PAGES } from './pages.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -26,10 +27,29 @@ function routes(dir: string, prefix = ''): string[] {
 
 test('there is at least one page template', () => assert.ok(routes(SITE).length > 0));
 
-test('every page template has an address per locale in the audit list', () => {
+/** The address a visitor reaches: the folder route looked up in routing.pathnames, or the folder route itself. */
+function address(route: string, locale: (typeof LOCALES)[number]): string {
+  const key = route === '' ? '/' : route;
+  const entry = (routing.pathnames as Record<string, string | Record<string, string>>)[key];
+  const localized = entry === undefined ? key : typeof entry === 'string' ? entry : entry[locale]!;
+  return `/${locale}${localized === '/' ? '' : localized}`;
+}
+
+test('addresses follow the localized pathnames', () => {
+  assert.equal(address('', 'tr'), '/tr');
+  assert.equal(address('/about', 'tr'), '/tr/hakkimizda');
+  assert.equal(address('/about', 'en'), '/en/about');
+  assert.equal(address('/products/[slug]', 'tr'), '/tr/urunler/[slug]');
+  assert.equal(address('/unlisted', 'tr'), '/tr/unlisted');
+});
+
+// A folder-derived address that the site would redirect (307) to its localized form must not be in the list: the
+// audit does not accept redirects, so each template is listed under its real localized address.
+test('every page template has its localized address per locale in the audit list', () => {
   for (const route of routes(SITE)) {
     for (const locale of LOCALES) {
-      assert.ok(PAGES.includes(`/${locale}${route}`), `missing /${locale}${route} in tooling/site-audit/pages.ts`);
+      const expected = address(route, locale);
+      assert.ok(PAGES.includes(expected), `missing ${expected} in tooling/site-audit/pages.ts`);
     }
   }
 });
