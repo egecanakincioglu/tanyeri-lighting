@@ -22,11 +22,23 @@ async function recreateDatabase(): Promise<void> {
   }
 }
 
-export default async function setup(): Promise<void> {
+// Drops the database after the run so checkouts do not leave databases behind; the next run recreates it anyway.
+async function dropDatabase(): Promise<void> {
+  const client = new Client({ connectionString: ADMIN_URL });
+  try {
+    await client.connect();
+    await client.query(`drop database if exists ${TEST_DATABASE} with (force)`);
+  } finally {
+    await client.end();
+  }
+}
+
+export default async function setup(): Promise<() => Promise<void>> {
   await recreateDatabase();
   const cli = path.join(process.cwd(), 'node_modules', 'prisma', 'build', 'index.js');
   execFileSync(process.execPath, [cli, 'migrate', 'deploy'], {
     env: { ...process.env, DATABASE_URL_UNPOOLED: TEST_URL },
     stdio: 'pipe',
   });
+  return dropDatabase;
 }
