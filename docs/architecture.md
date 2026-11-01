@@ -30,7 +30,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - PostgreSQL 18 with Prisma 7 migrations and the `@prisma/adapter-pg` driver adapter. Production uses Neon; local development and CI use the Postgres image pinned in `tooling/ci-images/Dockerfile` ([ADR 0002](adr/0002-data-and-storage.md)).
 - The app connects with the pooled address (`DATABASE_URL`). Migrations and the Prisma CLI use the direct address (`DATABASE_URL_UNPOOLED`).
-- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Content tables: `siteSettings`, `socialLink`, `pageMetadata`, `legalPage`, `project` and `reference` (see Content). Planned: categories, products, catalogs, home page blocks, services and visits.
+- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Content tables: `siteSettings`, `socialLink`, `pageMetadata`, `legalPage`, `project`, `reference`, `category`, `product`, `productSlugRedirect` and `catalog` (see Content). Planned: home page blocks, services and visits.
 - There is no raw SQL in application code; a Semgrep rule enforces this.
 - Environment variables are validated with zod in one module (`src/server/env.ts`). Each module adds its own variables. Validation runs on first use, not on import, so `next build` works without the variables. Reading `process.env` anywhere else is blocked by a Semgrep rule.
 
@@ -45,6 +45,10 @@ The proxy does only two things: locale routing and security headers. It is not t
   - `legalPage` holds the legal pages, per key: privacy and terms.
   - `project` holds the projects. A project has a bilingual title (150 characters) and a bilingual limited-Markdown description (5000 characters). It has two `https` image URLs, "before" and "after". The public page will show them in a before/after slider that works with the keyboard.
   - `reference` holds the references. A reference has an untranslated name (a proper name, 100 characters), an `https` image URL, a bilingual title (100 characters) and a bilingual description (500 characters).
+  - `category` holds the product categories. A category has a bilingual name (60 characters) and a language-independent kebab-case `key` (1 to 60 characters) that the product list uses as a URL filter. There are at most 8 categories (`CategoryLimitError`). A category with products cannot be deleted (`CategoryNotEmptyError`); the foreign key is `Restrict`.
+  - `product` holds the products. A product has a bilingual name (120 characters), color (60) and material (100), a unique `code` (60 characters), `power` (40) and `dimensions` (60) as single texts, one `https` image URL and an order within its category. Products have no price. The input schema is strict, so unknown fields such as `price` are rejected.
+  - `productSlugRedirect` holds the old slugs of products. The product slug is language-independent kebab-case (1 to 80 characters) and is the address of the product page in both languages.
+  - `catalog` holds the catalogs. A catalog has a bilingual name (120 characters), an `https` `pdfUrl` and `sizeBytes`. The upload itself goes through the storage module (4 MB limit).
 - Rules for values:
   - Email must be valid and at most 254 characters.
   - Phone allows digits, spaces and `+ ( ) -`, with 7 to 20 digits. `phoneToTel` derives the `tel:` link.
@@ -54,6 +58,12 @@ The proxy does only two things: locale routing and security headers. It is not t
   - Projects: `listProjects`, `getProject` (null when missing), `createProject`, `updateProject`, `deleteProject` and `reorderProjects`.
   - References: `listReferences`, `createReference`, `updateReference`, `deleteReference` and `reorderReferences`.
   - New items go to the end of the list. A reorder needs the full id list, otherwise it throws `InvalidOrderError`. Updating or deleting a missing row throws `ContentNotFoundError`.
+- Category, product and catalog services:
+  - Categories and catalogs have ordered CRUD and reorder. New items go to the end of the list.
+  - Products have CRUD and a reorder per category. Moving a product to another category puts it at the end of that category. A reorder needs the full id list.
+  - When a product slug changes, the old slug is kept in `productSlugRedirect` and points at the product. `getProductBySlug` returns `{ product }`, `{ redirectTo }` (the public page answers 308) or `null`.
+  - A slug that another product has or used to have is refused with `ValueTakenError`, so an old address never shows a different product. A product may take back its own old slug.
+  - `ValueTakenError` has the field `key`, `code`, `slug`, or `value` when the database does not name the column. It comes from the check inside the transaction or from the unique constraint under concurrent writes.
 - Long texts are limited Markdown. `MarkdownContent` (`src/components/markdown-content.tsx`) renders them with `react-markdown`.
   - Allowed: paragraphs, h2 and h3 headings, bold, italic, links, lists and line breaks. A level 1 heading becomes h2, and levels 4 to 6 become h3, so the page keeps a single h1.
   - Raw HTML and images are dropped.
