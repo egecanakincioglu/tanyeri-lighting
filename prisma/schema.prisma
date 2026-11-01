@@ -80,3 +80,13 @@ model RateLimit {
   @@unique([key])
   @@map("rateLimit")
 }
+
+// Counters of the project's own rate limiter (src/server/rate-limit); Better Auth keeps its own in "rateLimit".
+model RateLimitCounter {
+  key         String   @id
+  windowStart DateTime
+  count       Int
+
+  @@index([windowStart])
+  @@map("rateLimitCounter")
+}
