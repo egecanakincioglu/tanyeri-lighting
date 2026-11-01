@@ -2,7 +2,17 @@
 // core.hooksPath points at the real hooks. Stub scanners keep gitleaks and docker out of the test.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
@@ -84,6 +94,31 @@ describe('commit-msg hook', { skip: bash ? false : 'bash not found' }, () => {
       const r = git('commit', '-m', `${header}\n\nmentions ${['af', 'ra'].join('')}\n`);
       assert.notEqual(r.status, 0);
       assert.match(r.stderr, /forbidden-terms/);
+    });
+  });
+
+  const localHook = (repo: string, body: string): void => {
+    write(repo, '.git/hooks/commit-msg', `#!/bin/sh\n${body}\n`);
+    chmodSync(path.join(repo, '.git', 'hooks', 'commit-msg'), 0o755);
+  };
+  test('a machine-local commit-msg hook runs with the message file', () => {
+    withRepo((repo, git) => {
+      localHook(repo, 'head -n 1 "$1" > "$(dirname "$0")/seen"');
+      write(repo, 'a.txt', 'x\n');
+      git('add', '-A');
+      const r = git('commit', '-m', msg);
+      assert.equal(r.status, 0, r.stderr);
+      assert.equal(readFileSync(path.join(repo, '.git', 'hooks', 'seen'), 'utf8').trim(), header);
+    });
+  });
+  test('a failing machine-local commit-msg hook blocks the commit', () => {
+    withRepo((repo, git) => {
+      localHook(repo, 'echo local-refusal >&2\nexit 1');
+      write(repo, 'a.txt', 'x\n');
+      git('add', '-A');
+      const r = git('commit', '-m', msg);
+      assert.notEqual(r.status, 0);
+      assert.match(r.stderr, /local-refusal/);
     });
   });
 });

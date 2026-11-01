@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
@@ -56,6 +56,45 @@ describe('pre-push hook', { skip: bash ? false : 'bash not found' }, () => {
       run(repo, 'switch', '-q', '-c', 'feat/x');
       const ok = run(repo, 'push', 'origin', 'feat/x');
       assert.equal(ok.status, 0, ok.stderr);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('a machine-local pre-push hook gets the arguments and the ref lines; its failure blocks the push', () => {
+    const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'pre-push-local-')));
+    try {
+      const run = (cwd: string, ...args: string[]) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+      const remote = path.join(dir, 'remote.git');
+      const repo = path.join(dir, 'repo');
+      mkdirSync(repo);
+      run(dir, 'init', '-q', '--bare', remote);
+      run(repo, 'init', '-q', '-b', 'main');
+      run(repo, 'config', 'user.name', 't');
+      run(repo, 'config', 'user.email', 't@t');
+      run(repo, 'config', 'commit.gpgsign', 'false');
+      writeFileSync(path.join(repo, 'a.txt'), 'x\n');
+      run(repo, 'add', '-A');
+      run(repo, 'commit', '-q', '-m', 'init');
+      run(repo, 'remote', 'add', 'origin', remote);
+      run(repo, 'config', 'core.hooksPath', hooks);
+      run(repo, 'switch', '-q', '-c', 'feat/x');
+      const hooksDir = path.join(repo, '.git', 'hooks');
+      const local = path.join(hooksDir, 'pre-push');
+      writeFileSync(local, '#!/bin/sh\necho "$1" > "$(dirname "$0")/args"\ncat > "$(dirname "$0")/stdin"\n');
+      chmodSync(local, 0o755);
+      const ok = run(repo, 'push', 'origin', 'feat/x');
+      assert.equal(ok.status, 0, ok.stderr);
+      assert.equal(readFileSync(path.join(hooksDir, 'args'), 'utf8').trim(), 'origin');
+      assert.match(
+        readFileSync(path.join(hooksDir, 'stdin'), 'utf8'),
+        /^refs\/heads\/feat\/x [0-9a-f]{40} refs\/heads\/feat\/x /,
+      );
+      writeFileSync(local, '#!/bin/sh\necho local-refusal >&2\nexit 1\n');
+      chmodSync(local, 0o755);
+      const refused = run(repo, 'push', 'origin', 'feat/x:feat/y');
+      assert.notEqual(refused.status, 0);
+      assert.match(refused.stderr, /local-refusal/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
