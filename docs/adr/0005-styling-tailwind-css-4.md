@@ -43,7 +43,7 @@ Rules:
 - Negative: Style changes are verified not with unit tests but with a visual check at desktop (1440) and mobile (390) widths ([ADR 0007](0007-testing-strategy.md)).
 - Follow-up: Tailwind 4.x patch releases arrive through Dependabot's grouped minor/patch PR.
 - Open items (to be decided in phase 5 together with the brand tokens):
-  - Disabling the default color namespace with `--color-*: initial` and defining only the brand colors.
+  - Done (2026-11-01): the default color namespace is disabled with `--color-*: initial`, and only the brand colors are defined.
   - Arbitrary values such as `[#123456]` and `[13px]` are allowed only with the reason written in a comment. A value that is needed repeatedly gets a token in `@theme`.
 
   Both are preliminary proposals.
