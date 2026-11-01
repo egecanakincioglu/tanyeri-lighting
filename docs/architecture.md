@@ -24,15 +24,36 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - next-intl with two locales, `tr` and `en`. The default locale is `tr`, and every address carries its prefix (`/tr`, `/en`). The root address redirects by the browser language. An unknown locale returns 404 ([ADR 0006](adr/0006-internationalization-next-intl.md)).
 - `messages/tr.json` and `messages/en.json` hold interface texts only. Both files must contain the same keys; a test checks this.
-- Planned: all content edited in the panel, including the legal pages and page metadata, is stored in the database in bilingual fields. Both languages are required.
+- All content edited in the panel, including the legal pages and page metadata, is stored in the database in bilingual fields. Both languages are required (see Content).
 
 ## Data
 
 - PostgreSQL 18 with Prisma 7 migrations and the `@prisma/adapter-pg` driver adapter. Production uses Neon; local development and CI use the Postgres image pinned in `tooling/ci-images/Dockerfile` ([ADR 0002](adr/0002-data-and-storage.md)).
 - The app connects with the pooled address (`DATABASE_URL`). Migrations and the Prisma CLI use the direct address (`DATABASE_URL_UNPOOLED`).
-- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Planned: site settings, categories, products, catalogs, home page blocks, services, projects, references and visits.
+- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Content tables: `siteSettings`, `socialLink`, `pageMetadata` and `legalPage` (see Content). Planned: categories, products, catalogs, home page blocks, services, projects, references and visits.
 - There is no raw SQL in application code; a Semgrep rule enforces this.
 - Environment variables are validated with zod in one module (`src/server/env.ts`). Each module adds its own variables. Validation runs on first use, not on import, so `next build` works without the variables. Reading `process.env` anywhere else is blocked by a Semgrep rule.
+
+## Content
+
+- Bilingual fields are stored as one required column per language: `<field>Tr` and `<field>En`, both `NOT NULL`. Services take and return `{ tr, en }`. Both languages are required, and a page never falls back to the other language.
+- A missing row reads as `null`. For site settings it reads as an empty default, which is not stored.
+- Tables:
+  - `siteSettings` has one row with the id `site`. Bilingual fields: site name, address, working hours, service area and languages served. Phone and email are single values.
+  - `socialLink` holds the social links.
+  - `pageMetadata` holds the title and description of a page, per key: home, products, catalogs, services, projects, references, about, contact, privacy and terms.
+  - `legalPage` holds the legal pages, per key: privacy and terms.
+- Rules for values:
+  - Email must be valid and at most 254 characters.
+  - Phone allows digits, spaces and `+ ( ) -`, with 7 to 20 digits. `phoneToTel` derives the `tel:` link.
+  - Social links accept `https` addresses only. The platform name is free text, and the label is bilingual. Reordering needs the full list of ids.
+- Every write service calls `assertWritable()` first, then validates with zod. The services are in `src/server/content`.
+- Long texts are limited Markdown. `MarkdownContent` (`src/components/markdown-content.tsx`) renders them with `react-markdown`.
+  - Allowed: paragraphs, h2 and h3 headings, bold, italic, links, lists and line breaks. A level 1 heading becomes h2, and levels 4 to 6 become h3, so the page keeps a single h1.
+  - Raw HTML and images are dropped.
+  - Unsafe link targets such as `javascript:` and `data:` lose their `href`. External links get `rel="noopener noreferrer"`.
+  - `dangerouslySetInnerHTML` is not used.
+- Status: the tables, services and renderer exist. No page uses them yet.
 
 ## Authentication
 
@@ -157,9 +178,10 @@ releases/      release notes
 src/
   app/         App Router
   i18n/        routing and request configuration
-  server/      env, db, auth, storage, rate-limit, demo guard, contact (planned: services)
+  server/      env, db, auth, storage, rate-limit, demo guard, contact, content (planned: more services)
+  components/  shared components (the Markdown renderer)
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```
 
-Planned additions: `src/components`, `src/lib` (shared pure helpers), `public/`, `docs/runbooks/` and `docs/security/`.
+Planned additions: `src/lib` (shared pure helpers), `public/`, `docs/runbooks/` and `docs/security/`.

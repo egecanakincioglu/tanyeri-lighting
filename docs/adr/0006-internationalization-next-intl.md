@@ -37,6 +37,7 @@ Rules:
 4. Navigation uses only `Link`, `redirect`, `useRouter` and `usePathname` from `src/i18n/navigation.ts`. `next/link` is not used for locale-aware paths.
 5. `proxy.ts` is a single file: the next-intl proxy and the CSP/security headers are combined in the same function. The proxy does no authorization ([ADR 0001](0001-architecture-nextjs-16-app-router.md), rule 3). The matcher leaves out `api` paths and static files.
 6. The format of the bilingual fields in the content data is set in the schema PR in phase 4.
+  - Decided (2026-11-01): one required column per language, `<field>Tr` and `<field>En`, both `NOT NULL`. Services take and return `{ tr, en }`.
 7. Metadata (`generateMetadata`), `sitemap.ts` and `alternates.languages` include both languages.
 8. **Default locale and prefix:** the default locale is `tr`; `localePrefix: "always"`.
    - Every address starts with `/tr/...` or `/en/...`; the address structure of the two languages stays symmetric.
@@ -57,6 +58,7 @@ Rules:
 - Open items (not decided in this ADR; both are preliminary proposals):
   - Behavior of the language switcher: it goes to the equivalent of the same page in the other language, and the choice is remembered with the next-intl cookie. Decided in the header PR in phase 6.
   - Missing translations: both fields of bilingual content are required, and a page does not silently fall back to the other language. Decided in the schema PR in phase 4.
+    - Decided (2026-11-01): both languages are required in the database and in the services, and a page never falls back to the other language.
 
   These are written with Vitest at the unit and integration level; the appearance is checked visually at desktop and mobile widths ([ADR 0007](0007-testing-strategy.md)).
 
