@@ -4,8 +4,10 @@ import {
   getAdminCredentials,
   getBlobToken,
   getEnv,
+  getSmtpConfig,
   isDemoMode,
   isDevelopment,
+  isEmailEnabled,
   isIndexingEnabled,
   isProduction,
   parseEnv,
@@ -221,5 +223,104 @@ describe('isDemoMode', () => {
   it('reads process.env by default', () => {
     vi.stubEnv('DEMO_MODE', 'true');
     expect(isDemoMode()).toBe(true);
+  });
+});
+
+const smtp = {
+  SMTP_HOST: 'smtp.example.com',
+  SMTP_PORT: '587',
+  SMTP_USER: 'mailer',
+  SMTP_PASSWORD: 'mailer-password-7f3a',
+  SMTP_FROM: 'Tanyeri <no-reply@example.com>',
+};
+
+describe('getSmtpConfig', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('returns the whole group when every variable is set', () => {
+    expect(getSmtpConfig(smtp)).toEqual({
+      host: 'smtp.example.com',
+      port: 587,
+      user: 'mailer',
+      password: 'mailer-password-7f3a',
+      from: 'Tanyeri <no-reply@example.com>',
+    });
+  });
+
+  it('accepts a plain address as the sender and trims the values', () => {
+    expect(
+      getSmtpConfig({ ...smtp, SMTP_HOST: ' smtp.example.com ', SMTP_FROM: 'no-reply@example.com' }),
+    ).toMatchObject({
+      host: 'smtp.example.com',
+      from: 'no-reply@example.com',
+    });
+  });
+
+  it('is off when no variable is set, or all are empty or blank', () => {
+    expect(getSmtpConfig({})).toBeUndefined();
+    expect(
+      getSmtpConfig({ SMTP_HOST: '', SMTP_PORT: '  ', SMTP_USER: '', SMTP_PASSWORD: '', SMTP_FROM: '' }),
+    ).toBeUndefined();
+  });
+
+  it('rejects a partial group and names every missing variable', () => {
+    const partial = { ...smtp, SMTP_PORT: undefined, SMTP_FROM: undefined };
+    expect(() => getSmtpConfig(partial)).toThrow(/SMTP_PORT: required when any other SMTP variable is set/);
+    expect(() => getSmtpConfig(partial)).toThrow(/SMTP_FROM: required when any other SMTP variable is set/);
+    expect(() => getSmtpConfig({ SMTP_HOST: 'smtp.example.com' })).toThrow(/SMTP_PORT[\s\S]*SMTP_FROM/);
+    expect(() => getSmtpConfig({ ...smtp, SMTP_PASSWORD: '' })).toThrow(/SMTP_PASSWORD: required/);
+  });
+
+  it('rejects a bad port or sender and names the variable', () => {
+    for (const port of ['abc', '0', '70000', '25.5']) {
+      expect(() => getSmtpConfig({ ...smtp, SMTP_PORT: port })).toThrow(/SMTP_PORT:/);
+    }
+    expect(() => getSmtpConfig({ ...smtp, SMTP_FROM: 'not an address' })).toThrow(/SMTP_FROM:/);
+    expect(() => getSmtpConfig({ ...smtp, SMTP_FROM: 'Name <broken>' })).toThrow(/SMTP_FROM:/);
+  });
+
+  it('never puts a value in the error message', () => {
+    for (const source of [
+      { ...smtp, SMTP_PORT: 'port-secret-7f3a' },
+      { ...smtp, SMTP_FROM: 'from-secret-7f3a' },
+      { SMTP_PASSWORD: smtp.SMTP_PASSWORD },
+    ]) {
+      let message = '';
+      try {
+        getSmtpConfig(source);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).not.toBe('');
+      expect(message).not.toContain('7f3a');
+    }
+  });
+
+  it('reads process.env by default', () => {
+    for (const [name, value] of Object.entries(smtp)) vi.stubEnv(name, value);
+    expect(getSmtpConfig()?.host).toBe('smtp.example.com');
+  });
+});
+
+describe('isEmailEnabled', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('is on only when the whole group is set', () => {
+    expect(isEmailEnabled(smtp)).toBe(true);
+    expect(isEmailEnabled({})).toBe(false);
+  });
+
+  it('fails on a partial group instead of quietly staying off', () => {
+    expect(() => isEmailEnabled({ SMTP_HOST: 'smtp.example.com' })).toThrow(/SMTP_PORT/);
+  });
+
+  it('reads process.env by default', () => {
+    expect(isEmailEnabled()).toBe(false);
+    for (const [name, value] of Object.entries(smtp)) vi.stubEnv(name, value);
+    expect(isEmailEnabled()).toBe(true);
   });
 });
