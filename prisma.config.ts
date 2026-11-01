@@ -7,6 +7,6 @@ if (existsSync('.env')) process.loadEnvFile('.env');
 // Not read through getEnv(): `prisma generate` must work without any variable set.
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  migrations: { path: 'prisma/migrations' },
+  migrations: { path: 'prisma/migrations', seed: 'node prisma/seed.ts' },
   datasource: { url: process.env['DATABASE_URL_UNPOOLED'] ?? '' },
 });

@@ -7,7 +7,7 @@ Tanyeri Lighting is an open-source website and admin panel for Tanyeri, a fictio
 - **Version:** v0.1.0. The project is a rewrite from scratch, developed in phases.
 - **Phase:** the skeleton and quality gates (phase 3) are done. The server foundation (phase 4) is in progress.
 - **What works today:** a localized placeholder page at `/tr` and `/en`, validated environment variables, security headers with a nonce-based Content Security Policy, the Better Auth core (sign-in routes, sessions in the database, rate limits in Postgres), and an upload pipeline for files. The CI checks and the release pipeline are complete.
-- **What does not exist yet:** the content (products, projects, references, pages), the public pages, the admin panel, the first admin user (seed), the authorization guard for admin routes, the demo mode and the contact form. See the [roadmap](docs/roadmap.md).
+- **What does not exist yet:** the content (products, projects, references, pages), the public pages, the admin panel, the demo mode and the contact form. See the [roadmap](docs/roadmap.md).
 
 This project started in 2023 as "Afra Lighting", a website built for a client. The rewrite closes the known security problems of that version from the ground up and publishes the new version as open source. The old code and its history are not part of this repository.
 
@@ -82,6 +82,7 @@ node tooling/scripts/doctor.ts
 cp .env.example .env
 pnpm db:up
 pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
@@ -90,6 +91,7 @@ Then open http://localhost:3000.
 - `setup-git-hooks.sh` installs the Git hooks and the commit signing setup. You need it only if you plan to commit. `doctor.ts` checks the machine and prints a fix for each problem.
 - Edit `.env` if you need to. The defaults match the database from `pnpm db:up`. `BETTER_AUTH_SECRET` must have at least 32 characters; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`. `BLOB_READ_WRITE_TOKEN` is optional; without it, uploads are off.
 - `pnpm db:migrate` runs `prisma migrate dev`. The Prisma CLI loads `.env` itself; real environment variables take precedence over `.env`. Run Prisma commands from the repository root.
+- Before `pnpm db:seed`, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (at least 12 characters) in `.env`. The seed creates the first admin from them. It is safe to run again: an existing email is left untouched, and the password is never printed.
 
 More detail is in the [development setup guide](docs/guides/development-setup.md).
 
@@ -109,6 +111,8 @@ More detail is in the [development setup guide](docs/guides/development-setup.md
 | `pnpm db:up` | Starts the local PostgreSQL container in Docker. |
 | `pnpm db:down` | Stops the container. The data volume is kept. |
 | `pnpm db:migrate` | Runs `prisma migrate dev` (reads `.env`). |
+| `pnpm db:seed` | Creates the first admin from `ADMIN_EMAIL` and `ADMIN_PASSWORD`; safe to repeat. |
+| `pnpm admin:reset-password --email <address>` | Sets a new admin password read from stdin and ends all sessions of that user. |
 | `pnpm site-audit --leg <pages\|mobile\|desktop>` | Audits the built site in Chrome; run `pnpm build` first. |
 | `pnpm release:prepare` | Prepares a release: version, changelog and release note draft. |
 
@@ -119,7 +123,7 @@ More detail is in the [development setup guide](docs/guides/development-setup.md
 `pnpm test` runs two Vitest projects:
 
 - **Unit tests** (`src/**/*.test.ts` and `.test.tsx`) run in jsdom. Components are tested with Testing Library.
-- **Integration tests** (`src/**/*.int.test.ts`) run against a real PostgreSQL. Each run drops and recreates the local `tanyeri_test` database and applies all migrations. Start the database with `pnpm db:up` first.
+- **Integration tests** (`src/**/*.int.test.ts`) run against a real PostgreSQL. Each run drops and recreates the local `tanyeri_test` database and applies all migrations. The test files share that database, so they run one after another. Start the database with `pnpm db:up` first.
 
 Coverage is measured for `src/server` and `src/lib`. The line coverage gate is 80% and the value can only go up (`tooling/coverage-thresholds.json`). A pull request that changes TypeScript under `src/` must change tests too. The repository tools in `tooling/` have their own tests (`node --test "tooling/**/*.test.ts"`), which CI runs on Linux and on Windows.
 
