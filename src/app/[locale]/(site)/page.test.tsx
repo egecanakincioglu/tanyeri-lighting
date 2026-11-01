@@ -4,18 +4,20 @@ import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
 import type { ApplicationArea, HomeBanner, Product, PromoBoard } from '../../../server/content/schemas.ts';
 import { axeViolations } from '../../../test/axe.ts';
-import HomePage from './page.tsx';
+import HomePage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({
   banner: vi.fn(),
   boards: vi.fn(),
   products: vi.fn(),
   areas: vi.fn(),
+  metadata: vi.fn(),
 }));
 
 vi.mock('../../../server/content/home-banner.ts', () => ({ getHomeBanner: content.banner }));
 vi.mock('../../../server/content/promo-boards.ts', () => ({ listPromoBoards: content.boards }));
 vi.mock('../../../server/content/featured-products.ts', () => ({ listFeaturedProducts: content.products }));
+vi.mock('../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 vi.mock('../../../server/content/application-areas.ts', () => ({ listApplicationAreas: content.areas }));
 
 // The real helper needs the Next.js server runtime; this fake reads the same message files.
@@ -155,6 +157,27 @@ describe('HomePage', () => {
     const { container } = await renderPage('tr');
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy();
     expect(container.querySelector('section[aria-labelledby="home-title"] img')).toBeNull();
+  });
+
+  it.each([
+    ['tr', 'Description TR'],
+    ['en', 'Description EN'],
+  ])('describes the page in %s from the saved metadata', async (locale, description) => {
+    content.metadata.mockResolvedValue({
+      title: pair('Title'),
+      description: pair('Description'),
+      updatedAt: new Date(),
+    });
+    const metadata = await generateMetadata(props(locale));
+    expect(metadata.description).toBe(description);
+  });
+
+  it('omits the description when no metadata row or text exists', async () => {
+    content.metadata.mockResolvedValue(null);
+    await expect(generateMetadata(props('tr'))).resolves.toEqual({});
+    content.metadata.mockResolvedValue({ title: none, description: none, updatedAt: new Date() });
+    await expect(generateMetadata(props('en'))).resolves.toEqual({});
+    await expect(generateMetadata(props('fr'))).resolves.toEqual({});
   });
 
   it('answers an unknown language with not-found', async () => {
