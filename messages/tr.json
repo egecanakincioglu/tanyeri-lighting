@@ -45,5 +45,34 @@
   },
   "NotFound": {
     "title": "Sayfa bulunamadı"
+  },
+  "Contact": {
+    "title": "İletişim",
+    "introTitle": "Projenizi konuşalım",
+    "productSubject": "Ürün hakkında bilgi: {name} ({code})",
+    "introText": "Ürün sorularınız veya projeniz için bize yazın. En kısa sürede dönüş yapalım.",
+    "address": "Adres",
+    "phone": "Telefon",
+    "email": "E-posta",
+    "hours": "Çalışma saatleri",
+    "form": {
+      "name": "Adınız",
+      "email": "E-posta adresiniz",
+      "subject": "Konu",
+      "message": "Mesajınız",
+      "send": "Mesaj gönder",
+      "sending": "Gönderiliyor…"
+    },
+    "errors": {
+      "required": "Bu alan zorunludur.",
+      "too_long": "Bu metin çok uzun.",
+      "invalid": "Geçerli bir değer girin."
+    },
+    "invalidSummary": "Mesajınız gönderilmedi. Aşağıda işaretli alanları kontrol edin.",
+    "rateLimited": "Çok fazla mesaj gönderdiniz. {minutes} dakika sonra yeniden deneyin.",
+    "okTitle": "Mesajınız gönderildi",
+    "okText": "Teşekkürler. Mesajınız bize ulaştı, en kısa sürede dönüş yapacağız.",
+    "demoTitle": "Demo: mesajınız kaydedilmedi",
+    "demoNote": "Bu site bir demodur; mesaj kaydedilmedi ve gönderilmedi. Yazdığınız mesaj aşağıdadır."
   }
 }
