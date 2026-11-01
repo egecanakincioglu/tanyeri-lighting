@@ -1,0 +1,176 @@
+import { existsSync } from 'node:fs';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { seedDemoContent, type SeedCounts } from '../../../prisma/demo-content.ts';
+import { getDb } from '../db.ts';
+import { PAGE_KEYS } from './schemas.ts';
+
+const db = getDb();
+
+const demoFile = (url: string) => new URL(`../../../public${url}`, import.meta.url);
+
+// A bilingual pair is filled in both languages and the two differ (a copy of one language is not a translation).
+const isTranslated = (tr: string, en: string) => tr.length > 0 && en.length > 0 && tr !== en;
+
+describe('demo content seed on a real database', () => {
+  let first: SeedCounts;
+
+  beforeAll(async () => {
+    await db.user.deleteMany();
+    await db.user.create({ data: { id: 'demo-seed-user', name: 'Admin', email: 'admin@tanyeri.example' } });
+  });
+
+  afterAll(async () => {
+    await db.user.deleteMany();
+    await db.$disconnect();
+  });
+
+  it('seeds an empty database without a flag', async () => {
+    await db.featuredProduct.deleteMany();
+    await db.promoBoard.deleteMany();
+    await db.catalog.deleteMany();
+    await db.product.deleteMany();
+    await db.category.deleteMany();
+    await db.project.deleteMany();
+    await db.siteSettings.deleteMany();
+    first = await seedDemoContent(db);
+  });
+
+  it('refuses to run over existing content and changes nothing', async () => {
+    await db.category.updateMany({ data: { nameEn: 'Edited in the panel' } });
+    await expect(seedDemoContent(db)).rejects.toThrow('--replace');
+    expect(await db.product.count()).toBe(30);
+    expect(await db.category.count({ where: { nameEn: 'Edited in the panel' } })).toBe(6);
+  });
+
+  it('overwrites existing content with --replace', async () => {
+    expect(await seedDemoContent(db, { replace: true })).toEqual(first);
+    expect(await db.category.count({ where: { nameEn: 'Edited in the panel' } })).toBe(0);
+  });
+
+  it('creates the planned amount of content', async () => {
+    expect(first).toMatchObject({
+      categories: 6,
+      products: 30,
+      catalogs: 3,
+      promoBoards: 3,
+      featuredProducts: 6,
+      applicationAreas: 6,
+      services: 4,
+      projects: 3,
+      references: 4,
+      socialLinks: 3,
+      pageMetadata: PAGE_KEYS.length,
+      legalPages: 2,
+    });
+    expect(await db.category.count()).toBe(6);
+    expect(await db.product.count()).toBe(30);
+    expect(await db.catalog.count()).toBe(3);
+    expect(await db.promoBoard.count()).toBe(3);
+    expect(await db.featuredProduct.count()).toBe(6);
+    expect(await db.applicationArea.count()).toBe(6);
+    expect(await db.service.count()).toBe(4);
+    expect(await db.project.count()).toBe(3);
+    expect(await db.reference.count()).toBe(4);
+    expect(await db.socialLink.count()).toBe(3);
+    expect(await db.pageMetadata.count()).toBe(PAGE_KEYS.length);
+    expect(await db.legalPage.count()).toBe(2);
+    expect(await db.siteSettings.count()).toBe(1);
+    expect(await db.homeBanner.count()).toBe(1);
+    expect(await db.aboutPage.count()).toBe(1);
+  });
+
+  it('leaves the same content after a second run, and leaves users alone', async () => {
+    const snapshot = async () => ({
+      categories: (await db.category.findMany({ orderBy: { key: 'asc' } })).map((c) => [c.key, c.nameTr, c.nameEn]),
+      products: (await db.product.findMany({ orderBy: { slug: 'asc' } })).map((p) => [p.slug, p.code, p.nameEn]),
+      featured: (await db.featuredProduct.findMany({ orderBy: { sortOrder: 'asc' }, include: { product: true } })).map(
+        (f) => f.product.slug,
+      ),
+      boards: (await db.promoBoard.findMany({ orderBy: { sortOrder: 'asc' } })).map((b) => b.titleEn),
+      projects: (await db.project.findMany({ orderBy: { sortOrder: 'asc' } })).map((p) => p.titleEn),
+    });
+    const before = await snapshot();
+    const second = await seedDemoContent(db, { replace: true });
+    expect(second).toEqual(first);
+    const after = await snapshot();
+    expect(after).toEqual(before);
+    expect(await db.user.count()).toBe(1);
+  });
+
+  it('has both languages on every kind of record', async () => {
+    const site = await db.siteSettings.findUniqueOrThrow({ where: { id: 'site' } });
+    expect(isTranslated(site.addressTr, site.addressEn)).toBe(true);
+    expect(site.phone).toBe('+90 212 000 00 00');
+    expect(site.email.endsWith('.example')).toBe(true);
+
+    const social = await db.socialLink.findFirstOrThrow();
+    expect(social.url).toMatch(/^https:\/\/www\.example\.com\//);
+    expect(social.labelTr.length).toBeGreaterThan(0);
+    expect(social.labelEn.length).toBeGreaterThan(0);
+
+    for (const key of PAGE_KEYS) {
+      const page = await db.pageMetadata.findUniqueOrThrow({ where: { pageKey: key } });
+      expect(isTranslated(page.titleTr, page.titleEn) && isTranslated(page.descriptionTr, page.descriptionEn)).toBe(
+        true,
+      );
+    }
+    for (const key of ['privacy', 'terms']) {
+      const legal = await db.legalPage.findUniqueOrThrow({ where: { pageKey: key } });
+      expect(isTranslated(legal.bodyTr, legal.bodyEn)).toBe(true);
+    }
+
+    const category = await db.category.findFirstOrThrow();
+    expect(isTranslated(category.nameTr, category.nameEn)).toBe(true);
+    const product = await db.product.findFirstOrThrow();
+    expect(isTranslated(product.nameTr, product.nameEn)).toBe(true);
+    expect(isTranslated(product.colorTr, product.colorEn)).toBe(true);
+    expect(isTranslated(product.materialTr, product.materialEn)).toBe(true);
+    const catalog = await db.catalog.findFirstOrThrow();
+    expect(isTranslated(catalog.nameTr, catalog.nameEn)).toBe(true);
+    const banner = await db.homeBanner.findUniqueOrThrow({ where: { id: 'home' } });
+    expect(
+      isTranslated(banner.titleTr, banner.titleEn) && isTranslated(banner.primaryLabelTr, banner.primaryLabelEn),
+    ).toBe(true);
+    expect(banner.primaryTarget).not.toBe(banner.secondaryTarget);
+    const board = await db.promoBoard.findFirstOrThrow();
+    expect(isTranslated(board.titleTr, board.titleEn)).toBe(true);
+    const area = await db.applicationArea.findFirstOrThrow();
+    expect(isTranslated(area.titleTr, area.titleEn) && isTranslated(area.descriptionTr, area.descriptionEn)).toBe(true);
+    const service = await db.service.findFirstOrThrow({ orderBy: { sortOrder: 'asc' } });
+    expect(isTranslated(service.titleTr, service.titleEn) && isTranslated(service.noteTr, service.noteEn)).toBe(true);
+    const about = await db.aboutPage.findUniqueOrThrow({ where: { id: 'about' } });
+    expect(isTranslated(about.bodyTr, about.bodyEn) && isTranslated(about.visionTr, about.visionEn)).toBe(true);
+    const project = await db.project.findFirstOrThrow();
+    expect(isTranslated(project.titleTr, project.titleEn)).toBe(true);
+    const reference = await db.reference.findFirstOrThrow();
+    expect(isTranslated(reference.titleTr, reference.titleEn)).toBe(true);
+  });
+
+  it('features six products, links each promo board to a catalog and keeps products without a price', async () => {
+    const featured = await db.featuredProduct.findMany({ include: { product: true } });
+    expect(featured).toHaveLength(6);
+    expect(featured.every((f) => f.product.nameTr.length > 0)).toBe(true);
+    const boards = await db.promoBoard.findMany({ include: { catalog: true } });
+    expect(boards.every((b) => b.catalog.pdfUrl.startsWith('/demo/'))).toBe(true);
+    const perCategory = await db.category.findMany({ include: { _count: { select: { products: true } } } });
+    expect(perCategory.every((c) => c._count.products >= 4)).toBe(true);
+  });
+
+  it('points every picture and file at an existing file under public/demo', async () => {
+    const urls = new Set<string>([
+      ...(await db.product.findMany()).map((r) => r.imageUrl),
+      ...(await db.promoBoard.findMany()).map((r) => r.imageUrl),
+      ...(await db.applicationArea.findMany()).map((r) => r.imageUrl),
+      ...(await db.service.findMany()).map((r) => r.imageUrl),
+      ...(await db.reference.findMany()).map((r) => r.imageUrl),
+      ...(await db.project.findMany()).flatMap((r) => [r.beforeImageUrl, r.afterImageUrl]),
+      ...(await db.catalog.findMany()).map((r) => r.pdfUrl),
+      (await db.homeBanner.findUniqueOrThrow({ where: { id: 'home' } })).imageUrl,
+    ]);
+    expect(urls.size).toBeGreaterThan(20);
+    for (const url of urls) {
+      expect(url.startsWith('/demo/'), url).toBe(true);
+      expect(existsSync(demoFile(url)), url).toBe(true);
+    }
+  });
+});

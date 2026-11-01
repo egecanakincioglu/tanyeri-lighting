@@ -128,6 +128,27 @@ describe('siteSettingsSchema', () => {
       expect(siteSettingsSchema.safeParse({ ...validSettings, logoUrl }).success).toBe(false);
     },
   );
+
+  it.each(['/demo/banner.webp', '/demo/a/b-1_2.pdf', ' /demo/banner.webp '])('accepts the demo path %s', (logoUrl) => {
+    expect(siteSettingsSchema.safeParse({ ...validSettings, logoUrl }).success).toBe(true);
+  });
+
+  it.each([
+    '/demo/',
+    '/demo',
+    '/demos/a.webp',
+    '/other/a.webp',
+    '/demo/../secret.webp',
+    '/demo/a/../b.webp',
+    '/demo//a.webp',
+    '//demo/a.webp',
+    '//evil.example/demo/a.webp',
+    '/demo/a b.webp',
+    '/demo/a.webp?x=1',
+    'demo/a.webp',
+  ])('rejects the path %s', (logoUrl) => {
+    expect(siteSettingsSchema.safeParse({ ...validSettings, logoUrl }).success).toBe(false);
+  });
 });
 
 describe('socialLinkSchema', () => {
@@ -139,12 +160,16 @@ describe('socialLinkSchema', () => {
     ).toEqual(valid);
   });
 
-  it.each(['http://instagram.com/tanyeri', 'javascript:alert(1)', 'mailto:a@example.com', 'ftp://example.com', 'x'])(
-    'rejects the address %s',
-    (url) => {
-      expect(socialLinkSchema.safeParse({ ...valid, url }).success).toBe(false);
-    },
-  );
+  it.each([
+    'http://instagram.com/tanyeri',
+    'javascript:alert(1)',
+    'mailto:a@example.com',
+    'ftp://example.com',
+    '/demo/a.webp',
+    'x',
+  ])('rejects the address %s', (url) => {
+    expect(socialLinkSchema.safeParse({ ...valid, url }).success).toBe(false);
+  });
 
   it('requires a platform of 1 to 40 characters', () => {
     expect(socialLinkSchema.safeParse({ ...valid, platform: '  ' }).success).toBe(false);

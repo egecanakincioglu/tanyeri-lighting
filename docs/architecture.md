@@ -59,6 +59,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   - Email must be valid and at most 254 characters.
   - Phone allows digits, spaces and `+ ( ) -`, with 7 to 20 digits. `phoneToTel` derives the `tel:` link.
   - Social links accept `https` addresses only. The platform name is free text, and the label is bilingual. Reordering needs the full list of ids.
+  - Image and catalog URLs are `https`, or a path under `/demo/` for the demo files in `public/demo/`.
 - Every write service calls `assertWritable()` first, then validates with zod. The services are in `src/server/content`.
 - Project and reference services:
   - Projects: `listProjects`, `getProject` (null when missing), `createProject`, `updateProject`, `deleteProject` and `reorderProjects`.

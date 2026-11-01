@@ -94,6 +94,7 @@ Then open http://localhost:3000.
 - Edit `.env` if you need to. The defaults match the database from `pnpm db:up`. `BETTER_AUTH_SECRET` must have at least 32 characters; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`. `BLOB_READ_WRITE_TOKEN` is optional; without it, uploads are off.
 - `pnpm db:migrate` runs `prisma migrate dev`. The Prisma CLI loads `.env` itself; real environment variables take precedence over `.env`. Run Prisma commands from the repository root.
 - Before `pnpm db:seed`, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (at least 12 characters) in `.env`. The seed creates the first admin from them. It is safe to run again: an existing email is left untouched, and the password is never printed.
+- `pnpm db:seed:demo` fills the site with fictional demo content. It refuses if content exists, unless run with `--replace` or `DEMO_MODE=true`.
 
 More detail is in the [development setup guide](docs/guides/development-setup.md).
 
@@ -114,6 +115,7 @@ More detail is in the [development setup guide](docs/guides/development-setup.md
 | `pnpm db:down` | Stops the container. The data volume is kept. |
 | `pnpm db:migrate` | Runs `prisma migrate dev` (reads `.env`). |
 | `pnpm db:seed` | Creates the first admin from `ADMIN_EMAIL` and `ADMIN_PASSWORD`; safe to repeat. |
+| `pnpm db:seed:demo` | Fills the site with fictional demo content. Refuses if content exists, unless run with `--replace` or `DEMO_MODE=true`. |
 | `pnpm admin:reset-password --email <address>` | Sets a new admin password read from stdin and ends all sessions of that user. |
 | `pnpm site-audit --leg <pages\|mobile\|desktop>` | Audits the built site in Chrome; run `pnpm build` first. |
 | `pnpm release:prepare` | Prepares a release: version, changelog and release note draft. |

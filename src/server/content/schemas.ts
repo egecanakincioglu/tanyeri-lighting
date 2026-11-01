@@ -13,10 +13,21 @@ const httpsUrl = z
   .trim()
   .max(MAX_URL_LENGTH);
 
+// The files of the demo content live in public/demo. Exact prefix, no parent step, no protocol-relative address.
+const demoPath = z
+  .string()
+  .trim()
+  .max(MAX_URL_LENGTH)
+  .regex(/^\/demo\/[A-Za-z0-9._/-]+$/)
+  .refine((path) => !path.includes('..') && !path.includes('//'));
+
+// Where a stored picture or file is: an https address (uploads are Blob addresses) or a path under /demo/.
+const mediaUrl = z.union([httpsUrl, demoPath]);
+
 export const siteSettingsSchema = z.object({
   siteName: bilingual(100),
   // A Blob address from the storage module, or none.
-  logoUrl: httpsUrl.nullable(),
+  logoUrl: mediaUrl.nullable(),
   phone: z.string().trim().max(30).refine(isValidPhone, 'Enter a phone number of 7 to 20 digits'),
   email: z.string().trim().pipe(z.email().max(254)),
   address: bilingual(300),
@@ -83,8 +94,8 @@ export const projectSchema = z.object({
   // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   description: bilingual(5000),
   // The two pictures of the before and after slider; Blob addresses from the storage module.
-  beforeImageUrl: httpsUrl,
-  afterImageUrl: httpsUrl,
+  beforeImageUrl: mediaUrl,
+  afterImageUrl: mediaUrl,
 });
 
 export type ProjectInput = z.infer<typeof projectSchema>;
@@ -94,7 +105,7 @@ export const projectIdSchema = z.string().min(1).max(64);
 export const projectOrderSchema = z.array(projectIdSchema);
 
 export const referenceSchema = z.object({
-  imageUrl: httpsUrl,
+  imageUrl: mediaUrl,
   // A proper name, the same in both languages.
   name: z.string().trim().min(1).max(100),
   // What kind of work it was.
@@ -142,7 +153,7 @@ export const productSchema = z.strictObject({
   material: bilingual(100),
   power: z.string().trim().min(1).max(40),
   dimensions: z.string().trim().min(1).max(60),
-  imageUrl: httpsUrl,
+  imageUrl: mediaUrl,
 });
 
 export type ProductInput = z.infer<typeof productSchema>;
@@ -151,7 +162,7 @@ export type Product = ProductInput & { id: string; categoryKey: string };
 export const catalogSchema = z.object({
   name: bilingual(120),
   // A Blob address from the storage module.
-  pdfUrl: httpsUrl,
+  pdfUrl: mediaUrl,
   // Bytes; the upper bound is the largest value the column holds.
   sizeBytes: z.int().min(1).max(2_147_483_647),
 });
@@ -166,7 +177,7 @@ const bannerActionSchema = z.strictObject({
 });
 
 export const homeBannerSchema = z.strictObject({
-  imageUrl: httpsUrl,
+  imageUrl: mediaUrl,
   title: bilingual(120),
   description: bilingual(400),
   primaryAction: bannerActionSchema,
@@ -181,7 +192,7 @@ export const featuredProductIdsSchema = idListSchema.refine((ids) => new Set(ids
 });
 
 export const promoBoardSchema = z.strictObject({
-  imageUrl: httpsUrl,
+  imageUrl: mediaUrl,
   title: bilingual(100),
   // The catalog the board links to.
   catalogId: idSchema,
@@ -192,7 +203,7 @@ export type PromoBoardInput = z.infer<typeof promoBoardSchema>;
 export type PromoBoard = PromoBoardInput & { id: string; catalogName: Bilingual; catalogPdfUrl: string };
 
 export const applicationAreaSchema = z.strictObject({
-  imageUrl: httpsUrl,
+  imageUrl: mediaUrl,
   title: bilingual(100),
   // Short plain text.
   description: bilingual(300),
@@ -202,7 +213,7 @@ export type ApplicationAreaInput = z.infer<typeof applicationAreaSchema>;
 export type ApplicationArea = ApplicationAreaInput & { id: string };
 
 export const serviceSchema = z.strictObject({
-  imageUrl: httpsUrl,
+  imageUrl: mediaUrl,
   title: bilingual(100),
   // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   description: bilingual(5000),

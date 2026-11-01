@@ -62,6 +62,8 @@ The local database is PostgreSQL 18. `pnpm db:up` starts the container and `pnpm
 
 After the first migration, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` and run `pnpm db:seed`. It creates the first admin. Running it again is safe: if the email already exists, nothing changes. It needs `DATABASE_URL`, `DATABASE_URL_UNPOOLED` and the `BETTER_AUTH_*` variables as well.
 
+`pnpm db:seed:demo` fills the site with fictional demo content. It refuses if content exists, unless run with `--replace` or `DEMO_MODE=true`.
+
 If an admin forgets the password and email is not configured, set a new one on the server with `printf '%s\n' '<new password>' | pnpm admin:reset-password --email <address>`. The password is read from standard input only. The command ends all sessions of that user and exits with code 1 for an unknown email or a password shorter than 12 characters.
 
 The command works the same in Git Bash and PowerShell. When the schema changes, `migrate dev` creates a new migration; add the generated files to the same pull request.
