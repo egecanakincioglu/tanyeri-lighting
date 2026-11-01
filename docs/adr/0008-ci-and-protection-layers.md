@@ -1,6 +1,7 @@
 # ADR 0008: CI and protection layers — GitHub-hosted runners, required checks, branch protection, CodeQL, Semgrep, gitleaks, Dependabot
 
-Status: Accepted; partly changed by [ADR 0009](0009-quality-targets.md) (the "no Lighthouse gates" statement and the list of required checks)
+Status: Accepted; partly changed by [ADR 0009](0009-quality-targets.md) (the "no Lighthouse gates" statement and the list of required checks) and by [ADR 0012](0012-license-polyform-noncommercial.md) (CodeQL removed; Semgrep registry rule sets and zizmor added; 12 required checks)
+Changed (2026-11-01): the project moved to the PolyForm Noncommercial license, which is not OSI-approved, so CodeQL can no longer be used. Where this text describes CodeQL, the `analyze (javascript-typescript)`, `analyze (actions)` and `CodeQL` checks, or the rule against registry rule sets, read [ADR 0012](0012-license-polyform-noncommercial.md) and the changed items below. The required checks are now `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `quality`, `semgrep-registry`, `zizmor`, `test`, `build`, `site-audit (pages)`, `site-audit (mobile)` and `site-audit (desktop)` (12).
 Update 2026-10-28: details that became clear during setup the same day (the list of required checks, CodeQL being required, gitleaks running from a digest-pinned image, the Dependabot ecosystems) were recorded before implementation; the decision did not change.
 Date: 2026-10-28
 
@@ -15,13 +16,14 @@ Decisions:
 
 Rules and layers:
 
-- 5 required checks: `policy`, `pr-text`, `quality`, `test`, `build`.
+- 5 required checks: `policy`, `pr-text`, `quality`, `test`, `build` (12 now; see the note at the top).
 - Branch protection: PR required, strict, signed commits, force push and deletion disabled, administrators included.
 - Merge commits only; the branch is deleted automatically.
 - Only actions from GitHub and verified publishers; every action is pinned to a full commit SHA.
 - Secret scanning + push protection.
-- CodeQL.
+- CodeQL (removed on 2026-11-01).
 - Semgrep.
+- zizmor (added on 2026-11-01).
 - `.gitleaks.toml` with custom rules.
 - Dependabot: npm and GitHub Actions; weekly, minor/patch grouped.
 
@@ -64,21 +66,23 @@ The project uses **GitHub-hosted runners; required checks; branch protection; Co
 
 Rules:
 
-1. Workflows: `.github/workflows/ci.yml` (`policy`, `tooling (linux)`, `tooling (windows)`; in phase 3 `quality`, `test`, `build`), `.github/workflows/pr-text.yml` (`pr-text`) and `.github/workflows/codeql.yml` (`analyze (javascript-typescript)` and `analyze (actions)`). Job names match the required check names exactly. All jobs except `tooling (windows)` run on the standard `ubuntu-latest` runner; larger runners are not used.
+1. Workflows: `.github/workflows/ci.yml` (`policy`, `tooling (linux)`, `tooling (windows)`; in phase 3 `quality`, `test`, `build`), `.github/workflows/pr-text.yml` (`pr-text`) and `.github/workflows/codeql.yml` (`analyze (javascript-typescript)` and `analyze (actions)`; removed on 2026-11-01). The jobs `semgrep-registry` and `zizmor` in `ci.yml` replaced it. Job names match the required check names exactly. All jobs except `tooling (windows)` run on the standard `ubuntu-latest` runner; larger runners are not used.
 2. What the jobs do:
    - `policy`: branch name; every commit in the PR (title, body, forbidden term, signature); the untested-code gate and the rule that the coverage threshold is not lowered ([ADR 0007](0007-testing-strategy.md)); secret scan over the whole history; forbidden paths.
    - `pr-text`: PR title and forbidden terms.
+   - `semgrep-registry`: Semgrep with the community rule sets (rule 6).
+   - `zizmor`: audit of the workflows (rule 11).
    - `quality`: Prettier, ESLint CLI (flat config; no `next lint`), `tsc --noEmit` (application and `tooling/` together), dead code and unused dependency scan, `pnpm audit` (high/critical fail, with a time-limited exception list), Semgrep, license policy (permissive licenses only, such as MIT, MIT-0, ISC, BSD and Apache-2.0).
    - `test`: Vitest, with the Postgres service container and the coverage threshold.
    - `build`: `next build`.
-3. Branch protection (`main`): PR required (0 approvals); required checks `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)` and `CodeQL`, and after phase 3 `quality`, `test`, `build` and `analyze (actions)`; strict (the branch must be up to date); signed commits required; force push and branch deletion disabled; administrators included. Repository settings: merge commits only, automatic branch deletion, auto-merge enabled, suggestion to update the branch enabled.
+3. Branch protection (`main`): PR required (0 approvals); required checks `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `quality`, `semgrep-registry`, `zizmor`, `test`, `build`, `site-audit (pages)`, `site-audit (mobile)` and `site-audit (desktop)`; strict (the branch must be up to date); signed commits required; force push and branch deletion disabled; administrators included. Repository settings: merge commits only, automatic branch deletion, auto-merge enabled, suggestion to update the branch enabled.
 4. Actions: only actions from GitHub (`actions/*`, `github/*`) and verified publishers; each one pinned to a full commit SHA with a version comment next to it. Tools from unverified publishers do not run as actions. They run as a binary or package with a pinned version and integrity.
-5. CodeQL is the main SAST scanner: a workflow in the repository (advanced setup).
+5. Changed (2026-11-01): CodeQL is removed. The original rule read as follows. CodeQL was the main SAST scanner: a workflow in the repository (advanced setup).
    - Query suite `security-extended`; languages `javascript-typescript` and `actions`.
    - It runs on pushes to `main`, on PRs to `main` and weekly. Findings show in the security tab.
    - The `analyze (javascript-typescript)` job of CodeQL and the `CodeQL` result check are required checks.
    - The CodeQL license requires an OSI-approved license, so the `LICENSE` file (MIT) is in the repository together with, or before, the CodeQL workflow.
-6. Semgrep runs only with project-specific rules; no rule set is pulled from the registry. The rules live in the repository (MIT) and run on all code in every PR; a finding fails the `quality` job.
+6. Semgrep runs in two jobs. The project-specific rules live in the repository and run on all code in every PR; a finding fails the `quality` job. Changed (2026-11-01): the `semgrep-registry` job also runs the community rule sets `p/typescript`, `p/react`, `p/nodejs`, `p/owasp-top-ten` and `p/security-audit` with `--error`. The project rules are:
    - Use of `$queryRawUnsafe` / `$executeRawUnsafe`.
    - `dangerouslySetInnerHTML`.
    - `eval` and `new Function`.
@@ -87,19 +91,23 @@ Rules:
 
    Each rule has its own positive and negative example test (`semgrep --test`). The engine is CE with a pinned version (the digest-pinned version in the CI image list), the official container image is pinned by digest, and no Semgrep account or token is used.
 
-   Why no ready-made sets: (1) the rule license limits use to "your own internal business purposes" and does not cover the CI of a public project explicitly; (2) CE coverage is thin for this stack (`p/nextjs` empty, `p/react` 4 rules). The `security-extended` suite of CodeQL covers general security patterns.
+   Why the registry sets are used now (changed on 2026-11-01): CodeQL no longer covers general security patterns, so the registry sets fill that gap. They run in their own job, `semgrep-registry`, so that a failure is easy to tell from a failure of the project's own checks. The rules are fetched from the registry at run time and cannot be pinned, so a new upstream rule can turn the job red without a change in the repository. `p/nodejsscan` is left out because of false positives, and `p/nextjs` has no rules in the CE engine. The rule license described in the context still applies to them; they are used only to scan this repository and are not copied into it.
 7. gitleaks: v8.30.1, official container image pinned by digest (`tooling/ci-images/Dockerfile`; Dependabot updates it). Locally, a `gitleaks` installed in PATH is used if there is one. It runs with the default rules and the custom rules in `.gitleaks.toml`: password fields in JSON/YAML, credentials in connection URLs, Turkish phone numbers. It runs on staged changes (local hook) and on the whole history (CI `policy`). Known false positives stay in the exception list by fingerprint. The local hook uses the `gitleaks` in PATH only if it has the pinned version; otherwise it runs the pinned image with Docker or Podman; if neither exists, it rejects the commit (the scan is never skipped). The doctor script does the same check.
 8. pnpm is installed with Corepack. The `packageManager` field in `package.json` holds the full pnpm version and the integrity hash; CI uses this version after `corepack enable`. `policy` checks that the field has a hash and a full version.
 9. Dependabot: `npm`, `github-actions` and `docker` (the CI image list) ecosystems; weekly; minor and patch updates grouped per ecosystem; new releases wait 7 days, security updates do not wait; major versions of `prisma` and `@prisma/*` and of the Postgres image are ignored (a major upgrade is a deliberate PR); security updates and alerts are on. Dependabot PRs pass the same required checks.
 10. Repository security settings: secret scanning and push protection on; private vulnerability reporting on. Actions: SHA pinning required, the workflow token is read-only, Actions cannot approve PRs.
+11. zizmor (added on 2026-11-01) audits `.github` (workflows and the Dependabot config) at medium severity or higher. Version 1.31.1, official container image pinned by digest in `tooling/ci-images/Dockerfile`. The online audits (impostor commits, known vulnerable actions) run through the read-only `GITHUB_TOKEN`, so they run only in CI.
+12. Workflow guards (added on 2026-11-01), both checked by tests in `tooling/scripts/workflows.test.ts`:
+    - Every `actions/checkout` step sets `persist-credentials: false`, so the token does not stay in the git config.
+    - The release job turns the setup-node cache off (`package-manager-cache: false`), because a poisoned cache must not reach a published release (cache poisoning).
 
 ## Consequences
 
 - Positive: runners, code scanning, secret scanning and Dependabot are free for this repository. No extra service or account is needed.
-- Positive: all protection tools (gitleaks, Semgrep CE, the CodeQL workflow) have pinned versions and are visible in the repository. The same commands run locally.
-- Positive: no license uncertainty remains in SAST. The Semgrep rules belong to the project, and the CodeQL license is explicit about open-source use.
+- Positive: all protection tools (gitleaks, Semgrep CE, zizmor; before 2026-11-01 also the CodeQL workflow) have pinned versions and are visible in the repository. The same commands run locally.
+- Positive: the project rules belong to the project. Changed (2026-11-01): the CodeQL license no longer applies to this project; see [ADR 0012](0012-license-polyform-noncommercial.md).
 - Negative: because of the action restriction, the gitleaks and pnpm setup steps are written by the project. Their verification (checksum, version and hash match) happens in tested scripts.
-- Negative: the ready-made Semgrep patterns in the registry are not used. Next.js-specific security patterns are searched only with the project's own rules and CodeQL.
+- Negative: changed (2026-11-01): the registry rule sets are used, but they are not pinned and `p/nextjs` has no CE rules. Next.js-specific security patterns are searched only with the project's own rules and the registry sets above.
 - Risk: Corepack is experimental in Node 24 and does not ship with Node from Node 25. When the project moves to Node 26, Corepack is installed separately as an npm package with a pinned version.
 - Risk: strict branch protection requires the branch to be up to date before every merge. With several PRs in the queue at once, auto-merge may need re-runs in sequence; this is acceptable for a one-person project.
 - Follow-up: the protections were turned on on 2026-10-28, and the next PR passed the required checks and merged with auto-merge. `quality`, `test` and `build` are set up in phase 3 and added to the required checks.

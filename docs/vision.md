@@ -2,11 +2,11 @@
 
 ## What
 
-A bilingual (Turkish and English) corporate website with a product catalog, and an admin panel to manage it, for a fictional lighting brand. The project is open source (MIT) and has a live demo on Vercel.
+A bilingual (Turkish and English) corporate website with a product catalog, and an admin panel to manage it, for a fictional lighting brand. The project is source-available under the PolyForm Noncommercial License 1.0.0 and has a live demo on Vercel.
 
 ## Why
 
-The project started in 2023 as a website for a client. The rewrite takes the same idea and builds it again from scratch with current engineering standards. The goal is a project that developers can read and learn from, and that anyone can take and adapt for their own use.
+The project started in 2023 as a website for a client. The rewrite takes the same idea and builds it again from scratch with current engineering standards. The goal is a project that developers can read and learn from, and that anyone can take and adapt for their own noncommercial use.
 
 ## Who it is for
 

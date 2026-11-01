@@ -116,7 +116,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Vitest for unit tests (jsdom, Testing Library) and integration tests on a real PostgreSQL. Integration tests are named `*.int.test.ts`; the files share one database, so they run one after another. HTTP calls to outside services, such as Blob, are replaced in tests; the database is not ([ADR 0007](adr/0007-testing-strategy.md)).
 - The coverage gate is 80% of lines for `src/server` and `src/lib`. A pull request that changes TypeScript under `src/` must change tests.
 - The repository tools have their own tests and run on Linux and Windows.
-- CI, branch protection and the Semgrep, CodeQL and gitleaks scans are described in [ADR 0008](adr/0008-ci-and-protection-layers.md) and the [Git workflow guide](guides/git-workflow.md).
+- CI, branch protection and the Semgrep, zizmor and gitleaks scans are described in [ADR 0008](adr/0008-ci-and-protection-layers.md) and the [Git workflow guide](guides/git-workflow.md).
 
 ## Deployment
 

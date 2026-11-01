@@ -48,7 +48,7 @@ Rules:
 8. Checks.
    - `policy`: a PR that changes `version` also changes `CHANGELOG.md`, and the version only increases.
    - Tag workflow: tag–version equality and presence on `main`.
-   - Release workflows pass the CodeQL `actions` scan and actionlint; actions are pinned by SHA.
+   - Release workflows pass the zizmor audit and actionlint; actions are pinned by SHA.
 9. Manual steps. Create a team-scoped token in Vercel and add it as the `VERCEL_TOKEN` repository secret; add the team and project IDs as repository variables (`VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`). Renewing the token when it expires belongs to the secret rotation runbook (planned).
 
 ## Consequences
