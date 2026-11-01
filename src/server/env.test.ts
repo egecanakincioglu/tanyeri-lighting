@@ -10,6 +10,7 @@ import {
   isEmailEnabled,
   isIndexingEnabled,
   isProduction,
+  isVercel,
   parseEnv,
 } from './env.ts';
 
@@ -322,5 +323,23 @@ describe('isEmailEnabled', () => {
     expect(isEmailEnabled()).toBe(false);
     for (const [name, value] of Object.entries(smtp)) vi.stubEnv(name, value);
     expect(isEmailEnabled()).toBe(true);
+  });
+});
+
+describe('isVercel', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('is true only when Vercel sets VERCEL to 1', () => {
+    expect(isVercel({ VERCEL: '1' })).toBe(true);
+    expect(isVercel({ VERCEL: '0' })).toBe(false);
+    expect(isVercel({ VERCEL: '' })).toBe(false);
+    expect(isVercel({})).toBe(false);
+  });
+
+  it('reads process.env by default', () => {
+    vi.stubEnv('VERCEL', '1');
+    expect(isVercel()).toBe(true);
   });
 });

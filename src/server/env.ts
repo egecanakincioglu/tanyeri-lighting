@@ -142,3 +142,9 @@ export function getSmtpConfig(source: Record<string, string | undefined> = proce
 export function isEmailEnabled(source: Record<string, string | undefined> = process.env): boolean {
   return getSmtpConfig(source) !== undefined;
 }
+
+// Vercel sets VERCEL=1 on every deployment. Headers that only Vercel writes are trusted only where this is true.
+// Same reason as isIndexingEnabled: no database variables needed, read on every call.
+export function isVercel(source: Record<string, string | undefined> = process.env): boolean {
+  return source.VERCEL === '1';
+}
