@@ -18,6 +18,19 @@ describe('Pagination', () => {
     expect(screen.getAllByRole('link')).toHaveLength(3);
   });
 
+  it('renders items that share an address', () => {
+    render(
+      <Pagination
+        label="Pages"
+        items={[
+          { label: 'Previous', href: '/blog' },
+          { label: '1', href: '/blog', current: true },
+        ]}
+      />,
+    );
+    expect(screen.getAllByRole('link')).toHaveLength(2);
+  });
+
   it('marks only the current page with aria-current', () => {
     render(<Pagination label="Pages" items={items} />);
     expect(screen.getByRole('link', { name: '2' }).getAttribute('aria-current')).toBe('page');

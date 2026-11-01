@@ -43,6 +43,28 @@
     "boardLink": "Explore now",
     "areasTitle": "Our Work Areas"
   },
+  "Products": {
+    "title": "Our products",
+    "swipeHint": "Swipe to switch between categories",
+    "categories": "Product categories",
+    "all": "All",
+    "pages": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "empty": "There are no products in this category yet."
+  },
+  "Product": {
+    "back": "All products",
+    "request": "Request information",
+    "details": "Product details",
+    "code": "Code",
+    "category": "Category",
+    "color": "Colour",
+    "material": "Material",
+    "power": "Power",
+    "dimensions": "Dimensions",
+    "description": "{name}, {category}. Product code: {code}."
+  },
   "Catalogs": {
     "view": "View",
     "download": "Download",

@@ -2,6 +2,7 @@
 // pages.test.ts, so a new template can not ship unaudited.
 export const LOCALES = ['tr', 'en'] as const;
 
+// A dynamic template is listed with one seeded address, which stands for the template.
 export const PAGES: readonly string[] = [
   '/tr',
   '/en',
@@ -23,4 +24,8 @@ export const PAGES: readonly string[] = [
   '/en/privacy',
   '/tr/kullanim-kosullari',
   '/en/terms',
+  '/tr/urunler',
+  '/en/products',
+  '/tr/urunler/halka-sarkit-40w',
+  '/en/products/halka-sarkit-40w',
 ];

@@ -1,0 +1,125 @@
+import { hasLocale } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { Card } from '../../../../../components/card.tsx';
+import { Container } from '../../../../../components/container.tsx';
+import { SiteImage } from '../../../../../components/site-image.tsx';
+import { getPathname } from '../../../../../i18n/navigation.ts';
+import { routing } from '../../../../../i18n/routing.ts';
+import { listCategories } from '../../../../../server/content/categories.ts';
+import { getProductBySlug } from '../../../../../server/content/products.ts';
+
+type Locale = (typeof routing.locales)[number];
+
+// The demo photos are 480 px wide, so the image is shown at most 240 px wide: sharp on 2x screens and not blown up.
+const IMAGE_SIZES = '240px';
+
+async function categoryName(key: string, locale: Locale): Promise<string> {
+  const categories = await listCategories();
+  return categories.find((entry) => entry.key === key)?.name[locale] ?? '';
+}
+
+async function loadProduct(slug: string, locale: Locale) {
+  const found = await getProductBySlug(slug);
+  if (!found) return null;
+  if ('redirectTo' in found) {
+    permanentRedirect(
+      getPathname({ locale, href: { pathname: '/products/[slug]', params: { slug: found.redirectTo } } }),
+    );
+  }
+  const category = await categoryName(found.product.categoryKey, locale);
+  return { product: found.product, category };
+}
+
+export async function generateMetadata({ params }: PageProps<'/[locale]/products/[slug]'>): Promise<Metadata> {
+  const { locale, slug } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    return {};
+  }
+  const [t, found] = await Promise.all([getTranslations({ locale, namespace: 'Product' }), getProductBySlug(slug)]);
+  if (!found || 'redirectTo' in found) return {};
+  const category = await categoryName(found.product.categoryKey, locale);
+  const name = found.product.name[locale];
+  return {
+    title: name,
+    description: t('description', { name, category, code: found.product.code }),
+  };
+}
+
+export default async function ProductPage({ params }: PageProps<'/[locale]/products/[slug]'>) {
+  const { locale, slug } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+  const [t, loaded] = await Promise.all([getTranslations({ locale, namespace: 'Product' }), loadProduct(slug, locale)]);
+  if (!loaded) notFound();
+  const { product, category } = loaded;
+  const name = product.name[locale];
+
+  const rows = [
+    [t('code'), product.code],
+    [t('category'), category],
+    [t('color'), product.color[locale]],
+    [t('material'), product.material[locale]],
+    [t('power'), product.power],
+    [t('dimensions'), product.dimensions],
+  ].filter(([, value]) => value !== '');
+
+  return (
+    <div className="py-[clamp(1.5rem,4vw,3rem)]">
+      <Container>
+        <Link
+          href={getPathname({ locale, href: '/products' })}
+          prefetch={false}
+          className="group/back mb-2 inline-flex min-h-touch items-center gap-1.5 font-semibold text-accent-text hover:underline hover:underline-offset-4"
+        >
+          <span aria-hidden="true" className="transition-transform duration-200 group-hover/back:-translate-x-0.75">
+            ←
+          </span>
+          {t('back')}
+        </Link>
+
+        <Card>
+          <div className="grid gap-x-8 gap-y-5 p-5 md:grid-cols-[15rem_1fr] md:p-8">
+            <div className="md:col-start-2">
+              <h1 className="text-[length:clamp(1.5rem,2.2vw,2rem)] leading-[1.2] font-bold tracking-tight text-ink">
+                {name}
+              </h1>
+              <p className="mt-1 text-muted">{category ? `${category} · ${product.code}` : product.code}</p>
+            </div>
+            <div className="md:col-start-1 md:row-span-3 md:row-start-1">
+              <span className="relative mx-auto block aspect-square w-60 max-w-full overflow-hidden rounded-md">
+                <SiteImage src={product.imageUrl} alt={name} fill sizes={IMAGE_SIZES} priority />
+              </span>
+            </div>
+            <div className="md:col-start-2">
+              <h2 className="sr-only">{t('details')}</h2>
+              <dl>
+                {rows.map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="grid grid-cols-[minmax(6rem,2fr)_3fr] gap-x-4 border-t border-hairline py-2.5 last:border-b"
+                  >
+                    <dt className="text-muted">{label}</dt>
+                    <dd className="font-medium text-ink">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <div className="md:col-start-2">
+              <Link
+                href={getPathname({ locale, href: { pathname: '/contact', query: { product: product.slug } } })}
+                prefetch={false}
+                className="inline-flex min-h-touch items-center justify-center rounded-md bg-accent px-6 font-semibold text-on-accent transition-colors duration-300 hover:bg-accent-hover"
+              >
+                {t('request')}
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </Container>
+    </div>
+  );
+}

@@ -59,6 +59,19 @@
   --ease-*: initial;
   --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
 
+  --animate-hint: hint 2s infinite;
+  @keyframes hint {
+    0%,
+    100% {
+      opacity: 0.6;
+      translate: -5px 0;
+    }
+    50% {
+      opacity: 1;
+      translate: 5px 0;
+    }
+  }
+
   /* Content width; the base layer raises it on very wide screens. */
   --container-page: 75rem;
 
