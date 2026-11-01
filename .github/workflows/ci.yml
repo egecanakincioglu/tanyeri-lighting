@@ -243,6 +243,11 @@ jobs:
     timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: 1
+      # The pages read the database, so the audit runs against the demo content. These values protect nothing.
+      DATABASE_URL: postgresql://postgres@localhost:5432/tanyeri
+      DATABASE_URL_UNPOOLED: postgresql://postgres@localhost:5432/tanyeri
+      BETTER_AUTH_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      BETTER_AUTH_URL: http://localhost:3000
     strategy:
       fail-fast: false
       matrix:
@@ -258,6 +263,12 @@ jobs:
         run: |
           corepack enable
           pnpm install --frozen-lockfile
+      - name: Start PostgreSQL
+        run: pnpm db:up
+      - name: Create the tables and the demo content
+        run: |
+          pnpm exec prisma migrate deploy
+          pnpm db:seed:demo
       - name: Build
         run: pnpm build
       - name: Site audit
