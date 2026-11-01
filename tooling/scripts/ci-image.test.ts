@@ -76,6 +76,13 @@ describe('cli against the real manifest', () => {
     assert.equal(r.status, 0);
     assert.match(r.stdout.trim(), /^ghcr\.io\/gitleaks\/gitleaks:v\d+\.\d+\.\d+@sha256:[0-9a-f]{64}$/);
   });
+  test('every image the workflows run resolves to a digest-pinned reference', () => {
+    for (const stage of ['semgrep', 'zizmor']) {
+      const r = spawnSync(process.execPath, [SCRIPT, stage], { encoding: 'utf8' });
+      assert.equal(r.status, 0, stage);
+      assert.match(r.stdout.trim(), /^\S+:v?\d+\.\d+\.\d+@sha256:[0-9a-f]{64}$/, stage);
+    }
+  });
   test('unknown stage exits 1', () => {
     const r = spawnSync(process.execPath, [SCRIPT, 'no-such-stage'], { encoding: 'utf8' });
     assert.equal(r.status, 1);
