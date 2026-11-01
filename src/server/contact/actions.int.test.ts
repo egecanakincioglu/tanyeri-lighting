@@ -59,8 +59,14 @@ describe('the contact form action on a real database', () => {
     expect(await submit(form({ email: 'nope', subject: '' }))).toEqual({
       status: 'invalid',
       fieldErrors: { email: 'invalid', subject: 'required' },
+      values: { name: VALID.name, email: 'nope', subject: '', message: VALID.message },
     });
     expect(await getDb().contactMessage.count()).toBe(0);
+  });
+
+  it('returns the typed values untrimmed', async () => {
+    const result = await submit(form({ name: '  Ayse  ', email: 'nope' }));
+    expect(result).toMatchObject({ status: 'invalid', values: { name: '  Ayse  ' } });
   });
 
   it('does not count invalid submissions against the limit', async () => {
@@ -71,7 +77,7 @@ describe('the contact form action on a real database', () => {
   it('refuses the sixth submission in the window and stores nothing for it', async () => {
     for (let i = 0; i < 5; i++) expect(await submit()).toEqual({ status: 'ok' });
     const result = await submit();
-    expect(result).toMatchObject({ status: 'rate-limited' });
+    expect(result).toMatchObject({ status: 'rate-limited', values: { name: VALID.name, message: VALID.message } });
     expect((result as { retryAfterSeconds: number }).retryAfterSeconds).toBeGreaterThan(0);
     expect((result as { retryAfterSeconds: number }).retryAfterSeconds).toBeLessThanOrEqual(3600);
     expect(await getDb().contactMessage.count()).toBe(5);
@@ -111,6 +117,7 @@ describe('the contact form action on a real database', () => {
       expect(await submit(form({ message: '' }))).toEqual({
         status: 'invalid',
         fieldErrors: { message: 'required' },
+        values: { name: VALID.name, email: VALID.email, subject: VALID.subject, message: '' },
       });
     });
 
