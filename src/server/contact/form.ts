@@ -27,8 +27,8 @@ type ContactSummary = Pick<ContactInput, 'name' | 'email' | 'subject' | 'message
 // The first state of useActionState is null.
 export type ContactState =
   | { status: 'ok' }
-  | { status: 'invalid'; fieldErrors: Partial<Record<ContactField, ContactFieldError>> }
-  | { status: 'rate-limited'; retryAfterSeconds: number }
+  | { status: 'invalid'; fieldErrors: Partial<Record<ContactField, ContactFieldError>>; values: ContactSummary }
+  | { status: 'rate-limited'; retryAfterSeconds: number; values: ContactSummary }
   | { status: 'demo'; summary: ContactSummary };
 
 // Postgres text columns refuse the NUL character, so it would end in a server error instead of a field error.
@@ -51,6 +51,15 @@ const contactSchema = z.object({
 export function isHoneypotFilled(formData: FormData): boolean {
   const value = formData.get(HONEYPOT_FIELD);
   return value !== null && !(typeof value === 'string' && value.trim() === '');
+}
+
+// What the visitor typed, untrimmed, so a refused submission can fill the form again (also without JavaScript). The honeypot is never part of it.
+export function submittedValues(formData: FormData): ContactSummary {
+  const read = (field: string) => {
+    const value = formData.get(field);
+    return typeof value === 'string' ? value : '';
+  };
+  return { name: read('name'), email: read('email'), subject: read('subject'), message: read('message') };
 }
 
 export type ParsedContact =
