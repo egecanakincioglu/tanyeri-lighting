@@ -107,3 +107,54 @@ export type Reference = ReferenceInput & { id: string };
 
 export const referenceIdSchema = z.string().min(1).max(64);
 export const referenceOrderSchema = z.array(referenceIdSchema);
+
+// Ids are created by the database; any id the caller sends is checked for shape only.
+export const idSchema = z.string().min(1).max(64);
+export const idListSchema = z.array(idSchema);
+
+const kebabCase = (maxLength: number) =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    .max(maxLength)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Use lowercase letters, digits and single hyphens');
+
+export const MAX_CATEGORIES = 8;
+
+export const categorySchema = z.object({
+  // Language independent; used as a filter in URLs.
+  key: kebabCase(60),
+  name: bilingual(60),
+});
+
+export type CategoryInput = z.infer<typeof categorySchema>;
+export type Category = CategoryInput & { id: string };
+
+// Strict on purpose: a product has no price, so a stray `price` is an error, not silently dropped.
+export const productSchema = z.strictObject({
+  categoryId: idSchema,
+  // The language-independent address of the product page.
+  slug: kebabCase(80),
+  code: z.string().trim().min(1).max(60),
+  name: bilingual(120),
+  color: bilingual(60),
+  material: bilingual(100),
+  power: z.string().trim().min(1).max(40),
+  dimensions: z.string().trim().min(1).max(60),
+  imageUrl: httpsUrl,
+});
+
+export type ProductInput = z.infer<typeof productSchema>;
+export type Product = ProductInput & { id: string; categoryKey: string };
+
+export const catalogSchema = z.object({
+  name: bilingual(120),
+  // A Blob address from the storage module.
+  pdfUrl: httpsUrl,
+  // Bytes; the upper bound is the largest value the column holds.
+  sizeBytes: z.int().min(1).max(2_147_483_647),
+});
+
+export type CatalogInput = z.infer<typeof catalogSchema>;
+export type Catalog = CatalogInput & { id: string };
