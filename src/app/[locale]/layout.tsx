@@ -8,21 +8,12 @@ import '../globals.css';
 import { isIndexingEnabled } from '../../server/env.ts';
 import { routing } from '../../i18n/routing.ts';
 
-// Both files hold Latin plus the full Turkish alphabet, so each family needs a single file.
-const archivo = localFont({
-  src: '../fonts/Archivo-Variable.woff2',
-  weight: '400 800',
-  variable: '--font-archivo',
+// One variable file holds Latin plus the full Turkish alphabet.
+const figtree = localFont({
+  src: '../fonts/Figtree-Variable.woff2',
+  weight: '400 700',
+  variable: '--font-figtree',
   display: 'swap',
-});
-
-// Not used by the placeholder pages yet; skipping the preload keeps the first screen to one font file.
-const plexMono = localFont({
-  src: '../fonts/TanyeriMono-Regular.woff2',
-  weight: '400',
-  variable: '--font-plex-mono',
-  display: 'swap',
-  preload: false,
 });
 
 export async function generateMetadata({ params }: Omit<LayoutProps<'/[locale]'>, 'children'>): Promise<Metadata> {
@@ -39,7 +30,7 @@ export default async function RootLayout({ children, params }: LayoutProps<'/[lo
   }
 
   return (
-    <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
+    <html lang={locale} className={`${figtree.variable}`}>
       <body>{children}</body>
     </html>
   );

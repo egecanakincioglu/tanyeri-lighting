@@ -1,20 +1,21 @@
 @import 'tailwindcss';
 
-/* Lumen brand tokens. The public site is dark; the light values below are for the admin panel. */
+/* Tanyeri brand tokens. The site has one light theme. */
 @theme {
   --color-*: initial;
-  --color-page: #0e1113;
-  --color-surface: #171b1e;
-  --color-text: #eceae4;
-  --color-muted: #a3a8ab;
-  --color-primary: #f5b83d;
-  --color-primary-hover: #ffcb66;
-  --color-hairline: #2c3236;
-  --color-input-border: #7a8387;
-  --color-error: #ff9c8f;
-  --color-success: #6fd39a;
-  --color-brand-slab: #f5b83d;
-  --color-brand-beam: #f5b83d;
+  --color-page: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-ink: #2b2b2b;
+  --color-muted: #666666;
+  /* Accent fills carry dark label text; accent text is for links and labels on light grounds. */
+  --color-accent: #e8730a;
+  --color-accent-hover: #f28a1f;
+  --color-on-accent: #1a1a1a;
+  --color-accent-text: #b04a00;
+  --color-accent-tint: #fdf1e6;
+  --color-hairline: #d9d9d9;
+  --color-error: #b3261e;
+  --color-success: #1b6b3a;
 
   --text-*: initial;
   --text-xs: 0.75rem;
@@ -26,63 +27,82 @@
   --text-lg: 1.125rem;
   --text-lg--line-height: 1.6;
   --text-xl: 1.25rem;
-  --text-xl--line-height: 1.4;
+  --text-xl--line-height: 1.35;
   --text-2xl: 1.5rem;
-  --text-2xl--line-height: 1.3;
-  --text-3xl: 1.875rem;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 2rem;
   --text-3xl--line-height: 1.2;
-  --text-4xl: 2.25rem;
+  --text-4xl: 2.75rem;
   --text-4xl--line-height: 1.15;
-  --text-5xl: 3rem;
-  --text-5xl--line-height: 1.1;
 
   --tracking-*: initial;
-  --tracking-tight: -0.025em;
-  --tracking-brand: 0.14em;
+  --tracking-tight: -0.015em;
 
   --spacing: 0.25rem;
+  /* Minimum size of a touch target. */
+  --spacing-touch: 2.75rem;
 
   --radius-*: initial;
-  --radius-sm: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
   --radius-full: 9999px;
 
   --shadow-*: initial;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.07);
+  --shadow-md: 0 3px 10px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 20px rgb(0 0 0 / 0.12);
 
+  --ease-*: initial;
+  --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Content width; the base layer raises it on very wide screens. */
   --container-page: 75rem;
 
   --breakpoint-*: initial;
-  --breakpoint-sm: 24.375rem;
+  --breakpoint-xs: 33.75rem;
+  --breakpoint-sm: 37.5rem;
+  --breakpoint-mid: 40rem;
   --breakpoint-md: 48rem;
+  --breakpoint-wide: 56.25rem;
   --breakpoint-lg: 64rem;
-  --breakpoint-xl: 90rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 90rem;
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 150rem;
 }
 
-/* Inline so the values follow the active theme and the font variables set on <html>. */
+/* Inline so the value follows the font variable set on <html>. */
 @theme inline {
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
-  --shadow-glow: 0 0 0 1px var(--color-primary), 0 0 28px color-mix(in srgb, var(--color-primary) 18%, transparent);
-}
-
-[data-theme='light'] {
-  --color-page: #f4f3ef;
-  --color-surface: #ffffff;
-  --color-text: #14181a;
-  --color-muted: #50585c;
-  --color-primary: #7a4f00;
-  --color-primary-hover: #5c3b00;
-  --color-hairline: #d6d3ca;
-  --color-input-border: #6f777b;
-  --color-error: #b3261e;
-  --color-success: #1b6b3a;
-  --color-brand-slab: #14181a;
-  --color-brand-beam: #946000;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
+  :root {
+    --gutter: clamp(1rem, 4vw, 4rem);
+  }
+
+  @media (min-width: 90rem) {
+    :root {
+      --container-page: 82rem;
+    }
+  }
+
+  @media (min-width: 120rem) {
+    :root {
+      --container-page: 90rem;
+    }
+  }
+
+  @media (min-width: 150rem) {
+    :root {
+      --container-page: 100rem;
+    }
+  }
+
   body {
     background-color: var(--color-page);
-    color: var(--color-text);
+    color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
@@ -97,7 +117,7 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-primary);
+    outline: 3px solid var(--color-accent-text);
     outline-offset: 3px;
   }
 }

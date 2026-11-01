@@ -32,12 +32,12 @@ describe('fonts', () => {
   it('stay within the budget of two files and 100 KB', () => {
     const files = readdirSync(fontsDir).filter((name) => name.endsWith('.woff2'));
     const bytes = files.reduce((sum, name) => sum + statSync(join(fontsDir, name)).size, 0);
-    expect(files).toHaveLength(2);
+    expect(files.length).toBeLessThanOrEqual(2);
     expect(bytes).toBeLessThanOrEqual(100 * 1024);
   });
 
   it('ship with their license texts', () => {
-    for (const name of ['OFL-Archivo.txt', 'OFL-IBMPlexMono.txt']) {
+    for (const name of ['OFL-Figtree.txt']) {
       expect(readFileSync(join(fontsDir, name), 'utf8')).toContain('SIL OPEN FONT LICENSE Version 1.1');
     }
   });

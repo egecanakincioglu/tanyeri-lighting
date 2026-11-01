@@ -177,8 +177,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - Targets: Lighthouse scores of at least 90 in all four categories on mobile and on desktop, with 95 or more expected ([ADR 0010](adr/0010-quality-thresholds.md)). On mobile, JavaScript stays under 180 KB, CSS under 30 KB and the total under 500 KB.
 - Tailwind CSS 4 with design tokens in one place in `@theme` ([ADR 0005](adr/0005-styling-tailwind-css-4.md)). Full-height layouts use `dvh` or `svh`; a Semgrep rule rejects `100vh`.
-- Design tokens are in one `@theme` block in `src/app/globals.css`. The site is dark by default; `[data-theme='light']` is the theme for the admin panel.
-- Fonts are self-hosted: Archivo and a Plex Mono subset named Tanyeri Mono live in `src/app/fonts/` with their OFL licenses, load through `next/font/local`, and total 49 KB. A test rejects external font URLs and `next/font/google`.
+- One light theme; design tokens are in one `@theme` block in `src/app/globals.css`. Figtree is the only font: one self-hosted variable woff2 of about 20 KB in `src/app/fonts/`, with its OFL license, loaded through `next/font/local`. A test rejects external font URLs and `next/font/google`. Logo files are static SVGs in `public/brand/`. Each logo has one fixed on-screen size, set by the image width and height attributes, and each file declares exactly twice that size.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
 
