@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["tooling/**/*.ts"]
+  "include": ["tooling/**/*.ts", "prisma/**/*.ts"]
 }
