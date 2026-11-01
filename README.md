@@ -124,7 +124,7 @@ More detail is in the [development setup guide](docs/guides/development-setup.md
 `pnpm test` runs two Vitest projects:
 
 - **Unit tests** (`src/**/*.test.ts` and `.test.tsx`) run in jsdom. Components are tested with Testing Library.
-- **Integration tests** (`src/**/*.int.test.ts`) run against a real PostgreSQL. Each run drops and recreates the local `tanyeri_test` database and applies all migrations. The test files share that database, so they run one after another. Start the database with `pnpm db:up` first.
+- **Integration tests** (`src/**/*.int.test.ts`) run against a real PostgreSQL. Each checkout has its own database, `tanyeri_test_<8 hex characters>`, where the 8 characters are a hash of the repository root. A run recreates that database and applies all migrations at its start, and drops it at its end. Two checkouts, for example git worktrees, can run integration tests at the same time; the test files within one run still run one after another. Start the database with `pnpm db:up` first.
 
 Coverage is measured for `src/server` and `src/lib`. The line coverage gate is 80% and the value can only go up (`tooling/coverage-thresholds.json`). A pull request that changes TypeScript under `src/` must change tests too. The repository tools in `tooling/` have their own tests (`node --test "tooling/**/*.test.ts"`), which CI runs on Linux and on Windows.
 
