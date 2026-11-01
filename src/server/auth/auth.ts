@@ -2,6 +2,7 @@ import { prismaAdapter } from '@better-auth/prisma-adapter';
 import { betterAuth } from 'better-auth';
 import type { BetterAuthOptions } from 'better-auth';
 import { getDb } from '../db.ts';
+import { buildDemoAuthHooks } from '../demo/auth-hooks.ts';
 import { sendEmailAfterResponse } from '../email/index.ts';
 import { getEnv, isEmailEnabled, isProduction } from '../env.ts';
 import { RESET_TOKEN_LIFETIME_SECONDS, resetPasswordEmail, resetPasswordLink } from './reset-password-email.ts';
@@ -57,6 +58,7 @@ function createAuth() {
       emailEnabled: isEmailEnabled(),
     }),
     database: prismaAdapter(getDb(), { provider: 'postgresql' }),
+    hooks: buildDemoAuthHooks(),
   });
 }
 

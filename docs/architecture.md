@@ -91,9 +91,12 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 ## Demo mode
 
-- `DEMO_MODE` is read in `src/server/env.ts`. It is `true` or `false`, the default is `false`, and any other value is an error. The guard that uses it is still planned.
-- Planned: with `DEMO_MODE=true`, every content write is refused on the server by a single guard. Changing or resetting a password and updating a user are refused too.
-- A banner on the site says that the brand is fictional and that nothing is for sale. The contact form does not store messages in demo mode. It shows a summary to the sender with a note that the message was not saved.
+- `DEMO_MODE` is read in `src/server/env.ts`. It is `true` or `false`, the default is `false`, and any other value is an error. The mode is read on every request, not once at startup.
+- `assertWritable()` in `src/server/demo/guard.ts` is called by every content write service right after the session guard. In demo mode it throws `DemoModeError`. Route handlers turn the error into a 403 JSON response with `demoModeResponse(error)`; Server Actions map it to a form result.
+- A `hooks.before` deny list in `src/server/demo/auth-hooks.ts` refuses state-changing account endpoints with 403 ("This action is disabled in demo mode"): change password, change email, update user, update session, delete user, password reset request and reset, verification email, session revocation and provider linking.
+- Sign-in, sign-out and get-session stay open, so the demo admin can still sign in and read everything.
+- A test fails when a Better Auth upgrade adds an endpoint that is on neither the blocked list nor the open list.
+- Planned: a banner on the site says that the brand is fictional and that nothing is for sale. The contact form does not store messages in demo mode. It shows a summary to the sender with a note that the message was not saved.
 - The public demo is read-only and uses a demo admin account.
 
 ## Security headers and CSP
@@ -142,7 +145,7 @@ releases/      release notes
 src/
   app/         App Router
   i18n/        routing and request configuration
-  server/      env, db, auth, storage, rate-limit (planned: demo guard, services)
+  server/      env, db, auth, storage, rate-limit, demo guard (planned: services)
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```
