@@ -2,6 +2,10 @@
   "Metadata": {
     "title": "Tanyeri"
   },
+  "DemoBand": {
+    "label": "Demo bildirimi",
+    "text": "Kurgusal marka: bu bir demo sitedir, hiçbir ürün satışta değildir."
+  },
   "Header": {
     "skip": "İçeriğe geç",
     "logoLabel": "Tanyeri Lighting, ana sayfa",
