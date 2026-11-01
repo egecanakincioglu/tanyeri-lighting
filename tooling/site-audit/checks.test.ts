@@ -77,6 +77,7 @@ const img = (o: Partial<ImageFacts>): ImageFacts => ({
   src: '/a.jpg',
   naturalWidth: 800,
   displayWidth: 400,
+  viewportWidth: 1000,
   dpr: 2,
   hasSrcset: false,
   hasSizes: false,
@@ -100,6 +101,25 @@ test('image size: DPR counts at most 2', () => {
 test('image size: hidden or widthless images skip the size check', () => {
   assert.equal(imageProblem(img({ displayWidth: 0, naturalWidth: 5000 })), null);
   assert.equal(imageProblem(img({ naturalWidth: 0 })), null);
+});
+
+test('image size: full-bleed lower bound is capped at 1920', () => {
+  const wide = { displayWidth: 2560, viewportWidth: 2560, dpr: 1 };
+  assert.equal(imageProblem(img({ ...wide, naturalWidth: 1920 })), null);
+  assert.match(imageProblem(img({ ...wide, naturalWidth: 1919 }))!, /below the 1920px/);
+  assert.equal(imageProblem(img({ displayWidth: 1024, viewportWidth: 1024, dpr: 2, naturalWidth: 1920 })), null);
+});
+
+test('image size: full-bleed upper bound stays twice the uncapped width', () => {
+  const wide = { displayWidth: 2560, viewportWidth: 2560, dpr: 1 };
+  assert.equal(imageProblem(img({ ...wide, naturalWidth: 5120 })), null);
+  assert.match(imageProblem(img({ ...wide, naturalWidth: 5121 }))!, /twice/);
+});
+
+test('image size: an image narrower than the viewport keeps the plain rule', () => {
+  const wide = { displayWidth: 2000, viewportWidth: 2560, dpr: 1 };
+  assert.match(imageProblem(img({ ...wide, naturalWidth: 1920 }))!, /below the 2000px/);
+  assert.equal(imageProblem(img({ ...wide, naturalWidth: 2000 })), null);
 });
 
 test('srcset needs sizes', () => {

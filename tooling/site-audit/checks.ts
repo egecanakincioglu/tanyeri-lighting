@@ -22,12 +22,16 @@ export function consoleProblems(entries: readonly ConsoleEntry[]): string[] {
   return entries.filter((e) => e.type === 'error' || e.type === 'pageerror').map((e) => `${e.type}: ${e.text}`);
 }
 
+const FULL_BLEED_MAX_SOURCE = 1920;
+
 export interface ImageFacts {
   src: string;
-  /** Natural width of the source the browser selected. */
+  /** Pixel width of the file the browser selected (decoded separately; img.naturalWidth is density-corrected). */
   naturalWidth: number;
   /** Rendered width in CSS px. */
   displayWidth: number;
+  /** Viewport width in CSS px, without the scrollbar. */
+  viewportWidth: number;
   dpr: number;
   hasSrcset: boolean;
   hasSizes: boolean;
@@ -35,15 +39,18 @@ export interface ImageFacts {
 
 /**
  * ADR 0009 rule 5: the selected source is at least display width x min(DPR, 2) and at most twice that;
- * every srcset image has sizes. Hidden images and images without a natural width (SVG, not decoded) skip the size
- * check.
+ * every srcset image has sizes. A full-bleed image (displayed at least as wide as the viewport) cannot have a source
+ * for every wide screen, so its lower bound is capped at 1920 px; its upper bound stays twice the uncapped width.
+ * Hidden images and images without a natural width (not decoded) skip the size check.
  */
 export function imageProblem(img: ImageFacts): string | null {
   if (img.hasSrcset && !img.hasSizes) return `${img.src}: srcset without sizes`;
   if (img.displayWidth <= 0 || img.naturalWidth <= 0) return null;
   const needed = img.displayWidth * Math.min(img.dpr, 2);
-  if (img.naturalWidth < needed) {
-    return `${img.src}: ${img.naturalWidth}px source is below the ${Math.ceil(needed)}px needed`;
+  const fullBleed = img.displayWidth >= img.viewportWidth;
+  const minimum = fullBleed ? Math.min(needed, FULL_BLEED_MAX_SOURCE) : needed;
+  if (img.naturalWidth < minimum) {
+    return `${img.src}: ${img.naturalWidth}px source is below the ${Math.ceil(minimum)}px needed`;
   }
   if (img.naturalWidth > needed * 2) {
     return `${img.src}: ${img.naturalWidth}px source is more than twice the ${Math.ceil(needed)}px needed`;

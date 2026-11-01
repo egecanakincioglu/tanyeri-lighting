@@ -158,15 +158,29 @@ async function auditView(page: Page, url: string, d: Device, axeSource: string):
   if (modals > 0) fail(`modal ${where}`, `${modals} modal(s) open on load`);
 
   const images: ImageFacts[] = await page.evaluate(
-    (dpr) =>
-      [...document.images].map((img) => ({
-        src: img.currentSrc || img.src,
-        naturalWidth: img.naturalWidth,
-        displayWidth: img.getBoundingClientRect().width,
-        dpr,
-        hasSrcset: img.hasAttribute('srcset'),
-        hasSizes: img.hasAttribute('sizes'),
-      })),
+    async (dpr) =>
+      Promise.all(
+        [...document.images].map(async (img) => {
+          // Load lazy images as a scrolling visitor would; one that stays unloaded has no currentSrc and is skipped.
+          img.loading = 'eager';
+          await Promise.race([img.decode().catch(() => undefined), new Promise((r) => setTimeout(r, 5000))]);
+          // img.naturalWidth is density-corrected for srcset width descriptors; a probe decodes the file itself.
+          const probe = new Image();
+          if (img.currentSrc) {
+            probe.src = img.currentSrc;
+            await probe.decode().catch(() => undefined);
+          }
+          return {
+            src: img.currentSrc || img.src,
+            naturalWidth: probe.naturalWidth,
+            displayWidth: img.getBoundingClientRect().width,
+            viewportWidth: document.documentElement.clientWidth,
+            dpr,
+            hasSrcset: img.hasAttribute('srcset'),
+            hasSizes: img.hasAttribute('sizes'),
+          };
+        }),
+      ),
     d.dpr,
   );
   for (const img of images) {
@@ -199,22 +213,35 @@ async function browserChecks(): Promise<string> {
   const browser = await puppeteer.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
   try {
     const version = await browser.version();
-    const page = await browser.newPage();
-    await page.evaluateOnNewDocument(() => {
-      const w = window as unknown as { __csp: string[] };
-      w.__csp = [];
-      document.addEventListener('securitypolicyviolation', (e) => {
-        w.__csp.push(`${e.violatedDirective} blocked ${e.blockedURI}`);
+    const openPage = async () => {
+      const page = await browser.newPage();
+      await page.evaluateOnNewDocument(() => {
+        const w = window as unknown as { __csp: string[] };
+        w.__csp = [];
+        document.addEventListener('securitypolicyviolation', (e) => {
+          w.__csp.push(`${e.violatedDirective} blocked ${e.blockedURI}`);
+        });
       });
-    });
+      return page;
+    };
+    const warm = await openPage();
     for (const url of PAGES) {
-      await page.goto(BASE + url, { waitUntil: 'networkidle0' });
+      await warm.goto(BASE + url, { waitUntil: 'networkidle0' });
     }
     for (const p of PAGES) {
       const url = BASE + p;
-      await overflowSweep(page, url);
-      for (const d of DEVICES) await auditView(page, url, d, axeSource);
+      await overflowSweep(warm, url);
+      // A new page per device view, so the image check sees what a first-time visitor at that device gets.
+      for (const d of DEVICES) {
+        const page = await openPage();
+        try {
+          await auditView(page, url, d, axeSource);
+        } finally {
+          await page.close();
+        }
+      }
     }
+    await warm.close();
     return version;
   } finally {
     await browser.close();
