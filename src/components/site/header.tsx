@@ -10,9 +10,9 @@ export function Header() {
   const locale = useLocale();
 
   const items: MenuItem[] = NAV.map((entry) => ({
-    label: t(entry.key),
+    label: t(entry.id),
     href: entry.path,
-    children: entry.children?.map((child) => ({ label: t(child.key), href: child.path })),
+    children: entry.children?.map((child) => ({ label: t(child.id), href: child.path })),
   }));
 
   return (

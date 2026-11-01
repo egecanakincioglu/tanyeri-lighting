@@ -94,9 +94,9 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
             <h2 className="mb-4 text-[0.8125rem] font-bold tracking-widest uppercase">{t('siteNav')}</h2>
             <ul>
               {FOOTER_NAV.map((entry) => (
-                <li key={entry.key}>
+                <li key={entry.id}>
                   <Link href={entry.path} prefetch={false} className={linkClass}>
-                    {nav(entry.key)}
+                    {nav(entry.id)}
                   </Link>
                 </li>
               ))}

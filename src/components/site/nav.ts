@@ -3,39 +3,39 @@
 import type { StaticPath } from '../../i18n/routing.ts';
 
 export type NavEntry = {
-  key: string;
+  id: string;
   path?: StaticPath;
-  children?: readonly { key: string; path: StaticPath }[];
+  children?: readonly { id: string; path: StaticPath }[];
 };
 
 export const NAV: readonly NavEntry[] = [
-  { key: 'home', path: '/' },
+  { id: 'home', path: '/' },
   {
-    key: 'corporate',
+    id: 'corporate',
     children: [
-      { key: 'about', path: '/about' },
-      { key: 'vision', path: '/vision' },
-      { key: 'references', path: '/references' },
+      { id: 'about', path: '/about' },
+      { id: 'vision', path: '/vision' },
+      { id: 'references', path: '/references' },
     ],
   },
-  { key: 'services', path: '/services' },
-  { key: 'projects', path: '/projects' },
+  { id: 'services', path: '/services' },
+  { id: 'projects', path: '/projects' },
   {
-    key: 'products',
+    id: 'products',
     children: [
-      { key: 'catalogs', path: '/catalogs' },
-      { key: 'categories', path: '/products' },
+      { id: 'catalogs', path: '/catalogs' },
+      { id: 'categories', path: '/products' },
     ],
   },
 ];
 
 // The footer repeats the main sections; a section with a drop-down links to its main page.
-export const FOOTER_NAV: readonly { key: string; path: StaticPath }[] = [
-  { key: 'corporate', path: '/about' },
-  { key: 'services', path: '/services' },
-  { key: 'projects', path: '/projects' },
-  { key: 'products', path: '/products' },
-  { key: 'catalogs', path: '/catalogs' },
+export const FOOTER_NAV: readonly { id: string; path: StaticPath }[] = [
+  { id: 'corporate', path: '/about' },
+  { id: 'services', path: '/services' },
+  { id: 'projects', path: '/projects' },
+  { id: 'products', path: '/products' },
+  { id: 'catalogs', path: '/catalogs' },
 ];
 
 export const CONTACT_PATH: StaticPath = '/contact';
