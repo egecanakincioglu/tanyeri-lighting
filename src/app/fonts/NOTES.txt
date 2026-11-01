@@ -1,30 +1,21 @@
-Fonts used by the site. Both files are subsets of OFL fonts, served from
+Font used by the site. Figtree-Variable.woff2 is a subset of an OFL font, served from
 this folder through next/font/local. Nothing is fetched from the internet.
 
-Archivo-Variable.woff2
-  Source: https://github.com/Omnibus-Type/Archivo, commit 211127690e8ff106c36c935f7e5e697114cff103,
-          fonts/variable/Archivo[wdth,wght].ttf (version 2.001)
-  License: OFL-Archivo.txt (no Reserved Font Name is declared; the name is kept).
-  Axes: wght 400-800 kept, wdth fixed at 100.
+Figtree-Variable.woff2
+  Source: https://github.com/google/fonts, commit 6c1dbe27dcf7d817d4b62cec033ba77fa8e2a5ec,
+          ofl/figtree/Figtree[wght].ttf
+  License: OFL-Figtree.txt (no Reserved Font Name is declared; the name is kept).
+  Axes: wght 400-700 kept (the source range is 300-900).
+  Coverage: Latin plus full Turkish (ğ Ğ ş Ş ı İ ç Ç ö Ö ü Ü). The font has no glyph for the
+  lira sign U+20BA, which falls back to the system font.
   Steps:
-    python -m fontTools.varLib.instancer "Archivo[wdth,wght].ttf" wdth=100 wght=400:800 -o archivo-limited.ttf
-    (same through fontTools.varLib.instancer.instantiateVariableFont when run from a script)
-    python -m fontTools.subset archivo-limited.ttf --unicodes="$UNICODES" --layout-features="$FEATURES"
-      --flavor=woff2 --no-hinting --desubroutinize --name-IDs="*" --output-file=Archivo-Variable.woff2
+    python -m fontTools.varLib.instancer "Figtree[wght].ttf" wght=400:700 -o figtree-limited.ttf
+    pyftsubset figtree-limited.ttf --unicodes="$UNICODES" --layout-features="$FEATURES"
+      --flavor=woff2 --no-hinting --desubroutinize --name-IDs="*" --output-file=Figtree-Variable.woff2
 
-TanyeriMono-Regular.woff2
-  Source: https://github.com/IBM/plex, release @ibm/plex-mono@2.5.0,
-          ibm-plex-mono/fonts/complete/ttf/IBMPlexMono-Regular.ttf (version 2.005)
-  License: OFL-IBMPlexMono.txt. The license reserves the name "Plex", and a subset is a
-  modified version, so the family is renamed: name IDs 1, 3, 4 and 6 are set to
-  "Tanyeri Mono" / "TanyeriMono-Regular", and the trademark record (ID 7) is removed.
-  The copyright notice (ID 0) and the license records (IDs 13, 14) stay unchanged.
-  Steps:
-    python -m fontTools.subset IBMPlexMono-Regular.ttf --unicodes="$UNICODES" --layout-features="$FEATURES"
-      --flavor=woff2 --no-hinting --desubroutinize --name-IDs="*" --output-file=plexsub.woff2
-    then rename the name records above with fontTools.ttLib and save as woff2.
+UNICODES=U+0020-007E,U+00A0-017F,U+0307,U+2010-2015,U+2018-201E,U+2020-2022,U+2026,
+         U+2030,U+20AC,U+20BA,U+2122,U+2190-2193,U+2212
+FEATURES=kern,liga,calt,locl,ccmp,mark,mkmk,tnum,case
 
-Common subset settings (Latin plus full Turkish: ğ Ğ ş Ş ı İ ç Ç ö Ö ü Ü):
-  UNICODES=U+0020-007E,U+00A0-017F,U+0307,U+2010-2015,U+2018-201E,U+2020-2022,U+2026,
-           U+2030,U+20AC,U+20BA,U+2122,U+2190-2193,U+2212
-  FEATURES=kern,liga,calt,locl,ccmp,mark,mkmk,tnum,case
+Logo lettering (public/brand/logo-header.svg, public/brand/logo.svg): outlined from Parisienne (OFL).
+The tagline in logo.svg is outlined from Poppins Light (OFL).

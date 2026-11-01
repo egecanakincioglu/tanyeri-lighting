@@ -32,9 +32,9 @@ describe('RootLayout', () => {
     expect(renderToStaticMarkup(element)).toContain(`<html lang="${locale}"`);
   });
 
-  it('sets both font variables on <html>', async () => {
+  it('sets the font variable on <html>', async () => {
     const element = await RootLayout(layoutProps('tr'));
-    expect(renderToStaticMarkup(element)).toContain('class="--font-archivo --font-plex-mono"');
+    expect(renderToStaticMarkup(element)).toContain('class="--font-figtree"');
   });
 
   it('responds with 404 for an unknown language', async () => {
