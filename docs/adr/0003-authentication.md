@@ -58,7 +58,7 @@ Rules:
 5. `BETTER_AUTH_SECRET` comes from an environment variable and is validated with zod at startup. `trustedOrigins` contains only the site's own addresses; there is no `localhost` in production.
 6. Cookies are `HttpOnly`, `SameSite=Lax` and, over https, `Secure` by the library defaults. In production this is also enforced with `advanced.useSecureCookies: true`.
 7. Authorization is checked in every page and every handler with `auth.api.getSession({ headers: await headers() })`. `getSessionCookie` in the proxy is only for redirects ([ADR 0001](0001-architecture-nextjs-16-app-router.md)). The shared guard is `src/server/auth/guard.ts`, and the static check `tooling/scripts/check-admin-guard.ts` fails CI when an entry point skips it.
-8. In demo mode, endpoints for changing or resetting a password and updating a user are rejected by the single server-side demo guard.
+8. In demo mode, a `hooks.before` deny list refuses every state-changing account endpoint with 403: change password, change email, update user, update session, delete user, password reset request and reset, verification email and email verification, session revocation, provider linking and unlinking, and token refresh. Sign-in, sign-out and get-session stay open. The full list is `DEMO_BLOCKED_AUTH_PATHS` in `src/server/demo/auth-hooks.ts`; a test fails when a library upgrade adds an endpoint that is on neither list. Content writes are refused by `assertWritable()` in `src/server/demo/guard.ts`.
 9. The first admin is created by the seed script, using the library's own password hash function. Resolved: the seed uses `hashPassword` from `better-auth/crypto` and writes the `user` row and a `credential` account row (`accountId` is the user id) in one create.
 
 ## Consequences
