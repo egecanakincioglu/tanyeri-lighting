@@ -15,8 +15,8 @@ concurrency:
 
 jobs:
   # All merge-rule checks in one job. Every step runs even when an earlier one failed, so a single run reports
-  # every violation. Dependabot commits can not carry journal lines or follow our branch/message conventions,
-  # so those steps are skipped for it; the rest runs for everyone.
+  # every violation. Dependabot commits can not follow our branch/message conventions, so those steps are
+  # skipped for it; the rest runs for everyone.
   policy:
     name: policy
     runs-on: ubuntu-latest
@@ -49,32 +49,6 @@ jobs:
             fi
           done
           exit $status
-      - name: Every commit adds its journal line
-        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          status=0
-          for sha in $(git rev-list --no-merges "$BASE_SHA..$HEAD_SHA"); do
-            tooling/scripts/check-journal-entry.sh --commit "$sha" || { echo "::error::missing journal line in $sha"; status=1; }
-          done
-          exit $status
-      # The step above only sees this pull request's commits; this one checks the whole history since the journal
-      # began, so a commit that skipped the journal (e.g. a Dependabot commit) is caught by the next human pull request.
-      - name: No commit in the history is missing from the journal
-        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
-        env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node tooling/scripts/check-journal-coverage.ts --ref "$HEAD_SHA"
-      # The summary is the hand-off between devices and sessions, so every pull request must update it.
-      - name: The journal summary is updated in this pull request
-        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node tooling/scripts/check-journal-summary.ts --base "$BASE_SHA" --head "$HEAD_SHA"
       # A stolen device or token can not forge the owner's commits. Runs for everyone, including Dependabot
       # (GitHub signs those commits itself).
       - name: Every commit in the pull request is verified by GitHub

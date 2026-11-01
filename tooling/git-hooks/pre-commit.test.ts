@@ -87,7 +87,7 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
     withRepo('feat/x', (repo, git) => {
       writeFileSync(path.join(repo, 'a.txt'), 'x\n');
       git('add', '-A');
-      // run directly: the commit-msg hook would additionally demand a message body and a journal line
+      // run directly: the commit-msg hook would additionally demand a message body
       const r = spawnSync(bash, [path.join(tooling, 'git-hooks', 'pre-commit')], {
         cwd: repo,
         encoding: 'utf8',
