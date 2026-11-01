@@ -47,6 +47,7 @@ Planned:
 | Database | PostgreSQL 18 (Neon in production), Prisma 7.10.1 with `@prisma/adapter-pg` |
 | Authentication | Better Auth 1.7.14 |
 | Styling | Tailwind CSS 4.3.3 |
+| Fonts | Archivo, IBM Plex Mono subset (self-hosted) |
 | Internationalization | next-intl 4.14.9 |
 | Validation | zod 4.6.7 |
 | File storage | Vercel Blob (`@vercel/blob` 2.8.2), sharp 0.35.5 |

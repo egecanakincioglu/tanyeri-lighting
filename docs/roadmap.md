@@ -40,6 +40,10 @@ Done:
 - Content schema 2: categories (at most 8), products with slug redirects, and catalogs, with bilingual fields and ordering.
 - Content schema 3: home banner, featured products, promo boards, application areas, service cards and the about page, with bilingual fields and ordering.
 
+## Phase 5: brand and design system
+
+- Done: design tokens, local fonts, logo.
+
 ## Later phases
 
 - **Phase 5:** logo, colors and typography; design tokens; base components; demo banner; favicon, manifest and Open Graph image.

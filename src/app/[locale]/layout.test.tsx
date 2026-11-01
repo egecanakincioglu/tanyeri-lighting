@@ -11,6 +11,9 @@ vi.mock('next-intl/server', () => ({
     Promise.resolve((key: 'title') => ({ tr, en })[locale][namespace][key]),
 }));
 
+// The font loader runs in the Next.js build; the fake keeps the CSS variable name the layout asks for.
+vi.mock('next/font/local', () => ({ default: ({ variable }: { variable: string }) => ({ variable }) }));
+
 // connection() only works inside a request; opting into dynamic rendering is its whole effect.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
 
@@ -26,7 +29,12 @@ const metadataProps = (locale: string): Omit<LayoutProps<'/[locale]'>, 'children
 describe('RootLayout', () => {
   it.each(['tr', 'en'])('renders <html lang> for %s', async (locale) => {
     const element = await RootLayout(layoutProps(locale, <p>içerik</p>));
-    expect(renderToStaticMarkup(element)).toContain(`<html lang="${locale}">`);
+    expect(renderToStaticMarkup(element)).toContain(`<html lang="${locale}"`);
+  });
+
+  it('sets both font variables on <html>', async () => {
+    const element = await RootLayout(layoutProps('tr'));
+    expect(renderToStaticMarkup(element)).toContain('class="--font-archivo --font-plex-mono"');
   });
 
   it('responds with 404 for an unknown language', async () => {
