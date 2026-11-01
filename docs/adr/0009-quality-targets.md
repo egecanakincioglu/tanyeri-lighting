@@ -139,7 +139,7 @@ Rules:
    - Safe areas: `viewport-fit=cover` is not used, so the browser keeps content inside the notch and corner areas. If it is ever needed, fixed elements use `env(safe-area-inset-*)`.
    - Dynamic viewport units: full height is given with `dvh` or `svh` (`h-dvh`, `min-h-svh`). `100vh`, `h-screen` and `min-h-screen` are forbidden by a Semgrep rule.
    - Hover: in Tailwind 4, `hover:` applies only on devices that support `(hover: hover)`. Information or an action is never opened by hover only; expandable content opens with a button that has `aria-expanded`; tooltips follow WCAG 1.4.13. Component tests are written with click and keyboard.
-   - Image size: at every width of the device set, the natural width of the selected source of each image is not smaller than the displayed width times the DPR (at most 2), and does not exceed twice that. Every image with a `srcset` has a `sizes` attribute.
+   - Image size: at every width of the device set, after lazy images have loaded, the pixel width of the file the browser selects for each image (decoded separately, since `naturalWidth` is density-corrected for `srcset`) is not smaller than the displayed width times the DPR (at most 2) and does not exceed twice that. For a full-bleed image (displayed at least as wide as the viewport) the lower bound is capped at 1920 px and the upper bound stays twice the uncapped value. Every image with a `srcset` has a `sizes` attribute.
    - Console: no console error or CSP violation at any width.
    - Manual visual check: at 390, 768, 1024 and 1440 widths; for changes that touch the fixed header, the menu or a dialog, also at 844×390. `site-audit (pages)` uploads screenshots of these five viewports as artifacts. There is no visual diff (pixel comparison) test.
 
