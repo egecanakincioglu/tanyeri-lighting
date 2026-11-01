@@ -2,6 +2,10 @@
   "Metadata": {
     "title": "Tanyeri"
   },
+  "DemoBand": {
+    "label": "Demo notice",
+    "text": "Fictional brand: this is a demo site and nothing is for sale."
+  },
   "Header": {
     "skip": "Skip to content",
     "logoLabel": "Tanyeri Lighting, home",

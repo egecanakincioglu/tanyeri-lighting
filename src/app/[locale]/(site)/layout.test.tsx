@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider, createTranslator } from 'next-intl';
+import { axeViolations } from '../../../test/axe.ts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
@@ -10,14 +11,17 @@ vi.mock('next/navigation', async (importOriginal) => ({
   usePathname: () => '/tr',
 }));
 vi.mock('next-intl/server', () => ({
-  getTranslations: async ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Header' }) =>
+  getTranslations: async ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Header' | 'DemoBand' }) =>
     createTranslator({ locale, messages: locale === 'tr' ? tr : en, namespace }),
 }));
 // The footer reads the database; its own tests cover it.
 vi.mock('../../../components/site/footer.tsx', () => ({ Footer: () => <footer>footer</footer> }));
 
 describe('SiteLayout', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllEnvs();
+  });
 
   it.each([
     ['tr', tr, 'İçeriğe geç'],
@@ -49,4 +53,45 @@ describe('SiteLayout', () => {
       }
     },
   );
+  it.each([
+    ['tr', tr, 'Kurgusal marka: bu bir demo sitedir, hiçbir ürün satışta değildir.'],
+    ['en', en, 'Fictional brand: this is a demo site and nothing is for sale.'],
+  ] as const)(
+    'shows the demo notice above the header in demo mode in %s, and axe passes',
+    async (locale, messages, text) => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      const layout = await SiteLayout({
+        children: <p>page</p>,
+        params: Promise.resolve({ locale }),
+      } as Parameters<typeof SiteLayout>[0]);
+      const { container } = render(
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {layout}
+        </NextIntlClientProvider>,
+      );
+
+      const notice = screen.getByRole('complementary');
+      expect(notice.textContent).toBe(text);
+      expect(
+        notice.compareDocumentPosition(screen.getByRole('banner')) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(screen.queryAllByRole('heading')).toHaveLength(0);
+      expect(await axeViolations(container)).toEqual([]);
+    },
+  );
+
+  it('shows no demo notice when demo mode is off', async () => {
+    vi.stubEnv('DEMO_MODE', 'false');
+    const layout = await SiteLayout({
+      children: <p>page</p>,
+      params: Promise.resolve({ locale: 'en' }),
+    } as Parameters<typeof SiteLayout>[0]);
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        {layout}
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.queryByRole('complementary')).toBeNull();
+  });
 });

@@ -1,10 +1,12 @@
 import { getTranslations } from 'next-intl/server';
+import { isDemoMode } from '../../../server/env.ts';
 import { Footer } from '../../../components/site/footer.tsx';
 import { Header } from '../../../components/site/header.tsx';
 
 export default async function SiteLayout({ children, params }: LayoutProps<'/[locale]'>) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Header' });
+  const band = await getTranslations({ locale, namespace: 'DemoBand' });
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -14,6 +16,11 @@ export default async function SiteLayout({ children, params }: LayoutProps<'/[lo
       >
         {t('skip')}
       </a>
+      {isDemoMode() && (
+        <aside aria-label={band('label')} className="bg-accent-tint px-(--gutter) py-2 text-center text-sm text-ink">
+          <p>{band('text')}</p>
+        </aside>
+      )}
       <Header />
       <main id="main" tabIndex={-1} data-page-region className="grow focus:outline-none">
         {children}
