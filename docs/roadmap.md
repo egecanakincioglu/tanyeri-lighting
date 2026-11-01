@@ -4,7 +4,7 @@ The project is developed in phases. The architecture is described in [architectu
 
 ## Status
 
-- **Current phase:** phase 4, server foundation.
+- **Current phase:** phase 5, brand and design system.
 - **Released:** v0.1.0 (application skeleton, quality gates and release pipeline).
 - **Live demo:** https://tanyeri-lighting.vercel.app. It stays out of search indexes until 1.0.0.
 
@@ -14,8 +14,8 @@ The project is developed in phases. The architecture is described in [architectu
 |---|---|---|
 | 0-2 | Repository setup and governance | Done |
 | 3 | Application skeleton and quality gates | Done (v0.1.0) |
-| 4 | Server foundation | In progress |
-| 5 | Brand and design system | Planned |
+| 4 | Server foundation | Done |
+| 5 | Brand and design system | In progress |
 | 6 | Public site (bilingual) | Planned |
 | 7 | Admin panel | Planned |
 | 8 | Hardening | Planned |
@@ -38,11 +38,7 @@ Done:
 - Content schema 1: site settings, social links, page metadata and legal pages, with bilingual fields and a limited Markdown renderer.
 - Content schema 4: projects (with before/after images) and references, with bilingual fields and ordering.
 - Content schema 2: categories (at most 8), products with slug redirects, and catalogs, with bilingual fields and ordering.
-
-Next:
-
-- Content schemas: home page blocks, services and visits.
-- Runbook for rotating secrets.
+- Content schema 3: home banner, featured products, promo boards, application areas, service cards and the about page, with bilingual fields and ordering.
 
 ## Later phases
 
@@ -58,3 +54,4 @@ Next:
 - Register the site in Search Console and Bing Webmaster Tools at launch.
 - Set the repository topics, description and website link at launch.
 - Create the logo (phase 5).
+- Write the runbook for rotating secrets before launch.

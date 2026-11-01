@@ -30,7 +30,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - PostgreSQL 18 with Prisma 7 migrations and the `@prisma/adapter-pg` driver adapter. Production uses Neon; local development and CI use the Postgres image pinned in `tooling/ci-images/Dockerfile` ([ADR 0002](adr/0002-data-and-storage.md)).
 - The app connects with the pooled address (`DATABASE_URL`). Migrations and the Prisma CLI use the direct address (`DATABASE_URL_UNPOOLED`).
-- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Content tables: `siteSettings`, `socialLink`, `pageMetadata`, `legalPage`, `project`, `reference`, `category`, `product`, `productSlugRedirect` and `catalog` (see Content). Planned: home page blocks, services and visits.
+- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). The `contactMessage` table stores name, email, subject, message, locale and read time. It stores no IP address and no browser identification string (see Contact form). Content tables: `siteSettings`, `socialLink`, `pageMetadata`, `legalPage`, `project`, `reference`, `category`, `product`, `productSlugRedirect`, `catalog`, `homeBanner`, `featuredProduct`, `promoBoard`, `applicationArea`, `service` and `aboutPage` (see Content). Planned: visits.
 - There is no raw SQL in application code; a Semgrep rule enforces this.
 - Environment variables are validated with zod in one module (`src/server/env.ts`). Each module adds its own variables. Validation runs on first use, not on import, so `next build` works without the variables. Reading `process.env` anywhere else is blocked by a Semgrep rule.
 
@@ -49,6 +49,12 @@ The proxy does only two things: locale routing and security headers. It is not t
   - `product` holds the products. A product has a bilingual name (120 characters), color (60) and material (100), a unique `code` (60 characters), `power` (40) and `dimensions` (60) as single texts, one `https` image URL and an order within its category. Products have no price. The input schema is strict, so unknown fields such as `price` are rejected.
   - `productSlugRedirect` holds the old slugs of products. The product slug is language-independent kebab-case (1 to 80 characters) and is the address of the product page in both languages.
   - `catalog` holds the catalogs. A catalog has a bilingual name (120 characters), an `https` `pdfUrl` and `sizeBytes`. The upload itself goes through the storage module (4 MB limit).
+  - `homeBanner` has one row with the id `home`. It has an `https` image URL, a bilingual title (120 characters) and description (400), and two actions. Each action has a bilingual label (40) and a target taken from the page keys. Before the first save the banner reads as an empty default, which is not stored; its actions point at products and contact.
+  - `featuredProduct` holds the ordered list of featured products. `setFeaturedProducts` replaces the whole list in one transaction. Duplicate ids are rejected, and an unknown id keeps the old list. A deleted product drops out of the list (cascade). There is no count limit. Products are returned with their current slug and category key.
+  - `promoBoard` holds the promo boards. A board has an `https` image URL, a bilingual title (100 characters) and a linked catalog. `listPromoBoards` returns the catalog name and PDF URL. While a board links a catalog, `deleteCatalog` throws `CatalogInUseError`. The foreign key is `Restrict`, and the check is safe under concurrent writes.
+  - `applicationArea` holds the application areas. An area has an `https` image URL, a bilingual title (100 characters) and a bilingual short description (300).
+  - `service` holds the service cards. A card has an `https` image URL, a bilingual title (100 characters), a bilingual limited-Markdown description (5000) and an optional bilingual note (500). For the note, both languages are filled or both are empty; empty notes are stored as empty strings.
+  - `aboutPage` has one row with the id `about`. It has two bilingual limited-Markdown bodies of 50000 characters each: the about text and the vision text. The vision is a section of the about page.
 - Rules for values:
   - Email must be valid and at most 254 characters.
   - Phone allows digits, spaces and `+ ( ) -`, with 7 to 20 digits. `phoneToTel` derives the `tel:` link.
@@ -64,6 +70,11 @@ The proxy does only two things: locale routing and security headers. It is not t
   - When a product slug changes, the old slug is kept in `productSlugRedirect` and points at the product. `getProductBySlug` returns `{ product }`, `{ redirectTo }` (the public page answers 308) or `null`.
   - A slug that another product has or used to have is refused with `ValueTakenError`, so an old address never shows a different product. A product may take back its own old slug.
   - `ValueTakenError` has the field `key`, `code`, `slug`, or `value` when the database does not name the column. It comes from the check inside the transaction or from the unique constraint under concurrent writes.
+- Home page, service and about services:
+  - Banner and about page: `getHomeBanner`, `updateHomeBanner`, `getAboutPage` and `updateAboutPage`. A save replaces all fields.
+  - Featured products: `listFeaturedProducts` and `setFeaturedProducts`.
+  - Promo boards, application areas and service cards have ordered CRUD and reorder. New items go to the end of the list.
+  - Image URLs accept `https` only. A reorder needs the full id list. Every write calls `assertWritable()` first.
 - Long texts are limited Markdown. `MarkdownContent` (`src/components/markdown-content.tsx`) renders them with `react-markdown`.
   - Allowed: paragraphs, h2 and h3 headings, bold, italic, links, lists and line breaks. A level 1 heading becomes h2, and levels 4 to 6 become h3, so the page keeps a single h1.
   - Raw HTML and images are dropped.
@@ -194,7 +205,7 @@ releases/      release notes
 src/
   app/         App Router
   i18n/        routing and request configuration
-  server/      env, db, auth, storage, rate-limit, demo guard, contact, content (planned: more services)
+  server/      env, db, auth, storage, rate-limit, demo guard, contact, content
   components/  shared components (the Markdown renderer)
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
