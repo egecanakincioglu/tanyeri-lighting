@@ -52,11 +52,13 @@
     "@better-auth/prisma-adapter": "1.7.14",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
+    "@vercel/blob": "2.8.2",
     "better-auth": "1.7.14",
     "next": "16.4.3",
     "next-intl": "4.14.9",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "sharp": "0.35.5",
     "zod": "4.6.7"
   }
 }
