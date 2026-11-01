@@ -66,7 +66,7 @@ If an admin forgets the password and email is not configured, set a new one on t
 
 The command works the same in Git Bash and PowerShell. When the schema changes, `migrate dev` creates a new migration; add the generated files to the same pull request.
 
-Integration tests are named `*.int.test.ts` and connect to a real PostgreSQL. Each run drops and recreates only the local `tanyeri_test` database and applies all migrations from scratch. The test files share that database, so they run one after another. `pnpm db:up` must be running before these tests.
+Integration tests are named `*.int.test.ts` and connect to a real PostgreSQL. Each checkout has its own local database, `tanyeri_test_<8 hex characters>`, where the 8 characters are a hash of the repository root. A run recreates that database, applies all migrations from scratch, and drops it at the end. Two checkouts, for example git worktrees, can run integration tests at the same time; the test files within one run still run one after another. `pnpm db:up` must be running before these tests.
 
 The Prisma client is generated into `src/generated/prisma` during installation (`postinstall`). The folder is not committed and is excluded from coverage and Semgrep scans.
 
