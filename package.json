@@ -15,6 +15,7 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:seed:demo": "node --env-file-if-exists=.env prisma/seed-demo.ts",
     "admin:reset-password": "node --env-file-if-exists=.env tooling/scripts/admin-reset-password.ts",
     "lint": "eslint src tooling prisma \"*.ts\" --max-warnings 0",
     "db:up": "node tooling/scripts/db.ts up",
