@@ -58,3 +58,37 @@ export function getBlobToken(source: Record<string, string | undefined> = proces
   const token = source.BLOB_READ_WRITE_TOKEN?.trim();
   return token ? token : undefined;
 }
+
+// Shared by the seed and the recovery command, so the rules live in one place.
+// Better Auth stores and looks up emails in lower case, so the address is normalised the same way.
+export const adminEmailSchema = z.email().transform((value) => value.toLowerCase());
+export const adminPasswordSchema = z.string().min(12);
+
+const adminSchema = z.object({
+  ADMIN_EMAIL: adminEmailSchema,
+  ADMIN_PASSWORD: adminPasswordSchema,
+});
+
+export type AdminCredentials = { email: string; password: string };
+
+// Only the seed needs these, so they are not part of getEnv(): the running app must start without them.
+// Messages name the variable and the rule, never the value.
+export function getAdminCredentials(source: Record<string, string | undefined> = process.env): AdminCredentials {
+  const result = adminSchema.safeParse(source);
+  if (!result.success) {
+    const problems = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+    throw new Error(`Invalid environment variables:\n${problems.join('\n')}`);
+  }
+  return { email: result.data.ADMIN_EMAIL, password: result.data.ADMIN_PASSWORD };
+}
+
+const demoSchema = z.enum(['true', 'false']).default('false');
+
+// Same reason as isIndexingEnabled: no database variables needed, read on every call.
+export function isDemoMode(source: Record<string, string | undefined> = process.env): boolean {
+  const result = demoSchema.safeParse(source.DEMO_MODE);
+  if (!result.success) {
+    throw new Error('Invalid environment variables:\nDEMO_MODE: must be "true" or "false"');
+  }
+  return result.data === 'true';
+}
