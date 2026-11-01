@@ -77,3 +77,33 @@ export const legalPageSchema = z.object({
 
 type LegalPageInput = z.infer<typeof legalPageSchema>;
 export type LegalPage = LegalPageInput & { updatedAt: Date };
+
+export const projectSchema = z.object({
+  title: bilingual(150),
+  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
+  description: bilingual(5000),
+  // The two pictures of the before and after slider; Blob addresses from the storage module.
+  beforeImageUrl: httpsUrl,
+  afterImageUrl: httpsUrl,
+});
+
+export type ProjectInput = z.infer<typeof projectSchema>;
+export type Project = ProjectInput & { id: string };
+
+export const projectIdSchema = z.string().min(1).max(64);
+export const projectOrderSchema = z.array(projectIdSchema);
+
+export const referenceSchema = z.object({
+  imageUrl: httpsUrl,
+  // A proper name, the same in both languages.
+  name: z.string().trim().min(1).max(100),
+  // What kind of work it was.
+  title: bilingual(100),
+  description: bilingual(500),
+});
+
+export type ReferenceInput = z.infer<typeof referenceSchema>;
+export type Reference = ReferenceInput & { id: string };
+
+export const referenceIdSchema = z.string().min(1).max(64);
+export const referenceOrderSchema = z.array(referenceIdSchema);
