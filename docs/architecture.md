@@ -30,7 +30,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - PostgreSQL 18 with Prisma 7 migrations and the `@prisma/adapter-pg` driver adapter. Production uses Neon; local development and CI use the Postgres image pinned in `tooling/ci-images/Dockerfile` ([ADR 0002](adr/0002-data-and-storage.md)).
 - The app connects with the pooled address (`DATABASE_URL`). Migrations and the Prisma CLI use the direct address (`DATABASE_URL_UNPOOLED`).
-- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core. Planned: site settings, categories, products, catalogs, home page blocks, services, projects, references, messages and visits.
+- Tables today: `user`, `session`, `account`, `verification` and `rateLimit`, all from the Better Auth core, and `rateLimitCounter` for public forms (see Rate limiting). Planned: site settings, categories, products, catalogs, home page blocks, services, projects, references, messages and visits.
 - There is no raw SQL in application code; a Semgrep rule enforces this.
 - Environment variables are validated with zod in one module (`src/server/env.ts`). Each module adds its own variables. Validation runs on first use, not on import, so `next build` works without the variables. Reading `process.env` anywhere else is blocked by a Semgrep rule.
 
@@ -61,7 +61,12 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - Sign-in and password routes use the rate limiter of Better Auth, with storage in the `rateLimit` table in Postgres. This exists today ([ADR 0004](adr/0004-rate-limiting.md)).
 - The rules are explicit, per client address: `/sign-in/email` 3 requests per 10 seconds, `/request-password-reset` 3 per 60 seconds and `/reset-password` 5 per 60 seconds.
-- Planned: a counter table and a small `src/server/rate-limit` module for public forms such as the contact form. The increment is a single atomic statement. A request over the limit gets 429 with `Retry-After`.
+- Public forms such as the contact form use `checkRateLimit({ scope, limit, windowSeconds, headers })` from `src/server/rate-limit`, with the `rateLimitCounter` table in the same database. It uses a fixed window aligned to the epoch and one row per key. The increment is a single `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` statement, so concurrent requests cannot read the same count. A refused request still counts. `windowSeconds` must be between 1 and 86400.
+- The `tooManyRequests(retryAfterSeconds)` helper builds a 429 response with `Retry-After`.
+- The key is the HMAC-SHA256 of `<scope>:<address>`, under a key derived from `BETTER_AUTH_SECRET` with the label `rate-limit`, so no plain IP address is stored.
+- On Vercel (`VERCEL=1`) the client address is the first value of `x-forwarded-for`. Outside Vercel, or when the header is missing, every request shares one bucket. IPv6 addresses are grouped by /64, and an IPv4-mapped IPv6 address counts as IPv4.
+- When a window opens, rows older than 24 hours are removed, in batches of 100.
+- The limit and window values for the contact form are set together with the messages work.
 - There is no in-memory limiter and no extra service, because instances on Vercel do not share memory.
 
 ## File storage
@@ -137,7 +142,7 @@ releases/      release notes
 src/
   app/         App Router
   i18n/        routing and request configuration
-  server/      env, db, auth, storage (planned: rate-limit, demo guard, services)
+  server/      env, db, auth, storage, rate-limit (planned: demo guard, services)
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```

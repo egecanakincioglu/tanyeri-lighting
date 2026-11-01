@@ -81,7 +81,7 @@ What breaks: nothing, as long as the old token stays valid until the new deploym
 
 ## 4. SMTP
 
-Variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`. These variables arrive with a pull request that is still open. This section describes the configuration interface that pull request defines, so check `.env.example` once it is merged.
+Variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`. `.env.example` describes each of them.
 
 The group is all or none. With none set, email is off. With only some set, validation fails.
 
@@ -109,7 +109,7 @@ What breaks: a release tag pushed while the secret is wrong fails at the deploy 
 
 ## 6. Admin password
 
-Use this when an admin password leaks, or when it is forgotten and email is off. The command arrives with the seed pull request, which is still open.
+Use this when an admin password leaks, or when it is forgotten and email is off.
 
 1. On a machine with the project and the right `DATABASE_URL`, run `pnpm admin:reset-password --email <address>` and give the new password on stdin, not as an argument, so it stays out of the shell history.
 2. The command sets the new password and ends all sessions of that user.
