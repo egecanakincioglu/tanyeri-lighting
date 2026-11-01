@@ -2,4 +2,13 @@
 // pages.test.ts, so a new template can not ship unaudited.
 export const LOCALES = ['tr', 'en'] as const;
 
-export const PAGES: readonly string[] = ['/tr', '/en'];
+export const PAGES: readonly string[] = [
+  '/tr',
+  '/en',
+  '/tr/kataloglar',
+  '/en/catalogs',
+  '/tr/projeler',
+  '/en/projects',
+  '/tr/referanslar',
+  '/en/references',
+];

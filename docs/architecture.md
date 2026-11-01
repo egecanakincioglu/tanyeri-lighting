@@ -188,6 +188,10 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
+- The catalogs page lists each catalog with its size, a view link (the browser's own PDF viewer, in a new tab) and a download link.
+- The projects page compares before and after photos with a native range input, which works by keyboard and without dragging.
+- The references grid uses 1, 2, 3 and 5 columns.
+- The demo catalog is an eight page PDF, and the seed stores its real size.
 
 ## Testing
 
