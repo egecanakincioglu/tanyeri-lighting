@@ -17,7 +17,7 @@ Plan §2'deki D4 kararıyla Vercel her PR için önizleme derliyordu ve `main` F
 | Seçenek | Artıları | Eksileri | Sonuç |
 |---|---|---|---|
 | `main` → canlı, PR önizlemeleri (D4) | Kurulumu yok | Her birleşme canlıya gider; sürüm yok; en çok derleme | Elendi |
-| Sürüm etiketi → GitHub Actions → Vercel CLI | Yalnız sürüm canlıya gider; derleme sayısı en az; Vercel'in Git entegrasyonuna bağlı değil | Vercel token'ı repo secret'ı olarak gerekir | Seçildi |
+| Sürüm etiketi → GitHub Actions → Vercel REST API | Yalnız sürüm canlıya gider; derleme sayısı en az; Vercel'in Git entegrasyonuna bağlı değil | Vercel token'ı repo secret'ı olarak gerekir | Seçildi |
 | Ayrı `release` dalı Vercel'in üretim dalı olur | Token gerekmez | İkinci korumalı dalı yönetmek; sürüm ile dal ayrı ayrı ilerler | Elendi |
 | PR önizlemeleri yalnız arayüz PR'larında | Arayüzü gerçek ortamda görmek | Yine de PR başına derleme | Elendi |
 | Önizleme hiç yok | En az derleme | Migration ve platform sorunları ilk kez canlıda | Elendi |
@@ -40,8 +40,8 @@ Uyacağım kurallar:
    2. Sürüm PR'ı (`chore(release): vX.Y.Z`): `package.json` sürümü ve `CHANGELOG.md`'nin yeni bölümü. Bölüm son etiketten bu yana birleşen commit'lerden tipe göre derlenir; bir sonraki numarayı ve taslağı tooling betiği önerir.
    3. Sürüm provası: sürüm PR'ının dalı elle tetiklenen iş akışıyla Vercel'in önizleme ortamına dağıtılır. Önizleme derlemesi migration'ları önizleme veritabanına uygular. Sayfaları ve migration'ı kontrol ederim.
    4. Sürüm PR'ı birleşir; birleşme commit'ine imzalı etiket (`git tag -s vX.Y.Z`) atılıp push'lanır.
-   5. Etiket iş akışı: etiketin `main` üzerindeki bir commit'i gösterdiğini ve `package.json` sürümüyle aynı olduğunu denetler; Vercel CLI ile üretime dağıtır; `CHANGELOG.md`'deki bölümle GitHub Release açar.
-4. **Vercel'in Git entegrasyonu dağıtım yapmaz.** `vercel.json`'da `git.deploymentEnabled: false`; bütün dağıtımlar GitHub Actions'tan, Vercel CLI ile (tam sürüm, `devDependencies`'te) yapılır. Derleme Vercel'de, ortamın kendi değişkenleriyle olur.
+   5. Etiket iş akışı: etiketin `main` üzerindeki bir commit'i gösterdiğini ve `package.json` sürümüyle aynı olduğunu denetler; Vercel REST API ile üretime dağıtır; `CHANGELOG.md`'deki bölümle GitHub Release açar.
+4. **Vercel'in Git entegrasyonu dağıtım yapmaz.** `vercel.json`'da `git.deploymentEnabled: false`; bütün dağıtımlar GitHub Actions'tan, Vercel REST API ile yapılır. Derleme Vercel'de, ortamın kendi değişkenleriyle olur.
 5. **Migration'lar.** Derleme betiği (`tooling/scripts/vercel-build.ts`) önizlemede ve üretimde `prisma migrate deploy` çalıştırır, sonra `next build`. Üretim derlemesi artık yalnız sürüm etiketinden geldiği için üretim migration'ı sürümle birlikte uygulanır; önizleme veritabanında provası yapılmış olur. ADR 0002 kural 7'deki ortak önizleme veritabanı yalnız sürüm provası için kullanılır.
 6. **Dizine girme.** Canlı site 1.0.0'a kadar arama motorlarına kapalıdır (`noindex`). Açıp kapamak tek bir ortam değişkeniyle olur; 1.0.0 sürümünde açarım. ADR 0009'daki "üretim dizine girer" kuralı 1.0.0'dan itibaren geçerlidir.
 7. **Geri dönüş.** Canlıda sorun çıkarsa Vercel'de bir önceki üretim dağıtımına dönerim; düzeltme yeni bir PATCH sürümüyle gelir. Migration'lar ileriye doğrudur; veri silen migration ayrı bir sürümde ve provada doğrulanarak çıkar.
