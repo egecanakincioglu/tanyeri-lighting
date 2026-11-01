@@ -35,10 +35,11 @@ Done:
 - Rate limiting for public forms: the `checkRateLimit` module on a Postgres counter table.
 - Demo mode guard: content writes and state-changing account endpoints are refused. The demo banner stays planned (phase 5).
 - Contact messages, server side: the `contactMessage` table, the public contact Server Action with honeypot, validation, rate limit and demo summary, and the list, read and delete services. The contact page and form UI are planned (phase 6); the message screens in the admin panel are planned (phase 7).
+- Content schema 1: site settings, social links, page metadata and legal pages, with bilingual fields and a limited Markdown renderer.
 
 Next:
 
-- Content schemas: site settings, categories, products, catalogs, home page blocks, services, projects, references and visits.
+- Content schemas: categories, products, catalogs, home page blocks, services, projects, references and visits.
 - Runbook for rotating secrets.
 
 ## Later phases
