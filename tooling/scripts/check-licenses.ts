@@ -1,4 +1,4 @@
-// License policy: every production dependency must be under a license compatible with this MIT project.
+// License policy: every production dependency must be under a permissive license that this PolyForm Noncommercial project can ship with.
 // `pnpm licenses list --prod --json` is read; SPDX expressions are evaluated (AND needs all, OR needs one,
 // parentheses allowed). Anything outside the allow list, LGPL/GPL/AGPL and unknown licenses included, fails.
 //
