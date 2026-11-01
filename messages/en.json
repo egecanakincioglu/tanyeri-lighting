@@ -2,6 +2,38 @@
   "Metadata": {
     "title": "Tanyeri"
   },
+  "Header": {
+    "skip": "Skip to content",
+    "logoLabel": "Tanyeri Lighting, home",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "language": "Language",
+    "languageTr": "Türkçe",
+    "languageEn": "English",
+    "home": "Home",
+    "corporate": "Corporate",
+    "about": "About us",
+    "vision": "Our vision",
+    "references": "References",
+    "services": "Services",
+    "projects": "Projects",
+    "products": "Products",
+    "catalogs": "Catalogs",
+    "categories": "Categories",
+    "contact": "Contact"
+  },
+  "Footer": {
+    "tagline": "From homes to industrial sites, we design, make and install energy-efficient, well-made lighting for every space.",
+    "siteNav": "Site",
+    "contact": "Contact",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "hours": "Working hours",
+    "copyright": "© {year} {name}. All rights reserved.",
+    "poweredBy": "Powered by"
+  },
   "Home": {
     "placeholder": "The site is being prepared."
   },

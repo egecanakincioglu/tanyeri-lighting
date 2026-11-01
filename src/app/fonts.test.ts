@@ -25,7 +25,7 @@ describe('fonts', () => {
   });
 
   it('load with next/font/local only', () => {
-    const layout = sources.find(([file]) => file.endsWith('layout.tsx') && file.includes('[locale]'));
+    const layout = sources.find(([file]) => file.endsWith(join('[locale]', 'layout.tsx')));
     expect(layout?.[1]).toContain("from 'next/font/local'");
   });
 

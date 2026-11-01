@@ -1,8 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, describe, expect, it } from 'vitest';
-import en from '../../../messages/en.json' with { type: 'json' };
-import tr from '../../../messages/tr.json' with { type: 'json' };
+import en from '../../../../messages/en.json' with { type: 'json' };
+import tr from '../../../../messages/tr.json' with { type: 'json' };
 import NotFound from './not-found.tsx';
 
 describe('NotFound', () => {
@@ -18,6 +18,5 @@ describe('NotFound', () => {
       </NextIntlClientProvider>,
     );
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(title);
-    expect(screen.getByRole('img', { name: 'Tanyeri Lighting' })).toBeTruthy();
   });
 });
