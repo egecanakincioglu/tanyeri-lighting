@@ -45,8 +45,16 @@ The proxy does only two things: locale routing and security headers. It is not t
 ## Authorization
 
 - Every admin page, Server Action and route handler checks the session itself. The proxy never decides access; at most it makes an optimistic redirect.
-- Public endpoints are listed explicitly, and a static check is planned to enforce that every other handler calls the guard.
-- Status: the session check is available through Better Auth; the shared guard and the static check are planned.
+- The shared guard is `src/server/auth/guard.ts`. Every signed-in user is an admin, so a session is all it takes.
+  - `guardPage(locale)` is for pages and layouts. Without a session it redirects to `/<locale>/dashboard/sign-in`; an unknown locale falls back to `tr`.
+  - `guardAction()` is for Server Actions. Without a session it throws `UnauthorizedError`.
+  - `guardHandler()` is for route handlers. It returns the session, or a 401 JSON response that the handler returns as it is.
+- A static check, `tooling/scripts/check-admin-guard.ts`, runs in the `policy` job and fails the build when a guard is missing:
+  - The default export of every page and layout under `src/app/[locale]/(admin)` calls `guardPage`.
+  - Every exported method in `src/app/api/**/route.ts` calls `guardHandler`.
+  - Every export of a top-level `'use server'` file calls `guardAction`.
+- Public entry points are allowlisted in the check, each with a reason: the sign-in page and `api/auth/[...all]`. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
+- The check is shallow by design: it looks for the call inside the exported function and does not follow helper calls. Review covers the rest.
 
 ## Rate limiting
 

@@ -92,6 +92,15 @@ jobs:
       - name: packageManager is pinned to an exact version with a hash
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-package-manager.ts
+      # The check parses the sources with the TypeScript compiler, so it needs the installed dependencies.
+      - name: Install dependencies
+        if: ${{ !cancelled() }}
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Admin pages, handlers and Server Actions call the session guard
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-admin-guard.ts
       - name: Scan tracked files and paths for forbidden terms
         if: ${{ !cancelled() }}
         run: tooling/scripts/check-forbidden-terms.sh --all
@@ -221,6 +230,11 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
+      # The admin guard check parses sources with the TypeScript compiler.
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
       - name: Unit tests of the tooling
         run: node --test "tooling/**/*.test.ts"
       # Syntax check of every shell script and of the extensionless git hooks.
@@ -241,6 +255,11 @@ jobs:
         with:
           node-version-file: .node-version
       # Git Bash on the runner, the same shell the tooling targets on a developer's Windows machine.
+      - name: Install dependencies
+        shell: bash
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
       - name: Unit tests of the tooling
         shell: bash
         run: node --test "tooling/**/*.test.ts"

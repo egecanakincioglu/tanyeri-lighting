@@ -22,6 +22,8 @@ export default defineConfig({
           environment: 'node',
           include: ['src/**/*.int.test.ts'],
           globalSetup: ['src/test/integration-setup.ts'],
+          // The files share one database and reset the same tables, so they run one after the other.
+          fileParallelism: false,
           env: {
             DATABASE_URL: TEST_URL,
             DATABASE_URL_UNPOOLED: TEST_URL,

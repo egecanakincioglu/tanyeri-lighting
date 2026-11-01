@@ -72,7 +72,7 @@ CI jobs (`.github/workflows/`):
 
 | Job | What it checks |
 |---|---|
-| `policy` | Branch name; the message of every commit in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links and language; forbidden terms and paths; secret scan of the full history; the `packageManager` pin |
+| `policy` | Branch name; the message of every commit in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links and language; every admin page, route handler and Server Action calls the session guard; forbidden terms and paths; secret scan of the full history; the `packageManager` pin |
 | `pr-text` | Pull request title (Conventional Commits) and forbidden terms in title and body |
 | `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, `pnpm audit`, production licenses, dead code and unused dependencies |
 | `test` | Vitest unit and integration tests with the coverage gate |
