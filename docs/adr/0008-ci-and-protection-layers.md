@@ -68,7 +68,7 @@ Rules:
 2. What the jobs do:
    - `policy`: branch name; every commit in the PR (title, body, forbidden term, signature); the untested-code gate and the rule that the coverage threshold is not lowered ([ADR 0007](0007-testing-strategy.md)); secret scan over the whole history; forbidden paths.
    - `pr-text`: PR title and forbidden terms.
-   - `quality`: Prettier, ESLint CLI (flat config; no `next lint`), `tsc --noEmit` (application and `tooling/` together), dead code and unused dependency scan, `pnpm audit` (high/critical fail, with a time-limited exception list), Semgrep, license policy.
+   - `quality`: Prettier, ESLint CLI (flat config; no `next lint`), `tsc --noEmit` (application and `tooling/` together), dead code and unused dependency scan, `pnpm audit` (high/critical fail, with a time-limited exception list), Semgrep, license policy (permissive licenses only, such as MIT, MIT-0, ISC, BSD and Apache-2.0).
    - `test`: Vitest, with the Postgres service container and the coverage threshold.
    - `build`: `next build`.
 3. Branch protection (`main`): PR required (0 approvals); required checks `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `analyze (javascript-typescript)` and `CodeQL`, and after phase 3 `quality`, `test`, `build` and `analyze (actions)`; strict (the branch must be up to date); signed commits required; force push and branch deletion disabled; administrators included. Repository settings: merge commits only, automatic branch deletion, auto-merge enabled, suggestion to update the branch enabled.

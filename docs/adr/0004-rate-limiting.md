@@ -30,7 +30,7 @@ Facts checked before the decision:
 
 Rules:
 
-1. **Sign-in and password reset:** the limiter of the authentication library (Better Auth, [ADR 0003](0003-authentication.md)) is used. The setting is `rateLimit: { enabled: true, storage: "database", customRules: { ... } }`. `enabled: true` is written explicitly so that it also runs in development and tests. Narrow-window, low-limit rules are set for the sign-in and reset request endpoints; the values are set in phase 4 and fixed with tests.
+1. **Sign-in and password reset:** the limiter of the authentication library (Better Auth, [ADR 0003](0003-authentication.md)) is used. The setting is `rateLimit: { enabled: true, storage: "database", customRules: { ... } }`. `enabled: true` is written explicitly so that it also runs in development and tests. Narrow-window, low-limit rules are set for the sign-in and reset endpoints. The values are decided and fixed by tests, per client address: `/sign-in/email` 3 requests per 10 seconds, `/request-password-reset` 3 per 60 seconds and `/reset-password` 5 per 60 seconds.
 2. **Sign-in and reset forms go from the browser directly to the `/api/auth/*` handler.** Sign-in is not done with the server API (`auth.api.*`); if it were, the limiter would be bypassed ([ADR 0003](0003-authentication.md), rule 3).
 3. For **other public write endpoints** (the contact form and similar), the `src/server/rate-limit` module and a counter table in the same database are used (`RateLimitCounter`: key, window start, counter).
    - The increment is one atomic statement: either an `upsert` that meets Prisma's database upsert conditions, or a parameterized `$executeRaw` with `INSERT ... ON CONFLICT ... DO UPDATE ... RETURNING`. Two-step code that reads first and then writes is forbidden.

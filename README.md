@@ -25,6 +25,7 @@ Done:
 - Environment validation with zod; error messages name the variable and never print its value.
 - Nonce-based Content Security Policy and security headers (HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`).
 - Authentication with Better Auth: email and password, no public sign-up, sessions stored in the database, rate limits stored in Postgres.
+- Optional email through SMTP: the password reset link is sent by email (see the SMTP variables in the [development setup](docs/guides/development-setup.md)).
 - File storage on Vercel Blob with an upload pipeline: 4 MB limit, file type detected from the first bytes (JPEG, PNG, WebP, PDF), images re-encoded to WebP with sharp.
 - A switch that keeps the site out of search indexes (`SITE_INDEXING`).
 - Automated quality gates and tag-based releases (see below).
@@ -34,7 +35,7 @@ Planned:
 - Public pages: home, products with categories and product pages, catalogs, services, projects with a before and after comparison, references, about, contact, privacy and terms.
 - Admin panel: content and product management, contact messages, visit statistics.
 - Demo mode: a read-only demo in which all content writes are refused.
-- Optional email through SMTP, and an optional Google Ads module.
+- An optional Google Ads module.
 - SEO and structured data, and an accessibility and performance review.
 
 ## Tech stack

@@ -60,6 +60,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 ## Rate limiting
 
 - Sign-in and password routes use the rate limiter of Better Auth, with storage in the `rateLimit` table in Postgres. This exists today ([ADR 0004](adr/0004-rate-limiting.md)).
+- The rules are explicit, per client address: `/sign-in/email` 3 requests per 10 seconds, `/request-password-reset` 3 per 60 seconds and `/reset-password` 5 per 60 seconds.
 - Planned: a counter table and a small `src/server/rate-limit` module for public forms such as the contact form. The increment is a single atomic statement. A request over the limit gets 429 with `Retry-After`.
 - There is no in-memory limiter and no extra service, because instances on Vercel do not share memory.
 
@@ -72,11 +73,16 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 ## Email
 
-- Planned: SMTP is optional. Without SMTP variables, email is off.
-- With SMTP, password reset and email change verification are sent by email. Without it, the "forgot password" link is hidden and password recovery is a command run on the server (`pnpm admin:reset-password`). This exists today:
+- SMTP is optional and all or none: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` and `SMTP_FROM`. Without them, email is off. A partly set group is an error that names the missing variables.
+- Port 465 uses TLS from the start. Other ports use STARTTLS when the server offers it.
+- With SMTP, the password reset link is sent by email. The email is plain text, Turkish first and then English. The link is `/tr/dashboard/reset-password?token=...`; that page is planned.
+- The token is valid for 1 hour and works once. A password reset ends every session of the user.
+- The email is sent after the response with `after()`, so a known and an unknown address get the same answer. A send failure is logged as the error kind and code only.
+- Without SMTP, the reset request is refused (`RESET_PASSWORD_DISABLED`), the "forgot password" link is hidden and recovery is a command run on the server (`pnpm admin:reset-password`). This exists today:
   - `printf '%s\n' '<new password>' | pnpm admin:reset-password --email <address>`
   - The password comes only from standard input, never from the arguments.
   - The command stores a new hash and ends all sessions of the user. It exits with code 1 for an unknown email or a password shorter than 12 characters.
+- Planned: email change verification comes with the account screen.
 
 ## Demo mode
 
