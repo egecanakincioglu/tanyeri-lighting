@@ -19,5 +19,6 @@ describe('HomePage', () => {
     );
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Tanyeri');
     expect(screen.getByText(sentence)).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Tanyeri' })).toBeTruthy();
   });
 });
