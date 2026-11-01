@@ -167,3 +167,38 @@ model LegalPage {
 
   @@map("legalPage")
 }
+
+// A finished job shown with a before and an after picture. The description is limited Markdown stored as plain text.
+model Project {
+  id             String   @id @default(uuid(7))
+  titleTr        String
+  titleEn        String
+  descriptionTr  String
+  descriptionEn  String
+  beforeImageUrl String
+  afterImageUrl  String
+  sortOrder      Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("project")
+}
+
+// A client or partner shown on the site. The name is a proper name and is not translated; the title says what kind of
+// work it was.
+model Reference {
+  id            String   @id @default(uuid(7))
+  imageUrl      String
+  name          String
+  titleTr       String
+  titleEn       String
+  descriptionTr String
+  descriptionEn String
+  sortOrder     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("reference")
+}
