@@ -1,11 +1,14 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest';
+import { createTransport } from 'nodemailer';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setEmailScheduler, setEmailTransport } from '../email/index.ts';
 import { buildAuthOptions } from './auth.ts';
 
 const settings = {
   secret: 'a-secret-of-at-least-thirty-two-characters',
   baseURL: 'https://tanyeri.example.com',
   production: true,
+  emailEnabled: false,
 };
 
 describe('buildAuthOptions', () => {
@@ -15,9 +18,19 @@ describe('buildAuthOptions', () => {
       enabled: true,
       disableSignUp: true,
       revokeSessionsOnPasswordReset: true,
+      resetPasswordTokenExpiresIn: 3600,
     });
-    expect(options.rateLimit).toEqual({ enabled: true, storage: 'database' });
+    expect(options.rateLimit.enabled).toBe(true);
+    expect(options.rateLimit.storage).toBe('database');
     expect(options.session).toEqual({ cookieCache: { enabled: false } });
+  });
+
+  it('fixes the limits of the sign-in and password reset endpoints (ADR 0004 rule 1)', () => {
+    expect(buildAuthOptions(settings).rateLimit.customRules).toEqual({
+      '/sign-in/email': { window: 10, max: 3 },
+      '/request-password-reset': { window: 60, max: 3 },
+      '/reset-password': { window: 60, max: 5 },
+    });
   });
 
   it('keeps the origin and CSRF checks on explicitly', () => {
@@ -42,5 +55,42 @@ describe('buildAuthOptions', () => {
     const options = buildAuthOptions(settings);
     expect(options.secret).toBe(settings.secret);
     expect(options.baseURL).toBe(settings.baseURL);
+  });
+});
+
+describe('password reset email', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    setEmailTransport(undefined);
+    setEmailScheduler(undefined);
+  });
+
+  it('has no sender while email is off, so the library refuses reset requests', () => {
+    expect(buildAuthOptions(settings).emailAndPassword).not.toHaveProperty('sendResetPassword');
+  });
+
+  it('schedules the reset link for after the response while email is on', async () => {
+    vi.stubEnv('SMTP_HOST', 'smtp.example.com');
+    vi.stubEnv('SMTP_PORT', '587');
+    vi.stubEnv('SMTP_USER', 'mailer');
+    vi.stubEnv('SMTP_PASSWORD', 'mailer-password');
+    vi.stubEnv('SMTP_FROM', 'Tanyeri <no-reply@example.com>');
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+
+    const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
+    await emailAndPassword.sendResetPassword!({ user: { email: 'admin@example.com' }, token: 'abc123' });
+
+    expect(tasks).toHaveLength(1);
+    expect(sendMail).not.toHaveBeenCalled();
+    await tasks[0]!();
+    expect(sendMail).toHaveBeenCalledTimes(1);
+    const sent = sendMail.mock.calls[0]![0];
+    expect(sent.to).toBe('admin@example.com');
+    expect(sent.from).toBe('Tanyeri <no-reply@example.com>');
+    expect(sent.text).toContain('https://tanyeri.example.com/tr/dashboard/reset-password?token=abc123');
   });
 });

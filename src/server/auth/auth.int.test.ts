@@ -1,73 +1,29 @@
-import { hashPassword } from 'better-auth/crypto';
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { createTransport } from 'nodemailer';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET, POST } from '../../app/api/auth/[...all]/route.ts';
+import {
+  ADMIN_EMAIL as EMAIL,
+  ADMIN_PASSWORD as PASSWORD,
+  OTHER_PASSWORD,
+  authRequest,
+  cookieOf,
+  loginCookie,
+  resetAdmin,
+  sessionOf,
+  signIn,
+} from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
+import { setEmailTransport } from '../email/index.ts';
 
-const EMAIL = 'admin@example.com';
-const PASSWORD = 'correct horse battery staple';
-const OTHER_PASSWORD = 'another long passphrase 42';
-
-// The sign-in limit is per client address and endpoint, so every test uses addresses of its own.
-let nextAddress = 1;
-function freshAddress(): string {
-  return `203.0.113.${nextAddress++}`;
-}
-
-type CallOptions = { address?: string; origin?: string; cookie?: string };
-
-function authRequest(path: string, body: unknown, options: CallOptions = {}): Request {
-  const headers = new Headers({
-    'content-type': 'application/json',
-    origin: options.origin ?? TEST_AUTH_URL,
-    'x-forwarded-for': options.address ?? freshAddress(),
-  });
-  if (options.cookie) headers.set('cookie', options.cookie);
-  return new Request(`${TEST_AUTH_URL}/api/auth${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
-}
-
-function signIn(password: string, options: CallOptions = {}): Promise<Response> {
-  return POST(authRequest('/sign-in/email', { email: EMAIL, password }, options));
-}
-
-// The name=value pairs of the Set-Cookie headers, ready to send back as a Cookie header.
-function cookieOf(response: Response): string {
-  return response.headers
-    .getSetCookie()
-    .map((line) => line.split(';')[0])
-    .join('; ');
-}
-
-async function sessionOf(cookie: string): Promise<unknown> {
-  const response = await GET(
-    new Request(`${TEST_AUTH_URL}/api/auth/get-session`, { headers: { cookie, 'x-forwarded-for': freshAddress() } }),
-  );
-  return response.json();
-}
-
-async function loginCookie(options: CallOptions = {}): Promise<string> {
-  const response = await signIn(PASSWORD, options);
-  expect(response.status).toBe(200);
-  return cookieOf(response);
-}
-
+// These tests run without the SMTP variables: email is off. The enabled side is in password-reset.int.test.ts.
 describe('authentication endpoints on a real database', () => {
   beforeEach(async () => {
-    const db = getDb();
-    await db.rateLimit.deleteMany();
-    await db.session.deleteMany();
-    await db.account.deleteMany();
-    await db.user.deleteMany();
-    const user = await db.user.create({ data: { id: 'user-1', name: 'Admin', email: EMAIL, emailVerified: true } });
-    await db.account.create({
-      data: {
-        id: 'account-1',
-        accountId: user.id,
-        providerId: 'credential',
-        userId: user.id,
-        password: await hashPassword(PASSWORD),
-      },
-    });
+    await resetAdmin();
+  });
+
+  afterEach(() => {
+    setEmailTransport(undefined);
   });
 
   afterAll(async () => {
@@ -116,6 +72,7 @@ describe('authentication endpoints on a real database', () => {
     const limited = await signIn('wrong password', { address });
     expect(limited.status).toBe(429);
     expect(Number(limited.headers.get('x-retry-after'))).toBeGreaterThan(0);
+    expect(Number(limited.headers.get('x-retry-after'))).toBeLessThanOrEqual(10);
 
     const rightPassword = await signIn(PASSWORD, { address });
     expect(rightPassword.status).toBe(429);
@@ -179,5 +136,19 @@ describe('authentication endpoints on a real database', () => {
 
     expect((await signIn(PASSWORD)).status).toBe(401);
     expect((await signIn(OTHER_PASSWORD)).status).toBe(200);
+  });
+
+  it('refuses a password reset request while email is off, and sends and stores nothing', async () => {
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+
+    const response = await POST(authRequest('/request-password-reset', { email: EMAIL }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: 'RESET_PASSWORD_DISABLED' });
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(await getDb().verification.count()).toBe(0);
+    expect((await signIn(PASSWORD)).status).toBe(200);
   });
 });
