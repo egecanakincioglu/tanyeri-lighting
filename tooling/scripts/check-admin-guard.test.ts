@@ -262,6 +262,15 @@ describe('check-admin-guard', () => {
         'contact/actions.ts',
       ));
 
+    test('the public contact form action is on the allowlist and needs no guard', () =>
+      passes({ 'src/server/contact/actions.ts': "'use server';\nexport async function submit() {}" }));
+
+    test('another action file next to the contact form is not covered by the allowlist', () =>
+      fails(
+        { 'src/server/contact/admin-actions.ts': "'use server';\nexport async function remove() {}" },
+        'contact/admin-actions.ts',
+      ));
+
     test('a tsx action file is checked too', () =>
       fails(
         { 'src/components/form.tsx': "'use server';\nexport async function send() { return <p />; }" },
