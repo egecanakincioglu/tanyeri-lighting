@@ -27,10 +27,16 @@ describe('stylesheets', () => {
     const css = readFileSync(globals, 'utf8');
     expect(css).toContain('--color-*: initial;');
     for (const [name, rem] of [
-      ['sm', 24.375],
+      ['xs', 33.75],
+      ['sm', 37.5],
+      ['mid', 40],
       ['md', 48],
+      ['wide', 56.25],
       ['lg', 64],
-      ['xl', 90],
+      ['xl', 80],
+      ['2xl', 90],
+      ['3xl', 120],
+      ['4xl', 150],
     ] as const) {
       expect(css).toContain(`--breakpoint-${name}: ${rem}rem;`);
     }
@@ -40,21 +46,20 @@ describe('stylesheets', () => {
 const tokenNames = [
   'page',
   'surface',
-  'text',
+  'ink',
   'muted',
-  'primary',
-  'primary-hover',
+  'accent',
+  'accent-hover',
+  'on-accent',
+  'accent-text',
+  'accent-tint',
   'hairline',
-  'input-border',
   'error',
   'success',
-  'brand-slab',
-  'brand-beam',
 ];
 
-function colors(css: string, opener: string): Record<string, string> {
-  const start = css.indexOf(opener);
-  const block = css.slice(start, css.indexOf('}', start));
+function colors(css: string): Record<string, string> {
+  const block = css.slice(css.indexOf('@theme {'), css.indexOf('}', css.indexOf('@theme {')));
   return Object.fromEntries([...block.matchAll(/--color-([a-z-]+):\s*(#[0-9a-f]{6});/g)].map((m) => [m[1], m[2]]));
 }
 
@@ -73,21 +78,15 @@ function contrast(a: string, b: string): number {
 
 describe('color tokens', () => {
   const css = readFileSync(globals, 'utf8');
-  const dark = colors(css, '@theme {');
-  const light = colors(css, "[data-theme='light']");
+  const palette = colors(css);
 
-  it.each([
-    ['dark', dark],
-    ['light', light],
-  ])('defines every semantic color for the %s theme', (_theme, palette) => {
+  it('defines every semantic color once, for the single light theme', () => {
     expect(Object.keys(palette).sort()).toEqual([...tokenNames].sort());
+    expect(css).not.toContain('data-theme');
   });
 
-  it.each([
-    ['dark', dark],
-    ['light', light],
-  ])('keeps text pairs at 4.5:1 or more in the %s theme', (_theme, palette) => {
-    for (const foreground of ['text', 'muted', 'primary', 'error']) {
+  it('keeps text pairs at 4.5:1 or more', () => {
+    for (const foreground of ['ink', 'muted', 'accent-text', 'error', 'success']) {
       for (const background of ['page', 'surface']) {
         expect(
           contrast(palette[foreground]!, palette[background]!),
@@ -95,21 +94,28 @@ describe('color tokens', () => {
         ).toBeGreaterThanOrEqual(4.5);
       }
     }
-    expect(contrast(palette['page']!, palette['primary']!)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(palette['accent-text']!, palette['accent-tint']!)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each([
-    ['dark', dark],
-    ['light', light],
-  ])('keeps interface pairs at 3:1 or more in the %s theme', (_theme, palette) => {
-    expect(contrast(palette['input-border']!, palette['surface']!)).toBeGreaterThanOrEqual(3);
-    expect(contrast(palette['input-border']!, palette['page']!)).toBeGreaterThanOrEqual(3);
-    expect(contrast(palette['brand-beam']!, palette['page']!)).toBeGreaterThanOrEqual(3);
-    expect(contrast(palette['brand-slab']!, palette['page']!)).toBeGreaterThanOrEqual(3);
+  it('keeps the dark label on accent fills at 4.5:1 or more', () => {
+    expect(contrast(palette['on-accent']!, palette['accent']!)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(palette['on-accent']!, palette['accent-hover']!)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('measures the main dark pairs as the brand sheet states', () => {
-    expect(contrast(dark['text']!, dark['page']!)).toBeCloseTo(15.75, 1);
-    expect(contrast(dark['primary']!, dark['page']!)).toBeCloseTo(10.65, 1);
+  it('keeps the accent fill visible against the surface at 3:1 or more', () => {
+    expect(contrast(palette['accent']!, palette['surface']!)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('sizing tokens', () => {
+  const css = readFileSync(globals, 'utf8');
+
+  it('declares a 44 px touch size', () => {
+    expect(css).toContain('--spacing-touch: 2.75rem;');
+  });
+
+  it('widens the container on very wide screens', () => {
+    expect(css).toContain('--container-page: 75rem;');
+    for (const rem of [82, 90, 100]) expect(css).toContain(`--container-page: ${rem}rem;`);
   });
 });
