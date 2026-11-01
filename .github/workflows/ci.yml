@@ -86,7 +86,7 @@ jobs:
       - name: Doc links
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-doc-links.ts
-      - name: Docs are Turkish and have ASCII kebab-case names
+      - name: Docs are English and have ASCII kebab-case names
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-docs-language.ts
       - name: packageManager is pinned to an exact version with a hash
