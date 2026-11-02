@@ -65,7 +65,9 @@
     "material": "Malzeme",
     "power": "Güç",
     "dimensions": "Ölçüler",
-    "description": "{name}, {category}. Ürün kodu: {code}."
+    "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
+    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
+    "backToCategory": "{category} kategorisine dön"
   },
   "Catalogs": {
     "view": "Görüntüle",

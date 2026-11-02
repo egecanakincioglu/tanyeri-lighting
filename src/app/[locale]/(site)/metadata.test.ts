@@ -179,6 +179,10 @@ describe('page metadata', () => {
       slug: 'spot-12w',
       code: 'SP-12',
       name: { tr: 'Spot TR', en: 'Spot EN' },
+      color: { tr: '', en: '' },
+      material: { tr: '', en: '' },
+      power: '',
+      dimensions: '',
     };
 
     it.each([
