@@ -92,7 +92,7 @@ describe('password reset with email on', () => {
     const mail = sentMail();
     expect(mail.to).toBe(ADMIN_EMAIL);
     expect(mail.from).toBe(SMTP.SMTP_FROM);
-    expect(mail.text).toContain(`${TEST_AUTH_URL}/tr/dashboard/reset-password?token=`);
+    expect(mail.text).toContain(`${TEST_AUTH_URL}/tr/yonetim/parola-sifirla?token=`);
     const token = tokenOf(mail);
 
     const reset = await resetPassword(token, OTHER_PASSWORD);
