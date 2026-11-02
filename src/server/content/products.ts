@@ -52,6 +52,14 @@ export async function listProducts(categoryKey?: string): Promise<Product[]> {
   return rows.map(productFromRow);
 }
 
+// The address and last change of every product, for the sitemap; the list readers do not carry the change time.
+export async function listProductChanges(): Promise<{ slug: string; updatedAt: Date }[]> {
+  return getDb().product.findMany({
+    select: { slug: true, updatedAt: true },
+    orderBy: [{ category: { sortOrder: 'asc' } }, { sortOrder: 'asc' }, { id: 'asc' }],
+  });
+}
+
 export type ProductLookup = { product: Product } | { redirectTo: string };
 
 // A slug the product used to have answers with the current one, however many times the slug changed since.

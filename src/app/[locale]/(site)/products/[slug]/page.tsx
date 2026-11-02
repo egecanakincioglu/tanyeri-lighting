@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { Card } from '../../../../../components/card.tsx';
 import { Container } from '../../../../../components/container.tsx';
+import { JsonLd } from '../../../../../components/json-ld.tsx';
 import { SiteImage } from '../../../../../components/site-image.tsx';
 import { getPathname } from '../../../../../i18n/navigation.ts';
 import { routing } from '../../../../../i18n/routing.ts';
+import { pageAlternates } from '../../../../../lib/seo.ts';
+import { breadcrumbData } from '../../../../../lib/structured-data.ts';
 import { listCategories } from '../../../../../server/content/categories.ts';
 import { getProductBySlug } from '../../../../../server/content/products.ts';
 
@@ -45,6 +48,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/products
   return {
     title: name,
     description: t('description', { name, category, code: found.product.code }),
+    alternates: pageAlternates(locale, { pathname: '/products/[slug]', params: { slug: found.product.slug } }),
   };
 }
 
@@ -53,7 +57,11 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
-  const [t, loaded] = await Promise.all([getTranslations({ locale, namespace: 'Product' }), loadProduct(slug, locale)]);
+  const [t, header, loaded] = await Promise.all([
+    getTranslations({ locale, namespace: 'Product' }),
+    getTranslations({ locale, namespace: 'Header' }),
+    loadProduct(slug, locale),
+  ]);
   if (!loaded) notFound();
   const { product, category } = loaded;
   const name = product.name[locale];
@@ -69,6 +77,13 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
 
   return (
     <div className="py-[clamp(1.5rem,4vw,3rem)]">
+      <JsonLd
+        data={breadcrumbData(locale, [
+          { name: header('home'), href: '/' },
+          { name: header('products'), href: '/products' },
+          { name, href: { pathname: '/products/[slug]', params: { slug: product.slug } } },
+        ])}
+      />
       <Container>
         <Link
           href={getPathname({ locale, href: '/products' })}

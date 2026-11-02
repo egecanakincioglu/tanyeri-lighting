@@ -5,10 +5,13 @@ import { notFound } from 'next/navigation';
 import { Card } from '../../../../components/card.tsx';
 import { Container } from '../../../../components/container.tsx';
 import { MarkdownContent } from '../../../../components/markdown-content.tsx';
+import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { SiteImage } from '../../../../components/site-image.tsx';
 import { PROSE } from '../../../../components/site/prose.ts';
 import { routing } from '../../../../i18n/routing.ts';
+import { pageAlternates } from '../../../../lib/seo.ts';
+import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listServices } from '../../../../server/content/services.ts';
 
@@ -30,7 +33,11 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/services
     getPageMetadata('services'),
   ]);
   const description = metadata?.description[locale];
-  return description ? { title: t('services'), description } : { title: t('services') };
+  return {
+    title: t('services'),
+    ...(description ? { description } : {}),
+    alternates: pageAlternates(locale, '/services'),
+  };
 }
 
 export default async function ServicesPage({ params }: PageProps<'/[locale]/services'>) {
@@ -40,6 +47,12 @@ export default async function ServicesPage({ params }: PageProps<'/[locale]/serv
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbData(locale, [
+          { name: t('home'), href: '/' },
+          { name: t('services'), href: '/services' },
+        ])}
+      />
       <SectionTitle title={t('services')} level={1} />
       {services.length > 0 ? (
         <div className="pb-[clamp(2rem,5vw,4rem)]">

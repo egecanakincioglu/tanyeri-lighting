@@ -6,9 +6,12 @@ import { ButtonLink } from '../../../../components/button.tsx';
 import { CatalogView } from '../../../../components/catalog-viewer/catalog-view.tsx';
 import type { ViewerLabels } from '../../../../components/catalog-viewer/viewer-labels.ts';
 import { Container } from '../../../../components/container.tsx';
+import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { SiteImage } from '../../../../components/site-image.tsx';
 import { routing } from '../../../../i18n/routing.ts';
+import { pageAlternates } from '../../../../lib/seo.ts';
+import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { listCatalogs } from '../../../../server/content/catalogs.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 
@@ -19,7 +22,11 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/catalogs
   }
   const [t, page] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('catalogs')]);
   const description = page?.description[locale];
-  return description ? { title: t('catalogs'), description } : { title: t('catalogs') };
+  return {
+    title: t('catalogs'),
+    ...(description ? { description } : {}),
+    alternates: pageAlternates(locale, '/catalogs'),
+  };
 }
 
 // One column up to 24rem wide, two up to 50rem, three up to 62rem; the page gutter is clamp(1rem, 4vw, 4rem). The 2x
@@ -66,6 +73,12 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
 
   return (
     <div className="pb-[clamp(2.5rem,6vw,4.5rem)]">
+      <JsonLd
+        data={breadcrumbData(locale, [
+          { name: header('home'), href: '/' },
+          { name: header('catalogs'), href: '/catalogs' },
+        ])}
+      />
       <SectionTitle title={header('catalogs')} level={1} />
       {catalogs.length > 0 && (
         <Container>

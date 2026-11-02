@@ -5,6 +5,7 @@ import {
   getDemoAdminCredentials,
   getBlobToken,
   getEnv,
+  getSiteUrl,
   getSmtpConfig,
   isDemoMode,
   isDevelopment,
@@ -373,5 +374,37 @@ describe('isVercel', () => {
   it('reads process.env by default', () => {
     vi.stubEnv('VERCEL', '1');
     expect(isVercel()).toBe(true);
+  });
+});
+
+describe('getSiteUrl', () => {
+  it('uses SITE_URL and keeps only its origin', () => {
+    expect(getSiteUrl({ SITE_URL: 'https://example.com/some/path?x=1' }).href).toBe('https://example.com/');
+  });
+
+  it('prefers SITE_URL over the Vercel production host', () => {
+    expect(getSiteUrl({ SITE_URL: 'https://a.example', VERCEL_PROJECT_PRODUCTION_URL: 'b.example' }).host).toBe(
+      'a.example',
+    );
+  });
+
+  it('falls back to the Vercel production host, which has no scheme', () => {
+    expect(getSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'tanyeri.example' }).href).toBe('https://tanyeri.example/');
+  });
+
+  it('treats blank values as unset and falls back to localhost', () => {
+    expect(getSiteUrl({ SITE_URL: '  ', VERCEL_PROJECT_PRODUCTION_URL: '' }).href).toBe('http://localhost:3000/');
+    expect(getSiteUrl({}).href).toBe('http://localhost:3000/');
+  });
+
+  it('rejects an address that is not http(s) without printing it', () => {
+    expect(() => getSiteUrl({ SITE_URL: 'ftp://secret.example' })).toThrow(/SITE_URL: must be an http\(s\) address/);
+    expect(() => getSiteUrl({ SITE_URL: 'ftp://secret.example' })).not.toThrow(/secret/);
+    expect(() => getSiteUrl({ SITE_URL: 'not a url' })).toThrow(/SITE_URL/);
+  });
+
+  it('reads process.env by default', () => {
+    vi.stubEnv('SITE_URL', 'https://env.example');
+    expect(getSiteUrl().host).toBe('env.example');
   });
 });
