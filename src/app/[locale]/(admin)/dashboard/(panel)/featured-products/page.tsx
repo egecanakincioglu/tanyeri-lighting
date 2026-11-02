@@ -53,7 +53,7 @@ export default async function FeaturedProductsAdminPage({
         disabledReason={isDemoMode() ? formTexts.demoNote : undefined}
         texts={{
           current: t('current'),
-          counter: t('counter'),
+          counter: t('counter', { count: '{count}', max: '{max}' }),
           empty: t('empty'),
           moveUp: t('moveUp'),
           moveDown: t('moveDown'),

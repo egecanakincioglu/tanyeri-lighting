@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import en from '../../../messages/en.json' with { type: 'json' };
 import tr from '../../../messages/tr.json' with { type: 'json' };
 import type { SiteSettings, SocialLink } from '../../server/content/schemas.ts';
+import { optimizedSource } from '../../test/optimized-source.ts';
 import { FooterContent, type LegalLink } from './footer.tsx';
 
 const pair = (trText: string, enText: string) => ({ tr: trText, en: enText });
@@ -61,7 +62,7 @@ describe('FooterContent', () => {
 
   it('shows the uploaded logo, and the artwork when there is none', () => {
     const { unmount } = renderFooter({ settings: { ...settings, logoUrl: '/demo/area-otel.webp' } });
-    expect(screen.getByRole('img', { name: 'Tanyeri Lighting' }).getAttribute('src')).toBe('/demo/area-otel.webp');
+    expect(optimizedSource(screen.getByRole('img', { name: 'Tanyeri Lighting' }))).toBe('/demo/area-otel.webp');
     unmount();
     renderFooter({ settings: { ...settings, logoUrl: null } });
     expect(screen.getByRole('img', { name: 'Tanyeri Lighting' }).getAttribute('src')).toBe('/brand/logo.svg');

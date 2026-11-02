@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../messages/en.json' with { type: 'json' };
 import tr from '../../../messages/tr.json' with { type: 'json' };
+import { optimizedSource } from '../../test/optimized-source.ts';
 import { Header } from './header.tsx';
 
 const navigation = vi.hoisted(() => ({ pathname: '/tr', params: {} as Record<string, string | string[]> }));
@@ -37,7 +38,7 @@ describe('Header', () => {
     const { unmount } = renderHeader('tr', '/demo/area-otel.webp');
     const logos = screen.getAllByRole('img', { name: 'Tanyeri Lighting' });
     expect(logos.length).toBeGreaterThan(0);
-    for (const logo of logos) expect(logo.getAttribute('src')).toBe('/demo/area-otel.webp');
+    for (const logo of logos) expect(optimizedSource(logo)).toBe('/demo/area-otel.webp');
     unmount();
     renderHeader('tr', null);
     for (const logo of screen.getAllByRole('img', { name: 'Tanyeri Lighting' })) {

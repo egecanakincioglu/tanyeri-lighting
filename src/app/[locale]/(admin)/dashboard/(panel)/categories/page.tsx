@@ -71,7 +71,7 @@ export default async function CategoriesAdminPage({ params }: PageProps<'/[local
           delete: {
             trigger: t('delete'),
             title: t('deleteTitle'),
-            body: t('deleteBody'),
+            body: t('deleteBody', { name: '{name}' }),
             confirm: t('deleteConfirm'),
             working: t('deleting'),
             cancel: form('cancel'),
