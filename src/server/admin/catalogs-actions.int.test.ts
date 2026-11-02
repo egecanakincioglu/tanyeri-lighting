@@ -138,7 +138,15 @@ describe('catalog actions on a real database', () => {
     await expect(createCatalogAction(null, form(valid('Beta')))).rejects.toThrow('redirect:');
     const [alpha, beta] = await listCatalogs();
     await getDb().promoBoard.create({
-      data: { imageUrl: COVER, titleTr: 'Pano', titleEn: 'Board', catalogId: alpha!.id, sortOrder: 0 },
+      data: {
+        imageUrl: COVER,
+        titleTr: 'Pano',
+        titleEn: 'Board',
+        subtitleTr: '',
+        subtitleEn: '',
+        catalogId: alpha!.id,
+        sortOrder: 0,
+      },
     });
     expect(await deleteCatalogAction(null, form({ id: alpha!.id }))).toMatchObject({
       status: 'error',

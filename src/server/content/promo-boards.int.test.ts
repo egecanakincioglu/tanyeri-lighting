@@ -17,6 +17,7 @@ function board(catalogId: string, name: string) {
   return {
     imageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
     title: pair(`${name} TR`, `${name} EN`),
+    subtitle: pair(`${name} line TR`, `${name} line EN`),
     catalogId,
   };
 }
@@ -87,6 +88,8 @@ describe('promo boards on a real database', () => {
     expect(await getDb().promoBoard.findFirstOrThrow()).toMatchObject({
       titleTr: 'Spring TR',
       titleEn: 'Spring EN',
+      subtitleTr: 'Spring line TR',
+      subtitleEn: 'Spring line EN',
       catalogId: general.id,
     });
   });

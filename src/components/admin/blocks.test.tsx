@@ -105,6 +105,14 @@ describe('BilingualField', () => {
     expect((tr as HTMLTextAreaElement).value).toBe('');
   });
 
+  it('requires both inputs unless the field is optional', () => {
+    const { rerender } = render(<BilingualField name="title" label="Title" languages={languages} />);
+    expect((screen.getByLabelText('Türkçe') as HTMLInputElement).required).toBe(true);
+    rerender(<BilingualField name="title" label="Title" languages={languages} optional />);
+    expect((screen.getByLabelText('Türkçe') as HTMLInputElement).required).toBe(false);
+    expect((screen.getByLabelText('English') as HTMLInputElement).required).toBe(false);
+  });
+
   it('shows the error of one language next to its input only', () => {
     render(
       <BilingualField name="title" label="Title" languages={languages} errors={{ en: 'This field is required.' }} />,

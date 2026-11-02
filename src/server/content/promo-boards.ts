@@ -17,6 +17,7 @@ function fromRow(row: PromoBoardRow): PromoBoard {
     id: row.id,
     imageUrl: row.imageUrl,
     title: fromColumns('title', row),
+    subtitle: fromColumns('subtitle', row),
     catalogId: row.catalogId,
     catalogName: fromColumns('name', row.catalog),
     catalogPdfUrl: row.catalog.pdfUrl,
@@ -24,7 +25,12 @@ function fromRow(row: PromoBoardRow): PromoBoard {
 }
 
 function toColumnsOf(board: PromoBoardInput) {
-  return { imageUrl: board.imageUrl, ...toColumns('title', board.title), catalogId: board.catalogId };
+  return {
+    imageUrl: board.imageUrl,
+    ...toColumns('title', board.title),
+    ...toColumns('subtitle', board.subtitle),
+    catalogId: board.catalogId,
+  };
 }
 
 export async function listPromoBoards(): Promise<PromoBoard[]> {
