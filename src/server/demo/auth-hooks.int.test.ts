@@ -17,7 +17,6 @@ const OPEN_AUTH_PATHS: ReadonlySet<string> = new Set([
   '/sign-up/email',
   '/sign-out',
   '/get-session',
-  '/list-sessions',
   '/list-accounts',
   '/account-info',
   '/verify-password',
@@ -127,6 +126,16 @@ describe('demo mode on the Better Auth endpoints, on a real database', () => {
       expect(response.status).toBe(403);
       expect(await accountState()).toEqual(before);
       expect(await sessionOf(cookie)).not.toBeNull();
+    });
+
+    it('refuses list-sessions, which would show every demo visitor their addresses and browsers', async () => {
+      const cookie = await signInCookie();
+      const response = await handle(
+        new Request(`${TEST_AUTH_URL}/api/auth/list-sessions`, {
+          headers: { cookie, 'x-forwarded-for': freshAddress() },
+        }),
+      );
+      expect(response.status).toBe(403);
     });
 
     it('keeps the other sessions alive when revoke-other-sessions is refused', async () => {
