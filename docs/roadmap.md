@@ -4,8 +4,8 @@ The project is developed in phases. The architecture is described in [architectu
 
 ## Status
 
-- **Current phase:** phase 5, brand and design system.
-- **Released:** v0.1.0 (application skeleton, quality gates and release pipeline).
+- **Current phase:** phase 7, admin panel.
+- **Released:** v0.3.0 (public site). Earlier: v0.2.0 (server foundation) and v0.1.0 (application skeleton, quality gates and release pipeline).
 - **Live demo:** https://tanyeri-lighting.vercel.app. It stays out of search indexes until 1.0.0.
 
 ## Phases
@@ -15,9 +15,9 @@ The project is developed in phases. The architecture is described in [architectu
 | 0-2 | Repository setup and governance | Done |
 | 3 | Application skeleton and quality gates | Done (v0.1.0) |
 | 4 | Server foundation | Done |
-| 5 | Brand and design system | In progress |
-| 6 | Public site (bilingual) | Planned |
-| 7 | Admin panel | Planned |
+| 5 | Brand and design system | Done (v0.3.0) |
+| 6 | Public site (bilingual) | Mostly done (v0.3.0) |
+| 7 | Admin panel | In progress |
 | 8 | Hardening | Planned |
 | 9 | Launch (1.0.0) | Planned |
 
@@ -42,17 +42,21 @@ Done:
 
 ## Phase 5: brand and design system
 
-- Done: design tokens, local fonts, logo.
+- Done: design tokens, local fonts, logo, base components, demo notice band, site icons, web app manifest and default share image.
 
 ## Phase 6: public site (bilingual)
 
 - Done: fictional demo content and the `pnpm db:seed:demo` command, with demo photos and a catalog under `public/demo`.
+- Done: header and footer, home, about, vision, services, products with tabs and pagination, product page, projects with a before and after slider, references, catalogs with a page-flip viewer, contact form, privacy, terms and a not-found page, in both languages.
+- Remaining: SEO (sitemap, canonical addresses, structured data) and visit tracking.
+
+## Phase 7: admin panel
+
+- Done: sign-in page, sign-out and a protected panel page.
+- Remaining: content management screens, messages, visit statistics and the Google Ads screen.
 
 ## Later phases
 
-- **Phase 5:** logo, colors and typography; design tokens; base components; demo banner; favicon, manifest and Open Graph image.
-- **Phase 6:** all public pages in both languages, SEO, structured data and visit tracking.
-- **Phase 7:** sign-in and account pages, content management screens, messages, visit statistics and the Google Ads screen.
 - **Phase 8:** security review, accessibility review, performance work and a pixel-perfect pass on all widths.
 - **Phase 9:** production environment, the 1.0.0 release with indexing turned on, and a release and rollback runbook.
 
