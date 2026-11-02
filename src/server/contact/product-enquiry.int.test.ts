@@ -44,6 +44,11 @@ describe('the product of a contact enquiry on a real database', () => {
     expect(await findEnquiryProduct('no-such-product', 'en')).toBeNull();
   });
 
+  it('gives nothing for a value that is not a slug, such as a NUL byte', async () => {
+    expect(await findEnquiryProduct('\u0000', 'en')).toBeNull();
+    expect(await findEnquiryProduct('Ray Spot', 'en')).toBeNull();
+  });
+
   it('gives nothing for a missing, empty or repeated value', async () => {
     expect(await findEnquiryProduct(undefined, 'en')).toBeNull();
     expect(await findEnquiryProduct('', 'en')).toBeNull();

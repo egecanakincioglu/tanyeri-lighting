@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { isDemoMode } from '../env.ts';
 import { getAuth } from './auth.ts';
 import { signInPath } from './paths.ts';
 
@@ -7,9 +8,13 @@ import { signInPath } from './paths.ts';
 // Pages, layouts, Server Actions and route handlers each call the variant for their kind; the proxy never decides
 // access. tooling/scripts/check-admin-guard.ts fails CI when one forgets.
 
-// The session, or null: for the sign-in page, which sends a signed-in visitor on to the panel.
+// The session, or null: for the sign-in page, which sends a signed-in visitor on to the panel. The published demo
+// account has no session outside demo mode, whatever the library accepted at sign-in, so a demo database that reaches
+// production with the variable off or missing opens nothing.
 export async function currentSession() {
-  return getAuth().api.getSession({ headers: await headers() });
+  const session = await getAuth().api.getSession({ headers: await headers() });
+  if (session?.user.isDemo && !isDemoMode()) return null;
+  return session;
 }
 
 export type AdminSession = NonNullable<Awaited<ReturnType<typeof currentSession>>>;

@@ -39,7 +39,13 @@ describe('ADMIN_NAV', () => {
 describe('buildNavGroups', () => {
   it('labels the groups and items and gives only the messages item a badge', () => {
     const groups = buildNavGroups(t, 4);
-    expect(groups[0]).toEqual({ label: 'groups.general', items: [{ href: '/dashboard', label: 'items.panel' }] });
+    expect(groups[0]).toEqual({
+      label: 'groups.general',
+      items: [
+        { href: '/dashboard', label: 'items.panel' },
+        { href: '/dashboard/statistics', label: 'items.stats' },
+      ],
+    });
     const messages = groups.flatMap((group) => group.items).filter((item) => item.badge);
     expect(messages).toEqual([
       { href: '/dashboard/messages', label: 'items.messages', badge: { count: 4, label: 'unread:{"count":4}' } },
@@ -51,6 +57,7 @@ describe('itemKeyOfSection', () => {
   it('finds the item of a panel address segment and nothing else', () => {
     expect(itemKeyOfSection('featured-products')).toBe('featured');
     expect(itemKeyOfSection('references')).toBe('references');
+    expect(itemKeyOfSection('statistics')).toBe('stats');
     expect(itemKeyOfSection('nope')).toBeUndefined();
     expect(itemKeyOfSection('')).toBeUndefined();
   });

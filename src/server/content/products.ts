@@ -4,7 +4,7 @@ import { assertWritable } from '../demo/guard.ts';
 import { fromColumns, toColumns } from './bilingual.ts';
 import { ContentNotFoundError, mapUniqueViolation, ValueTakenError } from './errors.ts';
 import { assertCompleteOrder, nextPosition } from './order.ts';
-import { idListSchema, idSchema, type Product, productSchema, type ProductInput } from './schemas.ts';
+import { idListSchema, idSchema, KEBAB_CASE, type Product, productSchema, type ProductInput } from './schemas.ts';
 
 export const withCategory = { category: { select: { key: true } } } satisfies Prisma.ProductInclude;
 
@@ -63,7 +63,9 @@ export async function listProductChanges(): Promise<{ slug: string; updatedAt: D
 export type ProductLookup = { product: Product } | { redirectTo: string };
 
 // A slug the product used to have answers with the current one, however many times the slug changed since.
+// A value that cannot be a slug (a NUL byte, for one, which the database refuses) is unknown, so the lookup never runs.
 export async function getProductBySlug(slug: string): Promise<ProductLookup | null> {
+  if (!KEBAB_CASE.test(slug)) return null;
   const db = getDb();
   const row = await db.product.findUnique({ where: { slug }, include: withCategory });
   if (row) return { product: productFromRow(row) };

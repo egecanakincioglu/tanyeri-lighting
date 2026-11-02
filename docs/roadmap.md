@@ -48,12 +48,14 @@ Done:
 
 - Done: fictional demo content and the `pnpm db:seed:demo` command, with demo photos and a catalog under `public/demo`.
 - Done: header and footer, home, about, vision, services, products with tabs and pagination, product page, projects with a before and after slider, references, catalogs with a page-flip viewer, contact form, privacy, terms and a not-found page, in both languages.
-- Remaining: SEO (sitemap, canonical addresses, structured data) and visit tracking.
+- Done: visit tracking (anonymous page views).
+- Remaining: SEO (sitemap, canonical addresses, structured data).
 
 ## Phase 7: admin panel
 
 - Done: sign-in page, sign-out and a protected panel page.
-- Remaining: content management screens, messages and visit statistics.
+- Done: the statistics screen (visits, page views and countries).
+- Remaining: content management screens and messages.
 
 ## Later phases
 
