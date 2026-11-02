@@ -3,11 +3,18 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '../../app/api/auth/[...all]/route.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
+import { isDemoMode } from '../env.ts';
 import { guardAction, guardHandler, guardPage, UnauthorizedError } from './guard.ts';
 
 // The request headers of the code under test; `next/headers` has no request to read from outside Next.js.
 const request = vi.hoisted(() => ({ headers: new Headers() }));
 vi.mock('next/headers', () => ({ headers: () => Promise.resolve(request.headers) }));
+
+// Only the demo flag is switched; the rest of the environment module stays real.
+vi.mock('../env.ts', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../env.ts')>();
+  return { ...original, isDemoMode: vi.fn(() => false) };
+});
 
 const EMAIL = 'admin@example.com';
 const PASSWORD = 'correct horse battery staple';
@@ -117,6 +124,50 @@ describe('the admin guard on a real database', () => {
       const result = await guardHandler();
       expect(result).not.toBeInstanceOf(Response);
       expect((result as { user: { id: string } }).user.id).toBe('user-1');
+    });
+  });
+
+  describe('the demo account', () => {
+    const cases = [
+      { isDemo: false, demoMode: false, allowed: true },
+      { isDemo: false, demoMode: true, allowed: true },
+      { isDemo: true, demoMode: true, allowed: true },
+      { isDemo: true, demoMode: false, allowed: false },
+    ];
+
+    it.each(cases)('isDemo $isDemo, demo mode $demoMode: allowed $allowed', async ({ isDemo, demoMode, allowed }) => {
+      await getDb().user.update({ where: { id: 'user-1' }, data: { isDemo } });
+      vi.mocked(isDemoMode).mockReturnValue(demoMode);
+      request.headers = new Headers({ cookie: await signInCookie() });
+
+      if (allowed) {
+        expect((await guardPage('en')).user.id).toBe('user-1');
+        expect((await guardAction()).user.id).toBe('user-1');
+      } else {
+        expect(await redirectTarget(guardPage('en'))).toBe('/en/admin/sign-in');
+        await expect(guardAction()).rejects.toBeInstanceOf(UnauthorizedError);
+      }
+    });
+
+    it('cannot be set or cleared through update-user', async () => {
+      vi.mocked(isDemoMode).mockReturnValue(false);
+      const cookie = await signInCookie();
+      const update = (body: object) =>
+        POST(
+          new Request(`${TEST_AUTH_URL}/api/auth/update-user`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', origin: TEST_AUTH_URL, cookie },
+            body: JSON.stringify(body),
+          }),
+        );
+      expect((await update({ name: 'Renamed', isDemo: true })).status).toBe(400);
+      expect((await getDb().user.findUniqueOrThrow({ where: { id: 'user-1' } })).isDemo).toBe(false);
+
+      await getDb().user.update({ where: { id: 'user-1' }, data: { isDemo: true } });
+      vi.mocked(isDemoMode).mockReturnValue(false);
+      expect((await update({ isDemo: false })).status).toBe(400);
+      expect((await update({ name: 'Plain' })).status).toBe(200);
+      expect((await getDb().user.findUniqueOrThrow({ where: { id: 'user-1' } })).isDemo).toBe(true);
     });
   });
 });
