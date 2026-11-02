@@ -143,6 +143,8 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `DEMO_MODE` is read in `src/server/env.ts`. It is `true` or `false`, the default is `false`, and any other value is an error. The mode is read on every request, not once at startup.
 - `assertWritable()` in `src/server/demo/guard.ts` is called by every content write service right after the session guard. In demo mode it throws `DemoModeError`. Route handlers turn the error into a 403 JSON response with `demoModeResponse(error)`; Server Actions map it to a form result.
 - A `hooks.before` deny list in `src/server/demo/auth-hooks.ts` refuses state-changing account endpoints with 403 ("This action is disabled in demo mode"): change password, change email, update user, update session, delete user, password reset request and reset, verification email, session revocation and provider linking.
+- The administrator signs in at `/admin/sign-in` (Turkish: `/yonetim/giris`) and lands on `/admin` (Turkish: `/yonetim`). The pages live in the `(admin)/dashboard` route folder and do not show the public header and footer. Sign-in is a Server Action that calls the auth handler on the server, so it works without JavaScript and shares the auth rate limits. Every failed attempt shows one generic error. Sign-out is a POST form. Both pages are noindex.
+- `guardPage` redirects a visitor who has no session to the localized sign-in address. It builds the address from the locale only and takes no target from the request.
 - Sign-in, sign-out and get-session stay open, so the demo admin can still sign in and read everything.
 - A test fails when a Better Auth upgrade adds an endpoint that is on neither the blocked list nor the open list.
 - In demo mode the contact form does not store messages. It returns a summary for the sender with a note that the message was not saved. This is the server side; the form UI is planned.
@@ -195,6 +197,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
+- Admin screens are listed in `ADMIN_PAGES` and get status, axe, overflow and console checks only. Lighthouse and its thresholds apply to public pages.
 - The catalogs page lists each catalog with its size, a view link and a download link.
 - "View" is a real PDF link. With JavaScript it opens a full-screen page-flip viewer that loads only when a catalog is opened: pages turn by dragging a corner, swiping, previous and next buttons, or the arrow keys, one page on narrow screens and a spread with the cover alone on wide ones. Reduced motion turns pages without the animation. The Content Security Policy adds `worker-src 'self'` for the PDF worker.
 - The projects page compares before and after photos with a native range input, which works by keyboard and without dragging.

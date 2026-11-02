@@ -28,7 +28,11 @@ const PUBLIC_PAGES: ReadonlySet<string> = new Set(['src/app/[locale]/(admin)/das
 // The Better Auth endpoints do their own session handling and rate limiting.
 const PUBLIC_HANDLERS: ReadonlySet<string> = new Set(['src/app/api/auth/[...all]/route.ts']);
 // The contact form is for visitors without an account. It protects itself with a honeypot, validation and a rate limit.
-const PUBLIC_ACTIONS: ReadonlySet<string> = new Set(['src/server/contact/actions.ts']);
+const PUBLIC_ACTIONS: ReadonlySet<string> = new Set([
+  'src/server/contact/actions.ts',
+  // How a visitor gets a session, so it can not require one. The auth layer does the rate limiting.
+  'src/server/auth/sign-in-action.ts',
+]);
 
 const GUARD_NAME: Record<Kind, string> = { page: 'guardPage', handler: 'guardHandler', action: 'guardAction' };
 const GUARD_MODULE = /(^|\/)auth\/guard\.ts$/;
