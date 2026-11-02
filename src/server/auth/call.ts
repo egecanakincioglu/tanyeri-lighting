@@ -6,7 +6,10 @@ import { getAuth } from './auth.ts';
 // Server Actions call the endpoints through the library's request handler, not through `auth.api`: only the handler
 // applies the rate limits and the origin check of the auth options. The browser's cookie and client address are
 // passed on, and the cookies of the answer are written to the browser by hand, because the handler only returns them.
-export async function callAuth(path: '/sign-in/email' | '/sign-out', body: object): Promise<Response> {
+export async function callAuth(
+  path: '/sign-in/email' | '/sign-out' | '/change-password' | '/revoke-other-sessions' | '/change-email',
+  body: object,
+): Promise<Response> {
   const incoming = await headers();
   const { BETTER_AUTH_URL } = getEnv();
   const outgoing = new Headers({

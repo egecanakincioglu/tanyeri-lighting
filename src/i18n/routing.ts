@@ -39,8 +39,11 @@ export const routing = defineRouting({
     '/dashboard/categories': { tr: '/yonetim/kategoriler', en: '/admin/categories' },
     '/dashboard/catalogs': { tr: '/yonetim/kataloglar', en: '/admin/catalogs' },
     '/dashboard/messages': { tr: '/yonetim/mesajlar', en: '/admin/messages' },
+    '/dashboard/messages/[id]': { tr: '/yonetim/mesajlar/[id]', en: '/admin/messages/[id]' },
     '/dashboard/legal-pages': { tr: '/yonetim/yasal-sayfalar', en: '/admin/legal-pages' },
+    '/dashboard/legal-pages/[key]': { tr: '/yonetim/yasal-sayfalar/[key]', en: '/admin/legal-pages/[key]' },
     '/dashboard/seo': { tr: '/yonetim/sayfa-bilgileri', en: '/admin/seo' },
+    '/dashboard/seo/[key]': { tr: '/yonetim/sayfa-bilgileri/[key]', en: '/admin/seo/[key]' },
     '/dashboard/account': { tr: '/yonetim/hesabim', en: '/admin/account' },
   },
 });

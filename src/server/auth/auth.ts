@@ -5,6 +5,7 @@ import { getDb } from '../db.ts';
 import { buildDemoAuthHooks } from '../demo/auth-hooks.ts';
 import { sendEmailAfterResponse } from '../email/index.ts';
 import { getEnv, isEmailEnabled, isProduction } from '../env.ts';
+import { CHANGE_EMAIL_LIFETIME_SECONDS, changeEmailEmail } from './change-email-email.ts';
 import { RESET_TOKEN_LIFETIME_SECONDS, resetPasswordEmail, resetPasswordLink } from './reset-password-email.ts';
 
 type AuthSettings = { secret: string; baseURL: string; production: boolean; emailEnabled: boolean };
@@ -29,6 +30,17 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: 
         },
       }),
     },
+    // The admin changes the sign-in address from the account screen. The new address gets a link and only the link
+    // applies the change, so a typo can not lock the admin out. Without email there is no link: the change is off.
+    user: { changeEmail: { enabled: emailEnabled } },
+    ...(emailEnabled && {
+      emailVerification: {
+        expiresIn: CHANGE_EMAIL_LIFETIME_SECONDS,
+        sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
+          sendEmailAfterResponse(changeEmailEmail(user.email, url));
+        },
+      },
+    }),
     // ADR 0004 rule 1: the limits of the sign-in and password reset endpoints are written out, not left to the
     // library defaults. Each is per client address, with the window in seconds.
     rateLimit: {
