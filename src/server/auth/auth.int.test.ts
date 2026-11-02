@@ -1,12 +1,12 @@
 import { createTransport } from 'nodemailer';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GET, POST } from '../../app/api/auth/[...all]/route.ts';
 import {
   ADMIN_EMAIL as EMAIL,
   ADMIN_PASSWORD as PASSWORD,
   OTHER_PASSWORD,
   authRequest,
   cookieOf,
+  handle,
   loginCookie,
   resetAdmin,
   sessionOf,
@@ -38,13 +38,13 @@ describe('authentication endpoints on a real database', () => {
   });
 
   it('answers the session lookup of a visitor without a session', async () => {
-    const response = await GET(new Request(`${TEST_AUTH_URL}/api/auth/get-session`));
+    const response = await handle(new Request(`${TEST_AUTH_URL}/api/auth/get-session`));
     expect(response.status).toBe(200);
     expect(await response.json()).toBeNull();
   });
 
   it('keeps sign-up closed', async () => {
-    const response = await POST(
+    const response = await handle(
       authRequest('/sign-up/email', {
         name: 'Intruder',
         email: 'intruder@example.com',
@@ -102,7 +102,7 @@ describe('authentication endpoints on a real database', () => {
 
   it('rejects a request that carries a session cookie from an untrusted origin', async () => {
     const cookie = await loginCookie();
-    const response = await POST(
+    const response = await handle(
       authRequest(
         '/change-password',
         { currentPassword: PASSWORD, newPassword: OTHER_PASSWORD },
@@ -113,13 +113,24 @@ describe('authentication endpoints on a real database', () => {
     expect((await signIn(PASSWORD)).status).toBe(200);
   });
 
+  it('refuses a new password of 11 characters and accepts one of 12, in the library itself', async () => {
+    const cookie = await loginCookie();
+    const attempt = (newPassword: string) =>
+      handle(authRequest('/change-password', { currentPassword: PASSWORD, newPassword }, { cookie }));
+
+    const short = await attempt('x'.repeat(11));
+    expect(short.status).toBe(400);
+    expect(await short.json()).toMatchObject({ code: 'PASSWORD_TOO_SHORT' });
+    expect((await attempt('x'.repeat(12))).status).toBe(200);
+  });
+
   it('ends every session when the password is changed with revokeOtherSessions', async () => {
     const first = await loginCookie();
     const second = await loginCookie();
     expect(await sessionOf(first)).not.toBeNull();
     expect(await sessionOf(second)).not.toBeNull();
 
-    const changed = await POST(
+    const changed = await handle(
       authRequest(
         '/change-password',
         { currentPassword: PASSWORD, newPassword: OTHER_PASSWORD, revokeOtherSessions: true },
@@ -143,7 +154,7 @@ describe('authentication endpoints on a real database', () => {
     const sendMail = vi.spyOn(transport, 'sendMail');
     setEmailTransport(transport);
 
-    const response = await POST(authRequest('/request-password-reset', { email: EMAIL }));
+    const response = await handle(authRequest('/request-password-reset', { email: EMAIL }));
 
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ code: 'RESET_PASSWORD_DISABLED' });

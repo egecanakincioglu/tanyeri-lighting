@@ -56,6 +56,15 @@ describe('rate limit counter on a real database', () => {
     expect(await check('203.0.113.2')).toEqual({ ok: true });
   });
 
+  it('counts a named subject apart from the client address and from other subjects', async () => {
+    const subject = (name: string) =>
+      checkRateLimit({ scope: 'reset-mail', limit: 2, windowSeconds: 60, subject: name });
+    expect(await subject('user-a')).toEqual({ ok: true });
+    expect(await subject('user-a')).toEqual({ ok: true });
+    expect(await subject('user-a')).toMatchObject({ ok: false });
+    expect(await subject('user-b')).toEqual({ ok: true });
+  });
+
   it('never lets more than the limit through under concurrent requests', async () => {
     const results = await Promise.all(Array.from({ length: 20 }, () => check('203.0.113.1')));
     expect(results.filter((result) => result.ok)).toHaveLength(3);

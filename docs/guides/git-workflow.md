@@ -84,6 +84,8 @@ CI jobs (`.github/workflows/`):
 
 Branch protection on `main` requires a pull request and these 12 checks: `policy`, `pr-text`, `tooling (linux)`, `tooling (windows)`, `quality`, `semgrep-registry`, `zizmor`, `test`, `build`, `site-audit (pages)`, `site-audit (mobile)` and `site-audit (desktop)`. The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. Merges are merge commits only, and the branch is deleted after the merge.
 
+CI runs of one pull request share a concurrency group keyed on the pull request number, so a newer push cancels the older run of the same pull request and runs of other pull requests are not affected.
+
 ## Infrastructure failures
 
 - For a failure of the infrastructure (a lost runner, a network timeout or a GitHub outage), run `gh run rerun <id> --failed` at most once per pull request.
@@ -95,9 +97,9 @@ The project decides when to release; merging into `main` does not deploy by itse
 
 1. Open the release branch as `chore/release-vX-Y-Z`. Dashes replace the dots because dots do not fit the branch name rule.
 2. Run `pnpm release:prepare`. It suggests the next version; `--version X.Y.Z` sets another one and `--dry-run` only prints the result. The command writes `package.json` and `CHANGELOG.md` and creates a draft of the release notes as `releases/vX.Y.Z.md`; an existing note is never touched. Fill in the note in English: the first line is `# vX.Y.Z — <theme>`, followed by a summary (commit count since the previous release, migrations), topic sections and a `## Technical notes` section. Fill in every `<!-- fill in` comment of the draft; the `policy` check and the `release` workflow reject a note that still has one. Commit with the header `chore(release): vX.Y.Z` and open the pull request. Do not enable auto-merge for this pull request yet.
-3. Rehearse: `gh workflow run release-rehearsal.yml -f ref=chore/release-vX-Y-Z`. Check the preview address and the Vercel build log (Prisma client, `prisma migrate deploy`, `next build`).
+3. Rehearse: `gh workflow run release-rehearsal.yml -f ref=chore/release-vX-Y-Z`. Check the preview address and the Vercel build log (Prisma client, `prisma migrate deploy`, `next build`). The rehearsal runs the deploy script from the default branch and only fetches the requested ref, so code on the release branch never runs in a step that holds the token. Before the first production launch that is not a demo, delete the demo user: the `user` row with `isDemo = true`.
 4. Merge the pull request with `--auto`. Then create a signed tag on the merge commit on `main` and push it: `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`. Push exactly one full `vX.Y.Z` tag to `origin`. Do not delete or force tags, do not push tags in bulk, and do not create the GitHub release by hand: the workflow creates it.
-5. The `release` workflow checks that the tag is on `main` and equals the `package.json` version. It then deploys the tagged commit to production through the Vercel REST API (the Vercel CLI is not used) and creates the GitHub release. The release title comes from the first line of the note. The body is the note, followed by a collapsed "Commit list" taken from `CHANGELOG.md`.
+5. The `release` workflow checks that the tag is on `main` and equals the `package.json` version. It then deploys the tagged commit to production through the Vercel REST API (the Vercel CLI is not used) and creates the GitHub release. The release title comes from the first line of the note. The body is the note, followed by a collapsed "Commit list" taken from `CHANGELOG.md`. The workflow runs the code of the tagged commit with the deploy token. Write access to the repository and the tag rule protect it.
 6. Check the live site. If something is wrong, roll back to the previous production deployment in Vercel. The fix ships as a new PATCH release.
 7. The live site stays `noindex` until 1.0.0. With 1.0.0, set `SITE_INDEXING=on` in production.
 
