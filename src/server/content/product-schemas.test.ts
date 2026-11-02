@@ -158,6 +158,7 @@ describe('catalogSchema', () => {
   const valid = {
     name: pair('Genel katalog', 'General catalog'),
     pdfUrl: 'https://store.public.blob.vercel-storage.com/catalog.pdf',
+    coverImageUrl: 'https://store.public.blob.vercel-storage.com/cover.webp',
     sizeBytes: 2_500_000,
   };
 
@@ -174,6 +175,17 @@ describe('catalogSchema', () => {
     'rejects the PDF address %j',
     (pdfUrl) => {
       expect(catalogSchema.safeParse({ ...valid, pdfUrl }).success).toBe(false);
+    },
+  );
+
+  it.each(['', '/demo/catalog-2026-cover.webp'])('accepts the cover address %j', (coverImageUrl) => {
+    expect(catalogSchema.parse({ ...valid, coverImageUrl }).coverImageUrl).toBe(coverImageUrl);
+  });
+
+  it.each(['http://example.com/c.webp', 'javascript:alert(1)', '/c.webp', '  ', '/demo/../c.webp', null, undefined])(
+    'rejects the cover address %j',
+    (coverImageUrl) => {
+      expect(catalogSchema.safeParse({ ...valid, coverImageUrl }).success).toBe(false);
     },
   );
 

@@ -96,8 +96,15 @@ function renderView() {
         <CatalogView
           href="/demo/catalog-2026.pdf"
           name="Catalog 2026"
+          detail="PDF, 2.4 MB"
           label="View Catalog 2026 (PDF, opens in a new tab)"
           labels={labels}
+          cover={<span data-testid="cover">Cover</span>}
+          download={
+            <a href="/demo/catalog-2026.pdf" download>
+              Download
+            </a>
+          }
         >
           View
         </CatalogView>
@@ -156,6 +163,35 @@ describe('CatalogView', () => {
     expect(link.getAttribute('rel')).toBe('noopener noreferrer');
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(lib.getDocument).not.toHaveBeenCalled();
+  });
+
+  it('shows the name, the size line, the cover and the download link in one card', () => {
+    renderView();
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Catalog 2026');
+    expect(screen.getByText('PDF, 2.4 MB')).toBeTruthy();
+    expect(screen.getByTestId('cover')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Download' })).toBeTruthy();
+  });
+
+  it('opens the viewer from the cover, which is a link to the PDF but no second tab stop', async () => {
+    renderView();
+    const cover = screen.getByTestId('cover').closest('a');
+    expect(cover?.getAttribute('href')).toBe('/demo/catalog-2026.pdf');
+    expect(cover?.getAttribute('tabindex')).toBe('-1');
+    expect(cover?.getAttribute('aria-hidden')).toBe('true');
+    expect(screen.getAllByRole('link', { name: /Catalog 2026/ })).toHaveLength(1);
+    fireEvent.click(cover as HTMLElement);
+    await screen.findByRole('dialog', { name: 'Catalog 2026' });
+    await screen.findByText('Page 1 / 8');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(document.activeElement).toBe(viewLink());
+  });
+
+  it('leaves new-tab clicks on the cover to the browser', () => {
+    renderView();
+    fireEvent.click(screen.getByTestId('cover'), { ctrlKey: true });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('leaves new-tab clicks to the browser', () => {

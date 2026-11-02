@@ -163,6 +163,8 @@ export const catalogSchema = z.object({
   name: bilingual(120),
   // A Blob address from the storage module.
   pdfUrl: mediaUrl,
+  // The picture shown on the catalogs page; empty when the catalog has none.
+  coverImageUrl: mediaUrl.or(z.literal('')),
   // Bytes; the upper bound is the largest value the column holds.
   sizeBytes: z.int().min(1).max(2_147_483_647),
 });

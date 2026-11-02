@@ -26,10 +26,17 @@ const catalogs: Catalog[] = [
     id: 'catalog-1',
     name: { tr: 'Katalog 2026', en: 'Catalog 2026' },
     pdfUrl: '/demo/catalog-2026.pdf',
+    coverImageUrl: '/demo/catalog-2026-cover.webp',
     sizeBytes: 2_400_000,
   },
-  { id: 'catalog-2', name: { tr: 'Küçük', en: 'Small' }, pdfUrl: '/demo/small.pdf', sizeBytes: 623 },
-  { id: 'catalog-3', name: { tr: 'Orta', en: 'Medium' }, pdfUrl: '/demo/medium.pdf', sizeBytes: 576_134 },
+  { id: 'catalog-2', name: { tr: 'Küçük', en: 'Small' }, pdfUrl: '/demo/small.pdf', coverImageUrl: '', sizeBytes: 623 },
+  {
+    id: 'catalog-3',
+    name: { tr: 'Orta', en: 'Medium' },
+    pdfUrl: '/demo/medium.pdf',
+    coverImageUrl: '/demo/medium-cover.webp',
+    sizeBytes: 576_134,
+  },
 ];
 
 const props = (locale: string) => ({ params: Promise.resolve({ locale }) }) as PageProps<'/[locale]/catalogs'>;
@@ -58,6 +65,32 @@ describe('CatalogsPage', () => {
     const download = screen.getByRole('link', { name: 'Download Catalog 2026 (PDF, 2.4 MB)' });
     expect(download.getAttribute('href')).toBe('/demo/catalog-2026.pdf');
     expect(download.hasAttribute('download')).toBe(true);
+  });
+
+  it('shows the cover in an empty-alt image and a plain tint with the name when there is none', async () => {
+    const { container } = render(await CatalogsPage(props('en')));
+    const items = container.querySelectorAll('li');
+    expect(items).toHaveLength(3);
+    const cover = items[0]?.querySelector('img');
+    expect(cover?.getAttribute('alt')).toBe('');
+    expect(decodeURIComponent(cover?.getAttribute('src') ?? '')).toContain('/demo/catalog-2026-cover.webp');
+    expect(cover?.getAttribute('sizes')).toContain('min-width: 900px');
+    expect(items[1]?.querySelector('img')).toBeNull();
+    const coverLink = items[1]?.querySelector('a[aria-hidden="true"]');
+    expect(coverLink?.textContent).toBe('Small');
+    expect(coverLink?.getAttribute('tabindex')).toBe('-1');
+    expect(items[2]?.querySelector('img')).toBeTruthy();
+  });
+
+  it('links the cover, the view button and the download button to the PDF, and only two of them take focus', async () => {
+    const { container } = render(await CatalogsPage(props('en')));
+    const links = [...container.querySelectorAll('li:first-child a')];
+    expect(links.map((a) => a.getAttribute('href'))).toEqual([
+      '/demo/catalog-2026.pdf',
+      '/demo/catalog-2026.pdf',
+      '/demo/catalog-2026.pdf',
+    ]);
+    expect(links.filter((a) => a.getAttribute('tabindex') !== '-1')).toHaveLength(2);
   });
 
   it('writes the texts and the size in Turkish', async () => {

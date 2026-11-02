@@ -40,11 +40,13 @@ describe('promo boards on a real database', () => {
     general = await createCatalog({
       name: pair('Genel', 'General'),
       pdfUrl: 'https://store.example.com/general.pdf',
+      coverImageUrl: '',
       sizeBytes: 1000,
     });
     outdoor = await createCatalog({
       name: pair('Dış mekan', 'Outdoor'),
       pdfUrl: 'https://store.example.com/outdoor.pdf',
+      coverImageUrl: '',
       sizeBytes: 2000,
     });
   });
@@ -94,6 +96,7 @@ describe('promo boards on a real database', () => {
     await updateCatalog(general.id, {
       name: pair('Yeni genel', 'New general'),
       pdfUrl: 'https://store.example.com/new.pdf',
+      coverImageUrl: '',
       sizeBytes: 5,
     });
     expect((await listPromoBoards())[0]).toMatchObject({
@@ -188,6 +191,7 @@ describe('promo boards on a real database', () => {
       const office = await createCatalog({
         name: pair('Ofis', 'Office'),
         pdfUrl: 'https://store.example.com/office.pdf',
+        coverImageUrl: '',
         sizeBytes: 3,
       });
       await expect(deleteCatalog(outdoor.id)).rejects.toThrow(CatalogInUseError);

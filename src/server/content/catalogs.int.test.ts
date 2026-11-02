@@ -10,6 +10,7 @@ function catalog(name: string) {
   return {
     name: pair(`${name} TR`, `${name} EN`),
     pdfUrl: `https://store.example.com/${name.toLowerCase()}.pdf`,
+    coverImageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
     sizeBytes: 1_000_000,
   };
 }
@@ -53,11 +54,28 @@ describe('catalogs on a real database', () => {
     });
   });
 
+  it('stores the cover address, and an empty value for a catalog without a cover', async () => {
+    await createCatalog(catalog('General'));
+    await createCatalog({ ...catalog('Outdoor'), coverImageUrl: '' });
+    expect((await listCatalogs()).map((item) => item.coverImageUrl)).toEqual([
+      'https://store.example.com/general.webp',
+      '',
+    ]);
+    expect((await getDb().catalog.findMany({ orderBy: { sortOrder: 'asc' } })).map((row) => row.coverImageUrl)).toEqual(
+      ['https://store.example.com/general.webp', ''],
+    );
+  });
+
   it('updates a catalog without moving it', async () => {
     await createCatalog(catalog('General'));
     const second = await createCatalog(catalog('Outdoor'));
     await createCatalog(catalog('Office'));
-    const next = { name: pair('Yeni', 'New'), pdfUrl: 'https://store.example.com/new.pdf', sizeBytes: 42 };
+    const next = {
+      name: pair('Yeni', 'New'),
+      pdfUrl: 'https://store.example.com/new.pdf',
+      coverImageUrl: '',
+      sizeBytes: 42,
+    };
     expect(await updateCatalog(second.id, next)).toEqual({ id: second.id, ...next });
     expect(await urls()).toEqual(['general.pdf', 'new.pdf', 'office.pdf']);
   });
@@ -101,6 +119,9 @@ describe('catalogs on a real database', () => {
   it('rejects invalid input and stores nothing', async () => {
     await expect(createCatalog({ ...catalog('General'), name: { tr: 'Genel' } })).rejects.toThrow();
     await expect(createCatalog({ ...catalog('General'), pdfUrl: 'http://store.example.com/g.pdf' })).rejects.toThrow();
+    await expect(
+      createCatalog({ ...catalog('General'), coverImageUrl: 'http://store.example.com/g.webp' }),
+    ).rejects.toThrow();
     await expect(createCatalog({ ...catalog('General'), sizeBytes: 0 })).rejects.toThrow();
     await expect(reorderCatalogs('not a list')).rejects.toThrow();
     await expect(deleteCatalog('')).rejects.toThrow();

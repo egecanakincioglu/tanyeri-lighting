@@ -25,8 +25,7 @@ import {
 
 const pair = (tr: string, en: string) => ({ tr, en });
 const img = (file: string) => `/demo/${file}`;
-const PDF = 'catalog-2026.pdf';
-const pdfSize = () => statSync(new URL(`../public/demo/${PDF}`, import.meta.url)).size;
+const pdfSize = (file: string) => statSync(new URL(`../public/demo/${file}`, import.meta.url)).size;
 
 const settings = siteSettingsSchema.parse({
   siteName: pair('Tanyeri Lighting', 'Tanyeri Lighting'),
@@ -503,9 +502,9 @@ const featuredSlugs = [
 ];
 
 const catalogs = [
-  { name: pair('Genel Katalog 2026', 'General Catalog 2026') },
-  { name: pair('Dekoratif Aydınlatma Kataloğu', 'Decorative Lighting Catalog') },
-  { name: pair('Dış Mekan Kataloğu', 'Outdoor Lighting Catalog') },
+  { file: 'catalog-2026', name: pair('Genel Katalog 2026', 'General Catalog 2026') },
+  { file: 'catalog-dekoratif', name: pair('Dekoratif Aydınlatma Kataloğu', 'Decorative Lighting Catalog') },
+  { file: 'catalog-dis-mekan', name: pair('Dış Mekan Kataloğu', 'Outdoor Lighting Catalog') },
 ];
 
 const promoBoards = [
@@ -739,7 +738,12 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
     }
   }
   const catalogRows = catalogs.map((catalog) =>
-    catalogSchema.parse({ name: catalog.name, pdfUrl: img(PDF), sizeBytes: pdfSize() }),
+    catalogSchema.parse({
+      name: catalog.name,
+      pdfUrl: img(`${catalog.file}.pdf`),
+      coverImageUrl: img(`${catalog.file}-cover.webp`),
+      sizeBytes: pdfSize(`${catalog.file}.pdf`),
+    }),
   );
   const areaRows = areas.map(([file, tr, en, descriptionTr, descriptionEn]) =>
     applicationAreaSchema.parse({
@@ -854,7 +858,13 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       const catalogIds: string[] = [];
       for (const [sortOrder, catalog] of catalogRows.entries()) {
         const row = await tx.catalog.create({
-          data: { ...toColumns('name', catalog.name), pdfUrl: catalog.pdfUrl, sizeBytes: catalog.sizeBytes, sortOrder },
+          data: {
+            ...toColumns('name', catalog.name),
+            pdfUrl: catalog.pdfUrl,
+            coverImageUrl: catalog.coverImageUrl,
+            sizeBytes: catalog.sizeBytes,
+            sortOrder,
+          },
         });
         catalogIds.push(row.id);
       }
