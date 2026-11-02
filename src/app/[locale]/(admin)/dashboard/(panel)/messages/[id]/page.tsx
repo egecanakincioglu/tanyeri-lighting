@@ -69,7 +69,7 @@ export default async function MessagePage({ params }: PageProps<'/[locale]/dashb
             texts={{
               trigger: t('delete'),
               title: t('deleteTitle'),
-              body: t('deleteBody'),
+              body: t('deleteBody', { name: '{name}' }),
               confirm: t('deleteConfirm'),
               working: t('deleting'),
               cancel: form('cancel'),
