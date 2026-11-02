@@ -215,6 +215,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
+- Lighthouse 13.6.0 finds ARD through `ard.json`.
 - Admin screens are listed in `ADMIN_PAGES` and get status, axe, overflow and console checks only. Lighthouse and its thresholds apply to public pages.
 - `SIGN_IN_PAGES` holds the public sign-in pages. The audit signs in once through the real form before visiting `ADMIN_PAGES`.
 - The catalogs page is a grid of cover cards (1 column, 2 from 540 px, 3 from 900 px): each shows a portrait cover, the name, the size, a view link and a download link. A catalog without a cover shows a placeholder.
