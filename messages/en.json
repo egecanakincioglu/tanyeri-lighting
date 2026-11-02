@@ -69,7 +69,16 @@
     "view": "View",
     "download": "Download",
     "viewLabel": "View {name} (PDF, opens in a new tab)",
-    "downloadLabel": "Download {name} (PDF, {size})"
+    "downloadLabel": "Download {name} (PDF, {size})",
+    "viewerClose": "Close the catalog",
+    "viewerPrevious": "Previous page",
+    "viewerNext": "Next page",
+    "viewerPage": "Page {page} / {total}",
+    "viewerPages": "Pages {from}–{to} / {total}",
+    "viewerLoading": "Opening the catalog…",
+    "viewerError": "This catalog cannot be shown here. You can still download the PDF.",
+    "viewerDownload": "Download the PDF",
+    "viewerBook": "Pages of {name}"
   },
   "Projects": {
     "intro": "See the effect of our professional solutions for yourself",

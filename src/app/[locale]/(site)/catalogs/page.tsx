@@ -3,6 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ButtonLink } from '../../../../components/button.tsx';
+import { CatalogView } from '../../../../components/catalog-viewer/catalog-view.tsx';
+import type { ViewerLabels } from '../../../../components/catalog-viewer/viewer-labels.ts';
 import { Card } from '../../../../components/card.tsx';
 import { Container } from '../../../../components/container.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
@@ -44,6 +46,19 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
     listCatalogs(),
   ]);
 
+  // The viewer fills in the numbers while it runs, so the templates keep their placeholders.
+  const viewerLabels: ViewerLabels = {
+    close: t('viewerClose'),
+    previous: t('viewerPrevious'),
+    next: t('viewerNext'),
+    page: t('viewerPage', { page: '{page}', total: '{total}' }),
+    pages: t('viewerPages', { from: '{from}', to: '{to}', total: '{total}' }),
+    loading: t('viewerLoading'),
+    error: t('viewerError'),
+    download: t('viewerDownload'),
+    book: t('viewerBook', { name: '{name}' }),
+  };
+
   return (
     <div className="pb-[clamp(2.5rem,6vw,4.5rem)]">
       <SectionTitle title={header('catalogs')} level={1} />
@@ -62,15 +77,14 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
                         <p className="mt-1 text-[0.95rem] text-muted">PDF, {size}</p>
                       </div>
                       <div className="flex flex-wrap gap-3">
-                        <ButtonLink
+                        <CatalogView
                           href={catalog.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          prefetch={false}
-                          aria-label={t('viewLabel', { name })}
+                          name={name}
+                          label={t('viewLabel', { name })}
+                          labels={viewerLabels}
                         >
                           {t('view')}
-                        </ButtonLink>
+                        </CatalogView>
                         <ButtonLink
                           variant="outline"
                           href={catalog.pdfUrl}

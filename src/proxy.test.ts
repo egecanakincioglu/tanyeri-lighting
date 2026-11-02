@@ -58,6 +58,7 @@ describe('proxy', () => {
       expect(csp).toContain("frame-ancestors 'none'");
       expect(csp).toContain("object-src 'none'");
       expect(csp).toContain("default-src 'self'");
+      expect(csp).toContain("worker-src 'self'");
       expect(csp).not.toContain('upgrade-insecure-requests');
     });
 
