@@ -152,6 +152,37 @@ describe('Header', () => {
     expect(desktopNav().getByRole('button', { name: 'Ürünler' }).hasAttribute('data-current')).toBe(true);
   });
 
+  it('keeps the address of a dynamic page in the language links, in both directions', () => {
+    navigation.pathname = '/en/products/ray-spot';
+    renderHeader('en');
+    const group = screen.getByRole('group', { name: 'Language' });
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe('/tr/urunler/ray-spot');
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products/ray-spot');
+  });
+
+  it('writes the language cookie when the other language is chosen, and not for the current one', () => {
+    document.cookie = 'NEXT_LOCALE=;path=/;max-age=0';
+    renderHeader();
+    const group = screen.getByRole('group', { name: 'Dil' });
+    const click = (link: HTMLElement) => {
+      link.addEventListener('click', (event) => event.preventDefault(), { once: true });
+      fireEvent.click(link);
+    };
+    click(within(group).getByRole('link', { name: 'TR, Türkçe' }));
+    expect(document.cookie).not.toContain('NEXT_LOCALE=tr');
+    click(within(group).getByRole('link', { name: 'EN, English' }));
+    expect(document.cookie).toContain('NEXT_LOCALE=en');
+  });
+
+  it('marks the category links as the products page and no category as current', () => {
+    navigation.pathname = '/tr/urunler';
+    renderHeader('tr', undefined, true);
+    const nav = desktopNav();
+    expect(nav.getByRole('link', { name: 'Sarkıt' }).getAttribute('href')).toBe('/tr/urunler?category=sarkit');
+    expect(nav.getByRole('link', { name: 'Sarkıt' }).getAttribute('aria-current')).toBeNull();
+    expect(nav.getByRole('link', { name: 'Tüm Ürünler' }).getAttribute('aria-current')).toBe('page');
+  });
+
   it('renders the language links on an unknown address', () => {
     navigation.pathname = '/tr/yok/bir-sayfa';
     navigation.params = { rest: ['yok', 'bir-sayfa'] };
