@@ -50,7 +50,7 @@ Rules:
   - The counter resets when the window ends.
   - N concurrent requests do not exceed the limit (both for the library's Prisma adapter and for the project counter).
   - When the `x-forwarded-for` header is sent with fake values, it is not trusted in a configuration outside Vercel.
-- Decided (2026-11-01): the key in the project counter table is an HMAC-SHA256 of `<scope>:<address>`, under a key derived from `BETTER_AUTH_SECRET` with the label `rate-limit`. No plain IP address is stored, consistent with the principle that IP addresses are stored anonymized. IPv6 addresses are grouped by /64, so a client cannot get a fresh counter by rotating addresses inside its own prefix. The key format of the library's own `rateLimit` table belongs to the library.
+- Decided (2026-11-01): the key in the project counter table is an HMAC-SHA256 of `<scope>:<address>`, under a key derived from `BETTER_AUTH_SECRET` with the label `rate-limit`. The `rateLimitCounter` table stores no plain IP address, consistent with the principle that IP addresses are stored anonymized. The library's `rateLimit.key` and `session.ipAddress` hold plain addresses. IPv6 addresses are grouped by /64, so a client cannot get a fresh counter by rotating addresses inside its own prefix. The key format of the library's own `rateLimit` table belongs to the library.
 
 ## Sources
 
