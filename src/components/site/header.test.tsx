@@ -13,10 +13,10 @@ vi.mock('next/navigation', async (importOriginal) => ({
   useParams: () => ({ locale: 'tr', ...navigation.params }),
 }));
 
-function renderHeader(locale: 'tr' | 'en' = 'tr') {
+function renderHeader(locale: 'tr' | 'en' = 'tr', logoUrl?: string | null) {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === 'tr' ? tr : en}>
-      <Header />
+      <Header logoUrl={logoUrl} />
       <main data-page-region>
         <a href="#x">Page link</a>
       </main>
@@ -33,6 +33,18 @@ async function violations(container: HTMLElement) {
 }
 
 describe('Header', () => {
+  it('shows the uploaded logo, and the artwork when there is none', () => {
+    const { unmount } = renderHeader('tr', '/demo/area-otel.webp');
+    const logos = screen.getAllByRole('img', { name: 'Tanyeri Lighting' });
+    expect(logos.length).toBeGreaterThan(0);
+    for (const logo of logos) expect(logo.getAttribute('src')).toBe('/demo/area-otel.webp');
+    unmount();
+    renderHeader('tr', null);
+    for (const logo of screen.getAllByRole('img', { name: 'Tanyeri Lighting' })) {
+      expect(logo.getAttribute('src')).toBe('/brand/logo-header.svg');
+    }
+  });
+
   beforeEach(() => {
     navigation.pathname = '/tr';
     navigation.params = {};

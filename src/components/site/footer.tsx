@@ -3,7 +3,6 @@ import { Link } from '../../i18n/navigation.ts';
 import { routing } from '../../i18n/routing.ts';
 import { getLegalPage } from '../../server/content/legal-pages.ts';
 import { LEGAL_PAGE_KEYS, type SiteSettings, type SocialLink } from '../../server/content/schemas.ts';
-import { getSiteSettings } from '../../server/content/site-settings.ts';
 import { listSocialLinks } from '../../server/content/social-links.ts';
 import { Logo } from '../logo.tsx';
 import { CONTAINER } from './container.ts';
@@ -71,7 +70,7 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
       <div className={CONTAINER}>
         <div className="grid grid-cols-1 gap-9 pb-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-[clamp(2rem,5vw,5rem)] lg:pb-12">
           <div className="md:col-span-2 lg:col-span-1">
-            <Logo label="Tanyeri Lighting" variant="full" />
+            <Logo label="Tanyeri Lighting" variant="full" src={settings.logoUrl} />
             <p className="mt-5 max-w-104 leading-7 text-muted">{t('tagline')}</p>
             {socialLinks.length > 0 && (
               <ul className="mt-5 flex flex-wrap gap-2">
@@ -167,9 +166,9 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
   );
 }
 
-export async function Footer() {
-  const [settings, socialLinks, pages] = await Promise.all([
-    getSiteSettings(),
+// The layout reads the settings once for the header and the footer.
+export async function Footer({ settings }: { settings: SiteSettings }) {
+  const [socialLinks, pages] = await Promise.all([
     listSocialLinks(),
     Promise.all(LEGAL_PAGE_KEYS.map(async (key) => ({ key, page: await getLegalPage(key) }))),
   ]);

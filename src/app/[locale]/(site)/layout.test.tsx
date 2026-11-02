@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider, createTranslator } from 'next-intl';
 import { axeViolations } from '../../../test/axe.ts';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
 import SiteLayout from './layout.tsx';
@@ -15,9 +15,20 @@ vi.mock('next-intl/server', () => ({
     createTranslator({ locale, messages: locale === 'tr' ? tr : en, namespace }),
 }));
 // The footer reads the database; its own tests cover it.
-vi.mock('../../../components/site/footer.tsx', () => ({ Footer: () => <footer>footer</footer> }));
+vi.mock('../../../components/site/footer.tsx', () => ({
+  Footer: ({ settings }: { settings: { logoUrl: string | null } }) => (
+    <footer data-logo={settings.logoUrl}>footer</footer>
+  ),
+}));
+const mocks = vi.hoisted(() => ({ getSiteSettings: vi.fn() }));
+vi.mock('../../../server/content/site-settings.ts', () => ({ getSiteSettings: mocks.getSiteSettings }));
 
 describe('SiteLayout', () => {
+  beforeEach(() => {
+    mocks.getSiteSettings.mockClear();
+    mocks.getSiteSettings.mockResolvedValue({ logoUrl: null });
+  });
+
   afterEach(() => {
     cleanup();
     vi.unstubAllEnvs();
@@ -53,6 +64,24 @@ describe('SiteLayout', () => {
       }
     },
   );
+  it('reads the settings once and gives the logo to the header and the footer', async () => {
+    mocks.getSiteSettings.mockResolvedValue({ logoUrl: '/demo/area-otel.webp' });
+    const layout = await SiteLayout({
+      children: <p>page</p>,
+      params: Promise.resolve({ locale: 'en' }),
+    } as Parameters<typeof SiteLayout>[0]);
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        {layout}
+      </NextIntlClientProvider>,
+    );
+    expect(mocks.getSiteSettings).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!.getAttribute('src')).toBe(
+      '/demo/area-otel.webp',
+    );
+    expect(screen.getByRole('contentinfo').getAttribute('data-logo')).toBe('/demo/area-otel.webp');
+  });
+
   it.each([
     ['tr', tr, 'Kurgusal marka: bu bir demo sitedir, hiçbir ürün satışta değildir.'],
     ['en', en, 'Fictional brand: this is a demo site and nothing is for sale.'],
