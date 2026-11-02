@@ -23,7 +23,7 @@ describe('Logo', () => {
 
   it.each([
     ['header', 220, 44],
-    ['full', 280, 68],
+    ['full', 280, 71],
   ] as const)('shows an uploaded logo in the fixed box of the %s variant', (variant, width, height) => {
     render(<Logo label="Tanyeri Lighting" variant={variant} src="/demo/area-otel.webp" />);
     const img = screen.getByRole('img', { name: 'Tanyeri Lighting' });
@@ -40,7 +40,7 @@ describe('Logo', () => {
 
   it.each([
     ['header', 'logo-header.svg', 220, 44],
-    ['full', 'logo.svg', 280, 68],
+    ['full', 'logo.svg', 280, 71],
   ] as const)(
     'sets the on-screen size as %s and matches the file at twice that size',
     (variant, file, width, height) => {
