@@ -5,7 +5,7 @@ import { JsonLd } from '../../../../components/json-ld.tsx';
 import { ContactView } from '../../../../components/site/contact-view.tsx';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData, contactPageData } from '../../../../lib/structured-data.ts';
 import { submitContactMessage } from '../../../../server/contact/actions.ts';
 import { HONEYPOT_FIELD, MAX_LENGTH } from '../../../../server/contact/form.ts';
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/contact'
   const pageLocale = hasLocale(routing.locales, locale) ? locale : 'tr';
   return {
     ...toMetadata(await getPageMetadata('contact'), pageLocale),
-    alternates: pageAlternates(pageLocale, '/contact'),
+    ...pageSeo(pageLocale, '/contact'),
   };
 }
 

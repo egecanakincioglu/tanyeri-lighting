@@ -6,7 +6,7 @@ import { JsonLd } from '../../../components/json-ld.tsx';
 import { LegalView } from '../../../components/site/legal-view.tsx';
 import { routing } from '../../../i18n/routing.ts';
 import { toMetadata } from '../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../lib/seo.ts';
+import { pageSeo } from '../../../lib/seo.ts';
 import { breadcrumbData } from '../../../lib/structured-data.ts';
 import { getLegalPage } from '../../../server/content/legal-pages.ts';
 import { getPageMetadata } from '../../../server/content/page-metadata.ts';
@@ -36,5 +36,5 @@ export async function renderLegalPage(key: LegalPageKey, rawLocale: string) {
 export async function legalMetadata(key: LegalPageKey, rawLocale: string): Promise<Metadata> {
   const locale = localeOf(rawLocale);
   const [page, saved] = await Promise.all([getLegalPage(key), getPageMetadata(key)]);
-  return { ...toMetadata(saved, locale, page?.title[locale]), alternates: pageAlternates(locale, `/${key}`) };
+  return { ...toMetadata(saved, locale, page?.title[locale]), ...pageSeo(locale, `/${key}`) };
 }

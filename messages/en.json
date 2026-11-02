@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "Tanyeri"
+    "title": "Tanyeri Lighting"
   },
   "DemoBand": {
     "label": "Demo notice",
@@ -40,9 +40,9 @@
     "adminSignIn": "Administrator sign-in"
   },
   "Home": {
-    "highlightsTitle": "Our Favorite Products",
+    "highlightsTitle": "Featured Lighting Products",
     "boardLink": "Explore now",
-    "areasTitle": "Our Work Areas"
+    "areasTitle": "Lighting Applications"
   },
   "Products": {
     "title": "Our products",
@@ -52,7 +52,8 @@
     "pages": "Pages",
     "previous": "Previous",
     "next": "Next",
-    "empty": "There are no products in this category yet."
+    "empty": "There are no products in this category yet.",
+    "pageSuffix": "Page {page}"
   },
   "Product": {
     "back": "All products",
@@ -64,7 +65,9 @@
     "material": "Material",
     "power": "Power",
     "dimensions": "Dimensions",
-    "description": "{name}, {category}. Product code: {code}."
+    "description": "{name}: {specs}. Product code {code}; ask for technical details. Demo product.",
+    "descriptionPlain": "{name}. Product code {code}; ask for technical details. Demo product.",
+    "backToCategory": "Back to {category}"
   },
   "Catalogs": {
     "view": "View",

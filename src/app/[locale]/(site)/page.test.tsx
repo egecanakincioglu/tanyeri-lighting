@@ -33,7 +33,7 @@ vi.mock('../../../server/content/application-areas.ts', () => ({ listApplication
 
 // The real helper needs the Next.js server runtime; this fake reads the same message files.
 vi.mock('next-intl/server', () => ({
-  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' | 'DemoBand' }) =>
+  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' | 'DemoBand' | 'Footer' }) =>
     Promise.resolve((key: string) => (({ tr, en })[locale][namespace] as Record<string, string>)[key]),
 }));
 
@@ -124,8 +124,8 @@ describe('HomePage', () => {
   });
 
   it.each([
-    ['tr', 'Favori Ürünlerimiz', 'Çalışma Alanlarımız', 'Hemen İncele'],
-    ['en', 'Our Favorite Products', 'Our Work Areas', 'Explore now'],
+    ['tr', 'Öne Çıkan Aydınlatma Ürünleri', 'Aydınlatma Uygulama Alanları', 'Hemen İncele'],
+    ['en', 'Featured Lighting Products', 'Lighting Applications', 'Explore now'],
   ])('renders the banner, highlights and work areas in %s', async (locale, highlights, work, cta) => {
     const paths = locale === 'tr' ? PATHS.tr : PATHS.en;
     await renderPage(locale);
@@ -180,8 +180,8 @@ describe('HomePage', () => {
     await renderPage('en');
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Our Favorite Products',
-      'Our Work Areas',
+      'Featured Lighting Products',
+      'Lighting Applications',
     ]);
     expect(screen.queryByRole('link', { name: /^Explore now/ })).toBeNull();
   });
@@ -231,13 +231,35 @@ describe('HomePage', () => {
       sameAs: ['https://instagram.example/tanyeri'],
       contactPoint: { email: 'info@example.test' },
     });
-    expect(organization).not.toHaveProperty('description');
+    expect(organization).toMatchObject({ description: (locale === 'tr' ? tr : en).Footer.tagline });
   });
 
-  it('repeats the demo notice in the organization data only in demo mode', async () => {
+  it('adds the demo notice to the organization description and drops the contact point only in demo mode', async () => {
     vi.stubEnv('DEMO_MODE', 'true');
     const { container } = await renderPage('en');
-    expect(ldBlocks(container)[1]).toMatchObject({ description: en.DemoBand.text });
+    const organization = ldBlocks(container)[1];
+    expect(organization).toMatchObject({ description: `${en.Footer.tagline} ${en.DemoBand.text}` });
+    expect(organization).not.toHaveProperty('contactPoint');
+  });
+
+  it('shows the saved home title as it is, without the site template', async () => {
+    content.metadata.mockResolvedValue({
+      title: pair('Title'),
+      description: pair('Description'),
+      updatedAt: new Date(),
+    });
+    expect((await generateMetadata(props('en'))).title).toEqual({ absolute: 'Title EN' });
+    content.metadata.mockResolvedValue(null);
+    await expect(generateMetadata(props('en'))).resolves.not.toHaveProperty('title');
+  });
+
+  it('adds the Open Graph basics of the home page', async () => {
+    expect((await generateMetadata(props('tr'))).openGraph).toMatchObject({
+      type: 'website',
+      url: '/tr',
+      locale: 'tr_TR',
+      siteName: 'Tanyeri Lighting',
+    });
   });
 
   it('gives the home page the root address as x-default and its own canonical', async () => {

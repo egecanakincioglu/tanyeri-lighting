@@ -1,21 +1,30 @@
 import type { Metadata } from 'next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const content = vi.hoisted(() => ({ metadata: vi.fn(), legal: vi.fn(), product: vi.fn(), categories: vi.fn() }));
+const content = vi.hoisted(() => ({
+  metadata: vi.fn(),
+  legal: vi.fn(),
+  product: vi.fn(),
+  categories: vi.fn(),
+  products: vi.fn(),
+}));
 
 vi.mock('next-intl/server', async () => ({
   getTranslations: (await import('../../../test/translations.ts')).getTranslations,
 }));
 vi.mock('../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 vi.mock('../../../server/content/legal-pages.ts', () => ({ getLegalPage: content.legal }));
-vi.mock('../../../server/content/products.ts', () => ({ getProductBySlug: content.product }));
+vi.mock('../../../server/content/products.ts', () => ({
+  getProductBySlug: content.product,
+  listProducts: content.products,
+}));
 vi.mock('../../../server/content/categories.ts', () => ({ listCategories: content.categories }));
 
 type Locale = 'tr' | 'en';
 type Page = { generateMetadata: (props: never) => Promise<Metadata> };
 
 const props = (locale: string, extra: Record<string, string> = {}) =>
-  ({ params: Promise.resolve({ locale, ...extra }) }) as never;
+  ({ params: Promise.resolve({ locale, ...extra }), searchParams: Promise.resolve({}) }) as never;
 
 // Each public page with its address in both languages and the title it shows.
 const pages: [string, () => Promise<Page>, Record<Locale, string>, Record<Locale, string>][] = [
@@ -86,12 +95,15 @@ describe('page metadata', () => {
   beforeEach(() => {
     content.metadata.mockResolvedValue(null);
     content.legal.mockResolvedValue(null);
+    content.categories.mockResolvedValue([]);
+    content.products.mockResolvedValue([{ id: 'p1' }]);
   });
   afterEach(() => {
     content.metadata.mockReset();
     content.legal.mockReset();
     content.product.mockReset();
     content.categories.mockReset();
+    content.products.mockReset();
   });
 
   describe.each(pages)('%s', (key, load, paths) => {
@@ -99,6 +111,7 @@ describe('page metadata', () => {
       const { generateMetadata } = await load();
       const metadata = await generateMetadata(props(locale));
       expect(metadata.alternates?.canonical).toBe(paths[locale]);
+      expect(metadata.openGraph).toMatchObject({ url: paths[locale], siteName: 'Tanyeri Lighting' });
       expect(metadata.alternates?.languages).toEqual({
         tr: paths.tr,
         en: paths.en,
@@ -126,11 +139,18 @@ describe('page metadata', () => {
   });
 
   it.each(pages.filter(([key]) => !['home', 'contact', 'privacy', 'terms'].includes(key)))(
-    '%s keeps the title it had',
+    '%s shows the saved title, and the menu name before one is saved',
     async (_key, load, _paths, titles) => {
       const { generateMetadata } = await load();
       expect((await generateMetadata(props('tr'))).title).toBe(titles.tr);
       expect((await generateMetadata(props('en'))).title).toBe(titles.en);
+      content.metadata.mockResolvedValue({
+        title: { tr: 'Kayıtlı', en: 'Saved' },
+        description: { tr: '', en: '' },
+        updatedAt: new Date(),
+      });
+      expect((await generateMetadata(props('tr'))).title).toBe('Kayıtlı');
+      expect((await generateMetadata(props('en'))).title).toBe('Saved');
     },
   );
 
@@ -159,6 +179,10 @@ describe('page metadata', () => {
       slug: 'spot-12w',
       code: 'SP-12',
       name: { tr: 'Spot TR', en: 'Spot EN' },
+      color: { tr: '', en: '' },
+      material: { tr: '', en: '' },
+      power: '',
+      dimensions: '',
     };
 
     it.each([

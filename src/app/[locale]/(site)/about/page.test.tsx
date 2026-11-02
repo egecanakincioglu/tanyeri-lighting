@@ -5,7 +5,7 @@ import AboutPage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({
   about: { body: { tr: '', en: '' }, vision: { tr: '', en: '' } },
-  metadata: null as null | { description: { tr: string; en: string } },
+  metadata: null as null | { title: { tr: string; en: string }; description: { tr: string; en: string } },
 }));
 
 vi.mock('next/navigation', async (importOriginal) => ({
@@ -28,7 +28,10 @@ describe('AboutPage', () => {
       body: { tr: 'Merhaba **dünya**\n\n- bir', en: 'Hello **world**\n\n- one\n\n## Approach' },
       vision: { tr: '', en: '' },
     };
-    content.metadata = { description: { tr: 'Açıklama', en: 'Description' } };
+    content.metadata = {
+      title: { tr: 'Kayıtlı', en: 'Saved title' },
+      description: { tr: 'Açıklama', en: 'Description' },
+    };
   });
   afterEach(cleanup);
 
@@ -52,7 +55,7 @@ describe('AboutPage', () => {
 
   it('gives the page name and the saved description as metadata', async () => {
     await expect(generateMetadata(props('en'))).resolves.toMatchObject({
-      title: 'About us',
+      title: 'Saved title',
       description: 'Description',
     });
     content.metadata = null;

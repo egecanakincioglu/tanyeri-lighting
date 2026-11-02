@@ -85,9 +85,13 @@ describe('ProjectsPage', () => {
   });
 
   it('takes the title from the menu label and the description from the page metadata', async () => {
-    content.metadata.mockResolvedValue({ description: { tr: 'Açıklama', en: 'About projects' } });
-    expect(await generateMetadata(props('en'))).toMatchObject({ title: 'Projects', description: 'About projects' });
+    content.metadata.mockResolvedValue({
+      title: { tr: 'Kayıtlı', en: 'Saved title' },
+      description: { tr: 'Açıklama', en: 'About projects' },
+    });
+    expect(await generateMetadata(props('en'))).toMatchObject({ title: 'Saved title', description: 'About projects' });
     content.metadata.mockResolvedValue(null);
+    expect((await generateMetadata(props('en'))).title).toBe('Projects');
     expect(await generateMetadata(props('tr'))).not.toHaveProperty('description');
     expect(await generateMetadata(props('xx'))).toEqual({});
   });

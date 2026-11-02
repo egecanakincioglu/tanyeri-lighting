@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "Tanyeri"
+    "title": "Tanyeri Lighting"
   },
   "DemoBand": {
     "label": "Demo bildirimi",
@@ -40,9 +40,9 @@
     "adminSignIn": "Yönetici girişi"
   },
   "Home": {
-    "highlightsTitle": "Favori Ürünlerimiz",
+    "highlightsTitle": "Öne Çıkan Aydınlatma Ürünleri",
     "boardLink": "Hemen İncele",
-    "areasTitle": "Çalışma Alanlarımız"
+    "areasTitle": "Aydınlatma Uygulama Alanları"
   },
   "Products": {
     "title": "Ürünlerimiz",
@@ -52,7 +52,8 @@
     "pages": "Sayfalar",
     "previous": "Önceki",
     "next": "Sonraki",
-    "empty": "Bu kategoride henüz ürün yok."
+    "empty": "Bu kategoride henüz ürün yok.",
+    "pageSuffix": "Sayfa {page}"
   },
   "Product": {
     "back": "Tüm ürünler",
@@ -64,7 +65,9 @@
     "material": "Malzeme",
     "power": "Güç",
     "dimensions": "Ölçüler",
-    "description": "{name}, {category}. Ürün kodu: {code}."
+    "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
+    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
+    "backToCategory": "{category} kategorisine dön"
   },
   "Catalogs": {
     "view": "Görüntüle",

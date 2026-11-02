@@ -16,7 +16,12 @@ vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata:
 // The real helper needs the Next.js server runtime; this fake reads the same message files.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Products' | 'Header' }) =>
-    Promise.resolve((key: string) => (({ tr, en })[locale][namespace] as Record<string, string>)[key]),
+    Promise.resolve((key: string, values: Record<string, number> = {}) =>
+      Object.entries(values).reduce(
+        (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+        ({ tr, en }[locale][namespace] as Record<string, string>)[key]!,
+      ),
+    ),
 }));
 
 const pair = (text: string) => ({ tr: `${text} TR`, en: `${text} EN` });
@@ -170,11 +175,48 @@ describe('ProductsPage', () => {
   });
 
   it.each([
-    ['tr', 'Ürünler', 'Description TR'],
-    ['en', 'Products', 'Description EN'],
-  ])('titles the page with the menu label and describes it in %s', async (locale, title, description) => {
+    ['tr', 'T TR', 'Description TR'],
+    ['en', 'T EN', 'Description EN'],
+  ])('titles the page with the saved title and describes it in %s', async (locale, title, description) => {
     content.metadata.mockResolvedValue({ title: pair('T'), description: pair('Description'), updatedAt: new Date() });
     await expect(generateMetadata(props(locale))).resolves.toMatchObject({ title, description });
+  });
+
+  it.each([
+    ['tr', 'T TR - Sayfa 2', '/tr/urunler?page=2', '/en/products?page=2'],
+    ['en', 'T EN - Page 2', '/en/products?page=2', '/tr/urunler?page=2'],
+  ])('gives a later page its own canonical and title suffix in %s', async (locale, title, canonical, other) => {
+    content.metadata.mockResolvedValue({ title: pair('T'), description: pair('Description'), updatedAt: new Date() });
+    const metadata = await generateMetadata(props(locale, { page: '2' }));
+    expect(metadata.title).toBe(title);
+    expect(metadata.alternates?.canonical).toBe(canonical);
+    expect(Object.values(metadata.alternates?.languages ?? {})).toContain(other);
+    expect(metadata.alternates?.languages).toMatchObject({ 'x-default': '/tr/urunler?page=2' });
+  });
+
+  it('keeps the category in the canonical of a later page of that category', async () => {
+    content.metadata.mockResolvedValue(null);
+    const metadata = await generateMetadata(props('en', { category: 'indoor', page: '2' }));
+    expect(metadata.title).toBe('Products - Page 2');
+    expect(metadata.alternates?.canonical).toBe('/en/products?category=indoor&page=2');
+  });
+
+  it.each([
+    ['a page beyond the last', { page: '9' }],
+    ['a value that is not a number', { page: 'x' }],
+  ])('treats %s as the first page', async (_name, query) => {
+    content.metadata.mockResolvedValue(null);
+    const metadata = await generateMetadata(props('en', query));
+    expect(metadata.title).toBe('Products');
+    expect(metadata.alternates?.canonical).toBe('/en/products');
+  });
+
+  it('keeps an empty list out of the index and a filled one in', async () => {
+    expect(await generateMetadata(props('en'))).not.toHaveProperty('robots');
+    content.products.mockResolvedValue([]);
+    expect(await generateMetadata(props('en', { category: 'outdoor' }))).toMatchObject({
+      robots: { index: false, follow: true },
+    });
   });
 
   it('omits the description when none is saved, and returns nothing for an unknown language', async () => {

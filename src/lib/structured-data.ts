@@ -34,16 +34,29 @@ export function websiteData(settings: SiteSettings, locale: Locale): Node<WebSit
   };
 }
 
-// No postal address and no business type: the brand is fictional and has no location. In the demo the visible
-// notice is repeated as the description, so the data says what the page says.
+// A link to a placeholder address (example.com) is not a profile of the brand, so it is not claimed.
+const isPlaceholderHost = (url: string) => {
+  try {
+    const host = new URL(url).hostname;
+    return host === 'example.com' || host.endsWith('.example.com');
+  } catch {
+    return true;
+  }
+};
+
+const FALLBACK_LOGO = '/icons/icon-512.png';
+
+// No postal address and no business type: the brand is fictional and has no location. The description repeats the
+// visible text of the page. In the demo the phone and email reach nobody, so no contact point is written.
 export function organizationData(
   settings: SiteSettings,
   links: readonly SocialLink[],
   locale: Locale,
-  demoNotice?: string,
+  { description, demo = false }: { description?: string; demo?: boolean } = {},
 ): Node<Organization> {
   const email = trimmed(settings.email);
   const telephone = trimmed(settings.phone);
+  const sameAs = links.map((link) => link.url).filter((url) => !isPlaceholderHost(url));
   const contactPoint = {
     '@type': 'ContactPoint' as const,
     contactType: 'customer service',
@@ -58,10 +71,10 @@ export function organizationData(
     '@id': organizationId(),
     name: trimmed(settings.siteName[locale]) || 'Tanyeri Lighting',
     url: absoluteUrl(localizedPath(locale, '/')),
-    ...when('description', demoNotice),
-    ...when('logo', settings.logoUrl ? absoluteUrl(settings.logoUrl) : undefined),
-    ...(links.length > 0 ? { sameAs: links.map((link) => link.url) } : {}),
-    ...(email || telephone ? { contactPoint } : {}),
+    ...when('description', description),
+    logo: absoluteUrl(settings.logoUrl || FALLBACK_LOGO),
+    ...(sameAs.length > 0 ? { sameAs } : {}),
+    ...(!demo && (email || telephone) ? { contactPoint } : {}),
   };
 }
 

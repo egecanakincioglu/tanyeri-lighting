@@ -10,7 +10,8 @@ import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { eagerWhen, SiteImage } from '../../../../components/site-image.tsx';
 import { routing } from '../../../../i18n/routing.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { toMetadata } from '../../../../lib/page-metadata.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { listCatalogs } from '../../../../server/content/catalogs.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
@@ -21,12 +22,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/catalogs
     return {};
   }
   const [t, page] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('catalogs')]);
-  const description = page?.description[locale];
-  return {
-    title: t('catalogs'),
-    ...(description ? { description } : {}),
-    alternates: pageAlternates(locale, '/catalogs'),
-  };
+  return { ...toMetadata(page, locale, undefined, t('catalogs')), ...pageSeo(locale, '/catalogs') };
 }
 
 // One column up to 24rem wide, two up to 50rem, three up to 62rem; the page gutter is clamp(1rem, 4vw, 4rem). The 2x
