@@ -171,6 +171,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   3. The rate limit applies (see Rate limiting).
   4. In demo mode the action returns the summary. Otherwise it stores the message.
 - Field errors are codes (`required`, `too_long`, `invalid`) that the UI translates. Limits: name 100, email 254, subject 150, message 5000 characters.
+- The public form carries `toolname` and `tooldescription` attributes for WebMCP tools. The admin forms do not. CI does not check them, because the Chrome on the runner reports no WebMCP support.
 - The services in `src/server/contact/service.ts` are `listMessages({ limit, cursor })` (newest first, limit 1 to 100, default 20), `markMessageRead` and `deleteMessage`. They are not guarded themselves. Admin entry points must call `guardAction` first. The write services refuse in demo mode.
 - Planned: the contact page with the form, and the message screens in the admin panel.
 
