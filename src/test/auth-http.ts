@@ -60,6 +60,7 @@ export async function loginCookie(options: CallOptions = {}): Promise<string> {
 export async function resetAdmin(): Promise<void> {
   const db = getDb();
   await db.rateLimit.deleteMany();
+  await db.rateLimitCounter.deleteMany();
   await db.verification.deleteMany();
   await db.session.deleteMany();
   await db.account.deleteMany();

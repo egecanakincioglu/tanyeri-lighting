@@ -117,6 +117,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - On Vercel (`VERCEL=1`) the client address is the first value of `x-forwarded-for`. Outside Vercel, or when the header is missing, every request shares one bucket. IPv6 addresses are grouped by /64, and an IPv4-mapped IPv6 address counts as IPv4.
 - When a window opens, rows older than 24 hours are removed, in batches of 100.
 - The contact form allows 5 submissions per 3600 seconds per client address (scope `contact`).
+- `checkRateLimit` can count a named `subject` instead of the client address. The password reset mail uses this with scope `reset-mail`: one account gets at most 3 reset mails per hour, however many addresses ask. The check runs after the response, so the answer is the same whether or not the mail is sent.
 - There is no in-memory limiter and no extra service, because instances on Vercel do not share memory.
 
 ## File storage

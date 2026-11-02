@@ -5,10 +5,14 @@ import { getDb } from '../db.ts';
 import { buildDemoAuthHooks } from '../demo/auth-hooks.ts';
 import { sendEmailAfterResponse } from '../email/index.ts';
 import { getEnv, isEmailEnabled, isProduction } from '../env.ts';
+import { checkRateLimit } from '../rate-limit/index.ts';
 import { CHANGE_EMAIL_LIFETIME_SECONDS, changeEmailEmail } from './change-email-email.ts';
 import { RESET_TOKEN_LIFETIME_SECONDS, resetPasswordEmail, resetPasswordLink } from './reset-password-email.ts';
 
 type AuthSettings = { secret: string; baseURL: string; production: boolean; emailEnabled: boolean };
+
+// Reset emails one account may receive.
+const RESET_MAIL_LIMIT = { scope: 'reset-mail', limit: 3, windowSeconds: 3600 } as const;
 
 // Every setting of ADR 0003 is written out, so a library default change can not loosen it silently.
 export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: AuthSettings) {
@@ -25,8 +29,13 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: 
       // a command on the server.
       ...(emailEnabled && {
         // Sent after the response: an existing and an unknown address must answer alike and in the same time.
-        sendResetPassword: async ({ user, token }: { user: { email: string }; token: string }) => {
-          sendEmailAfterResponse(resetPasswordEmail(user.email, resetPasswordLink(baseURL, token)));
+        // The endpoint limit counts per client address; this one counts per account, so many addresses can not
+        // flood one inbox. A refused mail is dropped without a sign: the answer stays the same.
+        sendResetPassword: async ({ user, token }: { user: { id: string; email: string }; token: string }) => {
+          sendEmailAfterResponse(resetPasswordEmail(user.email, resetPasswordLink(baseURL, token)), async () => {
+            const result = await checkRateLimit({ ...RESET_MAIL_LIMIT, subject: user.id });
+            return result.ok;
+          });
         },
       }),
     },

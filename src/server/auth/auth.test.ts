@@ -4,6 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setEmailScheduler, setEmailTransport } from '../email/index.ts';
 import { buildAuthOptions } from './auth.ts';
 
+const limiter = vi.hoisted(() => ({ check: vi.fn() }));
+vi.mock('../rate-limit/index.ts', () => ({ checkRateLimit: limiter.check }));
+
 const settings = {
   secret: 'a-secret-of-at-least-thirty-two-characters',
   baseURL: 'https://tanyeri.example.com',
@@ -82,7 +85,8 @@ describe('password reset email', () => {
     setEmailScheduler((task) => tasks.push(task));
 
     const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
-    await emailAndPassword.sendResetPassword!({ user: { email: 'admin@example.com' }, token: 'abc123' });
+    limiter.check.mockResolvedValue({ ok: true });
+    await emailAndPassword.sendResetPassword!({ user: { id: 'user-1', email: 'admin@example.com' }, token: 'abc123' });
 
     expect(tasks).toHaveLength(1);
     expect(sendMail).not.toHaveBeenCalled();
@@ -93,6 +97,34 @@ describe('password reset email', () => {
     expect(sent.from).toBe('Tanyeri <no-reply@example.com>');
     expect(sent.text).toContain('https://tanyeri.example.com/tr/yonetim/parola-sifirla?token=abc123');
   });
+    expect(limiter.check).toHaveBeenCalledWith({
+      scope: 'reset-mail',
+      limit: 3,
+      windowSeconds: 3600,
+      subject: 'user-1',
+    });
+  });
+
+  it('drops the mail without a sign when the account has used its three mails of the hour', async () => {
+    vi.stubEnv('SMTP_HOST', 'smtp.example.com');
+    vi.stubEnv('SMTP_PORT', '587');
+    vi.stubEnv('SMTP_USER', 'mailer');
+    vi.stubEnv('SMTP_PASSWORD', 'mailer-password');
+    vi.stubEnv('SMTP_FROM', 'Tanyeri <no-reply@example.com>');
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+    limiter.check.mockResolvedValue({ ok: false, retryAfterSeconds: 60 });
+
+    const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
+    await expect(
+      emailAndPassword.sendResetPassword!({ user: { id: 'user-1', email: 'admin@example.com' }, token: 'abc123' }),
+    ).resolves.toBeUndefined();
+    await tasks[0]!();
+
+    expect(sendMail).not.toHaveBeenCalled();
 });
 
 describe('changing the sign-in email', () => {

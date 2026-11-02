@@ -14,7 +14,10 @@ export type RateLimitOptions = {
   // Requests allowed per window and client.
   limit: number;
   windowSeconds: number;
-  headers: Headers;
+  // The client address is read from these. Ignored when a subject is given.
+  headers?: Headers;
+  // Counts one named subject, such as an account, instead of the client address.
+  subject?: string;
 };
 
 const MAX_WINDOW_SECONDS = 24 * 60 * 60;
@@ -39,13 +42,14 @@ export async function checkRateLimit({
   limit,
   windowSeconds,
   headers,
+  subject,
 }: RateLimitOptions): Promise<RateLimitResult> {
   if (!Number.isInteger(limit) || limit < 1) throw new RangeError('limit must be a positive integer');
   if (!Number.isInteger(windowSeconds) || windowSeconds < 1 || windowSeconds > MAX_WINDOW_SECONDS) {
     throw new RangeError(`windowSeconds must be an integer from 1 to ${MAX_WINDOW_SECONDS}`);
   }
 
-  const key = bucketKey(scope, getClientAddress(headers));
+  const key = bucketKey(scope, subject ?? getClientAddress(headers ?? new Headers()));
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
   const windowStart = new Date(Math.floor(now / windowMs) * windowMs);
