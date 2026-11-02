@@ -4,9 +4,11 @@
 import { statSync } from 'node:fs';
 import type { PrismaClient } from '../src/generated/prisma/client.ts';
 import { toColumns } from '../src/server/content/bilingual.ts';
+import { demoBlogPosts } from './demo-blog.ts';
 import {
   aboutPageSchema,
   applicationAreaSchema,
+  blogPostSchema,
   catalogSchema,
   categorySchema,
   featuredProductIdsSchema,
@@ -764,6 +766,7 @@ export interface SeedCounts {
   socialLinks: number;
   pageMetadata: number;
   legalPages: number;
+  blogPosts: number;
 }
 
 // Replaces all site content with the demo content, in one transaction, so a second run leaves the same content. Users
@@ -795,6 +798,8 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
     }),
   );
 
+  const blogRows = demoBlogPosts.map((post) => ({ ...blogPostSchema.parse(post), publishedAt: post.publishedAt }));
+
   return db.$transaction(
     async (tx) => {
       await tx.featuredProduct.deleteMany();
@@ -806,6 +811,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         tx.socialLink.deleteMany(),
         tx.applicationArea.deleteMany(),
         tx.service.deleteMany(),
+        tx.blogPost.deleteMany(),
         tx.project.deleteMany(),
         tx.reference.deleteMany(),
       ]);
@@ -984,6 +990,20 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         })),
       });
 
+      await tx.blogPost.createMany({
+        data: blogRows.map((post) => ({
+          slug: post.slug,
+          imageUrl: post.imageUrl,
+          publishedAt: post.publishedAt,
+          updatedAt: post.publishedAt,
+          ...toColumns('title', post.title),
+          ...toColumns('description', post.description),
+          ...toColumns('excerpt', post.excerpt),
+          ...toColumns('body', post.body),
+          ...toColumns('imageAlt', post.imageAlt),
+        })),
+      });
+
       return {
         categories: categories.length,
         products: productCount,
@@ -997,6 +1017,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         socialLinks: socialLinks.length,
         pageMetadata: Object.keys(pageMetadata).length,
         legalPages: Object.keys(legalPages).length,
+        blogPosts: blogRows.length,
       };
     },
     { timeout: 60_000 },
