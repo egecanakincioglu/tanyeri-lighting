@@ -69,7 +69,16 @@
     "view": "Görüntüle",
     "download": "İndir",
     "viewLabel": "Görüntüle: {name} (PDF, yeni sekmede açılır)",
-    "downloadLabel": "İndir: {name} (PDF, {size})"
+    "downloadLabel": "İndir: {name} (PDF, {size})",
+    "viewerClose": "Kataloğu kapat",
+    "viewerPrevious": "Önceki sayfa",
+    "viewerNext": "Sonraki sayfa",
+    "viewerPage": "Sayfa {page} / {total}",
+    "viewerPages": "Sayfa {from}–{to} / {total}",
+    "viewerLoading": "Katalog açılıyor…",
+    "viewerError": "Bu katalog burada gösterilemiyor. PDF dosyasını yine de indirebilirsiniz.",
+    "viewerDownload": "PDF dosyasını indir",
+    "viewerBook": "{name} sayfaları"
   },
   "Projects": {
     "intro": "Profesyonel çözümlerimizin etkisini görsel olarak keşfedin",

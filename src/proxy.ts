@@ -14,6 +14,8 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data:",
     "font-src 'self'",
+    // The PDF reader runs in a worker from our own origin.
+    "worker-src 'self'",
     "connect-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
