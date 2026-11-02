@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-11-02
+
+### Features
+- seed the demo articles (d0fd5b5)
+- add the blog screens to the admin panel (f4812ee)
+- add the public blog list and article pages (fad0293)
+- add the blog post model and content services (5dddf7c)
+
+### Fixes
+- pass name placeholder to admin delete dialog (a84ba02)
+
+### Other
+- docs(blog): describe the blog, image sizes and loading (465b877)
+- test(header): cover blog pages in the language links (994a7b4)
+- perf(blog): load the first picture eagerly, drop priority (18f3e4a)
+- test(admin): update sitemap and menu counts for the blog (15a346c)
+- test(audit): list the blog pages in the site audit (c469ea1)
+
 ## [0.5.0] - 2026-11-02
 
 ### Features
