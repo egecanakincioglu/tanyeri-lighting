@@ -4,6 +4,7 @@ import en from '../../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../../messages/tr.json' with { type: 'json' };
 import type { Category, Product } from '../../../../server/content/schemas.ts';
 import { axeViolations } from '../../../../test/axe.ts';
+import { imageLoading } from '../../../../test/image-loading.ts';
 import ProductsPage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({ categories: vi.fn(), products: vi.fn(), metadata: vi.fn() }));
@@ -211,12 +212,12 @@ describe('ProductsPage', () => {
     expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).toBeNull();
   });
 
-  it('has one h1, lazy product photos and no axe violations', async () => {
+  it('has one h1, one photo fetched at once, the rest lazy, and no axe violations', async () => {
     const { container } = render(<main>{await ProductsPage(props('tr'))}</main>);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     const photos = [...container.querySelectorAll('img')];
     expect(photos).toHaveLength(24);
-    expect(photos.every((img) => img.getAttribute('loading') === 'lazy')).toBe(true);
+    expect(imageLoading(container)).toEqual(['eager/high', ...Array<string>(23).fill('lazy/null')]);
     expect(await axeViolations(container)).toEqual([]);
   });
 

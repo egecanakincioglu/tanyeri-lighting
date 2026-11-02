@@ -5,7 +5,7 @@ import { isVercel } from '../env.ts';
 export const UNKNOWN_ADDRESS = 'unknown';
 
 // The eight 16-bit groups of a valid IPv6 address. An embedded IPv4 tail ("::ffff:1.2.3.4") becomes two groups.
-function ipv6Groups(address: string): number[] {
+export function ipv6Groups(address: string): number[] {
   let text = address;
   const lastColon = text.lastIndexOf(':');
   const tail = text.slice(lastColon + 1);

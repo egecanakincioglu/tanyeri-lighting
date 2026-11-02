@@ -4,8 +4,8 @@ The project is developed in phases. The architecture is described in [architectu
 
 ## Status
 
-- **Current phase:** phase 7, admin panel.
-- **Released:** v0.3.0 (public site). Earlier: v0.2.0 (server foundation) and v0.1.0 (application skeleton, quality gates and release pipeline).
+- **Current phase:** phase 8, hardening, plus the remaining page copy, categories and blog work.
+- **Released:** see the [changelog](../CHANGELOG.md) and the [releases page](https://github.com/egecanakincioglu/tanyeri-lighting/releases).
 - **Live demo:** https://tanyeri-lighting.vercel.app. It stays out of search indexes until 1.0.0.
 
 ## Phases
@@ -16,9 +16,9 @@ The project is developed in phases. The architecture is described in [architectu
 | 3 | Application skeleton and quality gates | Done (v0.1.0) |
 | 4 | Server foundation | Done |
 | 5 | Brand and design system | Done (v0.3.0) |
-| 6 | Public site (bilingual) | Mostly done (v0.3.0) |
-| 7 | Admin panel | In progress |
-| 8 | Hardening | Planned |
+| 6 | Public site (bilingual) | Done, except page copy, categories and blog |
+| 7 | Admin panel | Done |
+| 8 | Hardening | In progress |
 | 9 | Launch (1.0.0) | Planned |
 
 ## Phase 4: server foundation
@@ -33,8 +33,8 @@ Done:
 - Seed and first admin user (`pnpm db:seed`), and password recovery without email (`pnpm admin:reset-password`).
 - Optional SMTP email: the `sendEmail` module and the password reset link by email.
 - Rate limiting for public forms: the `checkRateLimit` module on a Postgres counter table.
-- Demo mode guard: content writes and state-changing account endpoints are refused. The demo banner stays planned (phase 5).
-- Contact messages, server side: the `contactMessage` table, the public contact Server Action with honeypot, validation, rate limit and demo summary, and the list, read and delete services. The contact page and form UI are planned (phase 6); the message screens in the admin panel are planned (phase 7).
+- Demo mode guard: content writes and state-changing account endpoints are refused.
+- Contact messages, server side: the `contactMessage` table, the public contact Server Action with honeypot, validation, rate limit and demo summary, and the list, read and delete services. The contact page, the form and the message screen are done.
 - Content schema 1: site settings, social links, page metadata and legal pages, with bilingual fields and a limited Markdown renderer.
 - Content schema 4: projects (with before/after images) and references, with bilingual fields and ordering.
 - Content schema 2: categories (at most 8), products with slug redirects, and catalogs, with bilingual fields and ordering.
@@ -48,16 +48,20 @@ Done:
 
 - Done: fictional demo content and the `pnpm db:seed:demo` command, with demo photos and a catalog under `public/demo`.
 - Done: header and footer, home, about, vision, services, products with tabs and pagination, product page, projects with a before and after slider, references, catalogs with a page-flip viewer, contact form, privacy, terms and a not-found page, in both languages.
-- Remaining: SEO (sitemap, canonical addresses, structured data) and visit tracking.
+- Done: visit tracking (anonymous page views).
+- Done: SEO foundation (localized titles and descriptions, canonical addresses with language alternates, sitemap, `robots.txt`, structured data).
+- Remaining: final page copy, product categories and a blog.
 
 ## Phase 7: admin panel
 
 - Done: sign-in page, sign-out and a protected panel page.
-- Remaining: content management screens, messages and visit statistics.
+- Done: the statistics screen (visits, page views and countries).
+- Done: content management screens for every content type, contact messages, legal pages, page information for search, the account screen and password reset by email or by command.
 
 ## Later phases
 
-- **Phase 8:** security review, accessibility review, performance work and a pixel-perfect pass on all widths.
+- **Phase 8:** security review, accessibility review, performance work, a pixel-perfect pass on all widths and a final review of the whole site.
+- **Blog and categories:** a blog and the product category landing pages come in their own pull requests.
 - **Phase 9:** production environment, the 1.0.0 release with indexing turned on, and a release and rollback runbook.
 
 ## Manual steps

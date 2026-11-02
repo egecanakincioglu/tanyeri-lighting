@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
-import { SiteImage } from '../site-image.tsx';
+import { eagerWhen, SiteImage } from '../site-image.tsx';
 
 type BeforeAfterProps = {
   beforeUrl: string;
@@ -15,6 +15,8 @@ type BeforeAfterProps = {
   /** Names the project; both photos are described as "<name>, <side>". */
   name: string;
   sizes: string;
+  /** True for the first project, whose photos are in view on load. */
+  eager?: boolean;
 };
 
 /**
@@ -30,6 +32,7 @@ export function BeforeAfter({
   valueText,
   name,
   sizes,
+  eager = false,
 }: BeforeAfterProps) {
   const id = useId();
   const [value, setValue] = useState(50);
@@ -40,9 +43,9 @@ export function BeforeAfter({
         {label}
       </label>
       <div className="relative aspect-3/2 overflow-hidden rounded-lg border border-hairline bg-surface has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent-text">
-        <SiteImage src={afterUrl} alt={`${name}, ${afterLabel}`} fill sizes={sizes} />
+        <SiteImage src={afterUrl} alt={`${name}, ${afterLabel}`} fill sizes={sizes} {...eagerWhen(eager)} />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - value}% 0 0)` }}>
-          <SiteImage src={beforeUrl} alt={`${name}, ${beforeLabel}`} fill sizes={sizes} />
+          <SiteImage src={beforeUrl} alt={`${name}, ${beforeLabel}`} fill sizes={sizes} {...eagerWhen(eager)} />
         </div>
         <span
           aria-hidden="true"

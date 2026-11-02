@@ -4,6 +4,7 @@ import en from '../../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../../messages/tr.json' with { type: 'json' };
 import type { Project } from '../../../../server/content/schemas.ts';
 import { axeViolations } from '../../../../test/axe.ts';
+import { imageLoading } from '../../../../test/image-loading.ts';
 import ProjectsPage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({ projects: vi.fn(), metadata: vi.fn() }));
@@ -71,6 +72,11 @@ describe('ProjectsPage', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy();
     expect(container.querySelector('ul')).toBeNull();
     expect(container.querySelector('p')).toBeNull();
+  });
+
+  it('fetches only the photos of the first project at once and ahead of the rest', async () => {
+    const { container } = render(await ProjectsPage(props('en')));
+    expect(imageLoading(container)).toEqual(['eager/high', 'eager/high', 'lazy/null', 'lazy/null']);
   });
 
   it('has no axe violations', async () => {

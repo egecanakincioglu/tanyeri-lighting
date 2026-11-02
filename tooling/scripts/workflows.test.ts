@@ -159,6 +159,17 @@ describe('release workflows', () => {
   test('the release job does not restore caches', () => {
     assert.match(read('release.yml'), /^\s+package-manager-cache: false\s*$/m);
   });
+  test('the rehearsal never checks out the input ref where the token is used', () => {
+    const text = read('release-rehearsal.yml');
+    assert.match(text, /^\s+ref: \$\{\{ github\.event\.repository\.default_branch \}\}\s*$/m);
+    assert.ok(!/^\s+ref: \$\{\{ inputs\.ref \}\}/m.test(text));
+  });
+  test('pull request concurrency groups are keyed on the number, not the branch name', () => {
+    for (const f of ['ci.yml', 'pr-text.yml']) {
+      assert.ok(!/group:.*head_ref/.test(read(f)), f);
+      assert.match(read(f), /group: \S+-\$\{\{ github\.event\.pull_request\.number \|\| github\.run_id \}\}/, f);
+    }
+  });
   test('the rehearsal is manual only', () => {
     assert.match(read('release-rehearsal.yml'), /^on:\n {2}workflow_dispatch:/m);
   });
