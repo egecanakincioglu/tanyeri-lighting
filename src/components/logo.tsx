@@ -17,12 +17,14 @@ const files = {
 
 export function Logo({ label, variant = 'header', src: uploaded }: LogoProps) {
   const { src, width, height } = files[variant];
+  // Only the footer logo is below the fold; the header logo is part of the first view and stays eager.
+  const lazy = variant === 'full' ? ({ loading: 'lazy' } as const) : {};
   // The same fixed box as the artwork, so any proportions fit without moving the layout.
   if (uploaded) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={uploaded} width={width} height={height} alt={label} className="object-contain" />;
+    return <img src={uploaded} width={width} height={height} alt={label} className="object-contain" {...lazy} />;
   }
   // A static file keeps the outlined lettering out of every HTML page.
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} width={width} height={height} alt={label} />;
+  return <img src={src} width={width} height={height} alt={label} {...lazy} />;
 }
