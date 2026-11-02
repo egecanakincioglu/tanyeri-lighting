@@ -47,7 +47,7 @@ export function LegalForm({ action, pageKey, initial, texts, markdownTexts, form
           languages={formTexts.languages}
           defaultValue={initial.title}
           maxLength={LIMITS.title}
-          required={false}
+          optional
           errors={{ tr: message('title.tr'), en: message('title.en') }}
         />
         {(['tr', 'en'] as const).map((language) => (
