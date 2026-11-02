@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider, createTranslator } from 'next-intl';
 import { axeViolations } from '../../../test/axe.ts';
+import { optimizedSource } from '../../../test/optimized-source.ts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
@@ -78,9 +79,7 @@ describe('SiteLayout', () => {
       </NextIntlClientProvider>,
     );
     expect(mocks.getSiteSettings).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!.getAttribute('src')).toBe(
-      '/demo/area-otel.webp',
-    );
+    expect(optimizedSource(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!)).toBe('/demo/area-otel.webp');
     expect(screen.getByRole('contentinfo').getAttribute('data-logo')).toBe('/demo/area-otel.webp');
   });
 

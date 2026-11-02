@@ -27,7 +27,11 @@ describe('Logo', () => {
   ] as const)('shows an uploaded logo in the fixed box of the %s variant', (variant, width, height) => {
     render(<Logo label="Tanyeri Lighting" variant={variant} src="/demo/area-otel.webp" />);
     const img = screen.getByRole('img', { name: 'Tanyeri Lighting' });
-    expect(img.getAttribute('src')).toBe('/demo/area-otel.webp');
+    // Served by the image optimizer on our own origin, with a file for one and two times the box.
+    const src = new URL(img.getAttribute('src') ?? '', 'http://localhost');
+    expect(src.pathname).toBe('/_next/image');
+    expect(src.searchParams.get('url')).toBe('/demo/area-otel.webp');
+    expect(img.getAttribute('srcset')).toMatch(/ 1x, .* 2x$/);
     expect(img.getAttribute('width')).toBe(String(width));
     expect(img.getAttribute('height')).toBe(String(height));
     expect(img.getAttribute('class')).toBe('object-contain');
