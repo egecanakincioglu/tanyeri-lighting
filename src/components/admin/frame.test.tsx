@@ -54,7 +54,7 @@ describe('AdminFrame', () => {
     expect(nav.getByRole('link', { name: 'References', hidden: true }).getAttribute('href')).toBe(
       '/en/admin/references',
     );
-    expect(nav.getAllByRole('link', { hidden: true })).toHaveLength(17);
+    expect(nav.getAllByRole('link', { hidden: true })).toHaveLength(18);
   });
 
   it('uses the Turkish labels and addresses', async () => {

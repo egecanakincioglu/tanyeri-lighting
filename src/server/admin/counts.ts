@@ -7,6 +7,7 @@ export type PanelCounts = {
   projects: number;
   references: number;
   services: number;
+  blogPosts: number;
   messages: number;
   unreadMessages: number;
 };
@@ -14,17 +15,19 @@ export type PanelCounts = {
 // One round of plain counts for the panel home and the menu badge. Callers check the session first.
 export async function getPanelCounts(): Promise<PanelCounts> {
   const db = getDb();
-  const [products, categories, catalogs, projects, references, services, messages, unreadMessages] = await Promise.all([
-    db.product.count(),
-    db.category.count(),
-    db.catalog.count(),
-    db.project.count(),
-    db.reference.count(),
-    db.service.count(),
-    db.contactMessage.count(),
-    db.contactMessage.count({ where: { readAt: null } }),
-  ]);
-  return { products, categories, catalogs, projects, references, services, messages, unreadMessages };
+  const [products, categories, catalogs, projects, references, services, blogPosts, messages, unreadMessages] =
+    await Promise.all([
+      db.product.count(),
+      db.category.count(),
+      db.catalog.count(),
+      db.project.count(),
+      db.reference.count(),
+      db.service.count(),
+      db.blogPost.count(),
+      db.contactMessage.count(),
+      db.contactMessage.count({ where: { readAt: null } }),
+    ]);
+  return { products, categories, catalogs, projects, references, services, blogPosts, messages, unreadMessages };
 }
 
 // The badge of the messages item in the menu.

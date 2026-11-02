@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startFakeBlobServer } from '../../test/blob-server.ts';
 import type { FakeBlobServer } from '../../test/blob-server.ts';
+import { listPosts } from '../content/blog.ts';
 import { listApplicationAreas } from '../content/application-areas.ts';
 import { createCatalog, listCatalogs } from '../content/catalogs.ts';
 import { createCategory } from '../content/categories.ts';
@@ -18,6 +19,7 @@ import {
   deleteApplicationAreaAction,
   updateApplicationAreaAction,
 } from './application-areas-actions.ts';
+import { createPostAction, deletePostAction, updatePostAction } from './blog-actions.ts';
 import { updateBannerAction } from './banner-actions.ts';
 import { createCatalogAction, deleteCatalogAction, updateCatalogAction } from './catalogs-actions.ts';
 import { updateSiteSettingsAction } from './corporate-actions.ts';
@@ -125,6 +127,25 @@ const families: Family[] = [
     remove: deleteServiceAction,
     ids: async () => (await listServices()).map((item) => item.id),
     clean: () => getDb().service.deleteMany(),
+  },
+  {
+    name: 'blog posts',
+    fileFields: ['imageUrl'],
+    demoFields: ['imageUrl'],
+    base: () => ({
+      slug: 'article',
+      ...pair('title', 'Article'),
+      ...pair('description', 'Description.'),
+      ...pair('excerpt', 'Excerpt.'),
+      ...pair('body', 'Text.'),
+      ...pair('imageAlt', 'Picture'),
+      publishedAt: '2026-03-01',
+    }),
+    create: createPostAction,
+    update: updatePostAction,
+    remove: deletePostAction,
+    ids: async () => (await listPosts()).map((item) => item.id),
+    clean: () => getDb().blogPost.deleteMany(),
   },
   {
     name: 'projects',
