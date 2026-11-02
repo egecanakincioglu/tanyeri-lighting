@@ -1,14 +1,14 @@
-import { hasLocale } from 'next-intl';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { routing } from '../../i18n/routing.ts';
 import { getAuth } from './auth.ts';
+import { signInPath } from './paths.ts';
 
 // The shared authorization check (ADR 0003 rule 7). Every signed-in user is an admin, so a session is all it takes.
 // Pages, layouts, Server Actions and route handlers each call the variant for their kind; the proxy never decides
 // access. tooling/scripts/check-admin-guard.ts fails CI when one forgets.
 
-async function currentSession() {
+// The session, or null: for the sign-in page, which sends a signed-in visitor on to the panel.
+export async function currentSession() {
   return getAuth().api.getSession({ headers: await headers() });
 }
 
@@ -21,12 +21,12 @@ export class UnauthorizedError extends Error {
   }
 }
 
-// Pages and layouts: a visitor without a session is sent to the sign-in page. The locale comes from the URL, so an
-// unknown value falls back to the default one instead of ending up in the redirect target.
+// Pages and layouts: a visitor without a session is sent to the sign-in page of the same language. The target is built
+// from the locale alone (an unknown one falls back to the default), never from the request.
 export async function guardPage(locale: string): Promise<AdminSession> {
   const session = await currentSession();
   if (!session) {
-    redirect(`/${hasLocale(routing.locales, locale) ? locale : routing.defaultLocale}/dashboard/sign-in`);
+    redirect(signInPath(locale));
   }
   return session;
 }

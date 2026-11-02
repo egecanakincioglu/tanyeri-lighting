@@ -71,12 +71,12 @@ describe('the admin guard on a real database', () => {
 
   describe('without a session', () => {
     it('sends a page visitor to the sign-in page of the locale', async () => {
-      expect(await redirectTarget(guardPage('en'))).toBe('/en/dashboard/sign-in');
-      expect(await redirectTarget(guardPage('tr'))).toBe('/tr/dashboard/sign-in');
+      expect(await redirectTarget(guardPage('en'))).toBe('/en/admin/sign-in');
+      expect(await redirectTarget(guardPage('tr'))).toBe('/tr/yonetim/giris');
     });
 
     it('keeps an unknown locale out of the redirect target', async () => {
-      expect(await redirectTarget(guardPage('//evil.example'))).toBe('/tr/dashboard/sign-in');
+      expect(await redirectTarget(guardPage('//evil.example'))).toBe('/tr/yonetim/giris');
     });
 
     it('throws an error, not a redirect, for a Server Action', async () => {
