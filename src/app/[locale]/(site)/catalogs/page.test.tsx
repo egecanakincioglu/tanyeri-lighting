@@ -4,6 +4,7 @@ import en from '../../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../../messages/tr.json' with { type: 'json' };
 import type { Catalog } from '../../../../server/content/schemas.ts';
 import { axeViolations } from '../../../../test/axe.ts';
+import { imageLoading } from '../../../../test/image-loading.ts';
 import CatalogsPage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({ catalogs: vi.fn(), metadata: vi.fn() }));
@@ -107,6 +108,11 @@ describe('CatalogsPage', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy();
     expect(container.querySelector('ul')).toBeNull();
     expect(container.querySelector('main')).toBeNull();
+  });
+
+  it('fetches only the first cover at once and ahead of the rest', async () => {
+    const { container } = render(await CatalogsPage(props('en')));
+    expect(imageLoading(container)).toEqual(['eager/high', 'lazy/null']);
   });
 
   it('has no axe violations', async () => {

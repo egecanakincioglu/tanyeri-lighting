@@ -18,3 +18,8 @@ export function SiteImage({ alt, fill, ...rest }: SiteImageProps) {
     />
   );
 }
+
+/** For the first picture of a list, which is in view on load: fetched at once and ahead of the rest. */
+export function eagerWhen(first: boolean) {
+  return first ? ({ loading: 'eager', fetchPriority: 'high' } as const) : {};
+}

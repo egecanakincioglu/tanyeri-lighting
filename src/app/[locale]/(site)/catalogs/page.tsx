@@ -8,7 +8,7 @@ import type { ViewerLabels } from '../../../../components/catalog-viewer/viewer-
 import { Container } from '../../../../components/container.tsx';
 import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
-import { SiteImage } from '../../../../components/site-image.tsx';
+import { eagerWhen, SiteImage } from '../../../../components/site-image.tsx';
 import { routing } from '../../../../i18n/routing.ts';
 import { pageAlternates } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
@@ -83,7 +83,7 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
       {catalogs.length > 0 && (
         <Container>
           <ul className="mx-auto grid max-w-96 grid-cols-1 gap-6 xs:max-w-200 xs:grid-cols-2 wide:max-w-248 wide:grid-cols-3">
-            {catalogs.map((catalog) => {
+            {catalogs.map((catalog, index) => {
               const name = catalog.name[locale];
               const size = formatSize(catalog.sizeBytes, locale);
               return (
@@ -96,7 +96,13 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
                     labels={viewerLabels}
                     cover={
                       catalog.coverImageUrl ? (
-                        <SiteImage src={catalog.coverImageUrl} alt="" fill sizes={COVER_SIZES} />
+                        <SiteImage
+                          src={catalog.coverImageUrl}
+                          alt=""
+                          fill
+                          sizes={COVER_SIZES}
+                          {...eagerWhen(index === 0)}
+                        />
                       ) : (
                         <span className="flex size-full items-center justify-center bg-accent-tint p-6 text-center text-xl leading-tight font-bold text-ink">
                           {name}

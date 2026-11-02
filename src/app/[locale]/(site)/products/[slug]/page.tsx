@@ -106,7 +106,14 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
             </div>
             <div className="md:col-start-1 md:row-span-3 md:row-start-1">
               <span className="relative mx-auto block aspect-square w-60 max-w-full overflow-hidden rounded-md">
-                <SiteImage src={product.imageUrl} alt={name} fill sizes={IMAGE_SIZES} priority />
+                <SiteImage
+                  src={product.imageUrl}
+                  alt={name}
+                  fill
+                  sizes={IMAGE_SIZES}
+                  loading="eager"
+                  fetchPriority="high"
+                />
               </span>
             </div>
             <div className="md:col-start-2">

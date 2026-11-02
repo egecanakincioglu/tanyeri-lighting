@@ -57,7 +57,7 @@ export default async function ProjectsPage({ params }: PageProps<'/[locale]/proj
         <Container>
           <p className="mx-auto mb-10 max-w-2xl text-center text-muted">{t('intro')}</p>
           <ul className="grid grid-cols-1 gap-x-7 gap-y-14 wide:grid-cols-2">
-            {projects.map((project) => (
+            {projects.map((project, index) => (
               <li key={project.id} className="mx-auto w-full max-w-[30rem] wide:max-w-none">
                 <article className="flex flex-col gap-4">
                   <h2 className="text-xl leading-tight font-bold text-ink">{project.title[locale]}</h2>
@@ -74,6 +74,7 @@ export default async function ProjectsPage({ params }: PageProps<'/[locale]/proj
                       valueText={t.raw('valueText')}
                       name={project.title[locale]}
                       sizes={sizes}
+                      eager={index === 0}
                     />
                   </div>
                 </article>

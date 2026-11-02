@@ -206,6 +206,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The contact page reads `?product=<slug>` and prefills the subject only when `getProductBySlug` finds a current product. The form posts through a Server Action and works without JavaScript: a refused submission returns the typed values, never the honeypot. In demo mode the message is shown back to the sender and is not saved.
 - Form fields live in `src/components/field.tsx`. Legal pages render the saved Markdown with the shared prose style and answer 404 when no text was saved.
 - Remote images need `images.remotePatterns` in `next.config.ts` before uploaded files are used on public pages. The file sets `images.deviceSizes` with an extra 1440 step, so the browser does not jump past the image audit's upper bound on dense phones.
+- The first picture of each page is fetched at once with `loading="eager"` and `fetchPriority="high"`; `next/image` `priority` is not used. The first item of each list is eager too.
 - Page addresses are keyed by the English path in `src/i18n/routing.ts`. Turkish pages use Turkish addresses, for example `/tr/urunler` and `/en/products`. Internal links use `Link` from `src/i18n/navigation.ts` with `prefetch={false}`.
 - `[locale]/layout.tsx` provides an intl provider without messages. Client components get their texts as props.
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.

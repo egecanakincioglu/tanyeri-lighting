@@ -1,6 +1,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../../test/axe.ts';
+import { imageLoading } from '../../../../test/image-loading.ts';
 import ServicesPage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({
@@ -57,6 +58,11 @@ describe('ServicesPage', () => {
     expect(container.querySelectorAll('p.text-muted')).toHaveLength(1);
     expect(screen.queryByRole('button')).toBeNull();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('fetches only the first photo at once and ahead of the rest', async () => {
+    const { container } = render(await ServicesPage(props('en')));
+    expect(imageLoading(container)).toEqual(['eager/high', 'lazy/null']);
   });
 
   it('renders cleanly with empty content', async () => {
