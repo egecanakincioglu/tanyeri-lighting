@@ -3,7 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../../test/axe.ts';
 import VisionPage, { generateMetadata } from './page.tsx';
 
-const content = vi.hoisted(() => ({ about: { body: { tr: '', en: '' }, vision: { tr: '', en: '' } } }));
+const content = vi.hoisted(() => ({
+  about: { body: { tr: '', en: '' }, vision: { tr: '', en: '' } },
+  metadata: null as null | { description: { tr: string; en: string } },
+}));
 
 vi.mock('next/navigation', () => ({
   notFound: () => {
@@ -14,6 +17,7 @@ vi.mock('next-intl/server', () => ({
   getTranslations: async () => (key: string) => ({ vision: 'Our vision' })[key],
 }));
 vi.mock('../../../../server/content/about-page.ts', () => ({ getAboutPage: async () => content.about }));
+vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata: async () => content.metadata }));
 
 const props = (locale: string) => ({ params: Promise.resolve({ locale }) }) as Parameters<typeof VisionPage>[0];
 
@@ -42,7 +46,10 @@ describe('VisionPage', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('gives the page name as metadata', async () => {
+  it('gives the page name and the saved description as metadata', async () => {
+    content.metadata = { description: { tr: 'Açıklama', en: 'Description' } };
+    await expect(generateMetadata(props('en'))).resolves.toEqual({ title: 'Our vision', description: 'Description' });
+    content.metadata = null;
     await expect(generateMetadata(props('en'))).resolves.toEqual({ title: 'Our vision' });
   });
 

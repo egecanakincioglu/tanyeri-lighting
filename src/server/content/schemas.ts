@@ -59,6 +59,7 @@ export const PAGE_KEYS = [
   'projects',
   'references',
   'about',
+  'vision',
   'contact',
   'privacy',
   'terms',

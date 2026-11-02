@@ -204,6 +204,7 @@ describe('page keys', () => {
       'projects',
       'references',
       'about',
+      'vision',
       'contact',
       'privacy',
       'terms',
