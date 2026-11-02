@@ -8,6 +8,7 @@ import { routing } from '../../../../../i18n/routing.ts';
 import { currentSession } from '../../../../../server/auth/guard.ts';
 import { panelPath } from '../../../../../server/auth/paths.ts';
 import { signInAction } from '../../../../../server/auth/sign-in-action.ts';
+import { getDemoAdminCredentials, isDemoMode } from '../../../../../server/env.ts';
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/dashboard/sign-in'>): Promise<Metadata> {
   const { locale } = await params;
@@ -21,6 +22,8 @@ export default async function SignInPage({ params }: PageProps<'/[locale]/dashbo
   // Public page: it can not require a session. A signed-in visitor goes on to the panel instead.
   if (await currentSession()) redirect(panelPath(locale));
   const t = await getTranslations({ locale, namespace: 'Admin' });
+  // The public demo shows its read-only account here, and nothing else ever shows a credential.
+  const demoAccount = isDemoMode() ? getDemoAdminCredentials() : undefined;
 
   return (
     <AdminShell logoLabel={t('logo')} backLabel={t('backToSite')}>
@@ -39,6 +42,24 @@ export default async function SignInPage({ params }: PageProps<'/[locale]/dashbo
           }}
         />
       </div>
+      {demoAccount && (
+        <section aria-labelledby="demo-account" className="mt-6 rounded-md bg-accent-tint p-4 text-sm">
+          <h2 id="demo-account" className="font-semibold">
+            {t('demoTitle')}
+          </h2>
+          <p className="mt-1 leading-6">{t('demoText')}</p>
+          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+            <dt className="font-semibold">{t('demoEmail')}</dt>
+            <dd className="break-all">
+              <code>{demoAccount.email}</code>
+            </dd>
+            <dt className="font-semibold">{t('demoPass')}</dt>
+            <dd className="break-all">
+              <code>{demoAccount.password}</code>
+            </dd>
+          </dl>
+        </section>
+      )}
       <section className="mt-8 border-t border-hairline pt-5 text-sm text-muted">
         <h2 className="font-semibold text-ink">{t('forgotTitle')}</h2>
         <p className="mt-1 leading-6">{t('forgotText')}</p>

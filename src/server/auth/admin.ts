@@ -27,6 +27,16 @@ export async function createFirstAdmin(
   return 'created';
 }
 
+// The demo seed runs again on every deploy, so an existing demo admin gets the configured password back.
+export async function upsertDemoAdmin(db: PrismaClient, credentials: AdminCredentials): Promise<'created' | 'updated'> {
+  if ((await createFirstAdmin(db, credentials)) === 'created') return 'created';
+  await db.account.updateMany({
+    where: { providerId: 'credential', user: { email: credentials.email } },
+    data: { password: await hashPassword(credentials.password) },
+  });
+  return 'updated';
+}
+
 // Checks what the recovery command was given. Messages name the field and the rule, never the value.
 export function parseResetInput(email: string | undefined, password: string): AdminCredentials {
   const problems: string[] = [];

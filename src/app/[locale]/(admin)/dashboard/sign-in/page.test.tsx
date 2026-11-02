@@ -64,6 +64,51 @@ describe('SignInPage', () => {
     await expect(SignInPage(props('tr'))).rejects.toThrow('redirect:/tr/yonetim');
   });
 
+  describe('demo account', () => {
+    const SECRET = 'x'.repeat(32);
+
+    beforeEach(() => {
+      vi.stubEnv('DEMO_ADMIN_EMAIL', 'demo@example.com');
+      vi.stubEnv('DEMO_ADMIN_PASSWORD', SECRET);
+    });
+    afterEach(() => vi.unstubAllEnvs());
+
+    it('shows the account in demo mode when both values are set', async () => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      await renderPage('en');
+      expect(screen.getByRole('heading', { name: 'Demo account' })).toBeTruthy();
+      expect(screen.getByText('demo@example.com')).toBeTruthy();
+      expect(screen.getByText(SECRET)).toBeTruthy();
+    });
+
+    it('shows it in Turkish', async () => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      await renderPage('tr');
+      expect(screen.getByRole('heading', { name: 'Demo hesabı' })).toBeTruthy();
+    });
+
+    it('never shows the values outside demo mode', async () => {
+      vi.stubEnv('DEMO_MODE', 'false');
+      const { container } = await renderPage('en');
+      expect(container.textContent).not.toContain(SECRET);
+      expect(container.textContent).not.toContain('demo@example.com');
+    });
+
+    it('shows no section in demo mode when the values are not set', async () => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      vi.stubEnv('DEMO_ADMIN_EMAIL', '');
+      vi.stubEnv('DEMO_ADMIN_PASSWORD', '');
+      await renderPage('en');
+      expect(screen.queryByRole('heading', { name: 'Demo account' })).toBeNull();
+    });
+
+    it('has no axe violations with the account shown', async () => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      const { container } = await renderPage('en');
+      expect(await axeViolations(container)).toEqual([]);
+    });
+  });
+
   it('answers an unknown language with not found', async () => {
     await expect(SignInPage(props('xx'))).rejects.toThrow('not-found');
   });

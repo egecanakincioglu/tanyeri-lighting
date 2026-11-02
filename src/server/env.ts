@@ -82,6 +82,27 @@ export function getAdminCredentials(source: Record<string, string | undefined> =
   return { email: result.data.ADMIN_EMAIL, password: result.data.ADMIN_PASSWORD };
 }
 
+const demoAdminSchema = z.object({
+  DEMO_ADMIN_EMAIL: adminEmailSchema,
+  DEMO_ADMIN_PASSWORD: adminPasswordSchema,
+});
+
+// The read-only account of the public demo, shown on its sign-in page and created by the demo seed. Optional, both or
+// neither: a blank value counts as unset, and a partly set or invalid pair is an error that names the variable.
+export function getDemoAdminCredentials(
+  source: Record<string, string | undefined> = process.env,
+): AdminCredentials | undefined {
+  const email = source.DEMO_ADMIN_EMAIL?.trim() || undefined;
+  const password = source.DEMO_ADMIN_PASSWORD || undefined;
+  if (email === undefined && password === undefined) return undefined;
+  const result = demoAdminSchema.safeParse({ DEMO_ADMIN_EMAIL: email, DEMO_ADMIN_PASSWORD: password });
+  if (!result.success) {
+    const problems = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+    throw new Error(`Invalid environment variables:\n${problems.join('\n')}`);
+  }
+  return { email: result.data.DEMO_ADMIN_EMAIL, password: result.data.DEMO_ADMIN_PASSWORD };
+}
+
 const demoSchema = z.enum(['true', 'false']).default('false');
 
 // Same reason as isIndexingEnabled: no database variables needed, read on every call.
