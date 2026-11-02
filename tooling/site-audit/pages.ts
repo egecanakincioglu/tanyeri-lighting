@@ -58,4 +58,8 @@ export const ADMIN_PAGES: readonly string[] = [
   '/en/admin/catalogs',
   '/tr/yonetim/kataloglar/yeni',
   '/en/admin/catalogs/new',
+  '/tr/yonetim/kurumsal-ayarlar',
+  '/en/admin/settings',
+  '/tr/yonetim/hakkimizda',
+  '/en/admin/about',
 ];

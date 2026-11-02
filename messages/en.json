@@ -350,5 +350,42 @@
     "fieldPdf": "PDF file",
     "fieldCover": "Cover image",
     "coverHint": "JPEG, PNG or WebP, up to 4 MB. It is shown in A4 portrait."
+  },
+  "AdminSettings": {
+    "title": "Company Settings",
+    "description": "The business details shown in the footer and on the Contact page, and the social links of the footer.",
+    "sectionBusiness": "Business",
+    "sectionContact": "Contact details",
+    "fieldLogo": "Logo",
+    "fieldLogoHint": "Shown at the top and bottom of the site. The default logo is used when this is empty.",
+    "fieldSiteName": "Site name",
+    "fieldLanguages": "Languages spoken",
+    "fieldPhone": "Phone",
+    "fieldEmail": "E-mail",
+    "fieldAddress": "Address",
+    "fieldWorkingHours": "Working hours",
+    "fieldServiceArea": "Service area",
+    "socialTitle": "Social links",
+    "socialDescription": "Shown in the footer. Change the order with the arrows.",
+    "socialEmpty": "There are no social links yet.",
+    "socialAdd": "Add link",
+    "socialPlatform": "Platform",
+    "socialPlatformHint": "For example instagram, facebook, linkedin, youtube or x. Other names get a plain link icon.",
+    "socialLabel": "Name read out for the link",
+    "socialUrl": "Address (https)",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "reordered": "Order saved.",
+    "delete": "Delete",
+    "deleteTitle": "Delete this link?",
+    "deleteBody": "“{name}” will be removed from the footer. This can not be undone.",
+    "deleteConfirm": "Yes, delete",
+    "deleting": "Deleting…"
+  },
+  "AdminAbout": {
+    "title": "About and Vision",
+    "description": "The texts of the About page, in both languages. They use limited Markdown; check them with the preview.",
+    "fieldBody": "About text",
+    "fieldVision": "Vision text"
   }
 }
