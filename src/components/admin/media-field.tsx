@@ -101,7 +101,7 @@ function MediaField({ kind, ...props }: Props & { kind: Kind }) {
         <div
           className={`relative overflow-hidden rounded-md border border-hairline bg-page ${portrait ? 'aspect-[210/297] w-36' : 'aspect-4/3 w-48'}`}
         >
-          <SiteImage src={url} alt="" fill sizes="192px" />
+          <SiteImage src={url} alt="" fill sizes={portrait ? '144px' : '192px'} />
         </div>
       )}
       {kind === 'file' && (

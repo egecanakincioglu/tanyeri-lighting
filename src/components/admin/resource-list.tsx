@@ -105,7 +105,7 @@ export function ResourceList({
                 <div
                   className={`relative flex-none overflow-hidden rounded-md bg-page ${portraitImages ? 'aspect-[210/297] w-14' : 'aspect-4/3 w-20'}`}
                 >
-                  <SiteImage src={row.imageUrl} alt="" fill sizes="80px" />
+                  <SiteImage src={row.imageUrl} alt="" fill sizes={portraitImages ? '56px' : '80px'} />
                 </div>
               )}
               <div className="min-w-0">

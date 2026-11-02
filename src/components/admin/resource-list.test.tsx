@@ -106,6 +106,12 @@ describe('ResourceList', () => {
       </NextIntlClientProvider>,
     );
     expect(container.querySelector('img')!.parentElement!.className).toContain('aspect-[210/297]');
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('56px');
+  });
+
+  it('tells the browser the real width of a landscape thumbnail', () => {
+    const { container } = setup();
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('80px');
   });
 
   it('works for a row without a picture or subtitle', () => {
