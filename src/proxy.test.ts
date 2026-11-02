@@ -41,6 +41,8 @@ describe('proxy', () => {
     expect(pattern.test('/tr')).toBe(true);
     expect(pattern.test('/api/health')).toBe(false);
     expect(pattern.test('/favicon.ico')).toBe(false);
+    expect(pattern.test('/sitemap.xml')).toBe(false);
+    expect(pattern.test('/robots.txt')).toBe(false);
     expect(pattern.test('/_next/static/app.js')).toBe(false);
   });
 

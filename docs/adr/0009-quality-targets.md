@@ -175,7 +175,7 @@ Rules:
    - The data block gets no nonce; according to the HTML standard it is not subject to CSP.
    - Types come from `schema-dts`, only with `import type`.
    - Types of data:
-     - Home page: `WebSite` and `Organization`. `Organization` has a name, address (URL), logo, `sameAs` (the repository) and `contactPoint` (email, phone, `hoursAvailable`, `areaServed`, `availableLanguage`).
+     - Home page: `WebSite` and `Organization`. `Organization` has a name, address (URL), logo, `sameAs` (the repository) and `contactPoint` (email, phone, `areaServed`, `availableLanguage`). `hoursAvailable` is not sent: the settings hold opening hours only as free text.
      - Contact page: `ContactPage`; it refers to the same `Organization` by `@id`.
      - Inner pages: `BreadcrumbList`.
      - No `LocalBusiness`: the brand is fictional and has no physical location; the fictional postal address does not go into structured data.

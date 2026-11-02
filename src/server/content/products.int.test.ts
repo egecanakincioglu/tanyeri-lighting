@@ -7,6 +7,7 @@ import {
   createProduct,
   deleteProduct,
   getProductBySlug,
+  listProductChanges,
   listProducts,
   reorderProducts,
   updateProduct,
@@ -65,6 +66,16 @@ describe('products on a real database', () => {
       });
       expect(Object.keys(created)).not.toContain('price');
       expect(await getDb().product.count()).toBe(1);
+    });
+
+    it('lists every product with its address and change time in display order', async () => {
+      await createProduct(product(outdoor, 'garden-bollard'));
+      const first = await createProduct(product(indoor, 'ring-pendant'));
+      const row = await getDb().product.findUniqueOrThrow({ where: { id: first.id } });
+      expect(await listProductChanges()).toEqual([
+        { slug: 'ring-pendant', updatedAt: row.updatedAt },
+        { slug: 'garden-bollard', updatedAt: expect.any(Date) },
+      ]);
     });
 
     it('maps each language to its own column', async () => {

@@ -169,3 +169,19 @@ export function isEmailEnabled(source: Record<string, string | undefined> = proc
 export function isVercel(source: Record<string, string | undefined> = process.env): boolean {
   return source.VERCEL === '1';
 }
+
+const siteUrlSchema = z.url({ protocol: /^https?$/ });
+
+// The public address that canonical links, the sitemap and structured data are built on. Without SITE_URL, a Vercel
+// deployment uses the production host Vercel sets (a host name, no scheme), and a local run uses localhost.
+// Separate from getEnv() for the same reason as isIndexingEnabled, and read on every call. Only the origin is kept.
+export function getSiteUrl(source: Record<string, string | undefined> = process.env): URL {
+  const explicit = source.SITE_URL?.trim();
+  const host = source.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  const value = explicit || (host ? `https://${host}` : 'http://localhost:3000');
+  const result = siteUrlSchema.safeParse(value);
+  if (!result.success) {
+    throw new Error('Invalid environment variables:\nSITE_URL: must be an http(s) address');
+  }
+  return new URL(new URL(result.data).origin);
+}
