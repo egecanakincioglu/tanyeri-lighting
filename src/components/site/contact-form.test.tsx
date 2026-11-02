@@ -62,6 +62,13 @@ describe('ContactForm', () => {
     expect(screen.getByLabelText('Your message').getAttribute('maxlength')).toBe('5000');
   });
 
+  it('names the form as a tool for in-page tool support', () => {
+    const { container } = setup();
+    const form = container.querySelector('form')!;
+    expect(form.getAttribute('toolname')).toBe('send_contact_message');
+    expect(form.getAttribute('tooldescription')).toContain('contact form');
+  });
+
   it('fills the subject from the initial values and leaves the other fields empty', () => {
     setup(null, { subject: 'Product enquiry: Ray Spot (RS-12)' });
     expect((screen.getByLabelText('Subject') as HTMLInputElement).value).toBe('Product enquiry: Ray Spot (RS-12)');

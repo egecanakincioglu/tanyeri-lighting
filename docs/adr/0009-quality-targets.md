@@ -199,6 +199,7 @@ Rules:
 9. Crawlers and agents.
    - `robots.ts` gives the same rule to all crawlers (`User-agent: *`): public pages are open; `/api/` and admin paths are closed; the sitemap address is written. No crawler is named.
    - `llms.txt`, ARD (`/.well-known/ard.json`) and a `Content-Signal` or `Content-Usage` line are not added. Google Search does not use `llms.txt`; Lighthouse counts its absence as "not applicable"; ARD 0.91 and the IETF aipref work are still drafts. If an AI search engine documents that it reads `llms.txt`, this is reconsidered.
+   - Rule 9 is reversed for `llms.txt` only. The site serves `/llms.txt`, a short Markdown map of the main pages in both languages with a note that the brand is a fictional demo. Google Search does not use this file and no measured effect on search or answer engines is known. It exists to answer the Lighthouse `llms-txt` audit and to give plain-text readers a map. ARD stays out.
    - For agent access:
      - Interactive elements are native `button` and `a`.
      - Labels are tied to fields with `for`.

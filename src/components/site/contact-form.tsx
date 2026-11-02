@@ -35,6 +35,13 @@ type ContactFormProps = {
 
 const resultClass = 'rounded-lg border border-hairline bg-surface p-6 shadow-sm';
 
+// Lowercase attributes that browsers with in-page tool support read; React renders unknown lowercase attributes as
+// they are, and the spread keeps them out of the typed props of the form element.
+const WEBMCP_HINTS: Record<string, string> = {
+  toolname: 'send_contact_message',
+  tooldescription: 'Sends a message to the company through the contact form: name, email, subject and message.',
+};
+
 export function ContactForm({ action, locale, honeypotName, limits, texts, initialValues }: ContactFormProps) {
   const [state, formAction, pending] = useActionState(action, null);
   // Controlled, so the visitor's words survive a refused submission. Without JavaScript the server sends them back
@@ -100,7 +107,7 @@ export function ContactForm({ action, locale, honeypotName, limits, texts, initi
     <div className="flex flex-col gap-5">
       <div role="status">{announcement}</div>
       {!done && (
-        <form action={formAction} className="flex flex-col gap-5">
+        <form action={formAction} className="flex flex-col gap-5" {...WEBMCP_HINTS}>
           <input type="hidden" name="locale" value={locale} />
           <div aria-hidden="true" className="sr-only">
             <input type="text" name={honeypotName} tabIndex={-1} autoComplete="off" />

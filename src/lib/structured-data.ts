@@ -34,20 +34,11 @@ export function websiteData(settings: SiteSettings, locale: Locale): Node<WebSit
   };
 }
 
-// A link to a placeholder address (example.com) is not a profile of the brand, so it is not claimed.
-const isPlaceholderHost = (url: string) => {
-  try {
-    const host = new URL(url).hostname;
-    return host === 'example.com' || host.endsWith('.example.com');
-  } catch {
-    return true;
-  }
-};
-
 const FALLBACK_LOGO = '/icons/icon-512.png';
 
 // No postal address and no business type: the brand is fictional and has no location. The description repeats the
-// visible text of the page. In the demo the phone and email reach nobody, so no contact point is written.
+// visible text of the page. In the demo the phone, email and social profiles are not the brand's own, so neither a
+// contact point nor sameAs is written.
 export function organizationData(
   settings: SiteSettings,
   links: readonly SocialLink[],
@@ -56,7 +47,7 @@ export function organizationData(
 ): Node<Organization> {
   const email = trimmed(settings.email);
   const telephone = trimmed(settings.phone);
-  const sameAs = links.map((link) => link.url).filter((url) => !isPlaceholderHost(url));
+  const sameAs = demo ? [] : links.map((link) => link.url);
   const contactPoint = {
     '@type': 'ContactPoint' as const,
     contactType: 'customer service',

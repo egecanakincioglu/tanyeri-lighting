@@ -58,7 +58,7 @@ describe('demo content seed on a real database', () => {
       services: 4,
       projects: 3,
       references: 5,
-      socialLinks: 3,
+      socialLinks: 4,
       pageMetadata: PAGE_KEYS.length,
       legalPages: 2,
       blogPosts: 6,
@@ -72,7 +72,7 @@ describe('demo content seed on a real database', () => {
     expect(await db.service.count()).toBe(4);
     expect(await db.project.count()).toBe(3);
     expect(await db.reference.count()).toBe(5);
-    expect(await db.socialLink.count()).toBe(3);
+    expect(await db.socialLink.count()).toBe(4);
     expect(await db.pageMetadata.count()).toBe(PAGE_KEYS.length);
     expect(await db.legalPage.count()).toBe(2);
     expect(await db.blogPost.count()).toBe(6);
@@ -111,8 +111,14 @@ describe('demo content seed on a real database', () => {
     expect(site.phone).toBe('+90 212 000 00 00');
     expect(site.email.endsWith('.example')).toBe(true);
 
-    const social = await db.socialLink.findFirstOrThrow();
-    expect(social.url).toMatch(/^https:\/\/www\.example\.com\//);
+    const links = await db.socialLink.findMany({ orderBy: { position: 'asc' } });
+    expect(links.map((link) => link.url)).toEqual([
+      'https://www.instagram.com/tanyerilighting',
+      'https://www.facebook.com/tanyerilighting',
+      'https://www.linkedin.com/company/tanyerilighting',
+      'https://www.youtube.com/@tanyerilighting',
+    ]);
+    const social = links[0]!;
     expect(social.labelTr.length).toBeGreaterThan(0);
     expect(social.labelEn.length).toBeGreaterThan(0);
 

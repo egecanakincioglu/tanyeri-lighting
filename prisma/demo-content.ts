@@ -44,9 +44,14 @@ const settings = siteSettingsSchema.parse({
 });
 
 const socialLinks = [
-  { platform: 'instagram', label: pair('Instagram', 'Instagram'), url: 'https://www.example.com/tanyeri/instagram' },
-  { platform: 'linkedin', label: pair('LinkedIn', 'LinkedIn'), url: 'https://www.example.com/tanyeri/linkedin' },
-  { platform: 'youtube', label: pair('YouTube', 'YouTube'), url: 'https://www.example.com/tanyeri/youtube' },
+  { platform: 'instagram', label: pair('Instagram', 'Instagram'), url: 'https://www.instagram.com/tanyerilighting' },
+  { platform: 'facebook', label: pair('Facebook', 'Facebook'), url: 'https://www.facebook.com/tanyerilighting' },
+  {
+    platform: 'linkedin',
+    label: pair('LinkedIn', 'LinkedIn'),
+    url: 'https://www.linkedin.com/company/tanyerilighting',
+  },
+  { platform: 'youtube', label: pair('YouTube', 'YouTube'), url: 'https://www.youtube.com/@tanyerilighting' },
 ].map((link) => socialLinkSchema.parse(link));
 
 // The site adds " | Tanyeri Lighting" to every title but the home one, which is shown as saved.
