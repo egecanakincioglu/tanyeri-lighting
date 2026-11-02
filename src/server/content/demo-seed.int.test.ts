@@ -61,6 +61,7 @@ describe('demo content seed on a real database', () => {
       socialLinks: 4,
       pageMetadata: PAGE_KEYS.length,
       legalPages: 2,
+      blogPosts: 6,
     });
     expect(await db.category.count()).toBe(6);
     expect(await db.product.count()).toBe(30);
@@ -74,6 +75,7 @@ describe('demo content seed on a real database', () => {
     expect(await db.socialLink.count()).toBe(4);
     expect(await db.pageMetadata.count()).toBe(PAGE_KEYS.length);
     expect(await db.legalPage.count()).toBe(2);
+    expect(await db.blogPost.count()).toBe(6);
     expect(await db.siteSettings.count()).toBe(1);
     expect(await db.homeBanner.count()).toBe(1);
     expect(await db.aboutPage.count()).toBe(1);
@@ -88,6 +90,12 @@ describe('demo content seed on a real database', () => {
       ),
       boards: (await db.promoBoard.findMany({ orderBy: { sortOrder: 'asc' } })).map((b) => b.titleEn),
       projects: (await db.project.findMany({ orderBy: { sortOrder: 'asc' } })).map((p) => p.titleEn),
+      posts: (await db.blogPost.findMany({ orderBy: { slug: 'asc' } })).map((p) => [
+        p.slug,
+        p.publishedAt,
+        p.updatedAt,
+        p.bodyEn,
+      ]),
     });
     const before = await snapshot();
     const second = await seedDemoContent(db, { replace: true });
@@ -125,6 +133,12 @@ describe('demo content seed on a real database', () => {
       expect(isTranslated(legal.bodyTr, legal.bodyEn)).toBe(true);
     }
 
+    for (const post of await db.blogPost.findMany()) {
+      for (const field of ['title', 'description', 'excerpt', 'body', 'imageAlt'] as const) {
+        expect(isTranslated(post[`${field}Tr`], post[`${field}En`]), `${post.slug} ${field}`).toBe(true);
+      }
+      expect(post.publishedAt && post.publishedAt < new Date()).toBe(true);
+    }
     const category = await db.category.findFirstOrThrow();
     expect(isTranslated(category.nameTr, category.nameEn)).toBe(true);
     const product = await db.product.findFirstOrThrow();

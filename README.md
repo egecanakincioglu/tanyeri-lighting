@@ -24,8 +24,8 @@ The account is read-only and public on purpose. It works only while demo mode is
 
 ## Features
 
-- **Public pages** in Turkish and English, with a language prefix on every address (`/tr`, `/en`): home, about, vision, services, products (categories, tabs, pagination, product page), catalogs with a page-flip viewer, projects with a before and after slider, references, contact form, privacy, terms and a not-found page.
-- **Admin panel** at `/tr/yonetim` (`/en/admin`): home banner, featured products, promo boards, work areas, company settings and social links, about and vision, references, services, projects, products, categories, catalogs, contact messages, legal pages, page information for search (SEO), account and visit statistics. All texts are stored in both languages.
+- **Public pages** in Turkish and English, with a language prefix on every address (`/tr`, `/en`): home, about, vision, services, products (categories, tabs, pagination, product page), catalogs with a page-flip viewer, projects with a before and after slider, references, blog, contact form, privacy, terms and a not-found page.
+- **Admin panel** at `/tr/yonetim` (`/en/admin`): home banner, featured products, promo boards, work areas, company settings and social links, about and vision, references, services, projects, blog articles, products, categories, catalogs, contact messages, legal pages, page information for search (SEO), account and visit statistics. All texts are stored in both languages.
 - **Password reset** by email when SMTP is set, or by a command on the server (`pnpm admin:reset-password`).
 - **Visit statistics:** one row per day and shortened address (IPv4 cut to /24, IPv6 to /48), with country, city and a view count. The table stores no path, referrer or browser string. Rows older than 13 months are deleted.
 - **Contact messages** are stored with name, email, subject, message and language. They contain no IP address. A honeypot field and a rate limit protect the form.

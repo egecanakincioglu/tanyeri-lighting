@@ -40,6 +40,7 @@ describe('PanelPage', () => {
       projects: 7,
       references: 9,
       services: 5,
+      blogPosts: 6,
       messages: 3,
       unreadMessages: 2,
     });
@@ -53,6 +54,7 @@ describe('PanelPage', () => {
     const references = screen.getByRole('link', { name: /References/ });
     expect(references.getAttribute('href')).toBe('/en/admin/references');
     expect(within(references).getByText('9')).toBeTruthy();
+    expect(within(screen.getByRole('link', { name: /Blog/ })).getByText('6')).toBeTruthy();
     expect(screen.getByRole('link', { name: /Products/ }).getAttribute('href')).toBe('/en/admin/products');
     expect(screen.getByRole('link', { name: /Messages/ }).textContent).toContain('2 unread');
   });

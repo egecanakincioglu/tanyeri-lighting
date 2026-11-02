@@ -33,6 +33,7 @@ export const ADMIN_NAV = [
     items: [
       { id: 'services', href: '/dashboard/services' },
       { id: 'projects', href: '/dashboard/projects' },
+      { id: 'blog', href: '/dashboard/blog' },
     ],
   },
   {

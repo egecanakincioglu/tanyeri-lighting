@@ -31,6 +31,10 @@ export const PAGES: readonly string[] = [
   '/en/products',
   '/tr/urunler/halka-sarkit-40w',
   '/en/products/halka-sarkit-40w',
+  '/tr/blog',
+  '/en/blog',
+  '/tr/blog/lineer-aydinlatma-nedir',
+  '/en/blog/lineer-aydinlatma-nedir',
 ];
 
 // The sign-in pages are public and checked signed out. The panel redirects a visitor without a session, so its screens
@@ -91,6 +95,10 @@ export const ADMIN_PAGES: readonly string[] = [
   '/en/admin/services',
   '/tr/yonetim/hizmetler/yeni',
   '/en/admin/services/new',
+  '/tr/yonetim/blog',
+  '/en/admin/blog',
+  '/tr/yonetim/blog/yeni',
+  '/en/admin/blog/new',
   '/tr/yonetim/projeler',
   '/en/admin/projects',
   '/tr/yonetim/projeler/yeni',

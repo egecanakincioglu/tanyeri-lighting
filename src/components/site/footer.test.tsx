@@ -98,6 +98,7 @@ describe('FooterContent', () => {
     expect(within(nav).getByRole('link', { name: 'Kurumsal' }).getAttribute('href')).toBe('/tr/hakkimizda');
     expect(within(nav).getByRole('link', { name: 'Ürünler' }).getAttribute('href')).toBe('/tr/urunler');
     expect(within(nav).getByRole('link', { name: 'Kataloglar' }).getAttribute('href')).toBe('/tr/kataloglar');
+    expect(within(nav).getByRole('link', { name: 'Blog' }).getAttribute('href')).toBe('/tr/blog');
   });
 
   it('uses the English texts and prefixes', () => {

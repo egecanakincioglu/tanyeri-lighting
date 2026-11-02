@@ -39,6 +39,7 @@ describe('panel counts on a real database', () => {
       catalogs: await db.catalog.count(),
       projects: await db.project.count(),
       services: await db.service.count(),
+      blogPosts: await db.blogPost.count(),
     });
     expect(await countUnreadMessages()).toBe(2);
   });

@@ -1,4 +1,4 @@
-import type { BreadcrumbList, ContactPage, Organization, Thing, WebSite, WithContext } from 'schema-dts';
+import type { Article, BreadcrumbList, ContactPage, Organization, Thing, WebSite, WithContext } from 'schema-dts';
 import type { SiteSettings, SocialLink } from '../server/content/schemas.ts';
 import { absoluteUrl, localizedPath, type Locale, type PageHref } from './seo.ts';
 
@@ -81,6 +81,37 @@ export function breadcrumbData(locale: Locale, crumbs: readonly Crumb[]): Node<B
       name: crumb.name,
       item: absoluteUrl(localizedPath(locale, crumb.href)),
     })),
+  };
+}
+
+export type ArticleFacts = {
+  headline: string;
+  description: string;
+  /** An address or a path on the site. */
+  image: string;
+  published: Date;
+  modified: Date;
+  href: PageHref;
+};
+
+// Every value is shown on the page (title, summary, picture, date) except the modified date, which the saved row
+// carries. The organization is the author and the publisher: the articles have no named writer.
+export function articleData(article: ArticleFacts, locale: Locale): Node<Article> {
+  const url = absoluteUrl(localizedPath(locale, article.href));
+  const modified = article.modified > article.published ? article.modified : article.published;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    '@id': `${url}#article`,
+    mainEntityOfPage: url,
+    headline: article.headline,
+    description: article.description,
+    image: absoluteUrl(article.image),
+    datePublished: article.published.toISOString(),
+    dateModified: modified.toISOString(),
+    inLanguage: locale,
+    author: { '@id': organizationId() },
+    publisher: { '@id': organizationId() },
   };
 }
 

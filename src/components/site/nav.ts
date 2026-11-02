@@ -27,6 +27,7 @@ export const NAV: readonly NavEntry[] = [
       { id: 'categories', path: '/products' },
     ],
   },
+  { id: 'blog', path: '/blog' },
 ];
 
 // The footer repeats the main sections; a section with a drop-down links to its main page.
@@ -36,6 +37,7 @@ export const FOOTER_NAV: readonly { id: string; path: StaticPath }[] = [
   { id: 'projects', path: '/projects' },
   { id: 'products', path: '/products' },
   { id: 'catalogs', path: '/catalogs' },
+  { id: 'blog', path: '/blog' },
 ];
 
 export const CONTACT_PATH: StaticPath = '/contact';

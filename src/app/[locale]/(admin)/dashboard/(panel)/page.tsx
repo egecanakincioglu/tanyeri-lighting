@@ -22,6 +22,7 @@ const CARDS: readonly { id: keyof PanelCounts; href: StaticPath }[] = [
   { id: 'projects', href: '/dashboard/projects' },
   { id: 'references', href: '/dashboard/references' },
   { id: 'services', href: '/dashboard/services' },
+  { id: 'blogPosts', href: '/dashboard/blog' },
   { id: 'messages', href: '/dashboard/messages' },
 ];
 

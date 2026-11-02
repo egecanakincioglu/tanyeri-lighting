@@ -77,6 +77,7 @@ describe('Header', () => {
     const nav = screen.getByRole('navigation', { name: 'Menu' });
     expect(within(nav).getByRole('link', { name: 'Home' }).getAttribute('href')).toBe('/en');
     expect(within(nav).getByRole('link', { name: 'Catalogs' }).getAttribute('href')).toBe('/en/catalogs');
+    expect(within(nav).getByRole('link', { name: 'Blog' }).getAttribute('href')).toBe('/en/blog');
   });
 
   it('marks the current page and its menu', () => {
@@ -159,6 +160,20 @@ describe('Header', () => {
     const group = screen.getByRole('group', { name: 'Language' });
     expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe('/tr/urunler/ray-spot');
     expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products/ray-spot');
+  });
+
+  it('keeps the blog list and article pages in the language links', () => {
+    navigation.pathname = '/tr/blog';
+    renderHeader();
+    let group = screen.getByRole('group', { name: 'Dil' });
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/blog');
+    cleanup();
+    navigation.pathname = '/en/blog/linear-lighting';
+    renderHeader('en');
+    group = screen.getByRole('group', { name: 'Language' });
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe(
+      '/tr/blog/linear-lighting',
+    );
   });
 
   it('writes the language cookie when the other language is chosen, and not for the current one', () => {
