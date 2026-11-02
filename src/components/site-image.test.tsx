@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations } from '../test/axe.ts';
-import { SiteImage } from './site-image.tsx';
+import { eagerWhen, SiteImage } from './site-image.tsx';
 
 describe('SiteImage', () => {
   afterEach(cleanup);
@@ -25,6 +25,11 @@ describe('SiteImage', () => {
     const { className } = screen.getByRole('img');
     expect(className).toContain('object-cover');
     expect(className).not.toContain('h-auto');
+  });
+
+  it('adds the eager loading props only for the first picture', () => {
+    expect(eagerWhen(true)).toEqual({ loading: 'eager', fetchPriority: 'high' });
+    expect(eagerWhen(false)).toEqual({});
   });
 
   it('has no axe violations', async () => {

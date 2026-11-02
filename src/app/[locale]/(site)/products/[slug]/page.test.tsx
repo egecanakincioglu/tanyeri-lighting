@@ -4,6 +4,7 @@ import en from '../../../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../../../messages/tr.json' with { type: 'json' };
 import type { Category, Product } from '../../../../../server/content/schemas.ts';
 import { axeViolations } from '../../../../../test/axe.ts';
+import { imageLoading } from '../../../../../test/image-loading.ts';
 import ProductPage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({ categories: vi.fn(), product: vi.fn() }));
@@ -114,6 +115,11 @@ describe('ProductPage', () => {
       'Material',
       'Dimensions',
     ]);
+  });
+
+  it('fetches the product photo at once and ahead of everything else', async () => {
+    const { container } = render(await ProductPage(props('tr')));
+    expect(imageLoading(container)).toEqual(['eager/high']);
   });
 
   it('puts the name and summary before the photo and has one h1', async () => {

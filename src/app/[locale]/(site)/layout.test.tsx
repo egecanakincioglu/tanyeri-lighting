@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider, createTranslator } from 'next-intl';
 import { axeViolations } from '../../../test/axe.ts';
+import { optimizedSource } from '../../../test/optimized-source.ts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
@@ -26,6 +27,7 @@ vi.mock('../../../server/content/site-settings.ts', () => ({ getSiteSettings: mo
 
 describe('SiteLayout', () => {
   beforeEach(() => {
+    Object.defineProperty(navigator, 'sendBeacon', { value: vi.fn(), configurable: true });
     mocks.getSiteSettings.mockClear();
     mocks.getSiteSettings.mockResolvedValue({ logoUrl: null });
   });
@@ -77,10 +79,21 @@ describe('SiteLayout', () => {
       </NextIntlClientProvider>,
     );
     expect(mocks.getSiteSettings).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!.getAttribute('src')).toBe(
-      '/demo/area-otel.webp',
-    );
+    expect(optimizedSource(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!)).toBe('/demo/area-otel.webp');
     expect(screen.getByRole('contentinfo').getAttribute('data-logo')).toBe('/demo/area-otel.webp');
+  });
+
+  it('counts the page view with the beacon', async () => {
+    const layout = await SiteLayout({
+      children: <p>page</p>,
+      params: Promise.resolve({ locale: 'tr' }),
+    } as Parameters<typeof SiteLayout>[0]);
+    render(
+      <NextIntlClientProvider locale="tr" messages={tr}>
+        {layout}
+      </NextIntlClientProvider>,
+    );
+    expect(navigator.sendBeacon).toHaveBeenCalledWith('/api/visits', '/tr');
   });
 
   it.each([

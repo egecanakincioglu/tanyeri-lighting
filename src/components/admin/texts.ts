@@ -43,7 +43,8 @@ export function buildFormTexts(t: Translate): FormTexts {
     errors: Object.fromEntries(ERROR_CODES.map((code) => [code, t(`errors.${code}`)])) as Record<ErrorCode, string>,
     fieldErrors: {
       required: t('fieldErrors.required'),
-      tooLong: t('fieldErrors.tooLong'),
+      // The placeholder is its own value: the browser fills in the limit of the field that failed.
+      tooLong: t('fieldErrors.tooLong', { max: '{max}' }),
       invalid: t('fieldErrors.invalid'),
       taken: t('fieldErrors.taken'),
     },

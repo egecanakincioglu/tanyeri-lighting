@@ -2,7 +2,7 @@ import { createTransport } from 'nodemailer';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
 import { GET } from '../../app/api/auth/[...all]/route.ts';
-import { ADMIN_EMAIL, loginCookie, resetAdmin } from '../../test/auth-http.ts';
+import { ADMIN_EMAIL, cookieOf, loginCookie, resetAdmin, sessionOf } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { setEmailScheduler, setEmailTransport } from '../email/index.ts';
@@ -63,23 +63,55 @@ describe('changeEmailAction with email on', () => {
     await getDb().$disconnect();
   });
 
-  it('sends the confirmation link to the new address, and the address changes only when the link is opened', async () => {
+  function linkOf(mail: SentMail): URL {
+    const link = new URL(/https?:\/\/\S+/.exec(mail.text)![0]);
+    expect(link.pathname).toBe('/api/auth/verify-email');
+    expect(link.searchParams.get('callbackURL')).toBe('/en/admin/account');
+    expect(link.origin).toBe(TEST_AUTH_URL);
+    return link;
+  }
+
+  it('asks the current address first, then the new one; the address changes at the last link only', async () => {
     const result = await changeEmailAction(null, form({ email: 'New@Example.com', locale: 'en' }));
     expect(result).toEqual({ status: 'success' });
     expect((await getDb().user.findFirstOrThrow()).email).toBe(ADMIN_EMAIL);
 
     await vi.waitFor(() => expect(sendMail).toHaveBeenCalledTimes(1));
-    const mail = sendMail.mock.calls[0]![0];
-    expect(mail.to).toBe('new@example.com');
-    const link = new URL(/https?:\/\/\S+/.exec(mail.text)![0]);
-    expect(link.pathname).toBe('/api/auth/verify-email');
-    expect(link.searchParams.get('callbackURL')).toBe('/en/admin/account');
+    const approval = sendMail.mock.calls[0]![0];
+    expect(approval.to).toBe(ADMIN_EMAIL);
+    expect(approval.text).toContain('new@example.com');
 
-    const opened = await GET(new Request(link, { headers: { cookie } }));
+    // The approval moves the request on to the new address and changes nothing yet.
+    const approved = await GET(new Request(linkOf(approval), { headers: { cookie } }));
+    expect(approved.status).toBe(302);
+    expect((await getDb().user.findFirstOrThrow()).email).toBe(ADMIN_EMAIL);
+    await vi.waitFor(() => expect(sendMail).toHaveBeenCalledTimes(2));
+    const confirmation = sendMail.mock.calls[1]![0];
+    expect(confirmation.to).toBe('new@example.com');
+
+    // The holder of the last link has no session of their own here: the link would sign them in, and the change ends
+    // every session instead.
+    const opened = await GET(new Request(linkOf(confirmation)));
     expect(opened.status).toBe(302);
     expect(opened.headers.get('location')).toBe('/en/admin/account');
-    expect(new URL(link).origin).toBe(TEST_AUTH_URL);
     expect((await getDb().user.findFirstOrThrow()).email).toBe('new@example.com');
+    expect(await getDb().session.count()).toBe(0);
+    expect(await sessionOf(cookie)).toBeNull();
+    expect(await sessionOf(cookieOf(opened))).toBeNull();
+  });
+
+  it('does not change the address when only the new address link is used without the approval', async () => {
+    await changeEmailAction(null, form({ email: 'new@example.com', locale: 'en' }));
+    await vi.waitFor(() => expect(sendMail).toHaveBeenCalledTimes(1));
+    const approval = linkOf(sendMail.mock.calls[0]![0]);
+    const forged = new URL(approval);
+    forged.searchParams.set('token', 'not-a-token');
+
+    const opened = await GET(new Request(forged, { headers: { cookie } }));
+
+    expect(opened.headers.get('location')).toContain('error=');
+    expect((await getDb().user.findFirstOrThrow()).email).toBe(ADMIN_EMAIL);
+    expect(sendMail).toHaveBeenCalledTimes(1);
   });
 
   it('gives a field error for an empty, malformed or unchanged address, and sends nothing', async () => {

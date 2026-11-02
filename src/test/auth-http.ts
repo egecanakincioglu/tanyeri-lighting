@@ -1,6 +1,6 @@
 import { hashPassword } from 'better-auth/crypto';
 import { expect } from 'vitest';
-import { GET, POST } from '../app/api/auth/[...all]/route.ts';
+import { getAuth } from '../server/auth/auth.ts';
 import { getDb } from '../server/db.ts';
 import { TEST_AUTH_URL } from './integration-env.ts';
 
@@ -12,6 +12,11 @@ export const OTHER_PASSWORD = 'another long passphrase 42';
 let nextAddress = 1;
 function freshAddress(): string {
   return `203.0.113.${nextAddress++}`;
+}
+
+// The tests call the library handler itself: the route in front of it answers only the few paths a browser uses.
+export function handle(request: Request): Promise<Response> {
+  return getAuth().handler(request);
 }
 
 export type CallOptions = { address?: string; origin?: string; cookie?: string };
@@ -27,7 +32,7 @@ export function authRequest(path: string, body: unknown, options: CallOptions = 
 }
 
 export function signIn(password: string, options: CallOptions = {}): Promise<Response> {
-  return POST(authRequest('/sign-in/email', { email: ADMIN_EMAIL, password }, options));
+  return handle(authRequest('/sign-in/email', { email: ADMIN_EMAIL, password }, options));
 }
 
 // The name=value pairs of the Set-Cookie headers, ready to send back as a Cookie header.
@@ -39,7 +44,7 @@ export function cookieOf(response: Response): string {
 }
 
 export async function sessionOf(cookie: string): Promise<unknown> {
-  const response = await GET(
+  const response = await handle(
     new Request(`${TEST_AUTH_URL}/api/auth/get-session`, { headers: { cookie, 'x-forwarded-for': freshAddress() } }),
   );
   return response.json();
@@ -55,6 +60,7 @@ export async function loginCookie(options: CallOptions = {}): Promise<string> {
 export async function resetAdmin(): Promise<void> {
   const db = getDb();
   await db.rateLimit.deleteMany();
+  await db.rateLimitCounter.deleteMany();
   await db.verification.deleteMany();
   await db.session.deleteMany();
   await db.account.deleteMany();
