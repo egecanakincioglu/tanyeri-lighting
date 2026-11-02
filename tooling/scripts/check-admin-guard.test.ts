@@ -93,6 +93,12 @@ describe('check-admin-guard', () => {
     test('the sign-in page is on the allowlist and needs no guard', () =>
       passes({ [SIGN_IN]: 'export default function SignIn() { return null; }' }));
 
+    test('the password recovery pages are on the allowlist and need no guard', () =>
+      passes({
+        'src/app/[locale]/(admin)/dashboard/forgot-password/page.tsx': 'export default () => null;',
+        'src/app/[locale]/(admin)/dashboard/reset-password/page.tsx': 'export default () => null;',
+      }));
+
     test('a page next to sign-in is not covered by the allowlist', () =>
       fails(
         { 'src/app/[locale]/(admin)/dashboard/sign-in/help/page.tsx': 'export default () => null;' },
