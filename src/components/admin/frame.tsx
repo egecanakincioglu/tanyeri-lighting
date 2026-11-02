@@ -162,7 +162,7 @@ export function AdminFrame({ locale, logo, groups, email, demoNotice, signOut, l
       </aside>
       <div ref={regionRef} className="flex min-h-svh min-w-0 flex-col">
         <header className="sticky top-0 z-30 border-b border-hairline bg-surface">
-          <div className="mx-auto flex min-h-16 w-full max-w-5xl items-center gap-3 px-(--gutter)">
+          <div className="mx-auto flex min-h-16 w-full max-w-[calc(64rem+2*var(--gutter))] items-center gap-3 px-(--gutter)">
             <button
               ref={openButtonRef}
               type="button"
