@@ -44,6 +44,7 @@ Required settings (written explicitly, not left to defaults):
 |---|---|---|
 | `emailAndPassword.enabled` | `true` | The only sign-in method |
 | `emailAndPassword.disableSignUp` | `true` | No public sign-up; the first admin is created by the seed |
+| `emailAndPassword.minPasswordLength` | `12` | The library default is 8. The same constant (`src/lib/password-rules.ts`) is used by the auth options, the account action, the reset forms and the seed |
 | `emailAndPassword.revokeSessionsOnPasswordReset` | `true` | The default is `false`; all sessions end on reset |
 | `revokeOtherSessions` in the `changePassword` call | `true` | Other sessions end when the password changes; then the current session is also closed and a new sign-in is required |
 | `rateLimit.enabled` | `true` | The default is on only in production; it must also run in development and tests |

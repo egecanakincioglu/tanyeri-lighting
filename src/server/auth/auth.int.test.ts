@@ -113,6 +113,17 @@ describe('authentication endpoints on a real database', () => {
     expect((await signIn(PASSWORD)).status).toBe(200);
   });
 
+  it('refuses a new password of 11 characters and accepts one of 12, in the library itself', async () => {
+    const cookie = await loginCookie();
+    const attempt = (newPassword: string) =>
+      handle(authRequest('/change-password', { currentPassword: PASSWORD, newPassword }, { cookie }));
+
+    const short = await attempt('x'.repeat(11));
+    expect(short.status).toBe(400);
+    expect(await short.json()).toMatchObject({ code: 'PASSWORD_TOO_SHORT' });
+    expect((await attempt('x'.repeat(12))).status).toBe(200);
+  });
+
   it('ends every session when the password is changed with revokeOtherSessions', async () => {
     const first = await loginCookie();
     const second = await loginCookie();

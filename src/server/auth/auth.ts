@@ -1,6 +1,7 @@
 import { prismaAdapter } from '@better-auth/prisma-adapter';
 import { betterAuth } from 'better-auth';
 import type { BetterAuthOptions } from 'better-auth';
+import { MIN_PASSWORD_LENGTH } from '../../lib/password-rules.ts';
 import { getDb } from '../db.ts';
 import { buildDemoAuthHooks } from '../demo/auth-hooks.ts';
 import { sendEmailAfterResponse } from '../email/index.ts';
@@ -22,6 +23,7 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: 
     trustedOrigins: [new URL(baseURL).origin],
     emailAndPassword: {
       enabled: true,
+      minPasswordLength: MIN_PASSWORD_LENGTH,
       disableSignUp: true,
       revokeSessionsOnPasswordReset: true,
       resetPasswordTokenExpiresIn: RESET_TOKEN_LIFETIME_SECONDS,

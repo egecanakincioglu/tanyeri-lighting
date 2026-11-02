@@ -149,7 +149,7 @@
     "resetText": "The new password signs you out on every device.",
     "nextLabel": "New password",
     "repeatLabel": "Repeat the new password",
-    "hint": "Use 8 to 128 characters.",
+    "hint": "Use 12 to 128 characters.",
     "resetSubmit": "Change the password",
     "resetSubmitting": "Changing…",
     "resetDone": "The password was changed. Sign in with the new password.",
@@ -165,7 +165,7 @@
       "generic": "Something went wrong. Try again in a moment."
     },
     "issues": {
-      "tooShort": "Use at least 8 characters.",
+      "tooShort": "Use at least 12 characters.",
       "tooLong": "Use at most 128 characters.",
       "mismatch": "The two passwords are not the same."
     }
@@ -614,7 +614,7 @@
     "currentLabel": "Current password",
     "newLabel": "New password",
     "confirmLabel": "New password again",
-    "passHint": "At least 8 characters. Every other device is signed out.",
+    "passHint": "At least 12 characters. Every other device is signed out.",
     "passButton": "Change the password",
     "passWorking": "Changing…",
     "passDone": "The password was changed. Every other device was signed out.",
@@ -637,7 +637,7 @@
     "issues": {
       "required": "This field is required.",
       "wrongCurrent": "The current password is not right.",
-      "tooShort": "Use at least 8 characters.",
+      "tooShort": "Use at least 12 characters.",
       "tooLong": "Use at most 128 characters.",
       "mismatch": "The two passwords are not the same.",
       "invalid": "Enter a valid e-mail address.",

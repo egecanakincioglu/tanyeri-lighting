@@ -19,6 +19,7 @@ describe('buildAuthOptions', () => {
     const options = buildAuthOptions(settings);
     expect(options.emailAndPassword).toEqual({
       enabled: true,
+      minPasswordLength: 12,
       disableSignUp: true,
       revokeSessionsOnPasswordReset: true,
       resetPasswordTokenExpiresIn: 3600,
@@ -84,8 +85,8 @@ describe('password reset email', () => {
     const tasks: (() => Promise<void>)[] = [];
     setEmailScheduler((task) => tasks.push(task));
 
-    const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
     limiter.check.mockResolvedValue({ ok: true });
+    const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
     await emailAndPassword.sendResetPassword!({ user: { id: 'user-1', email: 'admin@example.com' }, token: 'abc123' });
 
     expect(tasks).toHaveLength(1);
@@ -96,7 +97,6 @@ describe('password reset email', () => {
     expect(sent.to).toBe('admin@example.com');
     expect(sent.from).toBe('Tanyeri <no-reply@example.com>');
     expect(sent.text).toContain('https://tanyeri.example.com/tr/yonetim/parola-sifirla?token=abc123');
-  });
     expect(limiter.check).toHaveBeenCalledWith({
       scope: 'reset-mail',
       limit: 3,
@@ -125,6 +125,7 @@ describe('password reset email', () => {
     await tasks[0]!();
 
     expect(sendMail).not.toHaveBeenCalled();
+  });
 });
 
 describe('changing the sign-in email', () => {
@@ -164,7 +165,6 @@ describe('changing the sign-in email', () => {
     expect(sendMail.mock.calls[0]![0].text).toContain('verify-email?token=abc');
     vi.unstubAllEnvs();
   });
-});
 
   it('asks the current address to approve first, naming the new address', async () => {
     const transport = createTransport({ jsonTransport: true });
@@ -196,3 +196,4 @@ describe('changing the sign-in email', () => {
   it('has no approval step while email is off, because the change is off', () => {
     expect(buildAuthOptions(settings).user.changeEmail).toEqual({ enabled: false });
   });
+});
