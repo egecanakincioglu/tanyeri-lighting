@@ -26,7 +26,7 @@ const resetTexts: ResetPasswordTexts = {
   intro: 'Choose a new password.',
   next: 'New password',
   repeat: 'Repeat the password',
-  hint: 'Use 8 to 128 characters.',
+  hint: 'Use 12 to 128 characters.',
   submit: 'Change the password',
   submitting: 'Changing',
   done: 'The password was changed.',
@@ -151,6 +151,7 @@ describe('ResetPasswordForm', () => {
 
   it.each([
     ['short', 'short', 'New password', 'Too short.'],
+    ['x'.repeat(11), 'x'.repeat(11), 'New password', 'Too short.'],
     ['x'.repeat(129), 'x'.repeat(129), 'New password', 'Too long.'],
     ['a long enough passphrase', 'another long passphrase', 'Repeat the password', 'Not the same.'],
   ])('checks the passwords before sending (%#)', (next, repeat, label, message) => {

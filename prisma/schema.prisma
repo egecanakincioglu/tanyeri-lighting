@@ -13,6 +13,7 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  isDemo        Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
@@ -104,6 +105,22 @@ model ContactMessage {
 
   @@index([createdAt])
   @@map("contactMessage")
+}
+
+// One row per day and anonymized visitor address, so a client can not grow the table by sending more requests. The
+// address is cut to its /24 (IPv4) or /48 (IPv6) before it is stored; no path, referrer or browser identification
+// string is kept. The day is the Europe/Istanbul calendar day. Rows are kept for 13 months.
+model Visit {
+  id      String   @id @default(cuid())
+  day     DateTime @db.Date
+  address String
+  country String?
+  city    String?
+  views   Int      @default(1)
+
+  @@unique([day, address])
+  @@index([day])
+  @@map("visit")
 }
 
 // Every bilingual field below is two required columns, `<field>Tr` and `<field>En`; a page never falls back from one
@@ -206,14 +223,24 @@ model Reference {
 // Product categories (at most 8, enforced in src/server/content/categories.ts). The key is language independent and
 // is used to filter the product list in a URL.
 model Category {
-  id        String    @id @default(uuid(7))
-  key       String    @unique
-  nameTr    String
-  nameEn    String
-  sortOrder Int
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  products  Product[]
+  id               String            @id @default(uuid(7))
+  key              String            @unique
+  nameTr           String
+  nameEn           String
+  sortOrder        Int
+  // Empty strings mean the page falls back to the category name. The title has no brand: the site template adds it.
+  seoTitleTr       String            @default("")
+  seoTitleEn       String            @default("")
+  seoDescriptionTr String            @default("")
+  seoDescriptionEn String            @default("")
+  h1Tr             String            @default("")
+  h1En             String            @default("")
+  introTr          String            @default("")
+  introEn          String            @default("")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  products         Product[]
+  areas            ApplicationArea[]
 
   @@map("category")
 }
@@ -329,15 +356,18 @@ model PromoBoard {
 
 // A kind of place the business lights (the former "work areas"). The description is short plain text.
 model ApplicationArea {
-  id            String   @id @default(uuid(7))
+  id            String    @id @default(uuid(7))
   imageUrl      String
   titleTr       String
   titleEn       String
   descriptionTr String
   descriptionEn String
   sortOrder     Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // The category the home card links to; none leaves the card unlinked.
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([sortOrder])
   @@map("applicationArea")

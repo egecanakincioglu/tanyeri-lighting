@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '../../lib/password-rules.ts';
 import { Link } from '../../i18n/navigation.ts';
 import { Button } from '../button.tsx';
 import { TextField } from '../field.tsx';
 
-// The auth layer's own limits (see account-actions.ts); checked here first so a typo gets a message at once.
-const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 128;
+// Checked here first so a typo gets a message at once; the auth layer enforces the same limits.
 
 const linkClass = 'inline-flex min-h-touch items-center font-medium text-ink underline underline-offset-4';
 
@@ -127,8 +126,8 @@ export function ResetPasswordForm({ resetKey, texts }: { resetKey: string; texts
     const data = new FormData(event.currentTarget);
     const next = String(data.get('next') ?? '');
     const repeat = String(data.get('repeat') ?? '');
-    if (next.length < MIN_PASSWORD) return setIssue({ field: 'next', kind: 'tooShort' });
-    if (next.length > MAX_PASSWORD) return setIssue({ field: 'next', kind: 'tooLong' });
+    if (next.length < MIN_PASSWORD_LENGTH) return setIssue({ field: 'next', kind: 'tooShort' });
+    if (next.length > MAX_PASSWORD_LENGTH) return setIssue({ field: 'next', kind: 'tooLong' });
     if (next !== repeat) return setIssue({ field: 'repeat', kind: 'mismatch' });
 
     setIssue(undefined);

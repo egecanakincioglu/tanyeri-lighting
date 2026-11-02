@@ -11,11 +11,13 @@ describe('SectionTitle', () => {
     expect(screen.getByRole('heading', { level, name: 'Products' })).toBeTruthy();
   });
 
-  it('hides the repeated background text from assistive technology', () => {
+  it('draws the background text from CSS, so the HTML holds it once and the accessibility tree skips it', () => {
     const { container } = render(<SectionTitle title="Products" level={2} />);
-    const ghost = container.querySelector('span[aria-hidden="true"]');
-    expect(ghost?.textContent).toBe('Products');
-    expect(screen.getAllByText('Products')).toHaveLength(2);
+    const wrapper = container.firstElementChild;
+    expect(wrapper?.getAttribute('data-title')).toBe('Products');
+    // The empty alternative after the slash keeps the generated text out of the accessibility tree.
+    expect(wrapper?.className).toContain("before:content-[attr(data-title)_/_'']");
+    expect(screen.getAllByText('Products')).toHaveLength(1);
     expect(screen.getAllByRole('heading')).toHaveLength(1);
   });
 

@@ -4,7 +4,13 @@ import type { FrameGroup } from './frame.tsx';
 // The panel menu, grouped like the site: the keys are the labels in messages (AdminNav.groups and AdminNav.items) and
 // the addresses are keys of routing.pathnames. A screen without a page file is answered by the shared placeholder.
 export const ADMIN_NAV = [
-  { id: 'general', items: [{ id: 'panel', href: '/dashboard' }] },
+  {
+    id: 'general',
+    items: [
+      { id: 'panel', href: '/dashboard' },
+      { id: 'stats', href: '/dashboard/statistics' },
+    ],
+  },
   {
     id: 'home',
     items: [

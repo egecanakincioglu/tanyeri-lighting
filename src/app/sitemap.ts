@@ -5,6 +5,7 @@ import { absoluteUrl, localizedPath, type PageHref } from '../lib/seo.ts';
 import { listPostChanges } from '../server/content/blog.ts';
 import { getLegalPage } from '../server/content/legal-pages.ts';
 import { getPageMetadata } from '../server/content/page-metadata.ts';
+import { listCategoryChanges } from '../server/content/categories.ts';
 import { listProductChanges } from '../server/content/products.ts';
 import { LEGAL_PAGE_KEYS, PAGE_KEYS, type LegalPageKey, type PageKey } from '../server/content/schemas.ts';
 
@@ -28,12 +29,21 @@ async function pageEntry(key: PageKey, newestPost?: Date): Promise<Entry | null>
 // error propagates and the answer is a server error, never a list with pages missing.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await connection();
-  const [products, posts] = await Promise.all([listProductChanges(), listPostChanges()]);
+  const [products, categories, posts] = await Promise.all([
+    listProductChanges(),
+    listCategoryChanges(),
+    listPostChanges(),
+  ]);
   // The list changes when any article does, so its last change is the newest one.
   const newestPost = posts.reduce<Date | undefined>((newest, post) => later(newest, post.updatedAt), undefined);
   const pages = await Promise.all(PAGE_KEYS.map((key) => pageEntry(key, newestPost)));
   const entries: Entry[] = [
     ...pages.filter((page) => page !== null),
+    // Each category view is its own indexable address of the product list.
+    ...categories.map((category) => ({
+      href: { pathname: '/products', query: { category: category.key } } as const,
+      modified: category.updatedAt,
+    })),
     ...products.map((product) => ({
       href: { pathname: '/products/[slug]', params: { slug: product.slug } } as const,
       modified: product.updatedAt,

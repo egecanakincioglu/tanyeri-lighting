@@ -26,14 +26,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.event.repository.default_branch }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
+      # The input ref is only fetched, never checked out: its code must not run in a step that holds the token.
+      - name: Resolve the commit to deploy
+        id: sha
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$REF"
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
       - name: Deploy a preview
         env:
           REF: ${{ inputs.ref }}
+          SHA: ${{ steps.sha.outputs.sha }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-        run: node tooling/scripts/vercel-deploy.ts --target preview --ref "$REF" --sha "$(git rev-parse HEAD)"
+        run: node tooling/scripts/vercel-deploy.ts --target preview --ref "$REF" --sha "$SHA"

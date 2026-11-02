@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider, createTranslator } from 'next-intl';
 import { axeViolations } from '../../../test/axe.ts';
+import { optimizedSource } from '../../../test/optimized-source.ts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
@@ -21,13 +22,17 @@ vi.mock('../../../components/site/footer.tsx', () => ({
     <footer data-logo={settings.logoUrl}>footer</footer>
   ),
 }));
-const mocks = vi.hoisted(() => ({ getSiteSettings: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getSiteSettings: vi.fn(), listCategories: vi.fn() }));
+vi.mock('../../../server/content/categories.ts', () => ({ listCategories: mocks.listCategories }));
 vi.mock('../../../server/content/site-settings.ts', () => ({ getSiteSettings: mocks.getSiteSettings }));
 
 describe('SiteLayout', () => {
   beforeEach(() => {
+    Object.defineProperty(navigator, 'sendBeacon', { value: vi.fn(), configurable: true });
     mocks.getSiteSettings.mockClear();
     mocks.getSiteSettings.mockResolvedValue({ logoUrl: null });
+    mocks.listCategories.mockClear();
+    mocks.listCategories.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -65,6 +70,25 @@ describe('SiteLayout', () => {
       }
     },
   );
+  it.each([
+    ['tr', tr, '/tr/urunler?category=sarkit', 'Sarkıt'],
+    ['en', en, '/en/products?category=sarkit', 'Pendants'],
+  ] as const)('lists the categories under Products in the header in %s', async (locale, messages, href, name) => {
+    mocks.listCategories.mockResolvedValue([{ id: 'c1', key: 'sarkit', name: { tr: 'Sarkıt', en: 'Pendants' } }]);
+    const layout = await SiteLayout({
+      children: <p>page</p>,
+      params: Promise.resolve({ locale }),
+    } as Parameters<typeof SiteLayout>[0]);
+    render(
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        {layout}
+      </NextIntlClientProvider>,
+    );
+    const links = screen.getAllByRole('link', { name, hidden: true });
+    expect(links.length).toBeGreaterThan(0);
+    expect(links.every((link) => link.getAttribute('href') === href)).toBe(true);
+  });
+
   it('reads the settings once and gives the logo to the header and the footer', async () => {
     mocks.getSiteSettings.mockResolvedValue({ logoUrl: '/demo/area-otel.webp' });
     const layout = await SiteLayout({
@@ -77,10 +101,21 @@ describe('SiteLayout', () => {
       </NextIntlClientProvider>,
     );
     expect(mocks.getSiteSettings).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!.getAttribute('src')).toBe(
-      '/demo/area-otel.webp',
-    );
+    expect(optimizedSource(screen.getAllByRole('img', { name: 'Tanyeri Lighting' })[0]!)).toBe('/demo/area-otel.webp');
     expect(screen.getByRole('contentinfo').getAttribute('data-logo')).toBe('/demo/area-otel.webp');
+  });
+
+  it('counts the page view with the beacon', async () => {
+    const layout = await SiteLayout({
+      children: <p>page</p>,
+      params: Promise.resolve({ locale: 'tr' }),
+    } as Parameters<typeof SiteLayout>[0]);
+    render(
+      <NextIntlClientProvider locale="tr" messages={tr}>
+        {layout}
+      </NextIntlClientProvider>,
+    );
+    expect(navigator.sendBeacon).toHaveBeenCalledWith('/api/visits', '/tr');
   });
 
   it.each([

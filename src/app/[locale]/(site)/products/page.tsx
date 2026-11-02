@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
+import { Breadcrumb } from '../../../../components/breadcrumb.tsx';
 import { Container } from '../../../../components/container.tsx';
 import { JsonLd } from '../../../../components/json-ld.tsx';
 import { Pagination } from '../../../../components/pagination.tsx';
@@ -39,10 +40,11 @@ function parsePage(value: string | undefined, pageCount: number): number {
 // The page and its metadata read the same list, so it is loaded once per request.
 const loadListing = cache(async (requested: string | undefined, rawPage: string | undefined) => {
   const categories = await listCategories();
-  const category = categories.find((entry) => entry.key === requested)?.key;
+  const selected = categories.find((entry) => entry.key === requested);
+  const category = selected?.key;
   const products = await listProducts(category);
   const pageCount = Math.ceil(products.length / PAGE_SIZE);
-  return { categories, category, products, pageCount, current: parsePage(rawPage, pageCount) };
+  return { categories, selected, category, products, pageCount, current: parsePage(rawPage, pageCount) };
 });
 
 export async function generateMetadata({ params, searchParams }: PageProps<'/[locale]/products'>): Promise<Metadata> {
@@ -57,17 +59,25 @@ export async function generateMetadata({ params, searchParams }: PageProps<'/[lo
     getPageMetadata('products'),
     loadListing(single(query.category), single(query.page)),
   ]);
-  const metadata = toMetadata(page, locale, undefined, t('products'));
-  // A later page is its own address with its own title; it must not point its canonical at the first page.
+  const { selected } = listing;
+  // A category view has its own title and description; an empty one falls back to the category name and the page's.
+  const metadata = toMetadata(
+    page,
+    locale,
+    selected ? selected.seoTitle[locale] || selected.name[locale] : undefined,
+    t('products'),
+  );
+  const description = selected?.seoDescription[locale];
+  // A later page and a category view are their own addresses; each is its own canonical, never the plain list.
   const paged = listing.current > 1;
-  const href: PageHref = paged
-    ? {
-        pathname: '/products',
-        query: { ...(listing.category ? { category: listing.category } : {}), page: listing.current },
-      }
-    : '/products';
+  const target = {
+    ...(listing.category ? { category: listing.category } : {}),
+    ...(paged ? { page: listing.current } : {}),
+  };
+  const href: PageHref = Object.keys(target).length === 0 ? '/products' : { pathname: '/products', query: target };
   return {
     ...metadata,
+    ...(description ? { description } : {}),
     ...(paged ? { title: `${String(metadata.title)} - ${products('pageSuffix', { page: listing.current })}` } : {}),
     ...pageSeo(locale, href),
     // An empty list answers 200, so it is kept out of the index instead of looking like a soft 404.
@@ -86,7 +96,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
     getTranslations({ locale, namespace: 'Products' }),
     getTranslations({ locale, namespace: 'Header' }),
   ]);
-  const { categories, category, products, pageCount, current } = await loadListing(
+  const { categories, selected, category, products, pageCount, current } = await loadListing(
     single(query.category),
     single(query.page),
   );
@@ -114,18 +124,39 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
     ...(current < pageCount ? [{ label: t('next'), href: listHref(category, current + 1) }] : []),
   ];
   const visible = products.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const intro = current === 1 ? selected?.intro[locale] : '';
 
   return (
     <>
-      <JsonLd
-        data={breadcrumbData(locale, [
-          { name: header('home'), href: '/' },
-          { name: header('products'), href: '/products' },
-        ])}
-      />
-      <SectionTitle title={t('title')} level={1} />
+      {selected ? (
+        <>
+          <JsonLd
+            data={breadcrumbData(locale, [
+              { name: header('products'), href: '/products' },
+              { name: selected.name[locale], href: { pathname: '/products', query: { category: selected.key } } },
+            ])}
+          />
+          <div className="pt-3">
+            <Container>
+              <Breadcrumb
+                label={t('breadcrumb')}
+                items={[{ name: header('products'), href: listHref(undefined) }, { name: selected.name[locale] }]}
+              />
+            </Container>
+          </div>
+        </>
+      ) : (
+        <JsonLd
+          data={breadcrumbData(locale, [
+            { name: header('home'), href: '/' },
+            { name: header('products'), href: '/products' },
+          ])}
+        />
+      )}
+      <SectionTitle title={selected ? selected.h1[locale] || selected.name[locale] : t('title')} level={1} />
       <div className="pb-[clamp(2.5rem,6vw,4.5rem)]">
         <Container>
+          {intro ? <p className="mx-auto mb-8 max-w-2xl text-center text-muted">{intro}</p> : null}
           <p className="py-2 text-center text-xs text-muted min-[1025px]:hidden motion-safe:animate-hint">
             {t('swipeHint')}
           </p>
@@ -160,7 +191,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
             <p className="mt-8 text-center text-muted">{t('empty')}</p>
           ) : (
             <ul className="mt-8 grid grid-cols-2 gap-3 xs:grid-cols-3 xs:gap-4 wide:grid-cols-4 xl:grid-cols-6 xl:gap-5">
-              {visible.map((product) => (
+              {visible.map((product, index) => (
                 <li key={product.id}>
                   <ProductCard
                     imageUrl={product.imageUrl}
@@ -170,6 +201,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
                       href: { pathname: '/products/[slug]', params: { slug: product.slug } },
                     })}
                     sizes={cardSizes}
+                    eager={index === 0}
                   />
                 </li>
               ))}

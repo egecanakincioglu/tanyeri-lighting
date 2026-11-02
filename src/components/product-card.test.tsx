@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations } from '../test/axe.ts';
+import { imageLoading } from '../test/image-loading.ts';
 import { ProductCard } from './product-card.tsx';
 
 const card = (
@@ -33,6 +34,16 @@ describe('ProductCard', () => {
     const { container } = render(card);
     expect(screen.getByText('Recessed spot 12W').className).toContain('line-clamp-2');
     expect(container.firstElementChild?.className).toContain('motion-safe:hover:scale-105');
+  });
+
+  it('fetches the photo at once and ahead of the rest only when asked to', () => {
+    const { container } = render(card);
+    expect(imageLoading(container)).toEqual(['lazy/null']);
+    cleanup();
+    const eager = render(
+      <ProductCard imageUrl="/demo/product-gomme-spot.webp" name="Spot" href="/tr/p" sizes="50vw" eager />,
+    );
+    expect(imageLoading(eager.container)).toEqual(['eager/high']);
   });
 
   it('has no axe violations', async () => {

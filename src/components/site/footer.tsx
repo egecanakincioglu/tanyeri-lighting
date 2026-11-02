@@ -1,5 +1,6 @@
 import { hasLocale, useLocale, useTranslations } from 'next-intl';
-import { Link } from '../../i18n/navigation.ts';
+import Link from 'next/link';
+import { getPathname } from '../../i18n/navigation.ts';
 import { routing } from '../../i18n/routing.ts';
 import { getLegalPage } from '../../server/content/legal-pages.ts';
 import { LEGAL_PAGE_KEYS, type SiteSettings, type SocialLink } from '../../server/content/schemas.ts';
@@ -94,7 +95,7 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
             <ul>
               {FOOTER_NAV.map((entry) => (
                 <li key={entry.id}>
-                  <Link href={entry.path} prefetch={false} className={linkClass}>
+                  <Link href={getPathname({ locale, href: entry.path })} prefetch={false} className={linkClass}>
                     {nav(entry.id)}
                   </Link>
                 </li>
@@ -136,13 +137,13 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
             {t('poweredBy')}
             {/* A static file at exactly twice its shown size. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/flareye.png" alt="Flareye" width={96} height={24} />
+            <img src="/brand/flareye.webp" alt="Flareye" width={96} height={24} loading="lazy" />
           </span>
           <ul className="flex flex-wrap justify-center gap-x-6 wide:col-start-3 wide:row-start-1 wide:justify-self-end">
             {legal.map((page) => (
               <li key={page.key}>
                 <Link
-                  href={LEGAL_PATHS[page.key]}
+                  href={getPathname({ locale, href: LEGAL_PATHS[page.key] })}
                   prefetch={false}
                   className="inline-flex min-h-touch items-center hover:text-ink hover:underline"
                 >
@@ -152,7 +153,7 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
             ))}
             <li>
               <Link
-                href="/dashboard/sign-in"
+                href={getPathname({ locale, href: '/dashboard/sign-in' })}
                 prefetch={false}
                 rel="nofollow"
                 className="inline-flex min-h-touch items-center hover:text-ink hover:underline"

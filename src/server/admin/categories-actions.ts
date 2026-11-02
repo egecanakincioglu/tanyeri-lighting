@@ -9,7 +9,14 @@ import { createCategory, deleteCategory, reorderCategories, updateCategory } fro
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
 
 function categoryInput(formData: FormData) {
-  return { key: formText(formData, 'key'), name: formPair(formData, 'name') };
+  return {
+    key: formText(formData, 'key'),
+    name: formPair(formData, 'name'),
+    seoTitle: formPair(formData, 'seoTitle'),
+    seoDescription: formPair(formData, 'seoDescription'),
+    h1: formPair(formData, 'h1'),
+    intro: formPair(formData, 'intro'),
+  };
 }
 
 export async function createCategoryAction(_previous: FormState | null, formData: FormData): Promise<FormState> {

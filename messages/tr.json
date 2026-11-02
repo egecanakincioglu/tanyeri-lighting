@@ -24,7 +24,7 @@
     "projects": "Projeler",
     "products": "Ürünler",
     "catalogs": "Kataloglar",
-    "categories": "Kategoriler",
+    "categories": "Tüm Ürünler",
     "blog": "Blog",
     "contact": "İletişim"
   },
@@ -54,7 +54,8 @@
     "previous": "Önceki",
     "next": "Sonraki",
     "empty": "Bu kategoride henüz ürün yok.",
-    "pageSuffix": "Sayfa {page}"
+    "pageSuffix": "Sayfa {page}",
+    "breadcrumb": "Sayfa yolu"
   },
   "Blog": {
     "pages": "Sayfalar",
@@ -68,7 +69,7 @@
     "breadcrumb": "Gezinti yolu"
   },
   "Product": {
-    "back": "Tüm ürünler",
+    "breadcrumb": "Sayfa yolu",
     "request": "Bilgi talep et",
     "details": "Ürün bilgileri",
     "code": "Ürün kodu",
@@ -78,8 +79,7 @@
     "power": "Güç",
     "dimensions": "Ölçüler",
     "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
-    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
-    "backToCategory": "{category} kategorisine dön"
+    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün."
   },
   "Catalogs": {
     "view": "Görüntüle",
@@ -164,7 +164,7 @@
     "resetText": "Yeni parola, bütün cihazlardaki oturumlarınızı kapatır.",
     "nextLabel": "Yeni parola",
     "repeatLabel": "Yeni parolayı tekrar yazın",
-    "hint": "8 ile 128 karakter arasında olmalı.",
+    "hint": "12 ile 128 karakter arasında olmalı.",
     "resetSubmit": "Parolayı değiştir",
     "resetSubmitting": "Değiştiriliyor…",
     "resetDone": "Parola değiştirildi. Yeni parolayla giriş yapın.",
@@ -180,7 +180,7 @@
       "generic": "Bir şeyler ters gitti. Biraz sonra tekrar deneyin."
     },
     "issues": {
-      "tooShort": "En az 8 karakter kullanın.",
+      "tooShort": "En az 12 karakter kullanın.",
       "tooLong": "En çok 128 karakter kullanın.",
       "mismatch": "İki parola aynı değil."
     }
@@ -207,6 +207,7 @@
     },
     "items": {
       "panel": "Panel",
+      "stats": "İstatistikler",
       "banner": "Banner",
       "featured": "Öne Çıkan Ürünler",
       "promo": "Tanıtım Panoları",
@@ -395,7 +396,10 @@
     "reordered": "Sıra kaydedildi.",
     "fieldImage": "Görsel",
     "fieldTitle": "Başlık",
-    "fieldDescription": "Açıklama"
+    "fieldDescription": "Açıklama",
+    "fieldCategory": "Bağlantı kategorisi",
+    "noCategory": "Bağlantı yok",
+    "categoryHint": "Ana sayfadaki kart bu kategorinin ürünlerine bağlanır. Eşleşen kategori yoksa kart bağlantısız kalır."
   },
   "AdminSettings": {
     "title": "Kurumsal Ayarlar",
@@ -529,7 +533,12 @@
     "reordered": "Sıra kaydedildi.",
     "fieldKey": "Adresler için kısa ad",
     "keyHint": "Küçük harf, rakam ve tek tire. Ziyaretçiler ürünleri süzerken adreste görünür, örneğin ic-mekan-aydinlatma.",
-    "fieldName": "Ad"
+    "fieldName": "Ad",
+    "pageHint": "Kategorinin kendi sayfası için isteğe bağlı metinler. Boş bırakılan alan için kategori adı kullanılır. Başlığa site adını site kendisi ekler; başlıkta yazmayın.",
+    "fieldSeoTitle": "Arama sonucu başlığı",
+    "fieldSeoDescription": "Arama sonucu açıklaması",
+    "fieldH1": "Sayfa başlığı",
+    "fieldIntro": "Başlığın altındaki kısa metin"
   },
   "AdminProducts": {
     "title": "Ürünler",
@@ -593,6 +602,20 @@
     "fieldPdf": "PDF dosyası",
     "fieldCover": "Kapak görseli",
     "coverHint": "JPEG, PNG veya WebP, en fazla 4 MB. A4 dikey gösterilir."
+  },
+  "AdminStats": {
+    "title": "İstatistikler",
+    "description": "Herkese açık sayfalara son 30 gündeki ziyaretler. Yalnız sayfa, dil ile barındırıcının verdiği ülke ve şehir saklanır; ziyaretçi adresi saklanmadan önce kısaltılır.",
+    "visits": "Ziyaret",
+    "views": "Sayfa görüntüleme",
+    "visitsHint": "Kısaltılmış ziyaretçi adresinden tahmin edilir",
+    "daily": "Günlük",
+    "countries": "Ülkeler",
+    "date": "Tarih",
+    "country": "Ülke",
+    "unknown": "Bilinmiyor",
+    "empty": "Son 30 günde kayıtlı ziyaret yok.",
+    "period": "Son 30 gün"
   },
   "AdminMessages": {
     "title": "Mesajlar",
@@ -664,16 +687,16 @@
     "currentLabel": "Mevcut parola",
     "newLabel": "Yeni parola",
     "confirmLabel": "Yeni parola (tekrar)",
-    "passHint": "En az 8 karakter. Diğer tüm cihazların oturumu kapatılır.",
+    "passHint": "En az 12 karakter. Diğer tüm cihazların oturumu kapatılır.",
     "passButton": "Parolayı değiştir",
     "passWorking": "Değiştiriliyor…",
     "passDone": "Parola değiştirildi. Diğer tüm cihazların oturumu kapatıldı.",
     "emailTitle": "Giriş e-postasını değiştir",
     "emailLabel": "Yeni e-posta adresi",
-    "emailHint": "Yeni adrese bir onay bağlantısı gönderilir. Adres, bağlantıyı açtığınızda değişir.",
+    "emailHint": "Önce şu anki adresinize bir bağlantı gönderilir. Onu açtığınızda yeni adrese ikinci bir bağlantı gider; adres, o bağlantıyı açtığınızda değişir. Ardından tüm cihazların oturumu kapatılır.",
     "emailButton": "Onay bağlantısını gönder",
     "emailWorking": "Gönderiliyor…",
-    "emailDone": "Adres kullanılabiliyorsa ona bir onay bağlantısı gönderildi. Değişikliği bitirmek için bağlantıyı açın.",
+    "emailDone": "Adres kullanılabiliyorsa şu anki adresinize bir bağlantı gönderildi. Onu açın, ardından yeni adrese gönderilen bağlantıyı açın. Sonra tüm cihazların oturumu kapatılır.",
     "emailOffNote": "E-posta değişikliği için giden e-posta gerekir; bu sitede kurulu değil.",
     "demoNote": "Demoda parola ve e-posta değiştirilemez.",
     "errors": {
@@ -687,7 +710,7 @@
     "issues": {
       "required": "Bu alan zorunludur.",
       "wrongCurrent": "Mevcut parola doğru değil.",
-      "tooShort": "En az 8 karakter kullanın.",
+      "tooShort": "En az 12 karakter kullanın.",
       "tooLong": "En fazla 128 karakter kullanın.",
       "mismatch": "İki parola aynı değil.",
       "invalid": "Geçerli bir e-posta adresi girin.",

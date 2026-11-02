@@ -125,13 +125,10 @@ export const referenceOrderSchema = z.array(referenceIdSchema);
 export const idSchema = z.string().min(1).max(64);
 export const idListSchema = z.array(idSchema);
 
+export const KEBAB_CASE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 const kebabCase = (maxLength: number) =>
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(maxLength)
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Use lowercase letters, digits and single hyphens');
+  z.string().trim().min(1).max(maxLength).regex(KEBAB_CASE, 'Use lowercase letters, digits and single hyphens');
 
 export const MAX_CATEGORIES = 8;
 
@@ -139,6 +136,13 @@ export const categorySchema = z.object({
   // Language independent; used as a filter in URLs.
   key: kebabCase(60),
   name: bilingual(60),
+  // The words of the category's own address; each is filled in both languages or in neither, and an empty one falls
+  // back to the name. The title has no brand: the site template adds it.
+  seoTitle: optionalBilingual(70).default({ tr: '', en: '' }),
+  seoDescription: optionalBilingual(320).default({ tr: '', en: '' }),
+  h1: optionalBilingual(100).default({ tr: '', en: '' }),
+  // Plain text under the heading of the category view.
+  intro: optionalBilingual(600).default({ tr: '', en: '' }),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
@@ -218,10 +222,13 @@ export const applicationAreaSchema = z.strictObject({
   title: bilingual(100),
   // Short plain text.
   description: bilingual(300),
+  // The category the card links to; none leaves it unlinked.
+  categoryId: idSchema.nullable().default(null),
 });
 
 export type ApplicationAreaInput = z.infer<typeof applicationAreaSchema>;
-export type ApplicationArea = ApplicationAreaInput & { id: string };
+// The key of the linked category is read along, so the home page needs no second query.
+export type ApplicationArea = ApplicationAreaInput & { id: string; categoryKey: string | null };
 
 export const serviceSchema = z.strictObject({
   imageUrl: mediaUrl,

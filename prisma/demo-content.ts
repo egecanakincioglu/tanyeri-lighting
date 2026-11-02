@@ -149,7 +149,7 @@ const legalPages = {
         'Bu sayfa **kurgusal bir örnektir**. Gerçek bir şirketin gizlilik politikası değildir.',
         '## Hangi veriler toplanır?',
         '- İletişim formuna yazdığınız ad, e-posta, konu ve mesaj.',
-        '- Siteyi kullanırken IP adresi veya tarayıcı kimliği saklanmaz.',
+        '- Yönetici girişi denemelerinde ve oturum kayıtlarında IP adresi, oturumlarda ayrıca tarayıcı bilgisi saklanır. Ziyaretçilerin IP adresi iletişim formu sınırı için yalnız geri döndürülemeyen bir özet olarak tutulur. Ziyaret istatistiği için kısaltılmış IP adresi, ülke, şehir ve günlük görüntüleme sayısı saklanır ve 13 ay sonra silinir.',
         '## Verilerin kullanımı',
         'Formdaki bilgiler yalnızca size yanıt vermek için kullanılır. Demo sitede gönderilen mesajlar gerçek bir kişiye ulaşmaz.',
       ].join('\n\n'),
@@ -158,7 +158,7 @@ const legalPages = {
         'This page is a **fictional sample**. It is not the privacy policy of a real company.',
         '## What data is collected?',
         '- The name, email, subject and message you write in the contact form.',
-        '- No IP address or browser identification string is stored while you use the site.',
+        '- Sign-in attempts and session records store the IP address, and sessions also store the browser identification string. For visitors, the contact form limit keeps only a one-way hash of the IP address. Visit statistics store a shortened IP address, country, city and a daily view count, and are deleted after 13 months.',
         '## How the data is used',
         'The form details are only used to reply to you. Messages sent on the demo site do not reach a real person.',
       ].join('\n\n'),
@@ -189,14 +189,93 @@ const legalPages = {
   }),
 };
 
+// The words of each category's own address; the titles have no brand, the site template adds it.
 const categories = [
-  ['gomme-spot', 'Gömme Spot', 'Recessed Spots'],
-  ['sarkit', 'Sarkıt', 'Pendants'],
-  ['panel', 'Panel', 'Panels'],
-  ['lineer', 'Lineer', 'Linear'],
-  ['ray-spot', 'Ray Spot', 'Track Spots'],
-  ['dis-mekan', 'Dış Mekan', 'Outdoor'],
-].map(([categoryKey, tr, en]) => categorySchema.parse({ key: categoryKey, name: pair(tr, en) }));
+  {
+    slug: 'gomme-spot',
+    name: pair('Gömme Spot', 'Recessed Spots'),
+    seoTitle: pair('Gömme Spot ve Sıva Altı Downlight', 'Recessed Spotlights and LED Downlights'),
+    seoDescription: pair(
+      'Ofis, mağaza ve konut tavanları için 7-20 W gömme spot ve downlight modelleri. COB, slim ve antiparlama seçenekleri, ölçü bilgileriyle. Demo ürünler.',
+      'Recessed spotlights and LED downlights for offices, stores and homes: 7-20 W framed, COB, slim and anti-glare models with sizes listed. Demo products.',
+    ),
+    h1: pair('Gömme Spot Aydınlatma', 'Recessed Spotlights'),
+    intro: pair(
+      'Tavana gömülen bu armatürler 7 ile 20 W arasında beş modelde sunulur: çerçeveli, COB, slim, downlight ve antiparlama. Malzeme enjeksiyon alüminyum ve temperli camdır. Çapları 85 ile 150 mm arasındadır; beyaz, siyah ve antrasit renk seçenekleri vardır. Ayrıntılar her ürünün kendi sayfasında yer alır.',
+      'Recessed into the ceiling, these fixtures come in five models from 7 to 20 W: framed, COB, slim, downlight and anti-glare. The material is die-cast aluminium and tempered glass. Diameters run from 85 to 150 mm, in white, black and anthracite. The details of each model are on its own product page.',
+    ),
+  },
+  {
+    slug: 'sarkit',
+    name: pair('Sarkıt', 'Pendants'),
+    seoTitle: pair('Sarkıt Aydınlatma ve Halka Sarkıt', 'Pendant Lighting and Ring Pendants'),
+    seoDescription: pair(
+      'Halka, üçgen ve kare çerçeve sarkıt armatürler: 30-60 W güç, 40-80 cm ölçüler. Ofis, lobi ve yemek alanları için sarkıt aydınlatma. Demo ürünler.',
+      'Ring, triangle and square-frame pendant lights from 30 to 60 W and 40 to 80 cm across, for offices, lobbies and dining areas. Demo products.',
+    ),
+    h1: pair('Sarkıt Aydınlatma', 'Pendant Lighting'),
+    intro: pair(
+      'Tavandan sarkan beş armatür: tek halka, halka, çift halka, üçgen ve kare çerçeve. Güçleri 30 ile 60 W, ölçüleri 40 ile 80 cm arasındadır. Gövde boyalı çelik, difüzör polikarbonattır; siyah, antrasit ve altın renkleri vardır. Her modelin ölçüleri ve ürün kodu kendi sayfasında listelenir.',
+      'Five luminaires that hang from the ceiling: single ring, ring, double ring, triangle and square frame. Power runs from 30 to 60 W and size from 40 to 80 cm. The body is painted steel with a polycarbonate diffuser, in black, anthracite and gold. Each model’s size and product code are listed on its own page.',
+    ),
+  },
+  {
+    slug: 'panel',
+    name: pair('Panel', 'Panels'),
+    seoTitle: pair('LED Panel Armatür ve 60x60 Panel', 'LED Panel Lights, 600x600 and Round'),
+    seoDescription: pair(
+      'Sıva altı ve sıva üstü LED panel armatürler: 60x60 kare, slim ve yuvarlak modeller, 18-40 W güç. Ofis ve ticari alanlar için ölçülerle. Demo ürünler.',
+      'Recessed and surface LED panel lights: 600x600 square, slim and round models from 18 to 40 W for offices and commercial spaces. Demo products.',
+    ),
+    h1: pair('LED Panel Aydınlatma', 'LED Panel Lights'),
+    intro: pair(
+      'Sıva altı ve sıva üstü beş LED panel: kare, yuvarlak, slim ve çerçeveli modeller. Güçleri 18 ile 40 W arasındadır; 600x600 mm sıva altı panel de bu gruptadır. Alüminyum profil ve polikarbonat difüzörle gelirler; renkleri beyaz, siyah ve antrasittir. Ölçü ve ürün kodu her ürün sayfasında yazar.',
+      'Five LED panels, recessed and surface-mounted: square, round, slim and framed models. Power runs from 18 to 40 W, and the group includes a 600x600 mm recessed panel. They have an aluminium profile and a polycarbonate diffuser, in white, black and anthracite. Size and product code are on each product page.',
+    ),
+  },
+  {
+    slug: 'lineer',
+    name: pair('Lineer', 'Linear'),
+    seoTitle: pair('Lineer Aydınlatma Armatür ve Profil', 'Linear Lighting Fixtures and Profiles'),
+    seoDescription: pair(
+      'Askılı, sıva üstü ve köşe lineer aydınlatma profilleri ile kare ve üçgen lineer modüller: 36-45 W, 120-150 cm seçenekler ve ölçüler. Demo ürünler.',
+      'Suspended, surface and corner linear lighting profiles plus square and triangle modules: 36-45 W, up to 150 cm, with sizes listed. Demo products.',
+    ),
+    h1: pair('Lineer Aydınlatma', 'Linear Lighting'),
+    intro: pair(
+      'Lineer aydınlatma, ışığı uzun bir çizgi boyunca verir. Bu grupta askılı, sıva üstü ve köşe profiller ile kare ve üçgen modüller bulunur. Güçleri 36 ile 45 W arasındadır; profillerin boyu 100 ile 150 cm’dir. Alüminyum profil ve polikarbonat difüzör kullanılır; siyah, beyaz ve antrasit seçenekler vardır.',
+      'Linear lighting spreads light along a long line. This group has suspended, surface and corner profiles, plus square and triangle modules. Power is 36 to 45 W, and the profiles measure 100 to 150 cm. They use an aluminium profile with a polycarbonate diffuser, in black, white and anthracite.',
+    ),
+  },
+  {
+    slug: 'ray-spot',
+    name: pair('Ray Spot', 'Track Spots'),
+    seoTitle: pair('Ray Spot Modelleri ve Magnet Ray Spot', 'Track Lighting and Magnetic Track Spots'),
+    seoDescription: pair(
+      'Mağaza, galeri ve konut için 10-30 W ray spot modelleri: silindir, mini, COB ve magnet ray spot seçenekleri, renk ve ölçü bilgileriyle. Demo ürünler.',
+      'Track lighting for stores, galleries and homes: 10-30 W cylinder, mini, COB and magnetic track spots, with colours and sizes listed. Demo products.',
+    ),
+    h1: pair('Ray Spot Aydınlatma', 'Track Lighting'),
+    intro: pair(
+      'Ray sistemine takılan beş spot: ray spot, silindir, mini, COB ve magnet modeller. Güçleri 10 ile 30 W, çapları 40 ile 85 mm arasındadır. Gövde alüminyumdur; renkler siyah, beyaz ve altındır. Ölçüler ve ürün kodları her ürünün kendi sayfasında listelenir, bilgi talebi de oradan yapılır.',
+      'Five spots that mount on a track: track spot, cylinder, mini, COB and magnetic models. Power runs from 10 to 30 W and diameter from 40 to 85 mm. The body is aluminium, in black, white and gold. Sizes and product codes are listed on each product page, and an enquiry can be sent from there too.',
+    ),
+  },
+  {
+    slug: 'dis-mekan',
+    name: pair('Dış Mekan', 'Outdoor'),
+    seoTitle: pair('Dış Mekan Aydınlatma: Bahçe ve Cephe', 'Outdoor Lighting: Garden and Facade'),
+    seoDescription: pair(
+      'Bahçe armatürü, IP65 yer spotu, bollard, duvar yıkama ve cephe apliği: dış mekan aydınlatma armatürleri, 6-24 W güç ve ölçü bilgileri. Demo ürünler.',
+      'Outdoor lighting fixtures: garden luminaires, IP65 in-ground spots, bollards, wall washers and facade lights from 6 to 24 W. Demo products.',
+    ),
+    h1: pair('Dış Mekan Aydınlatma', 'Outdoor Lighting'),
+    intro: pair(
+      'Bahçe, yol ve cephe için beş dış mekan armatürü: bahçe armatürü, IP65 yer spotu, duvar yıkama, bollard ve cephe apliği. Güçleri 6 ile 24 W arasındadır. Enjeksiyon alüminyum gövde ve temperli cam kullanılır; renkler antrasit ve siyahtır. Ölçüler ve ürün kodları her ürün sayfasında yer alır.',
+      'Five outdoor luminaires for gardens, paths and facades: garden luminaire, IP65 in-ground spot, wall washer, bollard and facade wall light. Power runs from 6 to 24 W. They are made of die-cast aluminium and tempered glass, in anthracite and black. Sizes and product codes are on each product page.',
+    ),
+  },
+].map(({ slug, ...category }) => categorySchema.parse({ key: slug, ...category }));
 
 const colors = {
   black: pair('Siyah', 'Black'),
@@ -568,6 +647,7 @@ const homeBanner = homeBannerSchema.parse({
   secondaryAction: { label: pair('İletişime Geç', 'Get in Touch'), target: 'contact' },
 });
 
+// The last item is the category the card links to; Industrial Sites has no matching category.
 const areas = [
   [
     'area-konut.webp',
@@ -575,6 +655,7 @@ const areas = [
     'Homes',
     'Yaşam alanlarına uygun, göz yormayan ve enerji verimli aydınlatma çözümleri.',
     'Comfortable, glare-free and energy-efficient lighting for living spaces.',
+    'gomme-spot',
   ],
   [
     'area-ofis.webp',
@@ -582,6 +663,7 @@ const areas = [
     'Offices and Commercial Spaces',
     'Verimliliği artıran, mekâna kimlik kazandıran lineer ve panel sistemleri.',
     'Linear and panel systems that raise productivity and give a space its character.',
+    'lineer',
   ],
   [
     'area-endustriyel.webp',
@@ -589,6 +671,7 @@ const areas = [
     'Industrial Sites',
     'Yüksek tavanlı üretim ve depo alanları için dayanıklı aydınlatma.',
     'Durable lighting for high-ceiling production halls and warehouses.',
+    null,
   ],
   [
     'area-otel.webp',
@@ -596,6 +679,7 @@ const areas = [
     'Hotels and Stores',
     'Misafirleri karşılayan, ürünü öne çıkaran sıcak ve dengeli ışık planları.',
     'Warm, balanced lighting plans that welcome guests and show products at their best.',
+    'ray-spot',
   ],
   [
     'area-peyzaj.webp',
@@ -603,6 +687,7 @@ const areas = [
     'Landscape',
     'Bahçe, yol ve park aydınlatmasında güvenli ve estetik uygulamalar.',
     'Safe and attractive lighting for gardens, paths and parks.',
+    'dis-mekan',
   ],
   [
     'area-cephe.webp',
@@ -610,6 +695,7 @@ const areas = [
     'Facades',
     'Yapının karakterini gece de koruyan cephe ve giriş aydınlatması.',
     'Facade and entrance lighting that keeps the character of a building at night.',
+    'dis-mekan',
   ],
 ] as const;
 
@@ -790,13 +876,15 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       sizeBytes: pdfSize(`${catalog.file}.pdf`),
     }),
   );
-  const areaRows = areas.map(([file, tr, en, descriptionTr, descriptionEn]) =>
-    applicationAreaSchema.parse({
+  const areaRows = areas.map(([file, tr, en, descriptionTr, descriptionEn, categoryKey]) => ({
+    ...applicationAreaSchema.parse({
       imageUrl: img(file),
       title: pair(tr, en),
       description: pair(descriptionTr, descriptionEn),
+      categoryId: null,
     }),
-  );
+    categoryKey,
+  }));
 
   const blogRows = demoBlogPosts.map((post) => ({ ...blogPostSchema.parse(post), publishedAt: post.publishedAt }));
 
@@ -853,12 +941,22 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         await tx.legalPage.upsert({ where: { pageKey }, create: { pageKey, ...data }, update: data });
       }
 
+      const categoryIds = new Map<string, string>();
       const productIds = new Map<string, string>();
       let productCount = 0;
       for (const [categoryPosition, category] of categories.entries()) {
         const row = await tx.category.create({
-          data: { key: category.key, ...toColumns('name', category.name), sortOrder: categoryPosition },
+          data: {
+            key: category.key,
+            ...toColumns('name', category.name),
+            ...toColumns('seoTitle', category.seoTitle),
+            ...toColumns('seoDescription', category.seoDescription),
+            ...toColumns('h1', category.h1),
+            ...toColumns('intro', category.intro),
+            sortOrder: categoryPosition,
+          },
         });
+        categoryIds.set(category.key, row.id);
         const group = productRows[category.key];
         if (!group) throw new Error(`No products for the category ${category.key}`);
         for (const [position, [slug, tr, en, power, dimensions, image, color]] of group.rows.entries()) {
@@ -953,6 +1051,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
           imageUrl: area.imageUrl,
           ...toColumns('title', area.title),
           ...toColumns('description', area.description),
+          categoryId: area.categoryKey ? (categoryIds.get(area.categoryKey) ?? null) : null,
           sortOrder,
         })),
       });

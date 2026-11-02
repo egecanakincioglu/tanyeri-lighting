@@ -1,23 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState, type ComponentProps, type KeyboardEvent, type ReactNode } from 'react';
-import { useParams } from 'next/navigation';
-import { Link, usePathname } from '../../i18n/navigation.ts';
-import type { StaticPath, routing } from '../../i18n/routing.ts';
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { CONTAINER } from './container.ts';
+import { rememberLocale, switchHref, type SwitchRoute } from './language-switch.ts';
 
-type MenuLink = { label: string; href: StaticPath };
-export type MenuItem = { label: string; href?: StaticPath; children?: MenuLink[] };
-
-type LanguageHref = ComponentProps<typeof Link>['href'];
-type Locale = (typeof routing.locales)[number];
+// The addresses are complete (language prefix and query), computed on the server.
+type MenuLink = { label: string; href: string };
+export type MenuItem = { label: string; href?: string; children?: MenuLink[] };
 
 type Props = {
   locale: string;
+  /** The home address, the only one that is current on that exact path alone. */
+  home: string;
+  routes: SwitchRoute[];
   logo: ReactNode;
   items: MenuItem[];
   contact: MenuLink;
-  languages: { locale: Locale; code: string; name: string }[];
+  languages: { locale: string; code: string; name: string }[];
   labels: { language: string; menu: string; openMenu: string; closeMenu: string };
 };
 
@@ -27,9 +28,9 @@ const DESKTOP_QUERY = '(min-width: 64rem)';
 
 type OpenedBy = 'hover' | 'click' | 'key';
 
-// `pathname` and `href` are keys of the routing table, so the language does not matter here.
-function isCurrent(pathname: string, href: string): boolean {
-  return pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
+function isCurrent(pathname: string, address: string, home: string): boolean {
+  const href = address.split('?')[0] ?? address;
+  return pathname === href || (href !== home && pathname.startsWith(`${href}/`));
 }
 
 function prefersReducedMotion(): boolean {
@@ -50,11 +51,8 @@ const linkClass =
 const labelClass =
   'inline-flex flex-col items-center select-none after:invisible after:block after:h-0 after:overflow-hidden after:font-semibold after:content-[attr(data-t)]';
 
-export function HeaderMenu({ locale, logo, items, contact, languages, labels }: Props) {
+export function HeaderMenu({ locale, home, routes, logo, items, contact, languages, labels }: Props) {
   const pathname = usePathname();
-  const params = Object.fromEntries(
-    Object.entries(useParams<Record<string, string | string[]>>()).filter(([name]) => name !== 'locale'),
-  );
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [sideOpen, setSideOpen] = useState(false);
@@ -70,7 +68,9 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const sideWasOpen = useRef(false);
 
-  const here = (href: string) => isCurrent(pathname, href);
+  const here = (href: string) => isCurrent(pathname, href, home);
+  // A category link shares its page with the others, and the path alone cannot tell them apart, so none is marked.
+  const isActive = (link: MenuLink) => !link.href.includes('?') && here(link.href);
 
   // The shadow appears after 4 px of scroll; nothing else changes, so the bar never moves the page.
   useEffect(() => {
@@ -272,7 +272,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
                         <Link
                           prefetch={false}
                           href={child.href}
-                          aria-current={here(child.href) ? 'page' : undefined}
+                          aria-current={isActive(child) ? 'page' : undefined}
                           className="flex min-h-touch items-center rounded-md px-3.5 text-[0.9rem] font-medium whitespace-nowrap hover:bg-page hover:text-accent-text focus-visible:bg-page aria-[current=page]:text-accent-text"
                         >
                           {child.label}
@@ -285,7 +285,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
                 <li key={item.label} className="relative flex items-center">
                   <Link
                     prefetch={false}
-                    href={item.href ?? '/'}
+                    href={item.href ?? home}
                     className={linkClass}
                     aria-current={item.href && here(item.href) ? 'page' : undefined}
                   >
@@ -312,8 +312,10 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
               <Link
                 prefetch={false}
                 key={language.locale}
-                href={{ pathname, params } as LanguageHref}
-                locale={language.locale}
+                href={switchHref(pathname, locale, language.locale, routes)}
+                onClick={() => {
+                  if (language.locale !== locale) rememberLocale(language.locale);
+                }}
                 lang={language.locale}
                 hrefLang={language.locale}
                 aria-label={`${language.code}, ${language.name}`}
@@ -395,7 +397,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
                       prefetch={false}
                       key={child.href}
                       href={child.href}
-                      aria-current={here(child.href) ? 'page' : undefined}
+                      aria-current={isActive(child) ? 'page' : undefined}
                       className="flex min-h-touch items-center pl-4 text-[0.9375rem] text-muted hover:text-accent-text aria-[current=page]:font-semibold aria-[current=page]:text-accent-text"
                     >
                       {child.label}
@@ -408,7 +410,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
             <Link
               prefetch={false}
               key={item.label}
-              href={item.href ?? '/'}
+              href={item.href ?? home}
               aria-current={item.href && here(item.href) ? 'page' : undefined}
               className="flex min-h-12.5 items-center border-t border-hairline text-base font-medium hover:text-accent-text aria-[current=page]:font-semibold aria-[current=page]:text-accent-text"
             >

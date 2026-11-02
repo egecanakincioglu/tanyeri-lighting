@@ -1,16 +1,14 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations } from '../../test/axe.ts';
 import { AdminShell } from './shell.tsx';
 
 function renderShell(locale: 'tr' | 'en') {
+  // The shell brings the language provider itself; the public site has none.
   return render(
-    <NextIntlClientProvider locale={locale} messages={{}}>
-      <AdminShell logoLabel="Tanyeri Lighting" backLabel="Back to the site">
-        <h1>Title</h1>
-      </AdminShell>
-    </NextIntlClientProvider>,
+    <AdminShell locale={locale} logoLabel="Tanyeri Lighting" backLabel="Back to the site">
+      <h1>Title</h1>
+    </AdminShell>,
   );
 }
 

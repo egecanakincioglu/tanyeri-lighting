@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
+import { Breadcrumb } from '../../../../../components/breadcrumb.tsx';
 import { Card } from '../../../../../components/card.tsx';
 import { Container } from '../../../../../components/container.tsx';
 import { JsonLd } from '../../../../../components/json-ld.tsx';
@@ -98,23 +99,24 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
     <div className="py-[clamp(1.5rem,4vw,3rem)]">
       <JsonLd
         data={breadcrumbData(locale, [
-          { name: header('home'), href: '/' },
           { name: header('products'), href: '/products' },
           ...(category ? [{ name: category, href: categoryHref(product.categoryKey) }] : []),
           { name, href: { pathname: '/products/[slug]', params: { slug: product.slug } } },
         ])}
       />
       <Container>
-        <Link
-          href={getPathname({ locale, href: category ? categoryHref(product.categoryKey) : '/products' })}
-          prefetch={false}
-          className="group/back mb-2 inline-flex min-h-touch items-center gap-1.5 font-semibold text-accent-text hover:underline hover:underline-offset-4"
-        >
-          <span aria-hidden="true" className="transition-transform duration-200 group-hover/back:-translate-x-0.75">
-            ←
-          </span>
-          {category ? t('backToCategory', { category }) : t('back')}
-        </Link>
+        <div className="mb-2">
+          <Breadcrumb
+            label={t('breadcrumb')}
+            items={[
+              { name: header('products'), href: getPathname({ locale, href: '/products' }) },
+              ...(category
+                ? [{ name: category, href: getPathname({ locale, href: categoryHref(product.categoryKey) }) }]
+                : []),
+              { name },
+            ]}
+          />
+        </div>
 
         <Card>
           <div className="grid gap-x-8 gap-y-5 p-5 md:grid-cols-[15rem_1fr] md:p-8">
@@ -134,7 +136,14 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
             </div>
             <div className="md:col-start-1 md:row-span-3 md:row-start-1">
               <span className="relative mx-auto block aspect-square w-60 max-w-full overflow-hidden rounded-md">
-                <SiteImage src={product.imageUrl} alt={name} fill sizes={IMAGE_SIZES} priority />
+                <SiteImage
+                  src={product.imageUrl}
+                  alt={name}
+                  fill
+                  sizes={IMAGE_SIZES}
+                  loading="eager"
+                  fetchPriority="high"
+                />
               </span>
             </div>
             <div className="md:col-start-2">

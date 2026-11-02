@@ -65,6 +65,7 @@ export const routing = defineRouting({
     '/dashboard/legal-pages/[key]': { tr: '/yonetim/yasal-sayfalar/[key]', en: '/admin/legal-pages/[key]' },
     '/dashboard/seo': { tr: '/yonetim/sayfa-bilgileri', en: '/admin/seo' },
     '/dashboard/seo/[key]': { tr: '/yonetim/sayfa-bilgileri/[key]', en: '/admin/seo/[key]' },
+    '/dashboard/statistics': { tr: '/yonetim/istatistikler', en: '/admin/statistics' },
     '/dashboard/account': { tr: '/yonetim/hesabim', en: '/admin/account' },
   },
 });

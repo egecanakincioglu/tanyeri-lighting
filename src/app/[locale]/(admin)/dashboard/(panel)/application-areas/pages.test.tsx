@@ -7,12 +7,18 @@ import EditApplicationAreaPage from './[id]/page.tsx';
 import NewApplicationAreaPage from './new/page.tsx';
 import ApplicationAreasAdminPage, { generateMetadata } from './page.tsx';
 
-const mocks = vi.hoisted(() => ({ guardPage: vi.fn(), listApplicationAreas: vi.fn(), update: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  guardPage: vi.fn(),
+  listApplicationAreas: vi.fn(),
+  listCategories: vi.fn(),
+  update: vi.fn(),
+}));
 
 vi.mock('../../../../../../server/auth/guard.ts', () => ({ guardPage: mocks.guardPage }));
 vi.mock('../../../../../../server/content/application-areas.ts', () => ({
   listApplicationAreas: mocks.listApplicationAreas,
 }));
+vi.mock('../../../../../../server/content/categories.ts', () => ({ listCategories: mocks.listCategories }));
 vi.mock('../../../../../../server/admin/application-areas-actions.ts', () => ({
   createApplicationAreaAction: vi.fn(),
   updateApplicationAreaAction: mocks.update,
@@ -35,7 +41,31 @@ const area = {
   imageUrl: '/demo/area-konut.webp',
   title: { tr: 'Konut', en: 'Homes' },
   description: { tr: 'Konut açıklaması', en: 'Homes text' },
+  categoryId: null,
+  categoryKey: null,
 };
+
+const none = { tr: '', en: '' };
+const categories = [
+  {
+    id: 'c1',
+    key: 'ray-spot',
+    name: { tr: 'Ray Spot', en: 'Track Spots' },
+    seoTitle: none,
+    seoDescription: none,
+    h1: none,
+    intro: none,
+  },
+  {
+    id: 'c2',
+    key: 'lineer',
+    name: { tr: 'Lineer', en: 'Linear' },
+    seoTitle: none,
+    seoDescription: none,
+    h1: none,
+    intro: none,
+  },
+];
 
 const listProps = (locale: string) =>
   ({ params: Promise.resolve({ locale }) }) as PageProps<'/[locale]/dashboard/application-areas'>;
@@ -57,6 +87,8 @@ describe('application area screens', () => {
     mocks.guardPage.mockResolvedValue({ user: { email: 'admin@example.com' } });
     mocks.listApplicationAreas.mockClear();
     mocks.listApplicationAreas.mockResolvedValue([area, { ...area, id: 'a2', title: { tr: 'Ofis', en: 'Offices' } }]);
+    mocks.listCategories.mockClear();
+    mocks.listCategories.mockResolvedValue(categories);
     mocks.update.mockClear();
     mocks.update.mockResolvedValue({ status: 'success' });
   });
@@ -120,6 +152,59 @@ describe('application area screens', () => {
       mocks.guardPage.mockRejectedValue(new Error('redirect:/en/admin/sign-in'));
       await expect(NewApplicationAreaPage(newProps('en'))).rejects.toThrow('redirect:');
       await expect(NewApplicationAreaPage(newProps('xx'))).rejects.toThrow('not-found');
+    });
+  });
+
+  describe('linked category', () => {
+    const select = () => screen.getByLabelText('Linked category') as HTMLSelectElement;
+    const options = () => [...select().options].map((option) => [option.value, option.textContent]);
+
+    it('offers no link first and then each category in the language of the page', async () => {
+      inIntl('en', await NewApplicationAreaPage(newProps('en')));
+      expect(options()).toEqual([
+        ['', 'No link'],
+        ['c1', 'Track Spots'],
+        ['c2', 'Linear'],
+      ]);
+      expect(select().value).toBe('');
+      expect(screen.getByText(/stays unlinked/)).toBeTruthy();
+      cleanup();
+      inIntl('tr', await NewApplicationAreaPage(newProps('tr')));
+      expect(
+        [...(screen.getByLabelText('Bağlantı kategorisi') as HTMLSelectElement).options].map((o) => o.textContent),
+      ).toEqual(['Bağlantı yok', 'Ray Spot', 'Lineer']);
+    });
+
+    it('selects the stored category and sends the choice on save', async () => {
+      mocks.listApplicationAreas.mockResolvedValue([{ ...area, categoryId: 'c2', categoryKey: 'lineer' }]);
+      inIntl('en', await EditApplicationAreaPage(editProps('en', 'a1')));
+      expect(select().value).toBe('c2');
+      fireEvent.change(select(), { target: { value: 'c1' } });
+      await act(async () => {
+        fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);
+      });
+      expect(Object.fromEntries(mocks.update.mock.calls[0]![1].entries())).toMatchObject({ categoryId: 'c1' });
+    });
+
+    it('keeps the choice and says what is wrong when the server refuses it', async () => {
+      mocks.update.mockResolvedValue({
+        status: 'error',
+        code: 'invalid',
+        fieldErrors: { categoryId: { code: 'invalid' } },
+      });
+      inIntl('en', await EditApplicationAreaPage(editProps('en', 'a1')));
+      fireEvent.change(select(), { target: { value: 'c2' } });
+      await act(async () => {
+        fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);
+      });
+      expect(document.getElementById('categoryId-error')).toBeTruthy();
+      expect(select().value).toBe('c2');
+    });
+
+    it('is turned off in the demo', async () => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      inIntl('en', await EditApplicationAreaPage(editProps('en', 'a1')));
+      expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(true);
     });
   });
 

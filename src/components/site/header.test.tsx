@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../messages/en.json' with { type: 'json' };
 import tr from '../../../messages/tr.json' with { type: 'json' };
+import { optimizedSource } from '../../test/optimized-source.ts';
 import { Header } from './header.tsx';
 
 const navigation = vi.hoisted(() => ({ pathname: '/tr', params: {} as Record<string, string | string[]> }));
@@ -13,10 +14,15 @@ vi.mock('next/navigation', async (importOriginal) => ({
   useParams: () => ({ locale: 'tr', ...navigation.params }),
 }));
 
-function renderHeader(locale: 'tr' | 'en' = 'tr', logoUrl?: string | null) {
+const categories = [
+  { key: 'sarkit', name: 'Sarkıt' },
+  { key: 'ray-spot', name: 'Ray Spot' },
+];
+
+function renderHeader(locale: 'tr' | 'en' = 'tr', logoUrl?: string | null, withCategories = false) {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === 'tr' ? tr : en}>
-      <Header logoUrl={logoUrl} />
+      <Header logoUrl={logoUrl} categories={withCategories ? categories : undefined} />
       <main data-page-region>
         <a href="#x">Page link</a>
       </main>
@@ -37,7 +43,7 @@ describe('Header', () => {
     const { unmount } = renderHeader('tr', '/demo/area-otel.webp');
     const logos = screen.getAllByRole('img', { name: 'Tanyeri Lighting' });
     expect(logos.length).toBeGreaterThan(0);
-    for (const logo of logos) expect(logo.getAttribute('src')).toBe('/demo/area-otel.webp');
+    for (const logo of logos) expect(optimizedSource(logo)).toBe('/demo/area-otel.webp');
     unmount();
     renderHeader('tr', null);
     for (const logo of screen.getAllByRole('img', { name: 'Tanyeri Lighting' })) {
@@ -61,7 +67,7 @@ describe('Header', () => {
     expect(within(nav).getByRole('link', { name: 'Anasayfa' }).getAttribute('href')).toBe('/tr');
     expect(within(nav).getByRole('link', { name: 'Hizmetler' }).getAttribute('href')).toBe('/tr/hizmetler');
     expect(within(nav).getByRole('button', { name: 'Kurumsal' })).toBeTruthy();
-    expect(within(nav).getByRole('link', { name: 'Kategoriler' }).getAttribute('href')).toBe('/tr/urunler');
+    expect(within(nav).getByRole('link', { name: 'Tüm Ürünler' }).getAttribute('href')).toBe('/tr/urunler');
     expect(screen.getAllByRole('link', { name: 'İletişim' })[0]?.getAttribute('href')).toBe('/tr/iletisim');
     expect(screen.getAllByRole('link', { name: 'Tanyeri Lighting, ana sayfa' })).toHaveLength(2);
   });
@@ -78,10 +84,45 @@ describe('Header', () => {
     navigation.pathname = '/tr/urunler';
     renderHeader();
     const nav = screen.getByRole('navigation', { name: 'Menü' });
-    expect(within(nav).getByRole('link', { name: 'Kategoriler' }).getAttribute('aria-current')).toBe('page');
+    expect(within(nav).getByRole('link', { name: 'Tüm Ürünler' }).getAttribute('aria-current')).toBe('page');
     expect(within(nav).getByRole('link', { name: 'Kataloglar' }).getAttribute('aria-current')).toBeNull();
     expect(within(nav).getByRole('button', { name: 'Ürünler' }).hasAttribute('data-current')).toBe(true);
     expect(within(nav).getByRole('link', { name: 'Anasayfa' }).getAttribute('aria-current')).toBeNull();
+  });
+
+  it('lists the categories under Products in the bar and in the side menu, each with its own address', () => {
+    renderHeader('tr', null, true);
+    const side = within(screen.getByRole('dialog', { hidden: true }));
+    for (const scope of [desktopNav(), side]) {
+      expect(scope.getByRole('link', { name: 'Tüm Ürünler', hidden: true }).getAttribute('href')).toBe('/tr/urunler');
+      expect(scope.getByRole('link', { name: 'Sarkıt', hidden: true }).getAttribute('href')).toBe(
+        '/tr/urunler?category=sarkit',
+      );
+      expect(scope.getByRole('link', { name: 'Ray Spot', hidden: true }).getAttribute('href')).toBe(
+        '/tr/urunler?category=ray-spot',
+      );
+    }
+  });
+
+  it('writes the English address of each category', () => {
+    renderHeader('en', null, true);
+    expect(desktopNav().getByRole('link', { name: 'Sarkıt', hidden: true }).getAttribute('href')).toBe(
+      '/en/products?category=sarkit',
+    );
+  });
+
+  it('marks All Products as the current page but none of the categories that share its path', () => {
+    navigation.pathname = '/tr/urunler';
+    renderHeader('tr', null, true);
+    expect(desktopNav().getByRole('link', { name: 'Tüm Ürünler', hidden: true }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+    expect(desktopNav().getByRole('link', { name: 'Sarkıt', hidden: true }).getAttribute('aria-current')).toBeNull();
+  });
+
+  it('lists only the fixed pages under Products when there are no categories', () => {
+    renderHeader('tr');
+    expect(desktopNav().queryByRole('link', { name: 'Sarkıt', hidden: true })).toBeNull();
   });
 
   it('marks the home page only on the exact path', () => {
@@ -109,8 +150,39 @@ describe('Header', () => {
     expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe(
       '/tr/urunler/cerceveli-gomme-spot-7w',
     );
-    expect(desktopNav().getByRole('link', { name: 'Kategoriler' }).getAttribute('aria-current')).toBe('page');
+    expect(desktopNav().getByRole('link', { name: 'Tüm Ürünler' }).getAttribute('aria-current')).toBe('page');
     expect(desktopNav().getByRole('button', { name: 'Ürünler' }).hasAttribute('data-current')).toBe(true);
+  });
+
+  it('keeps the address of a dynamic page in the language links, in both directions', () => {
+    navigation.pathname = '/en/products/ray-spot';
+    renderHeader('en');
+    const group = screen.getByRole('group', { name: 'Language' });
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe('/tr/urunler/ray-spot');
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products/ray-spot');
+  });
+
+  it('writes the language cookie when the other language is chosen, and not for the current one', () => {
+    document.cookie = 'NEXT_LOCALE=;path=/;max-age=0';
+    renderHeader();
+    const group = screen.getByRole('group', { name: 'Dil' });
+    const click = (link: HTMLElement) => {
+      link.addEventListener('click', (event) => event.preventDefault(), { once: true });
+      fireEvent.click(link);
+    };
+    click(within(group).getByRole('link', { name: 'TR, Türkçe' }));
+    expect(document.cookie).not.toContain('NEXT_LOCALE=tr');
+    click(within(group).getByRole('link', { name: 'EN, English' }));
+    expect(document.cookie).toContain('NEXT_LOCALE=en');
+  });
+
+  it('marks the category links as the products page and no category as current', () => {
+    navigation.pathname = '/tr/urunler';
+    renderHeader('tr', undefined, true);
+    const nav = desktopNav();
+    expect(nav.getByRole('link', { name: 'Sarkıt' }).getAttribute('href')).toBe('/tr/urunler?category=sarkit');
+    expect(nav.getByRole('link', { name: 'Sarkıt' }).getAttribute('aria-current')).toBeNull();
+    expect(nav.getByRole('link', { name: 'Tüm Ürünler' }).getAttribute('aria-current')).toBe('page');
   });
 
   it('renders the language links on an unknown address', () => {
@@ -166,7 +238,7 @@ describe('Header', () => {
       const trigger = desktopNav().getByRole('button', { name: 'Ürünler' });
       trigger.focus();
       fireEvent.keyDown(trigger, { key: 'ArrowUp' });
-      const last = desktopNav().getByRole('link', { name: 'Kategoriler' });
+      const last = desktopNav().getByRole('link', { name: 'Tüm Ürünler' });
       expect(document.activeElement).toBe(last);
       fireEvent.keyDown(last, { key: 'Escape' });
       expect(trigger.getAttribute('aria-expanded')).toBe('false');

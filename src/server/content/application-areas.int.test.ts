@@ -8,6 +8,7 @@ import {
   reorderApplicationAreas,
   updateApplicationArea,
 } from './application-areas.ts';
+import { createCategory, deleteCategory } from './categories.ts';
 import { ContentNotFoundError, InvalidOrderError } from './errors.ts';
 
 const pair = (tr: string, en: string) => ({ tr, en });
@@ -17,8 +18,14 @@ function area(name: string) {
     imageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
     title: pair(`${name} TR`, `${name} EN`),
     description: pair('Kısa açıklama.', 'Short description.'),
+    categoryId: null,
   };
 }
+
+const none = pair('', '');
+
+const newCategory = (key: string) =>
+  createCategory({ key, name: pair(key, key), seoTitle: none, seoDescription: none, h1: none, intro: none });
 
 async function titles(): Promise<string[]> {
   return (await listApplicationAreas()).map((item) => item.title.en);
@@ -27,6 +34,8 @@ async function titles(): Promise<string[]> {
 describe('application areas on a real database', () => {
   beforeEach(async () => {
     await getDb().applicationArea.deleteMany();
+    await getDb().product.deleteMany();
+    await getDb().category.deleteMany();
   });
 
   afterEach(() => {
@@ -45,7 +54,7 @@ describe('application areas on a real database', () => {
     const first = await createApplicationArea(area('Hotel'));
     await createApplicationArea(area('Office'));
     await createApplicationArea(area('Shop'));
-    expect(first).toEqual({ id: expect.any(String), ...area('Hotel') });
+    expect(first).toEqual({ id: expect.any(String), ...area('Hotel'), categoryKey: null });
     expect(await titles()).toEqual(['Hotel EN', 'Office EN', 'Shop EN']);
   });
 
@@ -64,8 +73,45 @@ describe('application areas on a real database', () => {
     const second = await createApplicationArea(area('Office'));
     await createApplicationArea(area('Shop'));
     const next = { ...area('Office'), title: pair('Yeni', 'New') };
-    expect(await updateApplicationArea(second.id, next)).toEqual({ id: second.id, ...next });
+    expect(await updateApplicationArea(second.id, next)).toEqual({ id: second.id, ...next, categoryKey: null });
     expect(await titles()).toEqual(['Hotel EN', 'New', 'Shop EN']);
+  });
+
+  it('links an area to a category, reads its key, and unlinks it again', async () => {
+    const lighting = await newCategory('ray-spot');
+    const created = await createApplicationArea({ ...area('Hotel'), categoryId: lighting.id });
+    expect(created).toMatchObject({ categoryId: lighting.id, categoryKey: 'ray-spot' });
+    expect(await listApplicationAreas()).toEqual([created]);
+    const unlinked = await updateApplicationArea(created.id, area('Hotel'));
+    expect(unlinked).toMatchObject({ categoryId: null, categoryKey: null });
+    const relinked = await updateApplicationArea(created.id, { ...area('Hotel'), categoryId: lighting.id });
+    expect(relinked.categoryKey).toBe('ray-spot');
+  });
+
+  it('leaves out the link when the field is omitted', async () => {
+    const { imageUrl, title, description } = area('Hotel');
+    expect(await createApplicationArea({ imageUrl, title, description })).toMatchObject({
+      categoryId: null,
+      categoryKey: null,
+    });
+  });
+
+  it('keeps the area and drops the link when its category is deleted', async () => {
+    const lighting = await newCategory('ray-spot');
+    await createApplicationArea({ ...area('Hotel'), categoryId: lighting.id });
+    await deleteCategory(lighting.id);
+    expect(await listApplicationAreas()).toMatchObject([{ categoryId: null, categoryKey: null }]);
+  });
+
+  it('refuses a category that does not exist, on create and on update', async () => {
+    await expect(createApplicationArea({ ...area('Hotel'), categoryId: 'missing' })).rejects.toThrow(
+      ContentNotFoundError,
+    );
+    const created = await createApplicationArea(area('Hotel'));
+    await expect(updateApplicationArea(created.id, { ...area('Hotel'), categoryId: 'missing' })).rejects.toThrow(
+      ContentNotFoundError,
+    );
+    expect(await listApplicationAreas()).toEqual([created]);
   });
 
   it('deletes an area and keeps the order of the others', async () => {

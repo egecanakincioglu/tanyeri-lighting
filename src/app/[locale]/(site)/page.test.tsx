@@ -10,6 +10,7 @@ import type {
   SiteSettings,
 } from '../../../server/content/schemas.ts';
 import { axeViolations } from '../../../test/axe.ts';
+import { imageLoading } from '../../../test/image-loading.ts';
 import HomePage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({
@@ -75,11 +76,14 @@ const products = [1, 2].map((n) => ({
   dimensions: '10 x 10 cm',
   imageUrl: '/demo/product-gomme-spot.webp',
 })) satisfies Product[];
+// The first area links to a category; the second has none.
 const areas: ApplicationArea[] = [1, 2].map((n) => ({
   id: `area-${n}`,
   imageUrl: '/demo/area-konut.webp',
   title: pair(`Area ${n}`),
   description: pair(`Area text ${n}`),
+  categoryId: n === 1 ? 'category-1' : null,
+  categoryKey: n === 1 ? 'indoor' : null,
 }));
 
 const settings: SiteSettings = {
@@ -146,6 +150,17 @@ describe('HomePage', () => {
     expect(screen.getByText(`Area text 2 ${l}`)).toBeTruthy();
   });
 
+  it.each([
+    ['tr', '/tr/urunler?category=indoor'],
+    ['en', '/en/products?category=indoor'],
+  ])('links a work area to its category and leaves one without a category unlinked in %s', async (locale, href) => {
+    await renderPage(locale);
+    const l = locale.toUpperCase();
+    expect(screen.getByRole('link', { name: `Area 1 ${l}` }).getAttribute('href')).toBe(href);
+    expect(screen.queryByRole('link', { name: `Area 2 ${l}` })).toBeNull();
+    expect(screen.getByRole('heading', { level: 3, name: `Area 2 ${l}` }).querySelector('a')).toBeNull();
+  });
+
   it('keeps the heading order and loads only the banner photo with priority', async () => {
     const { container } = await renderPage('tr');
     const levels = [...container.querySelectorAll('h1, h2, h3')].map((h) => h.tagName);
@@ -153,6 +168,7 @@ describe('HomePage', () => {
     expect(levels.filter((tag) => tag === 'H1')).toHaveLength(1);
     expect(container.querySelector('main')).toBeNull();
     const eager = [...container.querySelectorAll('img')].filter((img) => img.getAttribute('loading') !== 'lazy');
+    expect(imageLoading(container)[0]).toBe('eager/high');
     expect(eager).toHaveLength(1);
     expect(eager[0]?.getAttribute('sizes')).toBe('100vw');
   });

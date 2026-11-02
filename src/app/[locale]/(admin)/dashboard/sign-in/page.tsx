@@ -28,7 +28,7 @@ export default async function SignInPage({ params }: PageProps<'/[locale]/dashbo
   const demoAccount = isDemoMode() ? getDemoAdminCredentials() : undefined;
 
   return (
-    <AdminShell logoLabel={t('logo')} backLabel={t('backToSite')}>
+    <AdminShell locale={locale} logoLabel={t('logo')} backLabel={t('backToSite')}>
       <h1 className="text-2xl font-bold">{t('signInTitle')}</h1>
       <div className="mt-6">
         <SignInForm

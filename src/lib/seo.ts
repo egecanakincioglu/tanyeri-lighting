@@ -3,7 +3,7 @@ import { getPathname } from '../i18n/navigation.ts';
 import { routing } from '../i18n/routing.ts';
 import { getSiteUrl } from '../server/env.ts';
 
-export const SITE_NAME = 'Tanyeri Lighting';
+const SITE_NAME = 'Tanyeri Lighting';
 
 export type Locale = (typeof routing.locales)[number];
 export type PageHref = Parameters<typeof getPathname>[0]['href'];
