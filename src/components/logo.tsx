@@ -12,7 +12,7 @@ type LogoProps = {
 // without being larger than the image audit allows.
 const files = {
   header: { src: '/brand/logo-header.svg', width: 220, height: 44 },
-  full: { src: '/brand/logo.svg', width: 280, height: 68 },
+  full: { src: '/brand/logo.svg', width: 280, height: 71 },
 } as const;
 
 export function Logo({ label, variant = 'header', src: uploaded }: LogoProps) {
