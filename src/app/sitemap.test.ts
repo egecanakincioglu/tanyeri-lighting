@@ -109,7 +109,7 @@ describe('sitemap', () => {
     content.categories.mockResolvedValue([]);
     const urls = (await sitemap()).map((entry) => entry.url);
     expect(urls.some((url) => url.includes('category='))).toBe(false);
-    expect(urls).toHaveLength((PAGE_KEYS.length + 1) * 2);
+    expect(urls).toHaveLength((PAGE_KEYS.length + 2) * 2);
   });
 
   it('fails as a whole when the database fails, never a partial list', async () => {
