@@ -146,6 +146,21 @@ describe('demo content seed on a real database', () => {
     expect(isTranslated(reference.titleTr, reference.titleEn)).toBe(true);
   });
 
+  it('gives each catalog its own file and cover', async () => {
+    const catalogs = await db.catalog.findMany({ orderBy: { sortOrder: 'asc' } });
+    expect(catalogs.map((r) => r.pdfUrl)).toEqual([
+      '/demo/catalog-2026.pdf',
+      '/demo/catalog-dekoratif.pdf',
+      '/demo/catalog-dis-mekan.pdf',
+    ]);
+    expect(catalogs.map((r) => r.coverImageUrl)).toEqual([
+      '/demo/catalog-2026-cover.webp',
+      '/demo/catalog-dekoratif-cover.webp',
+      '/demo/catalog-dis-mekan-cover.webp',
+    ]);
+    expect(new Set(catalogs.map((r) => r.sizeBytes)).size).toBe(3);
+  });
+
   it('features six products, links each promo board to a catalog and keeps products without a price', async () => {
     const featured = await db.featuredProduct.findMany({ include: { product: true } });
     expect(featured).toHaveLength(6);
@@ -164,7 +179,7 @@ describe('demo content seed on a real database', () => {
       ...(await db.service.findMany()).map((r) => r.imageUrl),
       ...(await db.reference.findMany()).map((r) => r.imageUrl),
       ...(await db.project.findMany()).flatMap((r) => [r.beforeImageUrl, r.afterImageUrl]),
-      ...(await db.catalog.findMany()).map((r) => r.pdfUrl),
+      ...(await db.catalog.findMany()).flatMap((r) => [r.pdfUrl, r.coverImageUrl]),
       (await db.homeBanner.findUniqueOrThrow({ where: { id: 'home' } })).imageUrl,
     ]);
     expect(urls.size).toBeGreaterThan(20);
