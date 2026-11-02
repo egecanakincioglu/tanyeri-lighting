@@ -25,6 +25,7 @@
     "products": "Ürünler",
     "catalogs": "Kataloglar",
     "categories": "Kategoriler",
+    "blog": "Blog",
     "contact": "İletişim"
   },
   "Footer": {
@@ -54,6 +55,17 @@
     "next": "Sonraki",
     "empty": "Bu kategoride henüz ürün yok.",
     "pageSuffix": "Sayfa {page}"
+  },
+  "Blog": {
+    "pages": "Sayfalar",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "empty": "Henüz yazı yok.",
+    "pageSuffix": "Sayfa {page}",
+    "published": "Yayın tarihi: {date}",
+    "back": "Tüm yazılar",
+    "more": "Diğer yazılar",
+    "breadcrumb": "Gezinti yolu"
   },
   "Product": {
     "back": "Tüm ürünler",

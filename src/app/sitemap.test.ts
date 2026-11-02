@@ -2,10 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PAGE_KEYS } from '../server/content/schemas.ts';
 import sitemap from './sitemap.ts';
 
-const content = vi.hoisted(() => ({ metadata: vi.fn(), legal: vi.fn(), products: vi.fn() }));
+const content = vi.hoisted(() => ({ metadata: vi.fn(), legal: vi.fn(), products: vi.fn(), posts: vi.fn() }));
 
 vi.mock('../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 vi.mock('../server/content/legal-pages.ts', () => ({ getLegalPage: content.legal }));
+vi.mock('../server/content/blog.ts', () => ({ listPostChanges: content.posts }));
 vi.mock('../server/content/products.ts', () => ({ listProductChanges: content.products }));
 // connection() only works inside a request; opting into dynamic rendering is its whole effect.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
@@ -13,6 +14,7 @@ vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
 const metaDate = new Date('2026-03-01T10:00:00Z');
 const legalDate = new Date('2026-04-01T10:00:00Z');
 const productDate = new Date('2026-05-01T10:00:00Z');
+const postDate = new Date('2026-06-01T10:00:00Z');
 
 describe('sitemap', () => {
   beforeEach(() => {
@@ -20,23 +22,27 @@ describe('sitemap', () => {
     content.metadata.mockResolvedValue(null);
     content.legal.mockResolvedValue({ updatedAt: legalDate });
     content.products.mockResolvedValue([{ slug: 'spot-12w', updatedAt: productDate }]);
+    content.posts.mockResolvedValue([{ slug: 'linear-lighting', updatedAt: postDate }]);
   });
   afterEach(() => {
     vi.unstubAllEnvs();
     content.metadata.mockReset();
     content.legal.mockReset();
     content.products.mockReset();
+    content.posts.mockReset();
   });
 
   it('lists every public page and product in both languages with absolute addresses', async () => {
     const urls = (await sitemap()).map((entry) => entry.url);
-    expect(urls).toHaveLength((PAGE_KEYS.length + 1) * 2);
+    expect(urls).toHaveLength((PAGE_KEYS.length + 2) * 2);
     expect(urls).toContain('https://example.test/tr');
     expect(urls).toContain('https://example.test/en');
     expect(urls).toContain('https://example.test/tr/hakkimizda');
     expect(urls).toContain('https://example.test/en/about');
     expect(urls).toContain('https://example.test/tr/urunler/spot-12w');
     expect(urls).toContain('https://example.test/en/products/spot-12w');
+    expect(urls).toContain('https://example.test/tr/blog/linear-lighting');
+    expect(urls).toContain('https://example.test/en/blog/linear-lighting');
     expect(new Set(urls).size).toBe(urls.length);
   });
 
@@ -55,6 +61,18 @@ describe('sitemap', () => {
     expect(byUrl('https://example.test/tr/urunler/spot-12w')?.lastModified).toEqual(productDate);
     expect(byUrl('https://example.test/tr/gizlilik')?.lastModified).toEqual(legalDate);
     expect(byUrl('https://example.test/en/services')).not.toHaveProperty('lastModified');
+  });
+
+  it('dates an article by its record and the blog list by the newest article', async () => {
+    const entries = await sitemap();
+    const byUrl = (url: string) => entries.find((entry) => entry.url === url);
+    expect(byUrl('https://example.test/en/blog/linear-lighting')?.lastModified).toEqual(postDate);
+    expect(byUrl('https://example.test/tr/blog')?.lastModified).toEqual(postDate);
+    content.posts.mockResolvedValue([]);
+    expect(byUrl('https://example.test/en/blog')).toBeTruthy();
+    expect((await sitemap()).find((entry) => entry.url === 'https://example.test/en/blog')).not.toHaveProperty(
+      'lastModified',
+    );
   });
 
   it('uses the later of a legal page and its page info', async () => {

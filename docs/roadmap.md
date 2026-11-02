@@ -48,6 +48,7 @@ Done:
 
 - Done: fictional demo content and the `pnpm db:seed:demo` command, with demo photos and a catalog under `public/demo`.
 - Done: header and footer, home, about, vision, services, products with tabs and pagination, product page, projects with a before and after slider, references, catalogs with a page-flip viewer, contact form, privacy, terms and a not-found page, in both languages.
+- Done: blog list and article pages, with a Blog screen in the admin panel and eight demo articles.
 - Remaining: SEO (sitemap, canonical addresses, structured data) and visit tracking.
 
 ## Phase 7: admin panel

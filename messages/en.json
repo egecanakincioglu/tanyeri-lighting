@@ -25,6 +25,7 @@
     "products": "Products",
     "catalogs": "Catalogs",
     "categories": "Categories",
+    "blog": "Blog",
     "contact": "Contact"
   },
   "Footer": {
@@ -54,6 +55,17 @@
     "next": "Next",
     "empty": "There are no products in this category yet.",
     "pageSuffix": "Page {page}"
+  },
+  "Blog": {
+    "pages": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "empty": "There are no articles yet.",
+    "pageSuffix": "Page {page}",
+    "published": "Published on {date}",
+    "back": "All articles",
+    "more": "More articles",
+    "breadcrumb": "Breadcrumb"
   },
   "Product": {
     "back": "All products",

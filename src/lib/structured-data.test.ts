@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SiteSettings, SocialLink } from '../server/content/schemas.ts';
 import {
+  articleData,
   breadcrumbData,
   contactPageData,
   organizationData,
@@ -169,6 +170,50 @@ describe('structured data', () => {
           { '@type': 'ListItem', position: 3, name: 'Spot', item: 'https://example.test/tr/urunler/spot' },
         ],
       });
+    });
+  });
+
+  describe('articleData', () => {
+    const facts = {
+      headline: 'Linear lighting <b>',
+      description: 'About lines of light',
+      image: '/demo/post.webp',
+      published: new Date('2026-03-01T00:00:00.000Z'),
+      modified: new Date('2026-04-02T00:00:00.000Z'),
+      href: { pathname: '/blog/[slug]', params: { slug: 'linear' } } as const,
+    };
+
+    it('describes the article with its dates and the organization as author and publisher', () => {
+      expect(articleData(facts, 'en')).toEqual({
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        '@id': 'https://example.test/en/blog/linear#article',
+        mainEntityOfPage: 'https://example.test/en/blog/linear',
+        headline: 'Linear lighting <b>',
+        description: 'About lines of light',
+        image: 'https://example.test/demo/post.webp',
+        datePublished: '2026-03-01T00:00:00.000Z',
+        dateModified: '2026-04-02T00:00:00.000Z',
+        inLanguage: 'en',
+        author: { '@id': 'https://example.test/#organization' },
+        publisher: { '@id': 'https://example.test/#organization' },
+      });
+    });
+
+    it('never dates the change before the publication', () => {
+      const early = { ...facts, modified: new Date('2026-01-01T00:00:00.000Z') };
+      expect(articleData(early, 'tr').dateModified).toBe('2026-03-01T00:00:00.000Z');
+    });
+
+    it('keeps an uploaded picture address as it is', () => {
+      const stored = { ...facts, image: 'https://abc.public.blob.vercel-storage.com/x.webp' };
+      expect(articleData(stored, 'en').image).toBe(stored.image);
+    });
+
+    it('escapes a closing script tag in the title when serialized', () => {
+      const text = serializeJsonLd(articleData({ ...facts, headline: '</script><script>x()</script>' }, 'en'));
+      expect(text).not.toContain('<');
+      expect(JSON.parse(text).headline).toBe('</script><script>x()</script>');
     });
   });
 

@@ -71,6 +71,7 @@ describe('Header', () => {
     const nav = screen.getByRole('navigation', { name: 'Menu' });
     expect(within(nav).getByRole('link', { name: 'Home' }).getAttribute('href')).toBe('/en');
     expect(within(nav).getByRole('link', { name: 'Catalogs' }).getAttribute('href')).toBe('/en/catalogs');
+    expect(within(nav).getByRole('link', { name: 'Blog' }).getAttribute('href')).toBe('/en/blog');
   });
 
   it('marks the current page and its menu', () => {
