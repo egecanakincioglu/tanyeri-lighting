@@ -28,3 +28,34 @@ export function changeEmailEmail(to: string, link: string): EmailMessage {
     ].join('\n'),
   };
 }
+
+// Sent to the current address first: only its owner can let the change go on to the new address. Turkish first, then
+// English.
+export function changeEmailApprovalEmail(to: string, newEmail: string, link: string): EmailMessage {
+  return {
+    to,
+    subject: 'E-posta değişikliği onayı / Approve the email change',
+    text: [
+      `Tanyeri yönetim paneli için giriş e-postasının ${newEmail} adresine değiştirilmesi istendi.`,
+      'İsteği siz yaptıysanız onaylamak için bağlantıyı açın (bağlantı bir saat geçerlidir).',
+      'Ardından yeni adrese ikinci bir bağlantı gönderilir:',
+      '',
+      link,
+      '',
+      'Bu isteği siz yapmadıysanız bağlantıyı açmayın; adres değişmez.',
+      'Hesabınızın başkasının eline geçtiğini düşünüyorsanız parolanızı değiştirin.',
+      '',
+      '---',
+      '',
+      `A change of the sign-in email of the Tanyeri admin panel to ${newEmail} was requested.`,
+      'If this was you, open the link to approve it (the link is valid for one hour).',
+      'A second link is then sent to the new address:',
+      '',
+      link,
+      '',
+      'If you did not make this request, do not open the link; the address will not change.',
+      'If you think someone else has access to your account, change your password.',
+      '',
+    ].join('\n'),
+  };
+}

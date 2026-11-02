@@ -1,6 +1,6 @@
 import { hashPassword } from 'better-auth/crypto';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { POST } from '../../app/api/auth/[...all]/route.ts';
+import { handle } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { isDemoMode } from '../env.ts';
@@ -23,7 +23,7 @@ const PASSWORD = 'correct horse battery staple';
 let nextAddress = 1;
 
 async function signInCookie(): Promise<string> {
-  const response = await POST(
+  const response = await handle(
     new Request(`${TEST_AUTH_URL}/api/auth/sign-in/email`, {
       method: 'POST',
       headers: {
@@ -153,7 +153,7 @@ describe('the admin guard on a real database', () => {
       vi.mocked(isDemoMode).mockReturnValue(false);
       const cookie = await signInCookie();
       const update = (body: object) =>
-        POST(
+        handle(
           new Request(`${TEST_AUTH_URL}/api/auth/update-user`, {
             method: 'POST',
             headers: { 'content-type': 'application/json', origin: TEST_AUTH_URL, cookie },
