@@ -35,7 +35,6 @@ Planned:
 - Public pages: home, products with categories and product pages, catalogs, services, projects with a before and after comparison, references, about, contact, privacy and terms.
 - Admin panel: content and product management, contact messages, visit statistics.
 - Demo mode: a read-only demo in which all content writes are refused.
-- An optional Google Ads module.
 - SEO and structured data, and an accessibility and performance review.
 
 ## Tech stack
