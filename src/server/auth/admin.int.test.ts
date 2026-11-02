@@ -56,6 +56,15 @@ describe('upsertDemoAdmin', () => {
     expect(await getDb().user.count()).toBe(1);
     expect((await signIn(EMAIL, NEW_PASSWORD)).status).toBe(200);
     expect((await signIn(EMAIL, PASSWORD)).status).not.toBe(200);
+    expect((await getDb().user.findUniqueOrThrow({ where: { email: EMAIL } })).isDemo).toBe(true);
+  });
+
+  it('marks an existing account that predates the column', async () => {
+    await createFirstAdmin(getDb(), { email: EMAIL, password: PASSWORD });
+    expect((await getDb().user.findUniqueOrThrow({ where: { email: EMAIL } })).isDemo).toBe(false);
+
+    expect(await upsertDemoAdmin(getDb(), { email: EMAIL, password: PASSWORD })).toBe('updated');
+    expect((await getDb().user.findUniqueOrThrow({ where: { email: EMAIL } })).isDemo).toBe(true);
   });
 });
 
@@ -77,6 +86,7 @@ describe('createFirstAdmin', () => {
     expect(account?.accountId).toBe(user.id);
     expect(account?.password).not.toBeNull();
     expect(account?.password).not.toContain(PASSWORD);
+    expect(user.isDemo).toBe(false);
     expect(await verifyPassword({ hash: account?.password ?? '', password: PASSWORD })).toBe(true);
   });
 

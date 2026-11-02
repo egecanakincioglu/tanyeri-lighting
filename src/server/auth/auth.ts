@@ -44,7 +44,10 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: 
     // The admin changes the sign-in address from the account screen, in two steps: the current address approves, then
     // the new address gets a link and only that link applies the change, so neither a typo nor a stolen session can
     // move the account. Without email there is no link: the change is off.
+    // `isDemo` marks the published demo account (see currentSession). `input: false` keeps every endpoint, including
+    // update-user, from setting it.
     user: {
+      additionalFields: { isDemo: { type: 'boolean', required: false, defaultValue: false, input: false } },
       changeEmail: {
         enabled: emailEnabled,
         ...(emailEnabled && {
