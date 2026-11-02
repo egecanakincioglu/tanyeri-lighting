@@ -9,13 +9,18 @@ import { SectionTitle } from '../../../../components/section-title.tsx';
 import { PROSE } from '../../../../components/site/prose.ts';
 import { routing } from '../../../../i18n/routing.ts';
 import { getAboutPage } from '../../../../server/content/about-page.ts';
+import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 
-// The vision text is stored with the about page and has no metadata entry of its own.
+// The vision text is stored with the about page; the description is the page's own entry in the page info.
 export async function generateMetadata({ params }: PageProps<'/[locale]/vision'>): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
-  const t = await getTranslations({ locale, namespace: 'Header' });
-  return { title: t('vision') };
+  const [t, metadata] = await Promise.all([
+    getTranslations({ locale, namespace: 'Header' }),
+    getPageMetadata('vision'),
+  ]);
+  const description = metadata?.description[locale];
+  return description ? { title: t('vision'), description } : { title: t('vision') };
 }
 
 export default async function VisionPage({ params }: PageProps<'/[locale]/vision'>) {

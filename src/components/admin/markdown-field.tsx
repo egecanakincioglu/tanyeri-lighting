@@ -22,6 +22,8 @@ type Props = {
   defaultValue?: string;
   maxLength?: number;
   lang?: string;
+  /** Defaults to true. */
+  required?: boolean;
   error?: string | undefined;
   texts: MarkdownFieldTexts;
 };
@@ -30,7 +32,17 @@ const tabClass =
   'min-h-touch rounded-md border border-hairline px-4 text-sm font-semibold aria-pressed:border-accent aria-pressed:bg-accent-tint aria-pressed:text-accent-text';
 
 /** A text area for limited Markdown with a hint of the syntax and a preview toggle. */
-export function MarkdownField({ id, name, label, defaultValue = '', maxLength, lang, error, texts }: Props) {
+export function MarkdownField({
+  id,
+  name,
+  label,
+  defaultValue = '',
+  maxLength,
+  lang,
+  required = true,
+  error,
+  texts,
+}: Props) {
   const [value, setValue] = useState(defaultValue);
   const [previewing, setPreviewing] = useState(false);
 
@@ -53,7 +65,7 @@ export function MarkdownField({ id, name, label, defaultValue = '', maxLength, l
           value={value}
           maxLength={maxLength}
           lang={lang}
-          required
+          required={required}
           error={error}
           onChange={(event) => setValue(event.target.value)}
         />

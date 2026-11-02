@@ -16,6 +16,7 @@ const PAGE_ROUTES = {
   projects: '/projects',
   references: '/references',
   about: '/about',
+  vision: '/vision',
   contact: '/contact',
   privacy: '/privacy',
   terms: '/terms',

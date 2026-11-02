@@ -94,3 +94,42 @@ describe('password reset email', () => {
     expect(sent.text).toContain('https://tanyeri.example.com/tr/dashboard/reset-password?token=abc123');
   });
 });
+
+describe('changing the sign-in email', () => {
+  afterEach(() => {
+    setEmailTransport(undefined);
+    setEmailScheduler(undefined);
+  });
+
+  it('is off while email is off, because there is no link to send', () => {
+    const options = buildAuthOptions(settings);
+    expect(options.user.changeEmail.enabled).toBe(false);
+    expect(options).not.toHaveProperty('emailVerification');
+  });
+
+  it('is on with email, with a one hour link sent to the new address after the response', async () => {
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+    vi.stubEnv('SMTP_HOST', 'smtp.example.com');
+    vi.stubEnv('SMTP_PORT', '587');
+    vi.stubEnv('SMTP_USER', 'mailer');
+    vi.stubEnv('SMTP_PASSWORD', 'mailer-password');
+    vi.stubEnv('SMTP_FROM', 'Tanyeri <no-reply@example.com>');
+
+    const options = buildAuthOptions({ ...settings, emailEnabled: true });
+    expect(options.user.changeEmail.enabled).toBe(true);
+    expect(options.emailVerification!.expiresIn).toBe(3600);
+    await options.emailVerification!.sendVerificationEmail({
+      user: { email: 'new@example.com' },
+      url: 'https://tanyeri.example.com/api/auth/verify-email?token=abc',
+    });
+    expect(sendMail).not.toHaveBeenCalled();
+    await tasks[0]!();
+    expect(sendMail.mock.calls[0]![0]).toMatchObject({ to: 'new@example.com' });
+    expect(sendMail.mock.calls[0]![0].text).toContain('verify-email?token=abc');
+    vi.unstubAllEnvs();
+  });
+});

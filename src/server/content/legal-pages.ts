@@ -14,6 +14,13 @@ export async function getLegalPage(key: LegalPageKey): Promise<LegalPage | null>
   return row ? fromRow(row) : null;
 }
 
+// A legal page without a row is hidden: the public page answers 404 and the footer has no link.
+export async function deleteLegalPage(key: unknown): Promise<void> {
+  assertWritable();
+  const pageKey = legalPageKeySchema.parse(key);
+  await getDb().legalPage.deleteMany({ where: { pageKey } });
+}
+
 export async function upsertLegalPage(key: unknown, input: unknown): Promise<LegalPage> {
   assertWritable();
   const pageKey = legalPageKeySchema.parse(key);

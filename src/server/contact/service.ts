@@ -36,6 +36,10 @@ export async function listMessages({
   return { items, nextCursor: rows.length > limit ? (items.at(-1)?.id ?? null) : null };
 }
 
+export async function getMessage(id: string): Promise<ContactMessage | null> {
+  return getDb().contactMessage.findUnique({ where: { id } });
+}
+
 // Keeps the first read time and does nothing for an unknown id.
 export async function markMessageRead(id: string): Promise<void> {
   assertWritable();

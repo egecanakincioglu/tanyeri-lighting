@@ -91,6 +91,13 @@ const pageMetadata: Record<PageKey, ReturnType<typeof pair>[]> = {
       'The story, approach and vision of the Tanyeri Lighting demo company.',
     ),
   ],
+  vision: [
+    pair('Vizyonumuz', 'Our vision'),
+    pair(
+      'Tanyeri Lighting demo şirketinin aydınlatma alanındaki hedefleri ve ilkeleri.',
+      'The goals and principles of the Tanyeri Lighting demo company in lighting.',
+    ),
+  ],
   contact: [
     pair('İletişim', 'Contact'),
     pair(
