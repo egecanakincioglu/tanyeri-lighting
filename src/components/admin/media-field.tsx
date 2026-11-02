@@ -33,6 +33,8 @@ type Props = {
   maxBytes: number;
   /** Set when uploads are off (no file store, or the demo): the reason, shown instead of the choose button's action. */
   disabledReason?: string | undefined;
+  /** Shows the picture as an A4 portrait page instead of a landscape photo. */
+  portrait?: boolean;
   /** Already translated message of the form's own validation. */
   error?: string | undefined;
 };
@@ -46,7 +48,19 @@ const ACCEPT: Record<Kind, string> = {
 
 // The server checks size and real type again; this only spares the visitor a round trip.
 function MediaField({ kind, ...props }: Props & { kind: Kind }) {
-  const { id, name, label, defaultValue = '', upload, texts, errors, maxBytes, disabledReason, error } = props;
+  const {
+    id,
+    name,
+    label,
+    defaultValue = '',
+    upload,
+    texts,
+    errors,
+    maxBytes,
+    disabledReason,
+    error,
+    portrait,
+  } = props;
   const [url, setUrl] = useState(defaultValue);
   const [problem, setProblem] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
@@ -84,8 +98,10 @@ function MediaField({ kind, ...props }: Props & { kind: Kind }) {
       </span>
       <input type="hidden" name={name} value={url} />
       {kind === 'image' && url && (
-        <div className="relative aspect-4/3 w-48 overflow-hidden rounded-md border border-hairline bg-page">
-          <SiteImage src={url} alt="" fill sizes="192px" />
+        <div
+          className={`relative overflow-hidden rounded-md border border-hairline bg-page ${portrait ? 'aspect-[210/297] w-36' : 'aspect-4/3 w-48'}`}
+        >
+          <SiteImage src={url} alt="" fill sizes={portrait ? '144px' : '192px'} />
         </div>
       )}
       {kind === 'file' && (

@@ -62,16 +62,26 @@ describe('runAction', () => {
     [new UnauthorizedError(), 'unauthorized'],
     [new ContentNotFoundError('Reference'), 'notFound'],
     [new InvalidOrderError(), 'invalidOrder'],
-    [new ValueTakenError('slug'), 'taken'],
-    [new CategoryLimitError(8), 'conflict'],
-    [new CategoryNotEmptyError(), 'conflict'],
-    [new CatalogInUseError(), 'conflict'],
+    [new CategoryLimitError(8), 'categoryLimit'],
+    [new CategoryNotEmptyError(), 'categoryNotEmpty'],
+    [new CatalogInUseError(), 'catalogInUse'],
     [new StorageDisabledError(), 'storageOff'],
     [new UploadRejectedError('too-large', 'x'), 'tooLarge'],
     [new UploadRejectedError('unsupported-type', 'x'), 'unsupportedType'],
     [new UploadRejectedError('unreadable-image', 'x'), 'unreadableImage'],
   ])('maps %s to the code %s', async (error, code) => {
     expect(await runAction(() => Promise.reject(error))).toEqual({ status: 'error', code, fieldErrors: {} });
+  });
+
+  it('marks the field that collided when a unique value is taken', async () => {
+    expect(await runAction(() => Promise.reject(new ValueTakenError('slug')))).toEqual({
+      status: 'error',
+      code: 'taken',
+      fieldErrors: { slug: { code: 'taken' } },
+    });
+    expect(await runAction(() => Promise.reject(new ValueTakenError('code')))).toMatchObject({
+      fieldErrors: { code: { code: 'taken' } },
+    });
   });
 
   it('answers any other error with a generic code and logs the real one on the server', async () => {

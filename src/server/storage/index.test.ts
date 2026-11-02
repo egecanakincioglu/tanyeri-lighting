@@ -9,6 +9,7 @@ import {
   MAX_UPLOAD_BYTES,
   StorageDisabledError,
   StorageRequestError,
+  storedFileSize,
   UploadRejectedError,
   uploadFile,
 } from './index.ts';
@@ -90,6 +91,19 @@ describe('with a token', () => {
     expect((error as Error).cause).toBeInstanceOf(Error);
   });
 
+  it('reports the size the store holds for an uploaded file', async () => {
+    const pdf = new TextEncoder().encode('%PDF-1.4\nbody\n%%EOF');
+    const stored = await uploadFile(new Blob([pdf]));
+    expect(await storedFileSize(stored.url)).toBe(pdf.byteLength);
+  });
+
+  it('wraps a failed size lookup', async () => {
+    const error = await storedFileSize('https://store.public.blob.vercel-storage.com/none.pdf').catch(
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(StorageRequestError);
+  });
+
   it('deletes by URL', async () => {
     const url = 'https://store.public.blob.vercel-storage.com/a.webp';
     await deleteFile(url);
@@ -119,6 +133,13 @@ describe('without a token', () => {
 
   it('refuses to upload with a typed error and sends nothing', async () => {
     await expect(uploadFile(new Blob(['%PDF-1.4']))).rejects.toBeInstanceOf(StorageDisabledError);
+    expect(server.requests).toHaveLength(0);
+  });
+
+  it('refuses to look up a size with a typed error and sends nothing', async () => {
+    await expect(storedFileSize('https://store.public.blob.vercel-storage.com/a.pdf')).rejects.toBeInstanceOf(
+      StorageDisabledError,
+    );
     expect(server.requests).toHaveLength(0);
   });
 

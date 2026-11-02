@@ -133,7 +133,7 @@ describe('demo content seed on a real database', () => {
     ).toBe(true);
     expect(banner.primaryTarget).not.toBe(banner.secondaryTarget);
     const board = await db.promoBoard.findFirstOrThrow();
-    expect(isTranslated(board.titleTr, board.titleEn)).toBe(true);
+    expect(isTranslated(board.titleTr, board.titleEn) && isTranslated(board.subtitleTr, board.subtitleEn)).toBe(true);
     const area = await db.applicationArea.findFirstOrThrow();
     expect(isTranslated(area.titleTr, area.titleEn) && isTranslated(area.descriptionTr, area.descriptionEn)).toBe(true);
     const service = await db.service.findFirstOrThrow({ orderBy: { sortOrder: 'asc' } });

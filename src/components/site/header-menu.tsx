@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ComponentProps, type KeyboardEvent, type ReactNode } from 'react';
+import { useParams } from 'next/navigation';
 import { Link, usePathname } from '../../i18n/navigation.ts';
 import type { StaticPath, routing } from '../../i18n/routing.ts';
 import { CONTAINER } from './container.ts';
@@ -8,6 +9,7 @@ import { CONTAINER } from './container.ts';
 type MenuLink = { label: string; href: StaticPath };
 export type MenuItem = { label: string; href?: StaticPath; children?: MenuLink[] };
 
+type LanguageHref = ComponentProps<typeof Link>['href'];
 type Locale = (typeof routing.locales)[number];
 
 type Props = {
@@ -50,6 +52,9 @@ const labelClass =
 
 export function HeaderMenu({ locale, logo, items, contact, languages, labels }: Props) {
   const pathname = usePathname();
+  const params = Object.fromEntries(
+    Object.entries(useParams<Record<string, string | string[]>>()).filter(([name]) => name !== 'locale'),
+  );
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [sideOpen, setSideOpen] = useState(false);
@@ -307,7 +312,7 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
               <Link
                 prefetch={false}
                 key={language.locale}
-                href={pathname as StaticPath}
+                href={{ pathname, params } as LanguageHref}
                 locale={language.locale}
                 lang={language.locale}
                 hrefLang={language.locale}

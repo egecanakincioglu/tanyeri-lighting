@@ -1,0 +1,220 @@
+'use client';
+
+import { useActionState, useState, startTransition, type FormEvent } from 'react';
+import type { FormState } from '../../../server/admin/form.ts';
+import { Link } from '../../../i18n/navigation.ts';
+import { slugify } from '../../../lib/slugify.ts';
+import { TextField } from '../../field.tsx';
+import { BilingualField } from '../bilingual-field.tsx';
+import { FormStatus } from '../form-status.tsx';
+import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { SelectField } from '../select-field.tsx';
+import { SubmitButton } from '../submit-button.tsx';
+import { fieldMessage, type FormTexts } from '../texts.ts';
+
+type Pair = { tr: string; en: string };
+
+type ProductFormTexts = {
+  image: string;
+  category: string;
+  slug: string;
+  slugHint: string;
+  /** Said on the edit page only: a changed address keeps the old one working. */
+  slugRedirectHint: string;
+  code: string;
+  name: string;
+  color: string;
+  material: string;
+  power: string;
+  dimensions: string;
+  cancel: string;
+};
+
+type Action = (previous: FormState | null, formData: FormData) => Promise<FormState>;
+
+type Props = {
+  action: Action;
+  upload: Action;
+  locale: string;
+  categories: readonly { value: string; label: string }[];
+  /** Set when editing. */
+  initial?: {
+    id: string;
+    categoryId: string;
+    slug: string;
+    code: string;
+    name: Pair;
+    color: Pair;
+    material: Pair;
+    power: string;
+    dimensions: string;
+    imageUrl: string;
+  };
+  texts: ProductFormTexts;
+  formTexts: FormTexts;
+  mediaTexts: MediaTexts;
+  maxBytes: number;
+  /** The demo's reason for a read-only form, or why uploads are off. */
+  readOnlyReason?: string | undefined;
+  uploadDisabledReason?: string | undefined;
+};
+
+// The limits of productSchema in src/server/content/schemas.ts, which stays the authority.
+const LIMITS = { slug: 80, code: 60, name: 120, color: 60, material: 100, power: 40, dimensions: 60 };
+
+export function ProductForm({
+  action,
+  upload,
+  locale,
+  categories,
+  initial,
+  texts,
+  formTexts,
+  mediaTexts,
+  maxBytes,
+  readOnlyReason,
+  uploadDisabledReason,
+}: Props) {
+  const [state, formAction, pending] = useActionState(action, null);
+  const [slug, setSlug] = useState(initial?.slug ?? '');
+  // A new product's address follows the Turkish name until it is edited by hand; a stored address is never rewritten.
+  const [slugEdited, setSlugEdited] = useState(Boolean(initial));
+  const errors = state?.status === 'error' ? state.fieldErrors : {};
+  const message = (field: string) => fieldMessage(formTexts, errors[field]);
+
+  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => formAction(data));
+  }
+
+  function onInput(event: FormEvent<HTMLFormElement>) {
+    const target = event.target as HTMLInputElement;
+    if (!slugEdited && target.name === 'name.tr') setSlug(slugify(target.value).slice(0, LIMITS.slug));
+  }
+
+  const slugHint = initial ? `${texts.slugHint} ${texts.slugRedirectHint}` : texts.slugHint;
+
+  return (
+    <form onSubmit={onSubmit} onInput={onInput} className="flex flex-col gap-6" noValidate>
+      <input type="hidden" name="locale" value={locale} />
+      {initial && <input type="hidden" name="id" value={initial.id} />}
+      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+        <ImageField
+          id="imageUrl"
+          name="imageUrl"
+          label={texts.image}
+          defaultValue={initial?.imageUrl ?? ''}
+          upload={upload}
+          texts={mediaTexts}
+          errors={formTexts.errors}
+          maxBytes={maxBytes}
+          disabledReason={readOnlyReason ?? uploadDisabledReason}
+          error={message('imageUrl')}
+        />
+        <SelectField
+          id="categoryId"
+          name="categoryId"
+          label={texts.category}
+          options={categories}
+          defaultValue={initial?.categoryId ?? categories[0]?.value}
+          error={message('categoryId')}
+        />
+        <BilingualField
+          name="name"
+          label={texts.name}
+          languages={formTexts.languages}
+          defaultValue={initial?.name}
+          maxLength={LIMITS.name}
+          errors={{ tr: message('name.tr'), en: message('name.en') }}
+        />
+        <div className="grid gap-6 md:grid-cols-2">
+          <TextField
+            id="code"
+            name="code"
+            label={texts.code}
+            defaultValue={initial?.code ?? ''}
+            maxLength={LIMITS.code}
+            required
+            error={message('code')}
+          />
+          <div className="flex flex-col gap-2">
+            <TextField
+              id="slug"
+              name="slug"
+              label={texts.slug}
+              value={slug}
+              onChange={(event) => {
+                setSlug(event.target.value);
+                setSlugEdited(true);
+              }}
+              maxLength={LIMITS.slug}
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              error={message('slug')}
+              aria-describedby={message('slug') ? 'slug-error slug-hint' : 'slug-hint'}
+            />
+            <p id="slug-hint" className="text-sm text-muted">
+              {slugHint}
+            </p>
+          </div>
+        </div>
+        <BilingualField
+          name="color"
+          label={texts.color}
+          languages={formTexts.languages}
+          defaultValue={initial?.color}
+          maxLength={LIMITS.color}
+          errors={{ tr: message('color.tr'), en: message('color.en') }}
+        />
+        <BilingualField
+          name="material"
+          label={texts.material}
+          languages={formTexts.languages}
+          defaultValue={initial?.material}
+          maxLength={LIMITS.material}
+          errors={{ tr: message('material.tr'), en: message('material.en') }}
+        />
+        <div className="grid gap-6 md:grid-cols-2">
+          <TextField
+            id="power"
+            name="power"
+            label={texts.power}
+            defaultValue={initial?.power ?? ''}
+            maxLength={LIMITS.power}
+            required
+            error={message('power')}
+          />
+          <TextField
+            id="dimensions"
+            name="dimensions"
+            label={texts.dimensions}
+            defaultValue={initial?.dimensions ?? ''}
+            maxLength={LIMITS.dimensions}
+            required
+            error={message('dimensions')}
+          />
+        </div>
+      </div>
+      <FormStatus state={state} texts={formTexts} />
+      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
+      <div className="flex flex-wrap gap-3">
+        <SubmitButton
+          label={formTexts.save}
+          pendingLabel={formTexts.saving}
+          pending={pending}
+          disabled={Boolean(readOnlyReason)}
+        />
+        <Link
+          prefetch={false}
+          href="/dashboard/products"
+          className="inline-flex min-h-touch items-center justify-center rounded-md border border-hairline bg-surface px-5 text-[0.9375rem] font-semibold hover:border-accent hover:text-accent-text"
+        >
+          {texts.cancel}
+        </Link>
+      </div>
+    </form>
+  );
+}

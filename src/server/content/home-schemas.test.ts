@@ -93,6 +93,12 @@ describe('featuredProductIdsSchema', () => {
     expect(featuredProductIdsSchema.parse([])).toEqual([]);
   });
 
+  it('holds at most six ids', () => {
+    const ids = ['a', 'b', 'c', 'd', 'e', 'f'];
+    expect(featuredProductIdsSchema.safeParse(ids).success).toBe(true);
+    expect(featuredProductIdsSchema.safeParse([...ids, 'g']).success).toBe(false);
+  });
+
   it('rejects a repeated id', () => {
     expect(featuredProductIdsSchema.safeParse(['a', 'b', 'a']).success).toBe(false);
   });
@@ -107,7 +113,20 @@ describe('featuredProductIdsSchema', () => {
 });
 
 describe('promoBoardSchema', () => {
-  const valid = { imageUrl: IMAGE, title: pair('Yeni katalog', 'New catalog'), catalogId: 'catalog-1' };
+  const valid = {
+    imageUrl: IMAGE,
+    title: pair('Yeni katalog', 'New catalog'),
+    subtitle: pair('Kısa satır', 'Short line'),
+    catalogId: 'catalog-1',
+  };
+
+  it('takes a subtitle in both languages or in neither, up to 120 characters', () => {
+    expect(promoBoardSchema.parse({ ...valid, subtitle: pair('', '') }).subtitle).toEqual(pair('', ''));
+    for (const subtitle of [pair('Kısa', ''), pair('', 'Short'), pair('a'.repeat(121), 'b'), undefined]) {
+      expect(promoBoardSchema.safeParse({ ...valid, subtitle }).success).toBe(false);
+    }
+    expect(promoBoardSchema.safeParse({ ...valid, subtitle: pair('a'.repeat(120), 'b') }).success).toBe(true);
+  });
 
   it('accepts a board and trims the title', () => {
     expect(promoBoardSchema.parse(valid)).toEqual(valid);

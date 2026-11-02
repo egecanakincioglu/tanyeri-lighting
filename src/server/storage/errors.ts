@@ -20,7 +20,7 @@ export class UploadRejectedError extends Error {
 
 // The storage service failed or refused the request. Keeps the vendor error out of callers' types.
 export class StorageRequestError extends Error {
-  constructor(operation: 'upload' | 'delete', cause: unknown) {
+  constructor(operation: 'upload' | 'delete' | 'lookup', cause: unknown) {
     super(`File storage ${operation} failed`, { cause });
     this.name = 'StorageRequestError';
   }

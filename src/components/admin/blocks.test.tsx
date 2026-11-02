@@ -105,6 +105,14 @@ describe('BilingualField', () => {
     expect((tr as HTMLTextAreaElement).value).toBe('');
   });
 
+  it('requires both inputs unless the field is optional', () => {
+    const { rerender } = render(<BilingualField name="title" label="Title" languages={languages} />);
+    expect((screen.getByLabelText('Türkçe') as HTMLInputElement).required).toBe(true);
+    rerender(<BilingualField name="title" label="Title" languages={languages} optional />);
+    expect((screen.getByLabelText('Türkçe') as HTMLInputElement).required).toBe(false);
+    expect((screen.getByLabelText('English') as HTMLInputElement).required).toBe(false);
+  });
+
   it('shows the error of one language next to its input only', () => {
     render(
       <BilingualField name="title" label="Title" languages={languages} errors={{ en: 'This field is required.' }} />,
@@ -128,11 +136,12 @@ describe('texts', () => {
     const texts = buildFormTexts(t);
     expect(texts.save).toBe('Save');
     expect(texts.languages).toEqual({ tr: 'Turkish', en: 'English' });
-    expect(Object.keys(texts.errors)).toHaveLength(12);
+    expect(Object.keys(texts.errors)).toHaveLength(14);
     expect(Object.values(texts.errors).every(Boolean)).toBe(true);
     expect(fieldMessage(texts, { code: 'required' })).toBe('This field is required.');
     expect(fieldMessage(texts, { code: 'tooLong', max: 100 })).toBe('At most 100 characters.');
     expect(fieldMessage(texts, { code: 'invalid' })).toBeTruthy();
+    expect(fieldMessage(texts, { code: 'taken' })).toBe('This value is used by another item.');
     expect(fieldMessage(texts, undefined)).toBeUndefined();
   });
 

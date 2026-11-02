@@ -148,6 +148,10 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The messages screen lists newest first at 50 per page; opening a message marks it read. Legal pages use Markdown with a preview, and empty text hides the page and its footer link. Page information covers every page key, with recommended lengths of 60 and 155 characters.
 - The account screen changes the password, which ends other sessions, and the sign-in address, which sends a one-hour link to the new address and needs SMTP. Both are disabled in demo mode.
 - `discardReplacedFile` in `src/server/admin/files.ts` deletes a replaced file only when it is on the file store host.
+- The products screen searches by name or code, filters by category and shows 24 per page; arrows appear only when one category is shown with an empty search. The slug is filled in from the Turkish name, and changing it keeps the old address as a redirect. Conflicts on slug, code or key show on their own fields.
+- The categories screen shows the limit of eight. The catalogs screen takes a PDF up to 4 MB and a cover; the size comes from the file store, not the form, and the delete dialog names the promo boards that use the catalog.
+- The home page screens edit the banner, up to six featured products as one ordered list, promo boards with an optional subtitle in both languages, and the work areas.
+- The services screen edits an image, a title, a Markdown description and an optional note in both languages. The projects screen edits a title, a Markdown description and before and after pictures. Both reorder with arrows and are read-only in demo mode.
 - Company Settings saves the site name, logo, languages, contact details and service area; the header, footer and contact page read them on every request. Social links are managed on the same screen. The About and Vision screen edits limited Markdown per language with a preview.
 - In demo mode a read-only demo account (`DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD`) is created by the demo seed and shown on the sign-in page. Save, delete, reorder and upload controls are disabled and the server refuses writes.
 - Uploads go through `uploadMediaAction` with a limit of 4 MB; `next.config.ts` allows the file store's image host.
@@ -206,7 +210,6 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
 - Admin screens are listed in `ADMIN_PAGES` and get status, axe, overflow and console checks only. Lighthouse and its thresholds apply to public pages.
 - `SIGN_IN_PAGES` holds the public sign-in pages. The audit signs in once through the real form before visiting `ADMIN_PAGES`.
-- The catalogs page lists each catalog with its size, a view link and a download link.
 - The catalogs page is a grid of cover cards (1 column, 2 from 540 px, 3 from 900 px): each shows a portrait cover, the name, the size, a view link and a download link. A catalog without a cover shows a placeholder.
 - "View" is a real PDF link. With JavaScript it opens a full-screen page-flip viewer that loads only when a catalog is opened: pages turn by dragging a corner, swiping, previous and next buttons, or the arrow keys, one page on narrow screens and a spread with the cover alone on wide ones. Reduced motion turns pages without the animation. The Content Security Policy adds `worker-src 'self'` for the PDF worker.
 - The projects page compares before and after photos with a native range input, which works by keyboard and without dragging.

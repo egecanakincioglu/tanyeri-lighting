@@ -515,9 +515,21 @@ const catalogs = [
 ];
 
 const promoBoards = [
-  { image: 'promo-dekoratif.webp', title: pair('Dekoratif Aydınlatma', 'Decorative Lighting') },
-  { image: 'promo-yasam.webp', title: pair('Yaşam Alanları', 'Living Spaces') },
-  { image: 'promo-dis-mekan.webp', title: pair('Dış Mekan', 'Outdoor') },
+  {
+    image: 'promo-dekoratif.webp',
+    title: pair('Dekoratif Aydınlatma', 'Decorative Lighting'),
+    subtitle: pair('Sıcak ve etkileyici ışık', 'Warm, striking light'),
+  },
+  {
+    image: 'promo-yasam.webp',
+    title: pair('Yaşam Alanları', 'Living Spaces'),
+    subtitle: pair('Evinize uygun konfor', 'Comfort that suits your home'),
+  },
+  {
+    image: 'promo-dis-mekan.webp',
+    title: pair('Dış Mekan', 'Outdoor'),
+    subtitle: pair('Her havaya dayanıklı', 'Built for every weather'),
+  },
 ];
 
 const homeBanner = homeBannerSchema.parse({
@@ -879,9 +891,20 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       for (const [sortOrder, board] of promoBoards.entries()) {
         const catalogId = catalogIds[sortOrder];
         if (!catalogId) throw new Error('A promo board needs a catalog');
-        const parsed = promoBoardSchema.parse({ imageUrl: img(board.image), title: board.title, catalogId });
+        const parsed = promoBoardSchema.parse({
+          imageUrl: img(board.image),
+          title: board.title,
+          subtitle: board.subtitle,
+          catalogId,
+        });
         await tx.promoBoard.create({
-          data: { imageUrl: parsed.imageUrl, ...toColumns('title', parsed.title), catalogId, sortOrder },
+          data: {
+            imageUrl: parsed.imageUrl,
+            ...toColumns('title', parsed.title),
+            ...toColumns('subtitle', parsed.subtitle),
+            catalogId,
+            sortOrder,
+          },
         });
       }
 

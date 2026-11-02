@@ -61,6 +61,28 @@ describe('ImageField', () => {
     expect(screen.getByText('JPEG, PNG or WebP, up to 4 MB.')).toBeTruthy();
   });
 
+  it('shows the picture in an A4 portrait box when asked, and in a landscape box otherwise', () => {
+    const { container } = render(
+      <ImageField
+        id="cover"
+        name="coverImageUrl"
+        label="Cover"
+        defaultValue="/demo/area-otel.webp"
+        upload={upload}
+        texts={texts}
+        errors={form.errors}
+        maxBytes={100}
+        portrait
+      />,
+    );
+    expect(container.querySelector('img')!.parentElement!.className).toContain('aspect-[210/297]');
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('144px');
+    cleanup();
+    const landscape = setup(ImageField, { defaultValue: '/demo/area-otel.webp' });
+    expect(landscape.container.querySelector('img')!.parentElement!.className).toContain('aspect-4/3');
+    expect(landscape.container.querySelector('img')!.getAttribute('sizes')).toBe('192px');
+  });
+
   it('says that nothing is chosen yet', () => {
     const { container } = setup(ImageField);
     expect(screen.getByText('No file chosen yet.')).toBeTruthy();

@@ -13,6 +13,8 @@ export type ResourceRow = {
   title: string;
   subtitle?: string;
   imageUrl?: string;
+  /** Replaces the delete dialog's text for this row, for what the deletion also takes with it. Holds `{name}`. */
+  deleteBody?: string;
   edit: ComponentProps<typeof Link>['href'];
 };
 
@@ -31,17 +33,19 @@ type Props = {
   locale: string;
   texts: ResourceListTexts;
   formTexts: Pick<FormTexts, 'saved' | 'errors'>;
-  /** Receives the complete list of ids in the new order. */
-  reorder: (ids: string[]) => Promise<FormState>;
+  /** Receives the complete list of ids in the new order. Without it the rows have no arrows. */
+  reorder?: ((ids: string[]) => Promise<FormState>) | undefined;
+  /** Cover pictures are portrait pages; the default thumbnail is landscape. */
+  portraitImages?: boolean;
   deleteAction: (previous: FormState | null, formData: FormData) => Promise<FormState>;
   /** Set in the demo: the reason the reorder and delete controls are off. */
   disabledReason?: string | undefined;
 };
 
-const iconButton =
+export const iconButton =
   'grid size-touch place-items-center rounded-md border border-hairline bg-surface text-ink hover:border-accent hover:text-accent-text aria-disabled:cursor-not-allowed aria-disabled:text-muted aria-disabled:hover:border-hairline aria-disabled:hover:text-muted';
 
-function Arrow({ up }: { up: boolean }) {
+export function Arrow({ up }: { up: boolean }) {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4">
       <path
@@ -56,10 +60,22 @@ function Arrow({ up }: { up: boolean }) {
 }
 
 /** Rows with a thumbnail, edit and delete, and buttons that move a row up or down: no dragging needed. */
-export function ResourceList({ rows, locale, texts, formTexts, reorder, deleteAction, disabledReason }: Props) {
+export function ResourceList({
+  rows,
+  locale,
+  texts,
+  formTexts,
+  reorder,
+  portraitImages,
+  deleteAction,
+  disabledReason,
+}: Props) {
   const [shown, setShown] = useOptimistic(rows);
   // An action state, so the answer of the server arrives together with the end of the optimistic order.
-  const [result, runReorder] = useActionState(async (_previous: FormState | null, ids: string[]) => reorder(ids), null);
+  const [result, runReorder] = useActionState(
+    async (_previous: FormState | null, ids: string[]) => (reorder ? reorder(ids) : null),
+    null,
+  );
   const [, startTransition] = useTransition();
 
   if (rows.length === 0) {
@@ -70,7 +86,7 @@ export function ResourceList({ rows, locale, texts, formTexts, reorder, deleteAc
 
   function move(index: number, step: -1 | 1) {
     const target = index + step;
-    if (disabledReason || target < 0 || target >= shown.length) return;
+    if (!reorder || disabledReason || target < 0 || target >= shown.length) return;
     const next = [...shown];
     [next[index], next[target]] = [next[target]!, next[index]!];
     startTransition(() => {
@@ -86,8 +102,10 @@ export function ResourceList({ rows, locale, texts, formTexts, reorder, deleteAc
           <li key={row.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:p-4">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               {row.imageUrl && (
-                <div className="relative aspect-4/3 w-20 flex-none overflow-hidden rounded-md bg-page">
-                  <SiteImage src={row.imageUrl} alt="" fill sizes="80px" />
+                <div
+                  className={`relative flex-none overflow-hidden rounded-md bg-page ${portraitImages ? 'aspect-[210/297] w-14' : 'aspect-4/3 w-20'}`}
+                >
+                  <SiteImage src={row.imageUrl} alt="" fill sizes={portraitImages ? '56px' : '80px'} />
                 </div>
               )}
               <div className="min-w-0">
@@ -96,24 +114,28 @@ export function ResourceList({ rows, locale, texts, formTexts, reorder, deleteAc
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                aria-label={`${texts.moveUp}: ${row.title}`}
-                aria-disabled={index === 0 || Boolean(disabledReason)}
-                onClick={() => move(index, -1)}
-                className={iconButton}
-              >
-                <Arrow up />
-              </button>
-              <button
-                type="button"
-                aria-label={`${texts.moveDown}: ${row.title}`}
-                aria-disabled={index === shown.length - 1 || Boolean(disabledReason)}
-                onClick={() => move(index, 1)}
-                className={iconButton}
-              >
-                <Arrow up={false} />
-              </button>
+              {reorder && (
+                <>
+                  <button
+                    type="button"
+                    aria-label={`${texts.moveUp}: ${row.title}`}
+                    aria-disabled={index === 0 || Boolean(disabledReason)}
+                    onClick={() => move(index, -1)}
+                    className={iconButton}
+                  >
+                    <Arrow up />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`${texts.moveDown}: ${row.title}`}
+                    aria-disabled={index === shown.length - 1 || Boolean(disabledReason)}
+                    onClick={() => move(index, 1)}
+                    className={iconButton}
+                  >
+                    <Arrow up={false} />
+                  </button>
+                </>
+              )}
               <Link
                 prefetch={false}
                 href={row.edit}
@@ -126,7 +148,7 @@ export function ResourceList({ rows, locale, texts, formTexts, reorder, deleteAc
                 name={row.title}
                 fields={{ id: row.id, locale }}
                 action={deleteAction}
-                texts={texts.delete}
+                texts={row.deleteBody ? { ...texts.delete, body: row.deleteBody } : texts.delete}
                 formTexts={formTexts}
                 disabledReason={disabledReason}
               />
