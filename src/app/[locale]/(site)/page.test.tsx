@@ -123,8 +123,8 @@ describe('HomePage', () => {
   });
 
   it.each([
-    ['tr', 'Favori Ürünlerimiz', 'Çalışma Alanlarımız', 'Hemen İncele'],
-    ['en', 'Our Favorite Products', 'Our Work Areas', 'Explore now'],
+    ['tr', 'Öne Çıkan Aydınlatma Ürünleri', 'Aydınlatma Uygulama Alanları', 'Hemen İncele'],
+    ['en', 'Featured Lighting Products', 'Lighting Applications', 'Explore now'],
   ])('renders the banner, highlights and work areas in %s', async (locale, highlights, work, cta) => {
     const paths = locale === 'tr' ? PATHS.tr : PATHS.en;
     await renderPage(locale);
@@ -178,8 +178,8 @@ describe('HomePage', () => {
     await renderPage('en');
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Our Favorite Products',
-      'Our Work Areas',
+      'Featured Lighting Products',
+      'Lighting Applications',
     ]);
     expect(screen.queryByRole('link', { name: /^Explore now/ })).toBeNull();
   });
