@@ -32,7 +32,12 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: 
     },
     // The admin changes the sign-in address from the account screen. The new address gets a link and only the link
     // applies the change, so a typo can not lock the admin out. Without email there is no link: the change is off.
-    user: { changeEmail: { enabled: emailEnabled } },
+    // `isDemo` marks the published demo account (see currentSession). `input: false` keeps every endpoint, including
+    // update-user, from setting it.
+    user: {
+      changeEmail: { enabled: emailEnabled },
+      additionalFields: { isDemo: { type: 'boolean', required: false, defaultValue: false, input: false } },
+    },
     ...(emailEnabled && {
       emailVerification: {
         expiresIn: CHANGE_EMAIL_LIFETIME_SECONDS,

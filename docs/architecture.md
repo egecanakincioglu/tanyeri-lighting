@@ -153,6 +153,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The home page screens edit the banner, up to six featured products as one ordered list, promo boards with an optional subtitle in both languages, and the work areas.
 - The services screen edits an image, a title, a Markdown description and an optional note in both languages. The projects screen edits a title, a Markdown description and before and after pictures. Both reorder with arrows and are read-only in demo mode.
 - Company Settings saves the site name, logo, languages, contact details and service area; the header, footer and contact page read them on every request. Social links are managed on the same screen. The About and Vision screen edits limited Markdown per language with a preview.
+- The demo account is marked by `user.isDemo`. Better Auth never accepts the field from a client (`input: false`). An existing demo database needs `pnpm db:seed:demo` after the migration, which marks the account.
 - In demo mode a read-only demo account (`DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD`) is created by the demo seed and shown on the sign-in page. Save, delete, reorder and upload controls are disabled and the server refuses writes.
 - Uploads go through `uploadMediaAction` with a limit of 4 MB; `next.config.ts` allows the file store's image host.
 - `guardPage` redirects a visitor who has no session to the localized sign-in address. It builds the address from the locale only and takes no target from the request.
