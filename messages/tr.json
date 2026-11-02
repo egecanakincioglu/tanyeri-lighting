@@ -53,7 +53,8 @@
     "previous": "Önceki",
     "next": "Sonraki",
     "empty": "Bu kategoride henüz ürün yok.",
-    "pageSuffix": "Sayfa {page}"
+    "pageSuffix": "Sayfa {page}",
+    "breadcrumb": "Sayfa yolu"
   },
   "Product": {
     "back": "Tüm ürünler",

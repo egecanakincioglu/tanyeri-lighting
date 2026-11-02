@@ -53,7 +53,8 @@
     "previous": "Previous",
     "next": "Next",
     "empty": "There are no products in this category yet.",
-    "pageSuffix": "Page {page}"
+    "pageSuffix": "Page {page}",
+    "breadcrumb": "Breadcrumb"
   },
   "Product": {
     "back": "All products",

@@ -25,9 +25,18 @@ vi.mock('next-intl/server', () => ({
 
 const pair = (text: string) => ({ tr: `${text} TR`, en: `${text} EN` });
 
+const none = { tr: '', en: '' };
 const categories: Category[] = [
-  { id: 'c1', key: 'indoor', name: pair('Indoor') },
-  { id: 'c2', key: 'outdoor', name: pair('Outdoor') },
+  {
+    id: 'c1',
+    key: 'indoor',
+    name: pair('Indoor'),
+    seoTitle: pair('Indoor lighting'),
+    seoDescription: pair('Indoor description'),
+    h1: pair('Indoor heading'),
+    intro: pair('Indoor intro'),
+  },
+  { id: 'c2', key: 'outdoor', name: pair('Outdoor'), seoTitle: none, seoDescription: none, h1: none, intro: none },
 ];
 
 function makeProducts(count: number, categoryKey: string): Product[] {
@@ -160,6 +169,48 @@ describe('ProductsPage', () => {
     expect(screen.queryByRole('navigation', { name: 'Sayfalar' })).toBeNull();
   });
 
+  it.each([
+    ['tr', 'Sayfa yolu', 'Ürünler', '/tr/urunler'],
+    ['en', 'Breadcrumb', 'Products', '/en/products'],
+  ])(
+    'shows the heading, the intro and a trail to the category in %s, and no more than that',
+    async (locale, label, list, all) => {
+      const l = locale.toUpperCase();
+      const { container } = await renderPage(locale, { category: 'indoor' });
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(`Indoor heading ${l}`);
+      const intro = screen.getByText(`Indoor intro ${l}`);
+      const h1 = screen.getByRole('heading', { level: 1 });
+      expect(h1.compareDocumentPosition(intro) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      const trail = within(screen.getByRole('navigation', { name: label }));
+      expect(trail.getAllByRole('listitem').map((item) => item.textContent)).toEqual([list, `Indoor ${l}`]);
+      expect(trail.getByRole('link', { name: list }).getAttribute('href')).toBe(all);
+      expect(trail.getAllByRole('link')).toHaveLength(1);
+      expect(trail.getByText(`Indoor ${l}`).closest('[aria-current]')?.getAttribute('aria-current')).toBe('page');
+      vi.stubEnv('SITE_URL', 'https://example.test');
+      const data = JSON.parse(container.querySelector('script[type="application/ld+json"]')?.textContent ?? '');
+      vi.unstubAllEnvs();
+      expect(data.itemListElement.map((item: { name: string }) => item.name)).toEqual([list, `Indoor ${l}`]);
+    },
+  );
+
+  it('falls back to the category name for the heading and leaves out an empty intro', async () => {
+    const { container } = await renderPage('en', { category: 'outdoor' });
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Outdoor EN');
+    expect(container.querySelector('h1 ~ div p.text-center')).toBeNull();
+  });
+
+  it('shows the intro on the first page of a category only', async () => {
+    await renderPage('en', { category: 'indoor', page: '2' });
+    expect(screen.queryByText('Indoor intro EN')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Indoor heading EN');
+  });
+
+  it('shows neither intro nor trail on the list of all products', async () => {
+    await renderPage('en');
+    expect(screen.queryByText(/intro/)).toBeNull();
+    expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).toBeNull();
+  });
+
   it('has one h1, lazy product photos and no axe violations', async () => {
     const { container } = render(<main>{await ProductsPage(props('tr'))}</main>);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
@@ -196,7 +247,7 @@ describe('ProductsPage', () => {
   it('keeps the category in the canonical of a later page of that category', async () => {
     content.metadata.mockResolvedValue(null);
     const metadata = await generateMetadata(props('en', { category: 'indoor', page: '2' }));
-    expect(metadata.title).toBe('Products - Page 2');
+    expect(metadata.title).toBe('Indoor lighting EN - Page 2');
     expect(metadata.alternates?.canonical).toBe('/en/products?category=indoor&page=2');
   });
 
@@ -216,6 +267,29 @@ describe('ProductsPage', () => {
     expect(await generateMetadata(props('en', { category: 'outdoor' }))).toMatchObject({
       robots: { index: false, follow: true },
     });
+  });
+
+  it.each([
+    ['tr', '/tr/urunler?category=indoor', '/en/products?category=indoor'],
+    ['en', '/en/products?category=indoor', '/tr/urunler?category=indoor'],
+  ])('gives a category view its own title, description and self canonical in %s', async (locale, canonical, other) => {
+    content.metadata.mockResolvedValue({ title: pair('T'), description: pair('Description'), updatedAt: new Date() });
+    const metadata = await generateMetadata(props(locale, { category: 'indoor' }));
+    expect(metadata.title).toBe(`Indoor lighting ${locale.toUpperCase()}`);
+    expect(metadata.description).toBe(`Indoor description ${locale.toUpperCase()}`);
+    expect(metadata.alternates?.canonical).toBe(canonical);
+    expect(Object.values(metadata.alternates?.languages ?? {})).toContain(other);
+    expect(metadata.alternates?.languages).toMatchObject({ 'x-default': '/tr/urunler?category=indoor' });
+    expect(metadata.openGraph).toMatchObject({ url: canonical });
+    expect(metadata).not.toHaveProperty('robots');
+  });
+
+  it('falls back to the category name and the page description when the category has none of its own', async () => {
+    content.metadata.mockResolvedValue({ title: pair('T'), description: pair('Description'), updatedAt: new Date() });
+    const metadata = await generateMetadata(props('en', { category: 'outdoor' }));
+    expect(metadata.title).toBe('Outdoor EN');
+    expect(metadata.description).toBe('Description EN');
+    expect(metadata.alternates?.canonical).toBe('/en/products?category=outdoor');
   });
 
   it('omits the description when none is saved, and returns nothing for an unknown language', async () => {
