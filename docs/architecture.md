@@ -199,6 +199,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - In demo mode every public page shows a notice above the header saying that the brand is fictional and nothing is for sale. The `site-audit` job runs with demo mode on.
 - The menu is defined once in `src/components/site/nav.ts` and feeds the header, the side menu and the footer. `header-menu.tsx` is the only client part of the header.
 - The footer reads site settings, social links and the two legal pages from the database and omits empty rows, so the `site-audit` job runs against a seeded database.
+- The footer credit logo is `/brand/flareye.webp`, a static file at twice its shown size.
 - The home page has three blocks: the banner, the highlights grid (three promo boards, then six featured products) and the work areas. Each block renders nothing when its content is empty. An empty banner title hides the banner.
 - About and vision read one `AboutPage` row; services reads the `Service` list. Markdown goes through `MarkdownContent`, styled by the `PROSE` class constant in `src/components/site/prose.ts`. Empty content renders only the page title. The services grid has two columns from 600 px.
 - `/products` (tr `/urunler`) lists products. `?category=<key>` filters and `?page=N` paginates at 24 per page; invalid values fall back to all products or page 1. Category tabs are real links in their own scroll container below 1025 px, with an "All" tab first.

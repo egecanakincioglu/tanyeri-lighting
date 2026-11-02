@@ -136,7 +136,7 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
             {t('poweredBy')}
             {/* A static file at exactly twice its shown size. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/flareye.png" alt="Flareye" width={96} height={24} />
+            <img src="/brand/flareye.webp" alt="Flareye" width={96} height={24} />
           </span>
           <ul className="flex flex-wrap justify-center gap-x-6 wide:col-start-3 wide:row-start-1 wide:justify-self-end">
             {legal.map((page) => (
