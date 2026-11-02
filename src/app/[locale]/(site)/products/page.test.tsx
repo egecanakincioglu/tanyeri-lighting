@@ -173,12 +173,15 @@ describe('ProductsPage', () => {
     ['en', 'Products', 'Description EN'],
   ])('titles the page with the menu label and describes it in %s', async (locale, title, description) => {
     content.metadata.mockResolvedValue({ title: pair('T'), description: pair('Description'), updatedAt: new Date() });
-    await expect(generateMetadata(props(locale))).resolves.toEqual({ title, description });
+    await expect(generateMetadata(props(locale))).resolves.toMatchObject({ title, description });
   });
 
   it('omits the description when none is saved, and returns nothing for an unknown language', async () => {
     content.metadata.mockResolvedValue(null);
-    await expect(generateMetadata(props('en'))).resolves.toEqual({ title: 'Products' });
+    const metadata = await generateMetadata(props('en'));
+    expect(metadata.title).toBe('Products');
+    expect(metadata).not.toHaveProperty('description');
+    expect(metadata.alternates?.canonical).toBe('/en/products');
     await expect(generateMetadata(props('fr'))).resolves.toEqual({});
   });
 });

@@ -4,12 +4,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Container } from '../../../../components/container.tsx';
+import { JsonLd } from '../../../../components/json-ld.tsx';
 import { Pagination } from '../../../../components/pagination.tsx';
 import { ProductCard } from '../../../../components/product-card.tsx';
 import { ScrollToCurrent } from '../../../../components/scroll-to-current.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { getPathname } from '../../../../i18n/navigation.ts';
 import { routing } from '../../../../i18n/routing.ts';
+import { pageAlternates } from '../../../../lib/seo.ts';
+import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { listCategories } from '../../../../server/content/categories.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listProducts } from '../../../../server/content/products.ts';
@@ -28,7 +31,11 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/products
   }
   const [t, page] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('products')]);
   const description = page?.description[locale];
-  return description ? { title: t('products'), description } : { title: t('products') };
+  return {
+    title: t('products'),
+    ...(description ? { description } : {}),
+    alternates: pageAlternates(locale, '/products'),
+  };
 }
 
 // A value that is missing, repeated or not a positive whole number counts as absent.
@@ -48,7 +55,11 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
   }
   const query = await searchParams;
 
-  const [t, categories] = await Promise.all([getTranslations({ locale, namespace: 'Products' }), listCategories()]);
+  const [t, header, categories] = await Promise.all([
+    getTranslations({ locale, namespace: 'Products' }),
+    getTranslations({ locale, namespace: 'Header' }),
+    listCategories(),
+  ]);
   const requested = single(query.category);
   const category = categories.find((entry) => entry.key === requested)?.key;
   const products = await listProducts(category);
@@ -81,6 +92,12 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbData(locale, [
+          { name: header('home'), href: '/' },
+          { name: header('products'), href: '/products' },
+        ])}
+      />
       <SectionTitle title={t('title')} level={1} />
       <div className="pb-[clamp(2.5rem,6vw,4.5rem)]">
         <Container>

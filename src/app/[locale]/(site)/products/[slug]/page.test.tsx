@@ -13,11 +13,11 @@ vi.mock('../../../../../server/content/products.ts', () => ({ getProductBySlug: 
 
 // The real helper needs the Next.js server runtime; this fake reads the same message files.
 vi.mock('next-intl/server', () => ({
-  getTranslations: ({ locale }: { locale: 'tr' | 'en' }) =>
+  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Product' | 'Header' }) =>
     Promise.resolve((key: string, values?: Record<string, string>) =>
       Object.entries(values ?? {}).reduce(
         (text, [name, value]) => text.replace(`{${name}}`, value),
-        ({ tr, en }[locale].Product as Record<string, string>)[key] ?? key,
+        ({ tr, en }[locale][namespace] as Record<string, string>)[key] ?? key,
       ),
     ),
 }));
@@ -106,6 +106,29 @@ describe('ProductPage', () => {
     expect(container.querySelectorAll('h1')).toHaveLength(1);
   });
 
+  it.each([
+    ['tr', 'Anasayfa', 'Ürünler', 'https://example.test/tr/urunler/spot-12w'],
+    ['en', 'Home', 'Products', 'https://example.test/en/products/spot-12w'],
+  ])(
+    'describes the trail to the product as structured data in %s, without a price',
+    async (locale, home, list, url) => {
+      vi.stubEnv('SITE_URL', 'https://example.test');
+      const { container } = render(await ProductPage(props(locale)));
+      const scripts = container.querySelectorAll('script[type="application/ld+json"]');
+      expect(scripts).toHaveLength(1);
+      const data = JSON.parse(scripts[0]!.textContent ?? '');
+      expect(data['@type']).toBe('BreadcrumbList');
+      expect(data.itemListElement.map((item: { name: string }) => item.name)).toEqual([
+        home,
+        list,
+        `Spot 12W ${locale.toUpperCase()}`,
+      ]);
+      expect(data.itemListElement[2].item).toBe(url);
+      expect(JSON.stringify(data)).not.toMatch(/offers|price/i);
+      vi.unstubAllEnvs();
+    },
+  );
+
   it('has no axe violations', async () => {
     const { container } = render(<main>{await ProductPage(props('tr'))}</main>);
     expect(await axeViolations(container)).toEqual([]);
@@ -132,7 +155,7 @@ describe('ProductPage', () => {
     ['en', 'Spot 12W EN, Indoor EN. Product code: SP-12.'],
   ])('describes the product in %s', async (locale, description) => {
     const metadata = await generateMetadata(props(locale));
-    expect(metadata).toEqual({ title: `Spot 12W ${locale.toUpperCase()}`, description });
+    expect(metadata).toMatchObject({ title: `Spot 12W ${locale.toUpperCase()}`, description });
   });
 
   it('has no metadata for a missing product, a redirect or an unknown language', async () => {
