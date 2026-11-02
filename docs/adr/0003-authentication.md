@@ -53,7 +53,7 @@ Rules:
 
 1. `better-auth` and `@better-auth/prisma-adapter` are pinned to the same exact version. Security advisories are followed through Dependabot alerts; high and critical advisories are patched within the same week.
 2. No plugins are used.
-3. **Sign-in and password reset requests go from the browser directly to the `/api/auth/*` handler.** These operations are not done from a Server Action or the server API (`auth.api.*`); server-side calls are not subject to the rate limit.
+3. **Auth requests reach the library through its request handler, never through `auth.api.*`**, because server-side `auth.api` calls are not subject to the rate limit. The browser calls the route `/api/auth/*` only for the two password reset POSTs and the verify-email GET. Sign-in, sign-out and the account actions run in Server Actions that call the handler directly (`callAuth`), so they share the same limits. The route answers 404 for every other path, so random paths write no rate limit rows.
 4. Sessions are kept in the database. `session.cookieCache` stays off; a revoked session becomes invalid immediately.
 5. `BETTER_AUTH_SECRET` comes from an environment variable and is validated with zod at startup. `trustedOrigins` contains only the site's own addresses; there is no `localhost` in production.
 6. Cookies are `HttpOnly`, `SameSite=Lax` and, over https, `Secure` by the library defaults. In production this is also enforced with `advanced.useSecureCookies: true`.

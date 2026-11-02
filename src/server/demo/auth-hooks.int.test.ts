@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GET, POST } from '../../app/api/auth/[...all]/route.ts';
+import { handle } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { createFirstAdmin } from '../auth/admin.ts';
 import { getAuth } from '../auth/auth.ts';
@@ -40,7 +40,9 @@ function post(path: string, body: unknown, cookie?: string): Promise<Response> {
     'x-forwarded-for': freshAddress(),
   });
   if (cookie) headers.set('cookie', cookie);
-  return POST(new Request(`${TEST_AUTH_URL}/api/auth${path}`, { method: 'POST', headers, body: JSON.stringify(body) }));
+  return handle(
+    new Request(`${TEST_AUTH_URL}/api/auth${path}`, { method: 'POST', headers, body: JSON.stringify(body) }),
+  );
 }
 
 async function signInCookie(): Promise<string> {
@@ -53,7 +55,7 @@ async function signInCookie(): Promise<string> {
 }
 
 async function sessionOf(cookie: string): Promise<unknown> {
-  const response = await GET(
+  const response = await handle(
     new Request(`${TEST_AUTH_URL}/api/auth/get-session`, { headers: { cookie, 'x-forwarded-for': freshAddress() } }),
   );
   expect(response.status).toBe(200);
