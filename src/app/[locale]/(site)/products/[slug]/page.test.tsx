@@ -23,7 +23,10 @@ vi.mock('next-intl/server', () => ({
 }));
 
 const pair = (text: string) => ({ tr: `${text} TR`, en: `${text} EN` });
-const categories: Category[] = [{ id: 'c1', key: 'indoor', name: pair('Indoor') }];
+const none = { tr: '', en: '' };
+const categories: Category[] = [
+  { id: 'c1', key: 'indoor', name: pair('Indoor'), seoTitle: none, seoDescription: none, h1: none, intro: none },
+];
 const product: Product = {
   id: 'p1',
   categoryId: 'c1',
@@ -56,16 +59,18 @@ describe('ProductPage', () => {
     [
       'tr',
       ['Ürün kodu', 'Kategori', 'Renk', 'Malzeme', 'Güç', 'Ölçüler'],
+      '/tr/urunler',
       '/tr/urunler?category=indoor',
       '/tr/iletisim?product=spot-12w',
     ],
     [
       'en',
       ['Code', 'Category', 'Colour', 'Material', 'Power', 'Dimensions'],
+      '/en/products',
       '/en/products?category=indoor',
       '/en/contact?product=spot-12w',
     ],
-  ])('shows the name, photo, details and links in %s', async (locale, labels, list, contact) => {
+  ])('shows the name, photo, details and links in %s', async (locale, labels, all, list, contact) => {
     const l = locale.toUpperCase();
     const { container } = render(await ProductPage(props(locale)));
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(`Spot 12W ${l}`);
@@ -84,25 +89,45 @@ describe('ProductPage', () => {
       within(container)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href')),
-    ).toEqual([list, list, contact]);
+    ).toEqual([all, list, list, contact]);
   });
 
-  it('links the category text and the back link to the category, and keeps the contact link out of the crawl', async () => {
-    render(await ProductPage(props('en')));
-    expect(screen.getByRole('link', { name: 'Indoor EN' }).getAttribute('href')).toBe('/en/products?category=indoor');
-    expect(screen.getByRole('link', { name: /Back to Indoor EN/ }).getAttribute('href')).toBe(
-      '/en/products?category=indoor',
-    );
+  it('links the category text to the category, and keeps the contact link out of the crawl', async () => {
+    const { container } = render(await ProductPage(props('en')));
+    const text = container.querySelector('h1 + p a')!;
+    expect(text.textContent).toBe('Indoor EN');
+    expect(text.getAttribute('href')).toBe('/en/products?category=indoor');
     expect(screen.getByRole('link', { name: 'Request information' }).getAttribute('rel')).toBe('nofollow');
   });
+
+  it.each([
+    ['tr', 'Sayfa yolu', 'Ürünler', '/tr/urunler', '/tr/urunler?category=indoor'],
+    ['en', 'Breadcrumb', 'Products', '/en/products', '/en/products?category=indoor'],
+  ])(
+    'shows the trail to the product as real links in %s, with the page last',
+    async (locale, label, list, all, cat) => {
+      const l = locale.toUpperCase();
+      render(await ProductPage(props(locale)));
+      const trail = within(screen.getByRole('navigation', { name: label }));
+      const items = trail.getAllByRole('listitem');
+      expect(items.map((item) => item.textContent)).toEqual([list, `Indoor ${l}`, `Spot 12W ${l}`]);
+      expect(trail.getByRole('link', { name: list }).getAttribute('href')).toBe(all);
+      expect(trail.getByRole('link', { name: `Indoor ${l}` }).getAttribute('href')).toBe(cat);
+      expect(trail.getAllByRole('link')).toHaveLength(2);
+      expect(items[2]!.querySelector('[aria-current="page"]')?.textContent).toBe(`Spot 12W ${l}`);
+      expect(screen.queryByText(/Back to|kategorisine dön|All products|Tüm ürünler/)).toBeNull();
+    },
+  );
 
   it('goes back to the whole list when the category is unknown', async () => {
     content.categories.mockResolvedValue([]);
     const { container } = render(await ProductPage(props('en')));
-    expect(screen.getByRole('link', { name: /All products/ }).getAttribute('href')).toBe('/en/products');
+    const trail = within(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+    expect(trail.getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Products', 'Spot 12W EN']);
+    expect(trail.getByRole('link', { name: 'Products' }).getAttribute('href')).toBe('/en/products');
     expect(container.querySelectorAll('p a')).toHaveLength(0);
     const data = JSON.parse(container.querySelector('script[type="application/ld+json"]')?.textContent ?? '');
-    expect(data.itemListElement).toHaveLength(3);
+    expect(data.itemListElement).toHaveLength(2);
   });
 
   it('leaves out a detail that has no value', async () => {
@@ -125,23 +150,11 @@ describe('ProductPage', () => {
   });
 
   it.each([
-    [
-      'tr',
-      'Anasayfa',
-      'Ürünler',
-      'https://example.test/tr/urunler/spot-12w',
-      'https://example.test/tr/urunler?category=indoor',
-    ],
-    [
-      'en',
-      'Home',
-      'Products',
-      'https://example.test/en/products/spot-12w',
-      'https://example.test/en/products?category=indoor',
-    ],
+    ['tr', 'Ürünler', 'https://example.test/tr/urunler/spot-12w', 'https://example.test/tr/urunler?category=indoor'],
+    ['en', 'Products', 'https://example.test/en/products/spot-12w', 'https://example.test/en/products?category=indoor'],
   ])(
     'describes the trail to the product as structured data in %s, without a price',
-    async (locale, home, list, url, categoryUrl) => {
+    async (locale, list, url, categoryUrl) => {
       vi.stubEnv('SITE_URL', 'https://example.test');
       const { container } = render(await ProductPage(props(locale)));
       const scripts = container.querySelectorAll('script[type="application/ld+json"]');
@@ -149,13 +162,12 @@ describe('ProductPage', () => {
       const data = JSON.parse(scripts[0]!.textContent ?? '');
       expect(data['@type']).toBe('BreadcrumbList');
       expect(data.itemListElement.map((item: { name: string }) => item.name)).toEqual([
-        home,
         list,
         `Indoor ${locale.toUpperCase()}`,
         `Spot 12W ${locale.toUpperCase()}`,
       ]);
-      expect(data.itemListElement[2].item).toBe(categoryUrl);
-      expect(data.itemListElement[3].item).toBe(url);
+      expect(data.itemListElement[1].item).toBe(categoryUrl);
+      expect(data.itemListElement[2].item).toBe(url);
       expect(JSON.stringify(data)).not.toMatch(/offers|price/i);
       vi.unstubAllEnvs();
     },

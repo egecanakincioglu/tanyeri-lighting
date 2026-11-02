@@ -24,7 +24,7 @@
     "projects": "Projects",
     "products": "Products",
     "catalogs": "Catalogs",
-    "categories": "Categories",
+    "categories": "All Products",
     "contact": "Contact"
   },
   "Footer": {
@@ -57,7 +57,7 @@
     "breadcrumb": "Breadcrumb"
   },
   "Product": {
-    "back": "All products",
+    "breadcrumb": "Breadcrumb",
     "request": "Request information",
     "details": "Product details",
     "code": "Code",
@@ -67,8 +67,7 @@
     "power": "Power",
     "dimensions": "Dimensions",
     "description": "{name}: {specs}. Product code {code}; ask for technical details. Demo product.",
-    "descriptionPlain": "{name}. Product code {code}; ask for technical details. Demo product.",
-    "backToCategory": "Back to {category}"
+    "descriptionPlain": "{name}. Product code {code}; ask for technical details. Demo product."
   },
   "Catalogs": {
     "view": "View",

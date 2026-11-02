@@ -24,7 +24,7 @@
     "projects": "Projeler",
     "products": "Ürünler",
     "catalogs": "Kataloglar",
-    "categories": "Kategoriler",
+    "categories": "Tüm Ürünler",
     "contact": "İletişim"
   },
   "Footer": {
@@ -57,7 +57,7 @@
     "breadcrumb": "Sayfa yolu"
   },
   "Product": {
-    "back": "Tüm ürünler",
+    "breadcrumb": "Sayfa yolu",
     "request": "Bilgi talep et",
     "details": "Ürün bilgileri",
     "code": "Ürün kodu",
@@ -67,8 +67,7 @@
     "power": "Güç",
     "dimensions": "Ölçüler",
     "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
-    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
-    "backToCategory": "{category} kategorisine dön"
+    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün."
   },
   "Catalogs": {
     "view": "Görüntüle",

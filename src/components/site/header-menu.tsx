@@ -6,7 +6,7 @@ import { Link, usePathname } from '../../i18n/navigation.ts';
 import type { StaticPath, routing } from '../../i18n/routing.ts';
 import { CONTAINER } from './container.ts';
 
-type MenuLink = { label: string; href: StaticPath };
+type MenuLink = { label: string; href: StaticPath; query?: Record<string, string> };
 export type MenuItem = { label: string; href?: StaticPath; children?: MenuLink[] };
 
 type LanguageHref = ComponentProps<typeof Link>['href'];
@@ -35,6 +35,10 @@ function isCurrent(pathname: string, href: string): boolean {
 function prefersReducedMotion(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
+
+const childKey = (link: MenuLink) => link.query?.category ?? link.href;
+const childHref = (link: MenuLink) =>
+  (link.query ? { pathname: link.href, query: link.query } : link.href) as LanguageHref;
 
 function Chevron({ className }: { className: string }) {
   return (
@@ -71,6 +75,8 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
   const sideWasOpen = useRef(false);
 
   const here = (href: string) => isCurrent(pathname, href);
+  // A category link shares its page with the others, and the path alone cannot tell them apart, so none is marked.
+  const isActive = (link: MenuLink) => !link.query && here(link.href);
 
   // The shadow appears after 4 px of scroll; nothing else changes, so the bar never moves the page.
   useEffect(() => {
@@ -268,11 +274,11 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
                     className={`absolute top-full left-1/2 min-w-52 -translate-x-1/2 rounded-b-lg border border-t-0 border-hairline bg-surface p-1.5 shadow-[0_10px_24px_rgb(0_0_0/0.07)] transition-[opacity,translate,visibility] duration-180 ease-brand motion-reduce:transition-none ${openDropdown === index ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-1.5 opacity-0'}`}
                   >
                     {item.children.map((child) => (
-                      <li key={child.href}>
+                      <li key={childKey(child)}>
                         <Link
                           prefetch={false}
-                          href={child.href}
-                          aria-current={here(child.href) ? 'page' : undefined}
+                          href={childHref(child)}
+                          aria-current={isActive(child) ? 'page' : undefined}
                           className="flex min-h-touch items-center rounded-md px-3.5 text-[0.9rem] font-medium whitespace-nowrap hover:bg-page hover:text-accent-text focus-visible:bg-page aria-[current=page]:text-accent-text"
                         >
                           {child.label}
@@ -393,9 +399,9 @@ export function HeaderMenu({ locale, logo, items, contact, languages, labels }: 
                   {item.children.map((child) => (
                     <Link
                       prefetch={false}
-                      key={child.href}
-                      href={child.href}
-                      aria-current={here(child.href) ? 'page' : undefined}
+                      key={childKey(child)}
+                      href={childHref(child)}
+                      aria-current={isActive(child) ? 'page' : undefined}
                       className="flex min-h-touch items-center pl-4 text-[0.9375rem] text-muted hover:text-accent-text aria-[current=page]:font-semibold aria-[current=page]:text-accent-text"
                     >
                       {child.label}

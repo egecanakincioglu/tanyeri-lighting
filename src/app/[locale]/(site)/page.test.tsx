@@ -75,11 +75,14 @@ const products = [1, 2].map((n) => ({
   dimensions: '10 x 10 cm',
   imageUrl: '/demo/product-gomme-spot.webp',
 })) satisfies Product[];
+// The first area links to a category; the second has none.
 const areas: ApplicationArea[] = [1, 2].map((n) => ({
   id: `area-${n}`,
   imageUrl: '/demo/area-konut.webp',
   title: pair(`Area ${n}`),
   description: pair(`Area text ${n}`),
+  categoryId: n === 1 ? 'category-1' : null,
+  categoryKey: n === 1 ? 'indoor' : null,
 }));
 
 const settings: SiteSettings = {
@@ -144,6 +147,17 @@ describe('HomePage', () => {
     expect(screen.getByRole('link', { name: `Lamp 2 ${l}` }).getAttribute('href')).toBe(paths.product);
     expect(screen.getByRole('heading', { level: 3, name: `Area 1 ${l}` })).toBeTruthy();
     expect(screen.getByText(`Area text 2 ${l}`)).toBeTruthy();
+  });
+
+  it.each([
+    ['tr', '/tr/urunler?category=indoor'],
+    ['en', '/en/products?category=indoor'],
+  ])('links a work area to its category and leaves one without a category unlinked in %s', async (locale, href) => {
+    await renderPage(locale);
+    const l = locale.toUpperCase();
+    expect(screen.getByRole('link', { name: `Area 1 ${l}` }).getAttribute('href')).toBe(href);
+    expect(screen.queryByRole('link', { name: `Area 2 ${l}` })).toBeNull();
+    expect(screen.getByRole('heading', { level: 3, name: `Area 2 ${l}` }).querySelector('a')).toBeNull();
   });
 
   it('keeps the heading order and loads only the banner photo with priority', async () => {
