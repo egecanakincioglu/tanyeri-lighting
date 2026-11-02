@@ -1,5 +1,6 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from 'next';
+import { blobHostname } from './src/lib/blob-hostname.ts';
 
 const securityHeaders: Record<string, string> = {
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
@@ -12,6 +13,10 @@ const securityHeaders: Record<string, string> = {
 // Static files keep their address when replaced, so no 'immutable': a day fresh, then a week of quiet revalidation.
 const staticFileCache = 'public, max-age=86400, stale-while-revalidate=604800';
 
+// Only the store of this installation may be optimized; another store would spend its quota and serve foreign pictures
+// from our origin. Without a token there are no uploads, so there is no remote host either.
+const blobHost = blobHostname(process.env.BLOB_READ_WRITE_TOKEN);
+
 const nextConfig: NextConfig = {
   images: {
     imageSizes: [32, 48, 64, 96, 128, 192, 256, 384, 512],
@@ -22,7 +27,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 2678400,
     // Uploaded pictures live in the public Vercel Blob store. They are served through the image optimizer from our own
     // origin, so the CSP img-src 'self' already covers them.
-    remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
+    remotePatterns: blobHost ? [{ protocol: 'https', hostname: blobHost, search: '' }] : [],
   },
   // The panel uploads files of up to 4 MB (MAX_UPLOAD_BYTES) through a Server Action; the default limit is 1 MB.
   experimental: { serverActions: { bodySizeLimit: '5mb' } },

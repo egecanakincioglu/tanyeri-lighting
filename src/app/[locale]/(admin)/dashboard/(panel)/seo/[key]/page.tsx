@@ -43,8 +43,8 @@ export default async function EditSeoPage({ params }: PageProps<'/[locale]/dashb
         texts={{
           title: t('fieldTitle'),
           description: t('fieldDescription'),
-          counter: t('counter'),
-          counterOver: t('counterOver'),
+          counter: t('counter', { count: '{count}', max: '{max}' }),
+          counterOver: t('counterOver', { count: '{count}', max: '{max}' }),
           cancel: form('cancel'),
         }}
         formTexts={formTexts}

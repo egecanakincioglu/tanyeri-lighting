@@ -66,7 +66,7 @@ export default async function PromoBoardsAdminPage({ params }: PageProps<'/[loca
           delete: {
             trigger: t('delete'),
             title: t('deleteTitle'),
-            body: t('deleteBody'),
+            body: t('deleteBody', { name: '{name}' }),
             confirm: t('deleteConfirm'),
             working: t('deleting'),
             cancel: form('cancel'),
