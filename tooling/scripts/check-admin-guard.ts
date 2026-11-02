@@ -40,6 +40,8 @@ const PUBLIC_HANDLERS: ReadonlySet<string> = new Set([
   // Visitors without an account post the page they opened. It takes only a same-origin request with a known public
   // path, is rate limited and stores an anonymized address.
   'src/app/api/visits/route.ts',
+  // The plain-text site guide. It is a GET with no input and returns only the public page list.
+  'src/app/llms.txt/route.ts',
 ]);
 // The contact form is for visitors without an account. It protects itself with a honeypot, validation and a rate limit.
 const PUBLIC_ACTIONS: ReadonlySet<string> = new Set([
