@@ -1,7 +1,32 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations } from '../test/axe.ts';
-import { TextAreaField, TextField } from './field.tsx';
+import { SelectField, TextAreaField, TextField } from './field.tsx';
+
+describe('SelectField', () => {
+  afterEach(cleanup);
+
+  const options = [
+    { value: 'a', label: 'Alpha' },
+    { value: 'b', label: 'Beta' },
+  ];
+
+  it('labels the select and lists the options', () => {
+    render(<SelectField id="pick" label="Pick" name="pick" options={options} defaultValue="b" />);
+    const select = screen.getByLabelText('Pick') as HTMLSelectElement;
+    expect(select.value).toBe('b');
+    expect([...select.options].map((option) => option.text)).toEqual(['Alpha', 'Beta']);
+    expect(select.getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('ties the error text to the select and has no accessibility violations', async () => {
+    const { container } = render(<SelectField id="pick" label="Pick" options={options} error="Choose one." />);
+    const select = screen.getByLabelText('Pick');
+    expect(select.getAttribute('aria-invalid')).toBe('true');
+    expect(select.getAttribute('aria-describedby')).toBe('pick-error');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});
 
 describe('TextField', () => {
   afterEach(cleanup);

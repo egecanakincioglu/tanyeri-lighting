@@ -38,10 +38,10 @@ type Props = {
   disabledReason?: string | undefined;
 };
 
-const iconButton =
+export const iconButton =
   'grid size-touch place-items-center rounded-md border border-hairline bg-surface text-ink hover:border-accent hover:text-accent-text aria-disabled:cursor-not-allowed aria-disabled:text-muted aria-disabled:hover:border-hairline aria-disabled:hover:text-muted';
 
-function Arrow({ up }: { up: boolean }) {
+export function Arrow({ up }: { up: boolean }) {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4">
       <path

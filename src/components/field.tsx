@@ -42,6 +42,31 @@ export function TextField({ id, label, error, ...rest }: TextFieldProps) {
   );
 }
 
+type SelectFieldProps = FieldProps &
+  Omit<ComponentProps<'select'>, 'className' | 'id' | 'aria-invalid' | 'children'> & {
+    options: readonly { value: string; label: string }[];
+  };
+
+export function SelectField({ id, label, error, options, ...rest }: SelectFieldProps) {
+  return (
+    <Frame id={id} label={label} error={error}>
+      <select
+        id={id}
+        className={`${controlClass} min-h-touch`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        {...rest}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </Frame>
+  );
+}
+
 type TextAreaFieldProps = FieldProps & Omit<ComponentProps<'textarea'>, 'className' | 'id' | 'aria-invalid'>;
 
 export function TextAreaField({ id, label, error, ...rest }: TextAreaFieldProps) {
