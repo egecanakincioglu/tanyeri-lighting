@@ -4,7 +4,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { routing } from '../../src/i18n/routing.ts';
-import { LOCALES, PAGES } from './pages.ts';
+import { ADMIN_PAGES, LOCALES, PAGES } from './pages.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SITE = path.join(ROOT, 'src', 'app', '[locale]', '(site)');
@@ -79,4 +79,15 @@ test('the audit list holds only locale-prefixed addresses without duplicates', (
       LOCALES.some((l) => p === `/${l}` || p.startsWith(`/${l}/`)),
       p,
     );
+});
+
+test('admin addresses are locale-prefixed, unique and kept out of the Lighthouse list', () => {
+  assert.equal(new Set(ADMIN_PAGES).size, ADMIN_PAGES.length);
+  for (const p of ADMIN_PAGES) {
+    assert.ok(
+      LOCALES.some((l) => p.startsWith(`/${l}/`)),
+      p,
+    );
+    assert.ok(!PAGES.includes(p), `${p} must not be in PAGES`);
+  }
 });
