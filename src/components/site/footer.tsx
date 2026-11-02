@@ -139,21 +139,28 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/flareye.png" alt="Flareye" width={96} height={24} />
           </span>
-          {legal.length > 0 && (
-            <ul className="flex flex-wrap justify-center gap-x-6 wide:col-start-3 wide:row-start-1 wide:justify-self-end">
-              {legal.map((page) => (
-                <li key={page.key}>
-                  <Link
-                    href={LEGAL_PATHS[page.key]}
-                    prefetch={false}
-                    className="inline-flex min-h-touch items-center hover:text-ink hover:underline"
-                  >
-                    {page.title[locale]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="flex flex-wrap justify-center gap-x-6 wide:col-start-3 wide:row-start-1 wide:justify-self-end">
+            {legal.map((page) => (
+              <li key={page.key}>
+                <Link
+                  href={LEGAL_PATHS[page.key]}
+                  prefetch={false}
+                  className="inline-flex min-h-touch items-center hover:text-ink hover:underline"
+                >
+                  {page.title[locale]}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/dashboard/sign-in"
+                prefetch={false}
+                className="inline-flex min-h-touch items-center hover:text-ink hover:underline"
+              >
+                {t('adminSignIn')}
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
     </footer>

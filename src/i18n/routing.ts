@@ -19,6 +19,9 @@ export const routing = defineRouting({
     '/contact': { tr: '/iletisim', en: '/contact' },
     '/privacy': { tr: '/gizlilik', en: '/privacy' },
     '/terms': { tr: '/kullanim-kosullari', en: '/terms' },
+    // The admin side lives in the (admin)/dashboard folder, which tooling/scripts/check-admin-guard.ts expects.
+    '/dashboard': { tr: '/yonetim', en: '/admin' },
+    '/dashboard/sign-in': { tr: '/yonetim/giris', en: '/admin/sign-in' },
   },
 });
 

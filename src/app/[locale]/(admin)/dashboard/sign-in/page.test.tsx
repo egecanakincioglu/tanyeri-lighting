@@ -1,0 +1,79 @@
+import { cleanup, render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import en from '../../../../../../messages/en.json' with { type: 'json' };
+import tr from '../../../../../../messages/tr.json' with { type: 'json' };
+import { axeViolations } from '../../../../../test/axe.ts';
+import SignInPage, { generateMetadata } from './page.tsx';
+
+const auth = vi.hoisted(() => ({ currentSession: vi.fn() }));
+
+vi.mock('../../../../../server/auth/guard.ts', () => ({ currentSession: auth.currentSession }));
+vi.mock('../../../../../server/auth/sign-in-action.ts', () => ({ signInAction: vi.fn() }));
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  redirect: (target: string) => {
+    throw new Error(`redirect:${target}`);
+  },
+  notFound: () => {
+    throw new Error('not-found');
+  },
+}));
+
+// The real helper needs the Next.js server runtime; this fake reads the same message files.
+vi.mock('next-intl/server', () => ({
+  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Admin' }) => {
+    const messages = { tr, en }[locale][namespace] as Record<string, string>;
+    return Promise.resolve((key: string) => messages[key] ?? '');
+  },
+}));
+
+const props = (locale: string) => ({ params: Promise.resolve({ locale }) }) as PageProps<'/[locale]/dashboard/sign-in'>;
+
+async function renderPage(locale: 'tr' | 'en') {
+  return render(
+    <NextIntlClientProvider locale={locale} messages={{}}>
+      {await SignInPage(props(locale))}
+    </NextIntlClientProvider>,
+  );
+}
+
+describe('SignInPage', () => {
+  beforeEach(() => auth.currentSession.mockResolvedValue(null));
+  afterEach(cleanup);
+
+  it('shows the form, the reset note and a way back to the site in English', async () => {
+    await renderPage('en');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Administrator sign-in');
+    expect(screen.getByLabelText('E-mail')).toBeTruthy();
+    expect(screen.getByLabelText('Password')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Forgot your password?');
+    expect(screen.getByRole('link', { name: 'Back to the site' }).getAttribute('href')).toBe('/en');
+  });
+
+  it('shows the Turkish texts', async () => {
+    await renderPage('tr');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Yönetici girişi');
+    expect(screen.getByRole('button', { name: 'Giriş yap' })).toBeTruthy();
+  });
+
+  it('sends a signed-in visitor to the panel of the language', async () => {
+    auth.currentSession.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    await expect(SignInPage(props('en'))).rejects.toThrow('redirect:/en/admin');
+    await expect(SignInPage(props('tr'))).rejects.toThrow('redirect:/tr/yonetim');
+  });
+
+  it('answers an unknown language with not found', async () => {
+    await expect(SignInPage(props('xx'))).rejects.toThrow('not-found');
+  });
+
+  it('is kept out of search results', async () => {
+    expect(await generateMetadata(props('en'))).toMatchObject({ robots: { index: false, follow: false } });
+  });
+
+  it('has no axe violations', async () => {
+    const { container } = await renderPage('en');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});

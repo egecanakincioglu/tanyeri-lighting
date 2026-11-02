@@ -80,6 +80,9 @@ describe('FooterContent', () => {
     expect(within(footer).getByRole('link', { name: 'Şartlar ve Koşullar' }).getAttribute('href')).toBe(
       '/tr/kullanim-kosullari',
     );
+    expect(within(footer).getByRole('link', { name: 'Yönetici girişi' }).getAttribute('href')).toBe(
+      '/tr/yonetim/giris',
+    );
     expect(within(footer).getByText('© 2031 Tanyeri Lighting. Tüm hakları saklıdır.')).toBeTruthy();
     const nav = within(footer).getByRole('navigation', { name: 'Site' });
     expect(within(nav).getByRole('link', { name: 'Kurumsal' }).getAttribute('href')).toBe('/tr/hakkimizda');
@@ -92,6 +95,9 @@ describe('FooterContent', () => {
     const footer = screen.getByRole('contentinfo');
     expect(within(footer).getByText('Example Street 12')).toBeTruthy();
     expect(within(footer).getByRole('link', { name: 'Privacy and Cookies' }).getAttribute('href')).toBe('/en/privacy');
+    expect(within(footer).getByRole('link', { name: 'Administrator sign-in' }).getAttribute('href')).toBe(
+      '/en/admin/sign-in',
+    );
     expect(within(footer).getByText('© 2031 Tanyeri Lighting. All rights reserved.')).toBeTruthy();
     expect(within(footer).getByRole('link', { name: 'Catalogs' }).getAttribute('href')).toBe('/en/catalogs');
   });
@@ -102,7 +108,8 @@ describe('FooterContent', () => {
     expect(within(footer).queryByText('Adres')).toBeNull();
     expect(within(footer).queryByRole('heading', { name: 'İletişim' })).toBeNull();
     expect(footer.querySelector('address')).toBeNull();
-    expect(footer.querySelectorAll('ul').length).toBe(1);
+    expect(footer.querySelectorAll('ul').length).toBe(2);
+    expect(within(footer).getByRole('link', { name: 'Yönetici girişi' })).toBeTruthy();
     expect(within(footer).getByText('© 2031 Tanyeri. Tüm hakları saklıdır.')).toBeTruthy();
     expect(within(footer).getByRole('img', { name: 'Tanyeri Lighting' })).toBeTruthy();
     expect(container.querySelectorAll('a[href=""]').length).toBe(0);
