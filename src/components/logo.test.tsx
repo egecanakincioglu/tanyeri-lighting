@@ -37,6 +37,16 @@ describe('Logo', () => {
     expect(img.getAttribute('class')).toBe('object-contain');
   });
 
+  it.each([
+    ['header', null, null],
+    ['header', '/demo/area-otel.webp', 'eager'],
+    ['full', null, 'lazy'],
+    ['full', '/demo/area-otel.webp', 'lazy'],
+  ] as const)('loads the %s variant (logo %s) lazily only when it is the footer one', (variant, src, loading) => {
+    render(<Logo label="Tanyeri Lighting" variant={variant} src={src} />);
+    expect(screen.getByRole('img').getAttribute('loading')).toBe(loading);
+  });
+
   it('falls back to the artwork when the uploaded logo is empty', () => {
     render(<Logo label="Tanyeri Lighting" src={null} />);
     expect(screen.getByRole('img').getAttribute('src')).toBe('/brand/logo-header.svg');

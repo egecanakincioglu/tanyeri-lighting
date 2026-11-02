@@ -9,7 +9,20 @@ import { FormStatus } from '../form-status.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
-type CategoryFormTexts = { key: string; keyHint: string; name: string; cancel: string };
+type CategoryFormTexts = {
+  key: string;
+  keyHint: string;
+  name: string;
+  seoTitle: string;
+  seoDescription: string;
+  h1: string;
+  intro: string;
+  /** Said once above the four optional fields of the category's own page. */
+  pageHint: string;
+  cancel: string;
+};
+
+type Pair = { tr: string; en: string };
 
 type Action = (previous: FormState | null, formData: FormData) => Promise<FormState>;
 
@@ -17,7 +30,7 @@ type Props = {
   action: Action;
   locale: string;
   /** Set when editing. */
-  initial?: { id: string; key: string; name: { tr: string; en: string } };
+  initial?: { id: string; key: string; name: Pair; seoTitle: Pair; seoDescription: Pair; h1: Pair; intro: Pair };
   texts: CategoryFormTexts;
   formTexts: FormTexts;
   /** The demo's reason for a read-only form. */
@@ -25,7 +38,7 @@ type Props = {
 };
 
 // The limits of categorySchema in src/server/content/schemas.ts, which stays the authority.
-const LIMITS = { key: 60, name: 60 };
+const LIMITS = { key: 60, name: 60, seoTitle: 70, seoDescription: 320, h1: 100, intro: 600 };
 
 export function CategoryForm({ action, locale, initial, texts, formTexts, readOnlyReason }: Props) {
   const [state, formAction, pending] = useActionState(action, null);
@@ -69,6 +82,51 @@ export function CategoryForm({ action, locale, initial, texts, formTexts, readOn
             {texts.keyHint}
           </p>
         </div>
+      </div>
+      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+        <p className="text-sm text-muted">{texts.pageHint}</p>
+        <BilingualField
+          name="seoTitle"
+          label={texts.seoTitle}
+          languages={formTexts.languages}
+          defaultValue={initial?.seoTitle}
+          maxLength={LIMITS.seoTitle}
+          optional
+          errors={{ tr: message('seoTitle.tr'), en: message('seoTitle.en') }}
+          error={message('seoTitle')}
+        />
+        <BilingualField
+          name="seoDescription"
+          label={texts.seoDescription}
+          languages={formTexts.languages}
+          defaultValue={initial?.seoDescription}
+          maxLength={LIMITS.seoDescription}
+          multiline
+          optional
+          errors={{ tr: message('seoDescription.tr'), en: message('seoDescription.en') }}
+          error={message('seoDescription')}
+        />
+        <BilingualField
+          name="h1"
+          label={texts.h1}
+          languages={formTexts.languages}
+          defaultValue={initial?.h1}
+          maxLength={LIMITS.h1}
+          optional
+          errors={{ tr: message('h1.tr'), en: message('h1.en') }}
+          error={message('h1')}
+        />
+        <BilingualField
+          name="intro"
+          label={texts.intro}
+          languages={formTexts.languages}
+          defaultValue={initial?.intro}
+          maxLength={LIMITS.intro}
+          multiline
+          optional
+          errors={{ tr: message('intro.tr'), en: message('intro.en') }}
+          error={message('intro')}
+        />
       </div>
       <FormStatus state={state} texts={formTexts} />
       {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}

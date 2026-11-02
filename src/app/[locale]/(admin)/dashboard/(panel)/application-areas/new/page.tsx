@@ -8,6 +8,7 @@ import { PageHeader } from '../../../../../../../components/admin/page-header.ts
 import { routing } from '../../../../../../../i18n/routing.ts';
 import { createApplicationAreaAction } from '../../../../../../../server/admin/application-areas-actions.ts';
 import { guardPage } from '../../../../../../../server/auth/guard.ts';
+import { listCategories } from '../../../../../../../server/content/categories.ts';
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,8 @@ export default async function NewApplicationAreaPage({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   await guardPage(locale);
-  const [t, props] = await Promise.all([getTranslations({ locale, namespace: 'AdminAreas' }), areaFormProps(locale)]);
+  const [t, categories] = await Promise.all([getTranslations({ locale, namespace: 'AdminAreas' }), listCategories()]);
+  const props = await areaFormProps(locale, categories);
 
   return (
     <>

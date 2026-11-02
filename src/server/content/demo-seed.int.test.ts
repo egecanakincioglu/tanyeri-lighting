@@ -152,6 +152,36 @@ describe('demo content seed on a real database', () => {
     expect(isTranslated(reference.titleTr, reference.titleEn)).toBe(true);
   });
 
+  it('gives every category its own page texts: titles without the brand, an intro of 40 to 60 words', async () => {
+    const categories = await db.category.findMany({ orderBy: { sortOrder: 'asc' } });
+    expect(categories).toHaveLength(6);
+    const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
+    for (const category of categories) {
+      for (const field of ['seoTitle', 'seoDescription', 'h1', 'intro'] as const) {
+        expect(isTranslated(category[`${field}Tr`], category[`${field}En`]), `${category.key} ${field}`).toBe(true);
+      }
+      expect(category.seoTitleTr + category.seoTitleEn).not.toMatch(/Tanyeri/);
+      expect(category.seoTitleTr.length).toBeLessThanOrEqual(70);
+      expect(category.seoTitleEn.length).toBeLessThanOrEqual(70);
+      for (const intro of [category.introTr, category.introEn]) {
+        expect(words(intro), `${category.key} intro`).toBeGreaterThanOrEqual(40);
+        expect(words(intro), `${category.key} intro`).toBeLessThanOrEqual(60);
+      }
+    }
+  });
+
+  it('links the work areas that have a matching category and leaves the others unlinked', async () => {
+    const areas = await db.applicationArea.findMany({ include: { category: true }, orderBy: { sortOrder: 'asc' } });
+    expect(areas.map((area) => [area.titleEn, area.category?.key ?? null])).toEqual([
+      ['Homes', 'gomme-spot'],
+      ['Offices and Commercial Spaces', 'lineer'],
+      ['Industrial Sites', null],
+      ['Hotels and Stores', 'ray-spot'],
+      ['Landscape', 'dis-mekan'],
+      ['Facades', 'dis-mekan'],
+    ]);
+  });
+
   it('gives each catalog its own file and cover', async () => {
     const catalogs = await db.catalog.findMany({ orderBy: { sortOrder: 'asc' } });
     expect(catalogs.map((r) => r.pdfUrl)).toEqual([

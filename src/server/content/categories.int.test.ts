@@ -1,7 +1,14 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDb } from '../db.ts';
 import { DemoModeError } from '../demo/guard.ts';
-import { createCategory, deleteCategory, listCategories, reorderCategories, updateCategory } from './categories.ts';
+import {
+  createCategory,
+  deleteCategory,
+  listCategories,
+  listCategoryChanges,
+  reorderCategories,
+  updateCategory,
+} from './categories.ts';
 import {
   CategoryLimitError,
   CategoryNotEmptyError,
@@ -12,9 +19,18 @@ import {
 
 const pair = (tr: string, en: string) => ({ tr, en });
 
+const none = pair('', '');
+
 function category(key: string) {
-  return { key, name: pair(`${key} TR`, `${key} EN`) };
+  return { key, name: pair(`${key} TR`, `${key} EN`), seoTitle: none, seoDescription: none, h1: none, intro: none };
 }
+
+const seo = {
+  seoTitle: pair('Başlık', 'Title'),
+  seoDescription: pair('Açıklama metni.', 'Description text.'),
+  h1: pair('Ana başlık', 'Main heading'),
+  intro: pair('Kısa giriş.', 'Short intro.'),
+};
 
 async function keys(): Promise<string[]> {
   return (await listCategories()).map((item) => item.key);
@@ -69,6 +85,58 @@ describe('categories on a real database', () => {
   it('maps each language to its own column', async () => {
     await createCategory(category('indoor'));
     expect(await getDb().category.findFirstOrThrow()).toMatchObject({ nameTr: 'indoor TR', nameEn: 'indoor EN' });
+  });
+
+  it('stores the page texts of a category in their own columns and reads them back', async () => {
+    const created = await createCategory({ ...category('indoor'), ...seo });
+    expect(created).toMatchObject(seo);
+    expect(await getDb().category.findFirstOrThrow()).toMatchObject({
+      seoTitleTr: 'Başlık',
+      seoTitleEn: 'Title',
+      seoDescriptionTr: 'Açıklama metni.',
+      seoDescriptionEn: 'Description text.',
+      h1Tr: 'Ana başlık',
+      h1En: 'Main heading',
+      introTr: 'Kısa giriş.',
+      introEn: 'Short intro.',
+    });
+    expect(await listCategories()).toEqual([created]);
+  });
+
+  it('treats the page texts as empty when they are left out, and replaces or clears them on update', async () => {
+    const created = await createCategory({ key: 'indoor', name: pair('İç', 'Indoor') });
+    expect(created).toMatchObject({ seoTitle: none, seoDescription: none, h1: none, intro: none });
+    const filled = await updateCategory(created.id, { ...category('indoor'), ...seo });
+    expect(filled).toMatchObject(seo);
+    const cleared = await updateCategory(created.id, category('indoor'));
+    expect(cleared).toMatchObject({ seoTitle: none, intro: none });
+  });
+
+  it.each([
+    ['one language only', { seoTitle: pair('Başlık', '') }],
+    ['one language only in the intro', { intro: pair('', 'Short intro.') }],
+    ['a title over 70 characters', { seoTitle: pair('a'.repeat(71), 'b') }],
+    ['a description over 320 characters', { seoDescription: pair('a'.repeat(321), 'b') }],
+    ['a heading over 100 characters', { h1: pair('a'.repeat(101), 'b') }],
+    ['an intro over 600 characters', { intro: pair('a'.repeat(601), 'b') }],
+  ])('rejects %s and stores nothing', async (_name, extra) => {
+    await expect(createCategory({ ...category('indoor'), ...extra })).rejects.toThrow();
+    const created = await createCategory(category('outdoor'));
+    await expect(updateCategory(created.id, { ...category('outdoor'), ...extra })).rejects.toThrow();
+    expect(await listCategories()).toEqual([created]);
+  });
+
+  it('lists a category for the sitemap only with products, with the later of its own and its newest product change', async () => {
+    const withProducts = await createCategory(category('indoor'));
+    await createCategory(category('empty'));
+    await addProduct(withProducts.id, 'lamp');
+    const [change] = await listCategoryChanges();
+    const product = await getDb().product.findFirstOrThrow({ select: { updatedAt: true } });
+    expect(await listCategoryChanges()).toHaveLength(1);
+    expect(change?.key).toBe('indoor');
+    expect(change?.updatedAt.getTime()).toBeGreaterThanOrEqual(product.updatedAt.getTime());
+    await getDb().product.updateMany({ data: { updatedAt: new Date('2099-01-01T00:00:00Z') } });
+    expect((await listCategoryChanges())[0]?.updatedAt).toEqual(new Date('2099-01-01T00:00:00Z'));
   });
 
   it('allows 8 categories and refuses the 9th', async () => {
@@ -127,7 +195,15 @@ describe('categories on a real database', () => {
     const second = await createCategory(category('outdoor'));
     await createCategory(category('garden'));
     const updated = await updateCategory(second.id, { key: 'outdoor', name: pair('Dış mekan', 'Outdoor') });
-    expect(updated).toEqual({ id: second.id, key: 'outdoor', name: pair('Dış mekan', 'Outdoor') });
+    expect(updated).toEqual({
+      id: second.id,
+      key: 'outdoor',
+      name: pair('Dış mekan', 'Outdoor'),
+      seoTitle: none,
+      seoDescription: none,
+      h1: none,
+      intro: none,
+    });
     await updateCategory(second.id, category('exterior'));
     expect(await keys()).toEqual(['indoor', 'exterior', 'garden']);
   });
@@ -206,6 +282,8 @@ describe('categories on a real database', () => {
     await expect(deleteCategory(a.id)).rejects.toThrow(DemoModeError);
     await expect(reorderCategories([b.id, a.id])).rejects.toThrow(DemoModeError);
     await expect(createCategory({})).rejects.toThrow(DemoModeError);
+    await expect(createCategory({ ...category('garden'), ...seo })).rejects.toThrow(DemoModeError);
+    await expect(updateCategory(a.id, { ...category('indoor'), ...seo })).rejects.toThrow(DemoModeError);
     expect(await listCategories()).toEqual(before);
   });
 });
