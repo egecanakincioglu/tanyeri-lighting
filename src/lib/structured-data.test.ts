@@ -114,15 +114,14 @@ describe('structured data', () => {
       expect(data.logo).toBe('https://example.test/icons/icon-512.png');
     });
 
-    it('does not claim profiles at placeholder addresses', () => {
-      const placeholders: SocialLink[] = [
-        { ...links[0]!, url: 'https://www.example.com/tanyeri/instagram' },
-        { ...links[0]!, id: 'l2', url: 'https://example.com/tanyeri' },
-        { ...links[0]!, id: 'l3', url: 'not a url' },
-        { ...links[0]!, id: 'l4', url: 'https://instagram.example/tanyeri' },
-      ];
-      expect(organizationData(settings, placeholders, 'tr').sameAs).toEqual(['https://instagram.example/tanyeri']);
-      expect(organizationData(settings, placeholders.slice(0, 3), 'tr')).not.toHaveProperty('sameAs');
+    it('lists the saved profiles as sameAs on a real install', () => {
+      expect(organizationData(settings, links, 'tr', { demo: false }).sameAs).toEqual([
+        'https://instagram.example/tanyeri',
+      ]);
+    });
+
+    it('omits sameAs in the demo, whose profiles are not owned by the project', () => {
+      expect(organizationData(settings, links, 'tr', { demo: true })).not.toHaveProperty('sameAs');
     });
 
     it('writes no contact point in the demo, where the phone and email reach nobody', () => {
