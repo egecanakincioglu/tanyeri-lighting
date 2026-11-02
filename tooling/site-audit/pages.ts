@@ -58,4 +58,8 @@ export const ADMIN_PAGES: readonly string[] = [
   '/en/admin/application-areas',
   '/tr/yonetim/calisma-alanlari/yeni',
   '/en/admin/application-areas/new',
+  '/tr/yonetim/kurumsal-ayarlar',
+  '/en/admin/settings',
+  '/tr/yonetim/hakkimizda',
+  '/en/admin/about',
 ];

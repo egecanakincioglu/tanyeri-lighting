@@ -22,6 +22,23 @@ describe('Logo', () => {
   });
 
   it.each([
+    ['header', 220, 44],
+    ['full', 280, 68],
+  ] as const)('shows an uploaded logo in the fixed box of the %s variant', (variant, width, height) => {
+    render(<Logo label="Tanyeri Lighting" variant={variant} src="/demo/area-otel.webp" />);
+    const img = screen.getByRole('img', { name: 'Tanyeri Lighting' });
+    expect(img.getAttribute('src')).toBe('/demo/area-otel.webp');
+    expect(img.getAttribute('width')).toBe(String(width));
+    expect(img.getAttribute('height')).toBe(String(height));
+    expect(img.getAttribute('class')).toBe('object-contain');
+  });
+
+  it('falls back to the artwork when the uploaded logo is empty', () => {
+    render(<Logo label="Tanyeri Lighting" src={null} />);
+    expect(screen.getByRole('img').getAttribute('src')).toBe('/brand/logo-header.svg');
+  });
+
+  it.each([
     ['header', 'logo-header.svg', 220, 44],
     ['full', 'logo.svg', 280, 68],
   ] as const)(
