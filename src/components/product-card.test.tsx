@@ -21,9 +21,11 @@ describe('ProductCard', () => {
     expect(link.getAttribute('href')).toBe('/tr/products/spot');
   });
 
-  it('shows the photo in a 4:3 box with the given sizes', () => {
+  it('shows the whole photo, centred, in a square box with the given sizes', () => {
     const { container } = render(card);
-    expect(container.querySelector('.aspect-4\\/3')).toBeTruthy();
+    const box = container.querySelector('.aspect-square');
+    expect(box?.className).toContain('[&_img]:object-contain');
+    expect(box?.className).not.toContain('object-top');
     expect(container.querySelector('img')?.getAttribute('sizes')).toBe('50vw');
   });
 
