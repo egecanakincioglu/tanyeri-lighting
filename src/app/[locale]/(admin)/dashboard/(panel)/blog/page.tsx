@@ -68,7 +68,7 @@ export default async function BlogAdminPage({ params }: PageProps<'/[locale]/das
           delete: {
             trigger: t('delete'),
             title: t('deleteTitle'),
-            body: t('deleteBody'),
+            body: t('deleteBody', { name: '{name}' }),
             confirm: t('deleteConfirm'),
             working: t('deleting'),
             cancel: form('cancel'),
