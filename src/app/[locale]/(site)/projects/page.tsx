@@ -5,8 +5,11 @@ import { notFound } from 'next/navigation';
 import { Container } from '../../../../components/container.tsx';
 import { MarkdownContent } from '../../../../components/markdown-content.tsx';
 import { BeforeAfter } from '../../../../components/projects/before-after.tsx';
+import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { routing } from '../../../../i18n/routing.ts';
+import { pageAlternates } from '../../../../lib/seo.ts';
+import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listProjects } from '../../../../server/content/projects.ts';
 
@@ -22,7 +25,11 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/projects
   }
   const [t, page] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('projects')]);
   const description = page?.description[locale];
-  return description ? { title: t('projects'), description } : { title: t('projects') };
+  return {
+    title: t('projects'),
+    ...(description ? { description } : {}),
+    alternates: pageAlternates(locale, '/projects'),
+  };
 }
 
 export default async function ProjectsPage({ params }: PageProps<'/[locale]/projects'>) {
@@ -39,6 +46,12 @@ export default async function ProjectsPage({ params }: PageProps<'/[locale]/proj
 
   return (
     <div className="pb-[clamp(2.5rem,6vw,4.5rem)]">
+      <JsonLd
+        data={breadcrumbData(locale, [
+          { name: header('home'), href: '/' },
+          { name: header('projects'), href: '/projects' },
+        ])}
+      />
       <SectionTitle title={header('projects')} level={1} />
       {projects.length > 0 && (
         <Container>

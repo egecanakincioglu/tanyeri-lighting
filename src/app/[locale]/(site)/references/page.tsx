@@ -4,9 +4,12 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Card } from '../../../../components/card.tsx';
 import { Container } from '../../../../components/container.tsx';
+import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { SiteImage } from '../../../../components/site-image.tsx';
 import { routing } from '../../../../i18n/routing.ts';
+import { pageAlternates } from '../../../../lib/seo.ts';
+import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listReferences } from '../../../../server/content/references.ts';
 
@@ -24,7 +27,11 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/referenc
     getPageMetadata('references'),
   ]);
   const description = page?.description[locale];
-  return description ? { title: t('references'), description } : { title: t('references') };
+  return {
+    title: t('references'),
+    ...(description ? { description } : {}),
+    alternates: pageAlternates(locale, '/references'),
+  };
 }
 
 export default async function ReferencesPage({ params }: PageProps<'/[locale]/references'>) {
@@ -37,6 +44,12 @@ export default async function ReferencesPage({ params }: PageProps<'/[locale]/re
 
   return (
     <div className="pb-[clamp(2.5rem,6vw,4.5rem)]">
+      <JsonLd
+        data={breadcrumbData(locale, [
+          { name: header('home'), href: '/' },
+          { name: header('references'), href: '/references' },
+        ])}
+      />
       <SectionTitle title={header('references')} level={1} />
       {references.length > 0 && (
         <Container>

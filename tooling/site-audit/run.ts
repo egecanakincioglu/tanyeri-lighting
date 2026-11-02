@@ -19,10 +19,16 @@ import {
   consoleProblems,
   hasHorizontalOverflow,
   imageProblem,
+  pageSeoProblems,
+  readPageSeo,
+  reciprocalProblems,
   redirectProblem,
+  robotsProblems,
+  sitemapUrls,
   summarizeAxe,
   type ConsoleEntry,
   type ImageFacts,
+  type PageSeo,
 } from './checks.ts';
 import { findChrome } from './chrome.ts';
 import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } from './devices.ts';
@@ -61,7 +67,7 @@ async function startServer(): Promise<ChildProcess> {
   const child = spawn(process.execPath, [next, 'start', '-p', String(PORT)], {
     stdio: ['ignore', 'inherit', 'inherit'],
     // The audit measures the site as it will be once indexing is open (Lighthouse flags noindex as not crawlable).
-    env: { ...process.env, SITE_INDEXING: 'on' },
+    env: { ...process.env, SITE_INDEXING: 'on', SITE_URL: BASE },
     detached: process.platform !== 'win32',
   });
   const deadline = Date.now() + 60_000;
@@ -108,6 +114,37 @@ async function httpChecks(): Promise<void> {
   }
   const unknown = await fetch(`${BASE}/xx`);
   if (unknown.status !== 404) fail('http /xx', `status ${unknown.status}, expected 404`);
+  await seoChecks();
+}
+
+// robots.txt, the sitemap and, for every address in the sitemap, the raw HTML: one request each, no browser.
+async function seoChecks(): Promise<void> {
+  const robots = await fetch(`${BASE}/robots.txt`);
+  if (robots.status !== 200) fail('http /robots.txt', `status ${robots.status}, expected 200`);
+  else for (const problem of robotsProblems(await robots.text(), `${BASE}/sitemap.xml`)) fail('seo', problem);
+
+  const sitemap = await fetch(`${BASE}/sitemap.xml`);
+  if (sitemap.status !== 200) {
+    fail('http /sitemap.xml', `status ${sitemap.status}, expected 200`);
+    return;
+  }
+  const urls = sitemapUrls(await sitemap.text());
+  const listed = new Set(urls);
+  for (const p of PAGES) {
+    if (!listed.has(BASE + p)) fail('seo', `${p} is a page of the audit but is not in the sitemap`);
+  }
+  const alternates = new Map<string, PageSeo['alternates']>();
+  for (const url of urls) {
+    const res = await fetch(url, { redirect: 'manual' });
+    if (res.status !== 200) {
+      fail(`http ${url}`, `status ${res.status}, expected 200`);
+      continue;
+    }
+    const seo = readPageSeo(await res.text());
+    alternates.set(url, seo.alternates);
+    for (const problem of pageSeoProblems(new URL(url).pathname, seo, url)) fail('seo', problem);
+  }
+  for (const problem of reciprocalProblems(alternates)) fail('seo', problem);
 }
 
 async function setViewport(page: Page, d: Pick<Device, 'width' | 'height' | 'touch' | 'dpr'>) {

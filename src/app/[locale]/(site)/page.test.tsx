@@ -2,7 +2,13 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json' with { type: 'json' };
 import tr from '../../../../messages/tr.json' with { type: 'json' };
-import type { ApplicationArea, HomeBanner, Product, PromoBoard } from '../../../server/content/schemas.ts';
+import type {
+  ApplicationArea,
+  HomeBanner,
+  Product,
+  PromoBoard,
+  SiteSettings,
+} from '../../../server/content/schemas.ts';
 import { axeViolations } from '../../../test/axe.ts';
 import HomePage, { generateMetadata } from './page.tsx';
 
@@ -12,18 +18,22 @@ const content = vi.hoisted(() => ({
   products: vi.fn(),
   areas: vi.fn(),
   metadata: vi.fn(),
+  settings: vi.fn(),
+  links: vi.fn(),
 }));
 
 vi.mock('../../../server/content/home-banner.ts', () => ({ getHomeBanner: content.banner }));
 vi.mock('../../../server/content/promo-boards.ts', () => ({ listPromoBoards: content.boards }));
 vi.mock('../../../server/content/featured-products.ts', () => ({ listFeaturedProducts: content.products }));
 vi.mock('../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
+vi.mock('../../../server/content/site-settings.ts', () => ({ getSiteSettings: content.settings }));
+vi.mock('../../../server/content/social-links.ts', () => ({ listSocialLinks: content.links }));
 vi.mock('../../../server/content/application-areas.ts', () => ({ listApplicationAreas: content.areas }));
 
 // The real helper needs the Next.js server runtime; this fake reads the same message files.
 vi.mock('next-intl/server', () => ({
-  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' }) =>
-    Promise.resolve((key: keyof typeof tr.Home) => ({ tr, en })[locale][namespace][key]),
+  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' | 'DemoBand' }) =>
+    Promise.resolve((key: string) => (({ tr, en })[locale][namespace] as Record<string, string>)[key]),
 }));
 
 const pair = (text: string) => ({ tr: `${text} TR`, en: `${text} EN` });
@@ -72,6 +82,17 @@ const areas: ApplicationArea[] = [1, 2].map((n) => ({
   description: pair(`Area text ${n}`),
 }));
 
+const settings: SiteSettings = {
+  siteName: pair('Brand'),
+  logoUrl: null,
+  phone: '+90 212 000 00 00',
+  email: 'info@example.test',
+  address: pair('Address'),
+  workingHours: pair('Hours'),
+  serviceArea: pair('Area'),
+  languages: pair('Languages'),
+};
+
 // Addresses are localized: the Turkish ones differ from the route keys.
 const PATHS = {
   tr: { products: '/tr/urunler', contact: '/tr/iletisim', catalogs: '/tr/kataloglar', product: '/tr/urunler/lamp-2' },
@@ -90,8 +111,16 @@ describe('HomePage', () => {
     content.boards.mockResolvedValue(boards);
     content.products.mockResolvedValue(products);
     content.areas.mockResolvedValue(areas);
+    content.settings.mockResolvedValue(settings);
+    content.links.mockResolvedValue([
+      { id: 'l1', platform: 'instagram', label: pair('Instagram'), url: 'https://instagram.example/tanyeri' },
+    ]);
+    vi.stubEnv('SITE_URL', 'https://example.test');
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllEnvs();
+  });
 
   it.each([
     ['tr', 'Favori Ürünlerimiz', 'Çalışma Alanlarımız', 'Hemen İncele'],
@@ -177,10 +206,44 @@ describe('HomePage', () => {
 
   it('omits the description when no metadata row or text exists', async () => {
     content.metadata.mockResolvedValue(null);
-    await expect(generateMetadata(props('tr'))).resolves.toEqual({});
+    await expect(generateMetadata(props('tr'))).resolves.not.toHaveProperty('description');
     content.metadata.mockResolvedValue({ title: none, description: none, updatedAt: new Date() });
-    await expect(generateMetadata(props('en'))).resolves.toEqual({});
+    await expect(generateMetadata(props('en'))).resolves.not.toHaveProperty('description');
     await expect(generateMetadata(props('fr'))).resolves.toEqual({});
+  });
+
+  const ldBlocks = (container: HTMLElement) =>
+    [...container.querySelectorAll('script[type="application/ld+json"]')].map((script) =>
+      JSON.parse(script.textContent ?? ''),
+    );
+
+  it.each([
+    ['tr', 'https://example.test/tr'],
+    ['en', 'https://example.test/en'],
+  ])('describes the site and the organization as structured data in %s', async (locale, url) => {
+    const { container } = await renderPage(locale);
+    const [website, organization] = ldBlocks(container);
+    expect(website).toMatchObject({ '@type': 'WebSite', url, name: `Brand ${locale.toUpperCase()}` });
+    expect(organization).toMatchObject({
+      '@type': 'Organization',
+      sameAs: ['https://instagram.example/tanyeri'],
+      contactPoint: { email: 'info@example.test' },
+    });
+    expect(organization).not.toHaveProperty('description');
+  });
+
+  it('repeats the demo notice in the organization data only in demo mode', async () => {
+    vi.stubEnv('DEMO_MODE', 'true');
+    const { container } = await renderPage('en');
+    expect(ldBlocks(container)[1]).toMatchObject({ description: en.DemoBand.text });
+  });
+
+  it('gives the home page the root address as x-default and its own canonical', async () => {
+    const metadata = await generateMetadata(props('en'));
+    expect(metadata.alternates).toEqual({
+      canonical: '/en',
+      languages: { tr: '/tr', en: '/en', 'x-default': '/' },
+    });
   });
 
   it('answers an unknown language with not-found', async () => {

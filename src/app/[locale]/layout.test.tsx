@@ -49,6 +49,13 @@ describe('RootLayout', () => {
     });
   });
 
+  it('sets the base address that relative canonical links are resolved against', async () => {
+    vi.stubEnv('SITE_URL', 'https://example.test/ignored');
+    const metadata = await generateMetadata(metadataProps('en'));
+    expect(String(metadata.metadataBase)).toBe('https://example.test/');
+    vi.unstubAllEnvs();
+  });
+
   describe('robots', () => {
     afterEach(() => {
       vi.unstubAllEnvs();

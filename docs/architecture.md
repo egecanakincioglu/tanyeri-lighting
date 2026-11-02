@@ -183,7 +183,10 @@ The proxy does only two things: locale routing and security headers. It is not t
 ## SEO and structured data
 
 - Today: the site sends `noindex, nofollow` until 1.0.0. `SITE_INDEXING=on` turns indexing on. Every page has a localized document title.
-- Planned: metadata from the database in both languages; canonical addresses; `hreflang` links for `tr`, `en` and `x-default`; a dynamic `sitemap.ts` and a `robots.ts` that gives the same rule to all crawlers; JSON-LD from one component (`WebSite`, `Organization`, `ContactPage`, `BreadcrumbList`). Production is indexable, previews are not ([ADR 0009](adr/0009-quality-targets.md)).
+- `SITE_URL` sets the site address. Without it, the production host is used on Vercel and `http://localhost:3000` in a local run. One helper in `src/lib/seo.ts` builds the canonical address and the language alternates (`tr`, `en` and `x-default`) of each page.
+- `src/app/sitemap.ts` and `src/app/robots.ts` are dynamic and read the settings per request. `robots.ts` gives the same rule to all crawlers and closes the whole site unless indexing is on. The sitemap has no `hreflang` entries; the language alternates are in the page head ([ADR 0009](adr/0009-quality-targets.md)).
+- JSON-LD is built in `src/lib/structured-data.ts` and rendered by `src/components/json-ld.tsx`: `WebSite`, `Organization`, `ContactPage` and `BreadcrumbList`. There is no `Product` type, because nothing is for sale.
+- Page titles and descriptions come from the database in both languages. Production is indexable, previews are not.
 - The quality targets also cover visibility in AI search and usability for automated browsers, as properties of the site.
 
 ## Performance and responsive design
