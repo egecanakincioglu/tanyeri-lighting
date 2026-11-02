@@ -1,0 +1,55 @@
+import type { ErrorCode, FieldError } from '../../server/admin/form.ts';
+
+// The texts the panel's client components share. Server pages build them from messages/*.json (the AdminForm
+// namespace) and pass them down, because the browser never receives the message files.
+
+type Translate = (key: string, values?: Record<string, string | number>) => string;
+
+const ERROR_CODES: readonly ErrorCode[] = [
+  'invalid',
+  'demo',
+  'unauthorized',
+  'notFound',
+  'invalidOrder',
+  'taken',
+  'conflict',
+  'storageOff',
+  'tooLarge',
+  'unsupportedType',
+  'unreadableImage',
+  'generic',
+];
+
+export type FormTexts = {
+  save: string;
+  saving: string;
+  saved: string;
+  /** Why save, delete, reorder and upload are off in the demo. */
+  demoNote: string;
+  languages: { tr: string; en: string };
+  errors: Record<ErrorCode, string>;
+  fieldErrors: { required: string; /** Holds `{max}`. */ tooLong: string; invalid: string };
+};
+
+export function buildFormTexts(t: Translate): FormTexts {
+  return {
+    save: t('save'),
+    saving: t('saving'),
+    saved: t('saved'),
+    demoNote: t('demoNote'),
+    languages: { tr: t('languageTr'), en: t('languageEn') },
+    errors: Object.fromEntries(ERROR_CODES.map((code) => [code, t(`errors.${code}`)])) as Record<ErrorCode, string>,
+    fieldErrors: {
+      required: t('fieldErrors.required'),
+      tooLong: t('fieldErrors.tooLong'),
+      invalid: t('fieldErrors.invalid'),
+    },
+  };
+}
+
+export function fieldMessage(texts: FormTexts, error: FieldError | undefined): string | undefined {
+  if (!error) return undefined;
+  return error.code === 'tooLong'
+    ? texts.fieldErrors.tooLong.replace('{max}', String(error.max ?? 0))
+    : texts.fieldErrors[error.code];
+}

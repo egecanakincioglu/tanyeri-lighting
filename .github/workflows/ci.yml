@@ -249,6 +249,9 @@ jobs:
       DATABASE_URL_UNPOOLED: postgresql://postgres@localhost:5432/tanyeri
       BETTER_AUTH_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       BETTER_AUTH_URL: http://localhost:3000
+      # The demo seed creates this admin and the audit signs in with it to visit the panel screens. Also protects nothing.
+      DEMO_ADMIN_EMAIL: demo@example.com
+      DEMO_ADMIN_PASSWORD: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     strategy:
       fail-fast: false
       matrix:

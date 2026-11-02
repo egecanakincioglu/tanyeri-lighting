@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   getAdminCredentials,
+  getDemoAdminCredentials,
   getBlobToken,
   getEnv,
   getSmtpConfig,
@@ -155,6 +156,37 @@ describe('getBlobToken', () => {
   it('reads process.env by default', () => {
     vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_store_abc');
     expect(getBlobToken()).toBe('vercel_blob_rw_store_abc');
+  });
+});
+
+describe('getDemoAdminCredentials', () => {
+  const demo = { DEMO_ADMIN_EMAIL: 'Demo@Example.com', DEMO_ADMIN_PASSWORD: 'x'.repeat(32) };
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('returns the pair with a lower-case email when both are set', () => {
+    expect(getDemoAdminCredentials(demo)).toEqual({ email: 'demo@example.com', password: demo.DEMO_ADMIN_PASSWORD });
+  });
+
+  it('is undefined when neither is set, blank values included', () => {
+    expect(getDemoAdminCredentials({})).toBeUndefined();
+    expect(getDemoAdminCredentials({ DEMO_ADMIN_EMAIL: ' ', DEMO_ADMIN_PASSWORD: '' })).toBeUndefined();
+  });
+
+  it('names the missing or invalid variable when the pair is partly set or wrong', () => {
+    expect(() => getDemoAdminCredentials({ DEMO_ADMIN_EMAIL: demo.DEMO_ADMIN_EMAIL })).toThrow(/DEMO_ADMIN_PASSWORD/);
+    expect(() => getDemoAdminCredentials({ DEMO_ADMIN_PASSWORD: demo.DEMO_ADMIN_PASSWORD })).toThrow(
+      /DEMO_ADMIN_EMAIL/,
+    );
+    expect(() => getDemoAdminCredentials({ ...demo, DEMO_ADMIN_PASSWORD: 'short' })).toThrow(/DEMO_ADMIN_PASSWORD:/);
+  });
+
+  it('reads process.env by default', () => {
+    vi.stubEnv('DEMO_ADMIN_EMAIL', demo.DEMO_ADMIN_EMAIL);
+    vi.stubEnv('DEMO_ADMIN_PASSWORD', demo.DEMO_ADMIN_PASSWORD);
+    expect(getDemoAdminCredentials()?.email).toBe('demo@example.com');
   });
 });
 

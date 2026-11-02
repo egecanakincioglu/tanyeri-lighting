@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 import { POST } from '../../app/api/auth/[...all]/route.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
-import { createFirstAdmin, resetAdminPassword } from './admin.ts';
+import { createFirstAdmin, resetAdminPassword, upsertDemoAdmin } from './admin.ts';
 
 const EMAIL = 'first-admin@example.com';
 const PASSWORD = 'correct horse battery staple';
@@ -41,6 +41,23 @@ async function resetTables(): Promise<void> {
   await db.account.deleteMany();
   await db.user.deleteMany();
 }
+
+describe('upsertDemoAdmin', () => {
+  beforeEach(resetTables);
+
+  afterAll(async () => {
+    await getDb().$disconnect();
+  });
+
+  it('creates the demo admin, and a second run replaces the password of the same user', async () => {
+    expect(await upsertDemoAdmin(getDb(), { email: EMAIL, password: PASSWORD })).toBe('created');
+    expect(await upsertDemoAdmin(getDb(), { email: EMAIL, password: NEW_PASSWORD })).toBe('updated');
+
+    expect(await getDb().user.count()).toBe(1);
+    expect((await signIn(EMAIL, NEW_PASSWORD)).status).toBe(200);
+    expect((await signIn(EMAIL, PASSWORD)).status).not.toBe(200);
+  });
+});
 
 describe('createFirstAdmin', () => {
   beforeEach(resetTables);

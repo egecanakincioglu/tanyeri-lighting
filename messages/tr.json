@@ -111,7 +111,7 @@
     "errors": {
       "required": "Bu alan zorunludur.",
       "too_long": "Bu metin çok uzun.",
-      "invalid": "Geçerli bir değer girin."
+      "invalid": "Eksik veya geçersiz değer."
     },
     "invalidSummary": "Mesajınız gönderilmedi. Aşağıda işaretli alanları kontrol edin.",
     "rateLimited": "Çok fazla mesaj gönderdiniz. {minutes} dakika sonra yeniden deneyin.",
@@ -132,9 +132,135 @@
     "rateLimited": "Çok fazla deneme yapıldı. Birkaç saniye bekleyip tekrar deneyin.",
     "forgotTitle": "Parolanızı mı unuttunuz?",
     "forgotText": "Site e-posta göndermiyorsa parolayı site sahibi sunucuda bir komutla sıfırlar. Siteyi yöneten kişiye başvurun.",
-    "panelTitle": "Yönetim paneli",
-    "signedInAs": "{email} olarak giriş yapıldı",
-    "signOut": "Çıkış yap",
-    "next": "İçerik yönetimi sıradaki adım."
+    "demoTitle": "Demo hesabı",
+    "demoText": "Bu bir demo. Aşağıdaki hesapla paneli gezebilirsiniz; değişiklikler kaydedilmez.",
+    "demoEmail": "E-posta",
+    "demoPass": "Parola"
+  },
+  "AdminNav": {
+    "logo": "Tanyeri Lighting",
+    "menu": "Yönetim menüsü",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "viewSite": "Siteyi görüntüle",
+    "demoNotice": "Bu bir demo: paneli gezebilirsiniz, değişiklikler kaydedilmez.",
+    "signOut": "Çıkış",
+    "unread": "{count} okunmamış mesaj",
+    "comingNext": "Bu bölüm bir sonraki adımda eklenecek.",
+    "groups": {
+      "general": "Genel",
+      "home": "Ana Sayfa",
+      "corporate": "Kurumsal",
+      "content": "İçerik",
+      "products": "Ürünler",
+      "inbox": "Gelen Kutusu",
+      "site": "Site",
+      "account": "Hesap"
+    },
+    "items": {
+      "panel": "Panel",
+      "banner": "Banner",
+      "featured": "Öne Çıkan Ürünler",
+      "promo": "Tanıtım Panoları",
+      "areas": "Çalışma Alanları",
+      "settings": "Kurumsal Ayarlar",
+      "about": "Hakkımızda ve Vizyon",
+      "references": "Referanslar",
+      "services": "Hizmetler",
+      "projects": "Projeler",
+      "products": "Ürünler",
+      "categories": "Kategoriler",
+      "catalogs": "Kataloglar",
+      "messages": "Mesajlar",
+      "legal": "Yasal Sayfalar",
+      "seo": "Sayfa Bilgileri (SEO)",
+      "account": "Hesabım"
+    }
+  },
+  "AdminHome": {
+    "title": "Panel",
+    "description": "Sitedeki içeriğin özeti. Bir kutuya tıklayarak ilgili bölüme geçin.",
+    "cards": {
+      "products": "Ürünler",
+      "categories": "Kategoriler",
+      "catalogs": "Kataloglar",
+      "projects": "Projeler",
+      "references": "Referanslar",
+      "services": "Hizmetler",
+      "messages": "Mesajlar"
+    },
+    "unread": "{count} okunmamış",
+    "quickTitle": "Hızlı bağlantılar",
+    "quick": {
+      "newReference": "Yeni referans",
+      "messages": "Mesajlara git",
+      "site": "Siteyi görüntüle"
+    }
+  },
+  "AdminForm": {
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "saved": "Kaydedildi.",
+    "cancel": "Vazgeç",
+    "demoNote": "Demo sürümünde kaydetme, silme, sıralama ve dosya yükleme kapalıdır.",
+    "languageTr": "Türkçe",
+    "languageEn": "İngilizce",
+    "errors": {
+      "invalid": "Formda düzeltilmesi gereken alanlar var.",
+      "demo": "Demo sürümünde değişiklik yapılamaz.",
+      "unauthorized": "Oturumunuz sona ermiş. Yeniden giriş yapın.",
+      "notFound": "Kayıt bulunamadı. Silinmiş olabilir.",
+      "invalidOrder": "Liste siz bakarken değişti. Sayfayı yenileyip tekrar deneyin.",
+      "taken": "Bu değer başka bir kayıtta kullanılıyor.",
+      "conflict": "Bu kayıt kullanımda olduğu için işlem yapılamadı.",
+      "storageOff": "Dosya yükleme bu sitede kapalı.",
+      "tooLarge": "Dosya 4 MB'tan büyük olamaz.",
+      "unsupportedType": "Yalnızca JPEG, PNG, WebP veya PDF yükleyebilirsiniz.",
+      "unreadableImage": "Görsel açılamadı. Başka bir dosya deneyin.",
+      "generic": "Bir sorun oluştu. Biraz sonra tekrar deneyin."
+    },
+    "fieldErrors": {
+      "required": "Bu alan zorunlu.",
+      "tooLong": "En fazla {max} karakter olabilir.",
+      "invalid": "Eksik veya geçersiz değer."
+    }
+  },
+  "AdminMedia": {
+    "choose": "Dosya seç",
+    "replace": "Değiştir",
+    "clear": "Kaldır",
+    "uploading": "Yükleniyor…",
+    "none": "Henüz dosya seçilmedi.",
+    "imageHint": "JPEG, PNG veya WebP; en fazla 4 MB.",
+    "fileHint": "PDF; en fazla 4 MB.",
+    "open": "Dosyayı aç",
+    "storageOff": "Dosya yükleme bu sitede kapalı (dosya deposu bağlı değil). Var olan dosya korunur."
+  },
+  "AdminMarkdown": {
+    "hint": "Kalın için **metin**, italik için *metin*, başlık için ## Başlık, liste için - madde, bağlantı için [metin](https://adres).",
+    "edit": "Düzenle",
+    "preview": "Önizleme",
+    "loading": "Önizleme yükleniyor…"
+  },
+  "AdminReferences": {
+    "title": "Referanslar",
+    "description": "Sitenin Referanslar sayfasında görünen işler. Sırayı oklarla değiştirin.",
+    "create": "Yeni referans",
+    "createTitle": "Yeni referans",
+    "editTitle": "Referansı düzenle",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "deleteTitle": "Referans silinsin mi?",
+    "deleteBody": "“{name}” kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "deleteConfirm": "Evet, sil",
+    "deleting": "Siliniyor…",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "empty": "Henüz referans yok. İlkini ekleyin.",
+    "reordered": "Sıra kaydedildi.",
+    "fieldImage": "Görsel",
+    "fieldName": "Firma adı",
+    "fieldTitle": "Yapılan iş türü",
+    "fieldDescription": "Açıklama"
   }
 }

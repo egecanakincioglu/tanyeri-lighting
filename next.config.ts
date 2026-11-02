@@ -10,7 +10,15 @@ const securityHeaders: Record<string, string> = {
 };
 
 const nextConfig: NextConfig = {
-  images: { deviceSizes: [640, 680, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840], qualities: [60] },
+  images: {
+    deviceSizes: [640, 680, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
+    qualities: [60],
+    // Uploaded pictures live in the public Vercel Blob store. They are served through the image optimizer from our own
+    // origin, so the CSP img-src 'self' already covers them.
+    remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
+  },
+  // The panel uploads files of up to 4 MB (MAX_UPLOAD_BYTES) through a Server Action; the default limit is 1 MB.
+  experimental: { serverActions: { bodySizeLimit: '5mb' } },
   headers: async () => [
     { source: '/:path*', headers: Object.entries(securityHeaders).map(([key, value]) => ({ key, value })) },
   ],

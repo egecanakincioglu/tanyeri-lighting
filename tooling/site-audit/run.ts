@@ -26,7 +26,7 @@ import {
 } from './checks.ts';
 import { findChrome } from './chrome.ts';
 import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } from './devices.ts';
-import { ADMIN_PAGES, PAGES } from './pages.ts';
+import { ADMIN_PAGES, PAGES, SIGN_IN_PAGES } from './pages.ts';
 import {
   agenticFailures,
   discardReason,
@@ -93,7 +93,7 @@ async function redirectOf(pathname: string, lang?: string) {
 }
 
 async function httpChecks(): Promise<void> {
-  for (const p of [...PAGES, ...ADMIN_PAGES]) {
+  for (const p of [...PAGES, ...SIGN_IN_PAGES]) {
     const res = await fetch(BASE + p, { redirect: 'manual' });
     if (res.status !== 200) fail(`http ${p}`, `status ${res.status}, expected 200`);
   }
@@ -138,7 +138,8 @@ async function auditView(page: Page, url: string, d: Device, axeSource: string):
   page.on('pageerror', onPageError);
 
   await setViewport(page, d);
-  await page.goto(url, { waitUntil: 'networkidle0' });
+  const response = await page.goto(url, { waitUntil: 'networkidle0' });
+  if (response && response.status() !== 200) fail(`status ${where}`, `status ${response.status()}, expected 200`);
 
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   if (hasHorizontalOverflow(scrollWidth, d.width)) fail(`overflow ${where}`, `scrollWidth ${scrollWidth}`);
@@ -206,6 +207,24 @@ async function auditView(page: Page, url: string, d: Device, axeSource: string):
   for (const p of consoleProblems(entries)) fail(`console ${where}`, p);
 }
 
+function demoAdminFromEnv(): { email: string; password: string } | undefined {
+  const email = process.env.DEMO_ADMIN_EMAIL;
+  const password = process.env.DEMO_ADMIN_PASSWORD;
+  return email && password ? { email, password } : undefined;
+}
+
+// The real form, so the session is the one a person gets. Every page of the browser shares the cookie afterwards.
+async function signInThroughForm(page: Page, { email, password }: { email: string; password: string }): Promise<void> {
+  await setViewport(page, { width: 1440, height: 900, touch: false, dpr: 1 });
+  await page.goto(`${BASE}${SIGN_IN_PAGES[0]}`, { waitUntil: 'networkidle0' });
+  await page.type('#email', email);
+  await page.type('#password', password);
+  await Promise.all([
+    page.waitForFunction(() => !location.pathname.endsWith('/giris'), { timeout: 20_000 }),
+    page.click('button[type="submit"]'),
+  ]);
+}
+
 async function browserChecks(): Promise<string> {
   const executablePath = findChrome(process.env, process.platform, existsSync);
   if (!executablePath) throw new Error('Chrome not found; set CHROME_PATH');
@@ -225,22 +244,32 @@ async function browserChecks(): Promise<string> {
       return page;
     };
     const warm = await openPage();
-    const browserPages = [...PAGES, ...ADMIN_PAGES];
-    for (const url of browserPages) {
-      await warm.goto(BASE + url, { waitUntil: 'networkidle0' });
-    }
-    for (const p of browserPages) {
-      const url = BASE + p;
-      await overflowSweep(warm, url);
-      // A new page per device view, so the image check sees what a first-time visitor at that device gets.
-      for (const d of DEVICES) {
-        const page = await openPage();
-        try {
-          await auditView(page, url, d, axeSource);
-        } finally {
-          await page.close();
+    const auditAll = async (list: readonly string[]) => {
+      for (const url of list) {
+        await warm.goto(BASE + url, { waitUntil: 'networkidle0' });
+      }
+      for (const p of list) {
+        const url = BASE + p;
+        await overflowSweep(warm, url);
+        // A new page per device view, so the image check sees what a first-time visitor at that device gets.
+        for (const d of DEVICES) {
+          const page = await openPage();
+          try {
+            await auditView(page, url, d, axeSource);
+          } finally {
+            await page.close();
+          }
         }
       }
+    };
+    // Signed out first: a signed-in visitor is sent on from the sign-in page.
+    await auditAll([...PAGES, ...SIGN_IN_PAGES]);
+    const demoAdmin = demoAdminFromEnv();
+    if (demoAdmin) {
+      await signInThroughForm(warm, demoAdmin);
+      await auditAll(ADMIN_PAGES);
+    } else {
+      console.log('site-audit: DEMO_ADMIN_EMAIL and DEMO_ADMIN_PASSWORD are not set; the admin screens are skipped');
     }
     await warm.close();
     return version;
