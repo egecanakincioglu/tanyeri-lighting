@@ -32,7 +32,7 @@ vi.mock('../../../server/content/application-areas.ts', () => ({ listApplication
 
 // The real helper needs the Next.js server runtime; this fake reads the same message files.
 vi.mock('next-intl/server', () => ({
-  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' | 'DemoBand' }) =>
+  getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' | 'DemoBand' | 'Footer' }) =>
     Promise.resolve((key: string) => (({ tr, en })[locale][namespace] as Record<string, string>)[key]),
 }));
 
@@ -229,13 +229,15 @@ describe('HomePage', () => {
       sameAs: ['https://instagram.example/tanyeri'],
       contactPoint: { email: 'info@example.test' },
     });
-    expect(organization).not.toHaveProperty('description');
+    expect(organization).toMatchObject({ description: (locale === 'tr' ? tr : en).Footer.tagline });
   });
 
-  it('repeats the demo notice in the organization data only in demo mode', async () => {
+  it('adds the demo notice to the organization description and drops the contact point only in demo mode', async () => {
     vi.stubEnv('DEMO_MODE', 'true');
     const { container } = await renderPage('en');
-    expect(ldBlocks(container)[1]).toMatchObject({ description: en.DemoBand.text });
+    const organization = ldBlocks(container)[1];
+    expect(organization).toMatchObject({ description: `${en.Footer.tagline} ${en.DemoBand.text}` });
+    expect(organization).not.toHaveProperty('contactPoint');
   });
 
   it('shows the saved home title as it is, without the site template', async () => {

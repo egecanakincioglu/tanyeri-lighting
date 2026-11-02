@@ -187,6 +187,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `src/app/sitemap.ts` and `src/app/robots.ts` are dynamic and read the settings per request. `robots.ts` gives the same rule to all crawlers and closes the whole site unless indexing is on. The sitemap has no `hreflang` entries; the language alternates are in the page head ([ADR 0009](adr/0009-quality-targets.md)).
 - JSON-LD is built in `src/lib/structured-data.ts` and rendered by `src/components/json-ld.tsx`: `WebSite`, `Organization`, `ContactPage` and `BreadcrumbList`. There is no `Product` type, because nothing is for sale.
 - Page titles and descriptions come from the database in both languages. Production is indexable, previews are not.
+- Organization data has no placeholder profiles, a fallback logo, the tagline as description, and no contact point in demo mode.
 - The product page links its category, and its breadcrumb data has a category level. Product descriptions are built from power, size, colour and material; a detail that is empty is left out.
 - Open Graph url, locale, site name, type and the shared image are set on every page. The sign-in link and the product contact links are `nofollow`. An empty product list answers 200 with `noindex`.
 - Page titles come from the SEO screen on every page key, and the site adds " | Tanyeri Lighting" to each of them. The saved home title is shown as it is, so it must carry the brand. A page without a saved title uses its menu name.

@@ -104,10 +104,30 @@ describe('structured data', () => {
         languages: pair('', ''),
       };
       const data = organizationData(empty, [], 'tr');
-      expect(data).not.toHaveProperty('logo');
       expect(data).not.toHaveProperty('sameAs');
       expect(data).not.toHaveProperty('contactPoint');
       expect(data).not.toHaveProperty('description');
+    });
+
+    it('falls back to the app icon when no logo is saved', () => {
+      const data = organizationData({ ...settings, logoUrl: null }, [], 'tr');
+      expect(data.logo).toBe('https://example.test/icons/icon-512.png');
+    });
+
+    it('does not claim profiles at placeholder addresses', () => {
+      const placeholders: SocialLink[] = [
+        { ...links[0]!, url: 'https://www.example.com/tanyeri/instagram' },
+        { ...links[0]!, id: 'l2', url: 'https://example.com/tanyeri' },
+        { ...links[0]!, id: 'l3', url: 'not a url' },
+        { ...links[0]!, id: 'l4', url: 'https://instagram.example/tanyeri' },
+      ];
+      expect(organizationData(settings, placeholders, 'tr').sameAs).toEqual(['https://instagram.example/tanyeri']);
+      expect(organizationData(settings, placeholders.slice(0, 3), 'tr')).not.toHaveProperty('sameAs');
+    });
+
+    it('writes no contact point in the demo, where the phone and email reach nobody', () => {
+      expect(organizationData(settings, [], 'tr', { demo: true })).not.toHaveProperty('contactPoint');
+      expect(organizationData(settings, [], 'tr', { demo: false })).toHaveProperty('contactPoint');
     });
 
     it('keeps only the filled contact fields', () => {
@@ -120,9 +140,9 @@ describe('structured data', () => {
       });
     });
 
-    it('repeats the visible demo notice as the description', () => {
-      const notice = 'Fictional brand: this is a demo site and nothing is for sale.';
-      expect(organizationData(settings, [], 'en', notice).description).toBe(notice);
+    it('writes the description it is given', () => {
+      const description = 'Lighting for every space. Fictional brand: this is a demo site.';
+      expect(organizationData(settings, [], 'en', { description }).description).toBe(description);
     });
 
     it('keeps text with markup inside the data, escaped only when written', () => {
