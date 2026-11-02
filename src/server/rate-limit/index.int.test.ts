@@ -10,10 +10,7 @@ function from(address: string): Headers {
   return new Headers({ 'x-forwarded-for': address });
 }
 
-function check(
-  address: string,
-  options: { scope?: string; limit?: number; windowSeconds?: number; address?: string } = {},
-) {
+function check(address: string, options: { scope?: string; limit?: number; windowSeconds?: number } = {}) {
   return checkRateLimit({ scope: 'contact', limit: 3, windowSeconds: 60, ...options, headers: from(address) });
 }
 
@@ -52,18 +49,20 @@ describe('rate limit counter on a real database', () => {
     expect(await check('203.0.113.1')).toMatchObject({ ok: false });
   });
 
-  it('counts every client together under a shared address', async () => {
-    const shared = { limit: 2, address: 'all' };
-    expect(await check('203.0.113.1', shared)).toEqual({ ok: true });
-    expect(await check('203.0.113.2', shared)).toEqual({ ok: true });
-    expect(await check('203.0.113.3', shared)).toMatchObject({ ok: false });
-  });
-
   it('keeps scopes and client addresses apart', async () => {
     for (let i = 0; i < 4; i++) await check('203.0.113.1');
     expect(await check('203.0.113.1')).toMatchObject({ ok: false });
     expect(await check('203.0.113.1', { scope: 'newsletter' })).toEqual({ ok: true });
     expect(await check('203.0.113.2')).toEqual({ ok: true });
+  });
+
+  it('counts a named subject apart from the client address and from other subjects', async () => {
+    const subject = (name: string) =>
+      checkRateLimit({ scope: 'reset-mail', limit: 2, windowSeconds: 60, subject: name });
+    expect(await subject('user-a')).toEqual({ ok: true });
+    expect(await subject('user-a')).toEqual({ ok: true });
+    expect(await subject('user-a')).toMatchObject({ ok: false });
+    expect(await subject('user-b')).toEqual({ ok: true });
   });
 
   it('never lets more than the limit through under concurrent requests', async () => {

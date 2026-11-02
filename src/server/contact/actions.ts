@@ -23,7 +23,7 @@ export async function submitContactMessage(_previous: ContactState | null, formD
   if (!limit.ok)
     return { status: 'rate-limited', retryAfterSeconds: limit.retryAfterSeconds, values: submittedValues(formData) };
 
-  const siteLimit = await checkRateLimit({ ...SITE_WIDE_LIMIT, headers: requestHeaders, address: 'all' });
+  const siteLimit = await checkRateLimit({ ...SITE_WIDE_LIMIT, subject: 'all' });
   if (!siteLimit.ok)
     return {
       status: 'rate-limited',

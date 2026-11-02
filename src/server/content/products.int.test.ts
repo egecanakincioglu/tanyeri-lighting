@@ -185,7 +185,7 @@ describe('products on a real database', () => {
     });
 
     it('returns null, without a lookup error, for a value that cannot be a slug', async () => {
-      expect(await getProductBySlug(' ')).toBeNull();
+      expect(await getProductBySlug('\u0000')).toBeNull();
       expect(await getProductBySlug('Not A Slug')).toBeNull();
     });
 

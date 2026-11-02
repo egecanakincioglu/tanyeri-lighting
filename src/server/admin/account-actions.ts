@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '../../lib/password-rules.ts';
 import { getPathname } from '../../i18n/navigation.ts';
 import { callAuth } from '../auth/call.ts';
 import { guardAction, UnauthorizedError } from '../auth/guard.ts';
@@ -13,10 +14,6 @@ type AccountIssue = 'required' | 'wrongCurrent' | 'tooShort' | 'tooLong' | 'mism
 type AccountCode = 'invalid' | 'demo' | 'unauthorized' | 'rateLimited' | 'emailOff' | 'generic';
 export type AccountState =
   { status: 'success' } | { status: 'error'; code: AccountCode; fields: Partial<Record<AccountField, AccountIssue>> };
-
-// The auth layer's own limits, as Better Auth 1.7.14 sets them for its password rules.
-const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 128;
 
 // Form field names as constants: the secret scanner flags literal values assigned to password-named properties.
 const CURRENT_FIELD = 'currentPassword';
@@ -46,8 +43,8 @@ export async function changePasswordAction(_previous: AccountState | null, formD
     const fields: Partial<Record<AccountField, AccountIssue>> = {};
     if (currentPassword === '') fields[CURRENT_FIELD] = 'required';
     if (newPassword === '') fields[NEW_FIELD] = 'required';
-    else if (newPassword.length < MIN_PASSWORD) fields[NEW_FIELD] = 'tooShort';
-    else if (newPassword.length > MAX_PASSWORD) fields[NEW_FIELD] = 'tooLong';
+    else if (newPassword.length < MIN_PASSWORD_LENGTH) fields[NEW_FIELD] = 'tooShort';
+    else if (newPassword.length > MAX_PASSWORD_LENGTH) fields[NEW_FIELD] = 'tooLong';
     else if (newPassword === currentPassword) fields[NEW_FIELD] = 'same';
     if (!fields[NEW_FIELD] && formText(formData, 'confirm') !== newPassword) fields.confirm = 'mismatch';
     if (Object.keys(fields).length > 0) return failed('invalid', fields);

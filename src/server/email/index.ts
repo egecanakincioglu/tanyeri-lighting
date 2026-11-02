@@ -54,9 +54,11 @@ export function setEmailScheduler(replacement: Scheduler | undefined): void {
 
 // Sends once the response has gone, so the answer takes the same time whether a mail is sent or not, and a mail
 // server failure never reaches the visitor. The log carries the error kind only: messages can hold the address.
-export function sendEmailAfterResponse(message: EmailMessage): void {
+// `allowed` runs after the response too and may veto the mail, so a check against a database adds no delay.
+export function sendEmailAfterResponse(message: EmailMessage, allowed?: () => Promise<boolean>): void {
   schedule(async () => {
     try {
+      if (allowed && !(await allowed())) return;
       await sendEmail(message);
     } catch (error) {
       const { name, code } = error as { name?: unknown; code?: unknown };

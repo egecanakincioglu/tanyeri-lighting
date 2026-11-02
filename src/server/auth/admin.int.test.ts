@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { verifyPassword } from 'better-auth/crypto';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { POST } from '../../app/api/auth/[...all]/route.ts';
+import { handle } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { createFirstAdmin, resetAdminPassword, upsertDemoAdmin } from './admin.ts';
@@ -15,7 +15,7 @@ const NEW_PASSWORD = 'another long passphrase 42';
 let nextAddress = 1;
 
 function signIn(email: string, password: string): Promise<Response> {
-  return POST(
+  return handle(
     new Request(`${TEST_AUTH_URL}/api/auth/sign-in/email`, {
       method: 'POST',
       headers: {
@@ -56,6 +56,15 @@ describe('upsertDemoAdmin', () => {
     expect(await getDb().user.count()).toBe(1);
     expect((await signIn(EMAIL, NEW_PASSWORD)).status).toBe(200);
     expect((await signIn(EMAIL, PASSWORD)).status).not.toBe(200);
+    expect((await getDb().user.findUniqueOrThrow({ where: { email: EMAIL } })).isDemo).toBe(true);
+  });
+
+  it('marks an existing account that predates the column', async () => {
+    await createFirstAdmin(getDb(), { email: EMAIL, password: PASSWORD });
+    expect((await getDb().user.findUniqueOrThrow({ where: { email: EMAIL } })).isDemo).toBe(false);
+
+    expect(await upsertDemoAdmin(getDb(), { email: EMAIL, password: PASSWORD })).toBe('updated');
+    expect((await getDb().user.findUniqueOrThrow({ where: { email: EMAIL } })).isDemo).toBe(true);
   });
 });
 
@@ -77,6 +86,7 @@ describe('createFirstAdmin', () => {
     expect(account?.accountId).toBe(user.id);
     expect(account?.password).not.toBeNull();
     expect(account?.password).not.toContain(PASSWORD);
+    expect(user.isDemo).toBe(false);
     expect(await verifyPassword({ hash: account?.password ?? '', password: PASSWORD })).toBe(true);
   });
 
