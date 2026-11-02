@@ -699,6 +699,15 @@ const references = [
       'Industrial luminaires for a high-bay warehouse.',
     ),
   },
+  {
+    imageUrl: img('area-peyzaj.webp'),
+    name: 'Demo Peyzaj Parkı',
+    title: pair('Peyzaj aydınlatması', 'Landscape lighting'),
+    description: pair(
+      'Park yolları ve bahçeler için direk ve zemin armatürleri.',
+      'Pole and ground luminaires for park paths and gardens.',
+    ),
+  },
 ].map((reference) => referenceSchema.parse(reference));
 
 export interface SeedCounts {

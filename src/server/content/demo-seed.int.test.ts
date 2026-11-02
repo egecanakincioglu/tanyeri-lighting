@@ -57,7 +57,7 @@ describe('demo content seed on a real database', () => {
       applicationAreas: 6,
       services: 4,
       projects: 3,
-      references: 4,
+      references: 5,
       socialLinks: 3,
       pageMetadata: PAGE_KEYS.length,
       legalPages: 2,
@@ -70,7 +70,7 @@ describe('demo content seed on a real database', () => {
     expect(await db.applicationArea.count()).toBe(6);
     expect(await db.service.count()).toBe(4);
     expect(await db.project.count()).toBe(3);
-    expect(await db.reference.count()).toBe(4);
+    expect(await db.reference.count()).toBe(5);
     expect(await db.socialLink.count()).toBe(3);
     expect(await db.pageMetadata.count()).toBe(PAGE_KEYS.length);
     expect(await db.legalPage.count()).toBe(2);
