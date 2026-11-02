@@ -20,6 +20,7 @@ export interface FakeBlobServer {
 export async function startFakeBlobServer(): Promise<FakeBlobServer> {
   const requests: RecordedRequest[] = [];
   let failure: { code: string; status: number } | null = null;
+  const sizes = new Map<string, number>();
 
   const server = createServer((request, response) => {
     const chunks: Buffer[] = [];
@@ -43,6 +44,7 @@ export async function startFakeBlobServer(): Promise<FakeBlobServer> {
       if (recorded.method === 'PUT') {
         const pathname = new URL(recorded.url, 'http://fake').searchParams.get('pathname') ?? '';
         const url = `https://store.public.blob.vercel-storage.com/${pathname}`;
+        sizes.set(url, recorded.body.byteLength);
         response.end(
           JSON.stringify({
             url,
@@ -51,6 +53,28 @@ export async function startFakeBlobServer(): Promise<FakeBlobServer> {
             contentType: recorded.headers['x-content-type'],
             contentDisposition: `inline; filename="${pathname}"`,
             etag: '"fake"',
+          }),
+        );
+        return;
+      }
+      if (recorded.method === 'GET') {
+        const url = new URL(recorded.url, 'http://fake').searchParams.get('url') ?? '';
+        const size = sizes.get(url);
+        if (size === undefined) {
+          response.statusCode = 404;
+          response.end(JSON.stringify({ error: { code: 'not_found', message: 'The requested blob does not exist' } }));
+          return;
+        }
+        response.end(
+          JSON.stringify({
+            url,
+            downloadUrl: `${url}?download=1`,
+            pathname: new URL(url).pathname.slice(1),
+            contentType: 'application/pdf',
+            contentDisposition: 'inline',
+            cacheControl: 'public, max-age=31536000',
+            size,
+            uploadedAt: new Date().toISOString(),
           }),
         );
         return;
