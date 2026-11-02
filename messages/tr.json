@@ -361,5 +361,42 @@
       "invalid": "Geçerli bir e-posta adresi girin.",
       "same": "Bu, mevcut değerle aynı."
     }
+  },
+  "AdminSettings": {
+    "title": "Kurumsal Ayarlar",
+    "description": "Alt bilgide ve İletişim sayfasında görünen firma bilgileri ile alt bilgideki sosyal bağlantılar.",
+    "sectionBusiness": "Firma",
+    "sectionContact": "İletişim bilgileri",
+    "fieldLogo": "Logo",
+    "fieldLogoHint": "Sitenin üst ve alt bölümünde görünür. Boş bırakılırsa varsayılan logo kullanılır.",
+    "fieldSiteName": "Site adı",
+    "fieldLanguages": "Konuşulan diller",
+    "fieldPhone": "Telefon",
+    "fieldEmail": "E-posta",
+    "fieldAddress": "Adres",
+    "fieldWorkingHours": "Çalışma saatleri",
+    "fieldServiceArea": "Hizmet bölgesi",
+    "socialTitle": "Sosyal bağlantılar",
+    "socialDescription": "Alt bilgide görünür. Sırayı oklarla değiştirin.",
+    "socialEmpty": "Henüz sosyal bağlantı yok.",
+    "socialAdd": "Bağlantı ekle",
+    "socialPlatform": "Platform",
+    "socialPlatformHint": "Örneğin instagram, facebook, linkedin, youtube veya x. Diğer adlar düz bağlantı simgesi alır.",
+    "socialLabel": "Bağlantı için okunan ad",
+    "socialUrl": "Adres (https)",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "reordered": "Sıra kaydedildi.",
+    "delete": "Sil",
+    "deleteTitle": "Bu bağlantı silinsin mi?",
+    "deleteBody": "“{name}” alt bilgiden kaldırılacak. Bu işlem geri alınamaz.",
+    "deleteConfirm": "Evet, sil",
+    "deleting": "Siliniyor…"
+  },
+  "AdminAbout": {
+    "title": "Hakkımızda ve Vizyon",
+    "description": "Hakkımızda sayfasının metinleri, iki dilde. Sınırlı Markdown kullanır; önizleme ile kontrol edin.",
+    "fieldBody": "Hakkımızda metni",
+    "fieldVision": "Vizyon metni"
   }
 }

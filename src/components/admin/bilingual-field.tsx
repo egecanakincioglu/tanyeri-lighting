@@ -11,6 +11,8 @@ type Props = {
   required?: boolean;
   /** The limit of the schema, applied to both inputs. */
   maxLength?: number;
+  /** Replaces the base name in the input ids when the same field appears more than once on a page. */
+  idPrefix?: string;
   /** Already translated, one per language. */
   errors?: { tr?: string | undefined; en?: string | undefined };
 };
@@ -24,6 +26,7 @@ export function BilingualField({
   multiline,
   required = true,
   maxLength,
+  idPrefix = name,
   errors,
 }: Props) {
   const Field = multiline ? TextAreaField : TextField;
@@ -34,7 +37,7 @@ export function BilingualField({
         {(['tr', 'en'] as const).map((language) => (
           <Field
             key={language}
-            id={`${name}-${language}`}
+            id={`${idPrefix}-${language}`}
             name={`${name}.${language}`}
             label={languages[language]}
             lang={language}

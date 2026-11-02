@@ -54,4 +54,8 @@ export const ADMIN_PAGES: readonly string[] = [
   '/en/admin/seo',
   '/tr/yonetim/hesabim',
   '/en/admin/account',
+  '/tr/yonetim/kurumsal-ayarlar',
+  '/en/admin/settings',
+  '/tr/yonetim/hakkimizda',
+  '/en/admin/about',
 ];

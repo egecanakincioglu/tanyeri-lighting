@@ -148,6 +148,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The messages screen lists newest first at 50 per page; opening a message marks it read. Legal pages use Markdown with a preview, and empty text hides the page and its footer link. Page information covers every page key, with recommended lengths of 60 and 155 characters.
 - The account screen changes the password, which ends other sessions, and the sign-in address, which sends a one-hour link to the new address and needs SMTP. Both are disabled in demo mode.
 - `discardReplacedFile` in `src/server/admin/files.ts` deletes a replaced file only when it is on the file store host.
+- Company Settings saves the site name, logo, languages, contact details and service area; the header, footer and contact page read them on every request. Social links are managed on the same screen. The About and Vision screen edits limited Markdown per language with a preview.
 - In demo mode a read-only demo account (`DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD`) is created by the demo seed and shown on the sign-in page. Save, delete, reorder and upload controls are disabled and the server refuses writes.
 - Uploads go through `uploadMediaAction` with a limit of 4 MB; `next.config.ts` allows the file store's image host.
 - `guardPage` redirects a visitor who has no session to the localized sign-in address. It builds the address from the locale only and takes no target from the request.
