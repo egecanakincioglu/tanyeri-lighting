@@ -1,8 +1,8 @@
 // Every public page the audit visits. A page template under src/app/[locale]/(site) without an address here fails
 // pages.test.ts, so a new template can not ship unaudited.
 //
-// Admin screens are listed apart in ADMIN_PAGES. They are noindex by design, so Lighthouse would score their SEO
-// below the gate; they get the browser checks (accessibility, overflow, console, status) but no Lighthouse run.
+// Admin screens are listed apart (SIGN_IN_PAGES, ADMIN_PAGES). They are noindex by design, so Lighthouse would score
+// their SEO below the gate; they get the browser checks (accessibility, overflow, console, status) but no Lighthouse run.
 export const LOCALES = ['tr', 'en'] as const;
 
 // A dynamic template is listed with one seeded address, which stands for the template.
@@ -33,5 +33,17 @@ export const PAGES: readonly string[] = [
   '/en/products/halka-sarkit-40w',
 ];
 
-// The sign-in page is public. The panel redirects a visitor without a session, so it is not listed.
-export const ADMIN_PAGES: readonly string[] = ['/tr/yonetim/giris', '/en/admin/sign-in'];
+// The sign-in pages are public and checked signed out. The panel redirects a visitor without a session, so its screens
+// are listed apart, in ADMIN_PAGES, and visited with the demo admin's session.
+export const SIGN_IN_PAGES: readonly string[] = ['/tr/yonetim/giris', '/en/admin/sign-in'];
+
+// Every panel screen without a parameter in its address. The edit screens take a record id, which the seeded content
+// does not fix, so their components are covered by unit tests and the browser walkthrough instead.
+export const ADMIN_PAGES: readonly string[] = [
+  '/tr/yonetim',
+  '/en/admin',
+  '/tr/yonetim/referanslar',
+  '/en/admin/references',
+  '/tr/yonetim/referanslar/yeni',
+  '/en/admin/references/new',
+];

@@ -4,10 +4,11 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { routing } from '../../src/i18n/routing.ts';
-import { ADMIN_PAGES, LOCALES, PAGES } from './pages.ts';
+import { ADMIN_PAGES, LOCALES, PAGES, SIGN_IN_PAGES } from './pages.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SITE = path.join(ROOT, 'src', 'app', '[locale]', '(site)');
+const PANEL = path.join(ROOT, 'src', 'app', '[locale]', '(admin)', 'dashboard', '(panel)');
 
 /**
  * Routes of every page.tsx under the site group, route groups removed ('' is the home page). Catch-all routes only
@@ -81,9 +82,20 @@ test('the audit list holds only locale-prefixed addresses without duplicates', (
     );
 });
 
+test('every panel screen without a parameter has its localized address per locale in the admin list', () => {
+  const screens = routes(PANEL).filter((route) => !route.includes('['));
+  assert.ok(screens.length > 0);
+  for (const route of screens) {
+    for (const locale of LOCALES) {
+      const expected = address(`/dashboard${route}`, locale);
+      assert.ok(ADMIN_PAGES.includes(expected), `missing ${expected} in tooling/site-audit/pages.ts`);
+    }
+  }
+});
+
 test('admin addresses are locale-prefixed, unique and kept out of the Lighthouse list', () => {
-  assert.equal(new Set(ADMIN_PAGES).size, ADMIN_PAGES.length);
-  for (const p of ADMIN_PAGES) {
+  assert.equal(new Set([...ADMIN_PAGES, ...SIGN_IN_PAGES]).size, ADMIN_PAGES.length + SIGN_IN_PAGES.length);
+  for (const p of [...ADMIN_PAGES, ...SIGN_IN_PAGES]) {
     assert.ok(
       LOCALES.some((l) => p.startsWith(`/${l}/`)),
       p,
