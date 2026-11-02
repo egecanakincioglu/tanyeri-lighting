@@ -7,37 +7,40 @@ type Props = {
   languages: { tr: string; en: string };
   defaultValue?: { tr: string; en: string };
   multiline?: boolean;
+  /** The field may be left empty in both languages. */
+  optional?: boolean;
   /** The limit of the schema, applied to both inputs. */
   maxLength?: number;
+  /** Replaces the base name in the input ids when the same field appears more than once on a page. */
+  idPrefix?: string;
   /** Already translated, one per language. */
   errors?: { tr?: string | undefined; en?: string | undefined };
-  /** Neither language is required; the form-level rule (both or none) is shown through `error`. */
-  optional?: boolean;
-  /** Already translated message about the pair as a whole. */
+  /** Already translated message about the pair as a whole, shown under both inputs. */
   error?: string | undefined;
 };
 
-/** Turkish and English side by side on wide screens, stacked on phones. Both are required unless `optional` is set. */
+/** Turkish and English side by side on wide screens, stacked on phones. Both are required by the schemas. */
 export function BilingualField({
   name,
   label,
   languages,
   defaultValue,
   multiline,
-  maxLength,
-  errors,
   optional,
+  maxLength,
+  idPrefix = name,
+  errors,
   error,
 }: Props) {
   const Field = multiline ? TextAreaField : TextField;
   return (
-    <fieldset className="min-w-0">
+    <fieldset className="min-w-0" aria-describedby={error ? `${idPrefix}-error` : undefined}>
       <legend className="mb-2 text-base font-bold">{label}</legend>
       <div className="grid gap-4 md:grid-cols-2">
         {(['tr', 'en'] as const).map((language) => (
           <Field
             key={language}
-            id={`${name}-${language}`}
+            id={`${idPrefix}-${language}`}
             name={`${name}.${language}`}
             label={languages[language]}
             lang={language}
@@ -49,7 +52,7 @@ export function BilingualField({
         ))}
       </div>
       {error && (
-        <p id={`${name}-error`} role="alert" className="mt-2 text-sm font-medium text-error">
+        <p id={`${idPrefix}-error`} role="alert" className="mt-2 text-sm font-medium text-error">
           {error}
         </p>
       )}

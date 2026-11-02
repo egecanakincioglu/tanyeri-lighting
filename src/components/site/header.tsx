@@ -5,7 +5,7 @@ import { Logo } from '../logo.tsx';
 import { HeaderMenu, type MenuItem } from './header-menu.tsx';
 import { CONTACT_PATH, NAV } from './nav.ts';
 
-export function Header() {
+export function Header({ logoUrl }: { logoUrl?: string | null }) {
   const t = useTranslations('Header');
   const locale = useLocale();
 
@@ -40,7 +40,7 @@ export function Header() {
           aria-label={t('logoLabel')}
           className="flex min-h-touch min-w-0 items-center max-xs:[&>img]:h-auto max-xs:[&>img]:w-35"
         >
-          <Logo label="Tanyeri Lighting" />
+          <Logo label="Tanyeri Lighting" src={logoUrl} />
         </Link>
       }
     />
