@@ -7,6 +7,8 @@ type Props = {
   languages: { tr: string; en: string };
   defaultValue?: { tr: string; en: string };
   multiline?: boolean;
+  /** Defaults to true; a field that may be left empty in both languages sets it to false. */
+  required?: boolean;
   /** The limit of the schema, applied to both inputs. */
   maxLength?: number;
   /** Already translated, one per language. */
@@ -14,7 +16,16 @@ type Props = {
 };
 
 /** Turkish and English side by side on wide screens, stacked on phones. Both are required by the schemas. */
-export function BilingualField({ name, label, languages, defaultValue, multiline, maxLength, errors }: Props) {
+export function BilingualField({
+  name,
+  label,
+  languages,
+  defaultValue,
+  multiline,
+  required = true,
+  maxLength,
+  errors,
+}: Props) {
   const Field = multiline ? TextAreaField : TextField;
   return (
     <fieldset className="min-w-0">
@@ -29,7 +40,7 @@ export function BilingualField({ name, label, languages, defaultValue, multiline
             lang={language}
             defaultValue={defaultValue?.[language] ?? ''}
             maxLength={maxLength}
-            required
+            required={required}
             error={errors?.[language]}
           />
         ))}

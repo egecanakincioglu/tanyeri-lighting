@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDb } from '../db.ts';
 import { DemoModeError } from '../demo/guard.ts';
-import { getLegalPage, upsertLegalPage } from './legal-pages.ts';
+import { deleteLegalPage, getLegalPage, upsertLegalPage } from './legal-pages.ts';
 
 const pair = (tr: string, en: string) => ({ tr, en });
 
@@ -87,5 +87,22 @@ describe('legal pages on a real database', () => {
     await expect(upsertLegalPage('nope', {})).rejects.toThrow(DemoModeError);
     expect(await getDb().legalPage.count()).toBe(1);
     expect(await getLegalPage('privacy')).toMatchObject(privacy);
+  });
+
+  it('hides a page by deleting it, leaves the other one, and does nothing for a page that is not saved', async () => {
+    await upsertLegalPage('privacy', privacy);
+    await upsertLegalPage('terms', privacy);
+    await deleteLegalPage('privacy');
+    await deleteLegalPage('privacy');
+    expect(await getLegalPage('privacy')).toBeNull();
+    expect(await getLegalPage('terms')).not.toBeNull();
+  });
+
+  it('refuses to delete a key that is not a legal page, and refuses in demo mode', async () => {
+    await upsertLegalPage('privacy', privacy);
+    await expect(deleteLegalPage('home')).rejects.toThrow();
+    vi.stubEnv('DEMO_MODE', 'true');
+    await expect(deleteLegalPage('privacy')).rejects.toThrow(DemoModeError);
+    expect(await getDb().legalPage.count()).toBe(1);
   });
 });
