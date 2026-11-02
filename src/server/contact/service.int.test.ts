@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDb } from '../db.ts';
 import { DemoModeError } from '../demo/guard.ts';
-import { deleteMessage, listMessages, markMessageRead } from './service.ts';
+import { deleteMessage, getMessage, listMessages, markMessageRead } from './service.ts';
 
 const MINUTE = 60_000;
 const BASE = Date.UTC(2026, 10, 1, 12, 0, 0);
@@ -35,6 +35,14 @@ describe('contact message services on a real database', () => {
 
   afterAll(async () => {
     await getDb().$disconnect();
+  });
+
+  describe('getMessage', () => {
+    it('returns one message with all of its text, and null for an unknown id', async () => {
+      const [id] = await seed(1);
+      expect(await getMessage(id!)).toMatchObject({ id, name: 'Visitor 0', message: 'Message 0', readAt: null });
+      expect(await getMessage('missing')).toBeNull();
+    });
   });
 
   describe('listMessages', () => {
