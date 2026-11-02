@@ -203,8 +203,26 @@ describe('check-admin-guard', () => {
     test('export * can hide handlers and fails', () =>
       fails({ [ROUTE]: "export * from './handlers.ts';" }, 'the export *'));
 
-    test('a route.ts outside src/app/api is not checked', () =>
-      passes({ 'src/app/feed/route.ts': 'export function GET() { return new Response(); }' }));
+    test('a route file outside src/app/api is checked too', () =>
+      fails({ 'src/app/feed/route.ts': 'export function GET() { return new Response(); }' }, 'feed/route.ts'));
+
+    test('a route file under the admin group is checked', () =>
+      fails({ 'src/app/[locale]/(admin)/dashboard/export/route.ts': 'export function GET() {}' }, 'export/route.ts'));
+
+    test('a route.tsx file is checked', () =>
+      fails({ 'src/app/api/y/route.tsx': 'export function GET() { return new Response(); }' }, 'api/y/route.tsx'));
+
+    test('a destructured export can not be verified and fails', () =>
+      fails({ [ROUTE]: 'const h = {};\nexport const { GET, POST } = h;' }, ROUTE, 'the export (destructured)'));
+
+    test('a guard imported from another module than src/server/auth/guard.ts does not count', () =>
+      fails(
+        {
+          [ROUTE]:
+            "import { guardHandler } from './stub/auth/guard.ts';\nexport async function GET() { await guardHandler(); }",
+        },
+        'the export GET',
+      ));
   });
 
   describe('Server Action files', () => {
@@ -269,6 +287,99 @@ describe('check-admin-guard', () => {
       fails(
         { 'src/server/contact/admin-actions.ts': "'use server';\nexport async function remove() {}" },
         'contact/admin-actions.ts',
+      ));
+
+    const RUN = "import { runAction } from '../admin/form.ts';\n";
+
+    test('a guard that sits in a closure which never runs fails', () =>
+      fails(
+        {
+          [ACTIONS]: `'use server';
+${GUARD_A}export async function act() { const never = () => guardAction(); return 'write'; }`,
+        },
+        'the export act',
+      ));
+
+    test('an unawaited guard call fails', () =>
+      fails(
+        {
+          [ACTIONS]: `'use server';
+${GUARD_A}export async function act() { guardAction(); }`,
+        },
+        'the export act',
+      ));
+
+    test('a stub guard module does not count for an action', () =>
+      fails(
+        {
+          [ACTIONS]:
+            "'use server';\nimport { guardAction } from './stub/auth/guard.ts';\nexport async function act() { await guardAction(); }",
+        },
+        'the export act',
+      ));
+
+    test('an awaited guard inside the runAction callback passes', () =>
+      passes({
+        [ACTIONS]: `'use server';
+${GUARD_A}${RUN}export async function act() { return runAction(async () => { await guardAction(); }); }`,
+      }));
+
+    test('the guard inside a try block at the top level passes', () =>
+      passes({
+        [ACTIONS]: `'use server';
+${GUARD_A}export async function act() { try { await guardAction(); } catch {} }`,
+      }));
+
+    test('an unawaited guard inside the runAction callback fails', () =>
+      fails(
+        {
+          [ACTIONS]: `'use server';
+${GUARD_A}${RUN}export async function act() { return runAction(async () => { guardAction(); }); }`,
+        },
+        'the export act',
+      ));
+
+    test('a runAction that is not the one from admin/form.ts does not count', () =>
+      fails(
+        {
+          [ACTIONS]: `'use server';
+${GUARD_A}function runAction(f) {}
+export async function act() { return runAction(async () => { await guardAction(); }); }`,
+        },
+        'the export act',
+      ));
+
+    test('a wrapper in the same file that calls its callback counts like runAction', () =>
+      passes({
+        [ACTIONS]: `'use server';\n${GUARD_A}async function checked(work) { return await work(); }\nexport async function act() { return checked(async () => { await guardAction(); }); }`,
+      }));
+
+    test('an inline use server function fails, also in a page', () =>
+      fails(
+        {
+          'src/app/feed/page.tsx':
+            "export default function P() { async function del() { 'use server'; } return null; }",
+        },
+        'feed/page.tsx',
+        "inline 'use server'",
+      ));
+
+    test('javascript files are scanned: .js and .mjs actions and routes', () =>
+      fails(
+        {
+          'src/server/a.js': "'use server';\nexport async function act() {}",
+          'src/server/b.mjs': "'use server';\nexport async function act() {}",
+          'src/app/api/z/route.mjs': 'export function GET() {}',
+        },
+        'a.js',
+        'b.mjs',
+        'route.mjs',
+      ));
+
+    test('a page.ts under the admin group is checked', () =>
+      fails(
+        { 'src/app/[locale]/(admin)/dashboard/page.ts': 'export default function P() { return null; }' },
+        'page.ts',
       ));
 
     test('a tsx action file is checked too', () =>

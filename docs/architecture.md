@@ -104,6 +104,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   - Every exported method in `src/app/api/**/route.ts` calls `guardHandler`.
   - Every export of a top-level `'use server'` file calls `guardAction`.
 - Public entry points are allowlisted in the check, each with a reason: the sign-in page, `api/auth/[...all]` and the contact Server Action, `src/server/contact/actions.ts`. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
+- The check covers route handlers under all of `src/app`, and it scans `.js`, `.jsx`, `.mjs` and `.cjs` files as well as TypeScript. Destructured route exports fail, and inline `'use server'` functions are forbidden. The guard import must resolve to `src/server/auth/guard.ts`. Actions must await `guardAction()` at the top level, or inside `runAction` or a same-file wrapper.
 - The check is shallow by design: it looks for the call inside the exported function and does not follow helper calls. Review covers the rest.
 
 ## Rate limiting
