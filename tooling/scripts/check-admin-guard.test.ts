@@ -206,6 +206,15 @@ describe('check-admin-guard', () => {
         'api/visits/extra/route.ts',
       ));
 
+    test('the site guide route is on the public allowlist', () =>
+      passes({ 'src/app/llms.txt/route.ts': 'export function GET() { return new Response(); }' }));
+
+    test('another route under llms.txt is not covered by the allowlist', () =>
+      fails(
+        { 'src/app/llms.txt/extra/route.ts': 'export function GET() { return new Response(); }' },
+        'llms.txt/extra/route.ts',
+      ));
+
     test('another route under api/auth is not covered by the allowlist', () =>
       fails(
         { 'src/app/api/auth/extra/route.ts': 'export function GET() { return new Response(); }' },

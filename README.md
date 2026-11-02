@@ -31,7 +31,7 @@ The account is read-only and public on purpose. It works only while demo mode is
 - **Contact messages** are stored with name, email, subject, message and language. They contain no IP address. A honeypot field and a rate limit protect the form.
 - **Optional email** through SMTP and **optional file storage** on Vercel Blob (uploads up to 4 MB; the file type is detected from the first bytes; images are re-encoded to WebP).
 - **Demo mode:** a read-only demo account, refused writes, a notice band on every public page, and no stored contact messages.
-- **SEO foundation:** localized titles and descriptions edited in the panel, canonical addresses with language alternates, a sitemap, `robots.txt`, JSON-LD (`WebSite`, `Organization`, `ContactPage`, `BreadcrumbList`) and a switch (`SITE_INDEXING`) that keeps the site out of search indexes.
+- **SEO foundation:** localized titles and descriptions edited in the panel, canonical addresses with language alternates, a sitemap, `robots.txt`, a plain-text site guide, JSON-LD (`WebSite`, `Organization`, `ContactPage`, `BreadcrumbList`) and a switch (`SITE_INDEXING`) that keeps the site out of search indexes.
 - **Security:** a nonce-based Content Security Policy and security headers, no public sign-up, sessions stored in the database, rate limits stored in Postgres, and an authorization check in every admin page, action and handler, enforced by a static check in CI.
 
 ## Tech stack

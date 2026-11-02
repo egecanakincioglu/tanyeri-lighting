@@ -106,7 +106,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   - Every exported method in `src/app/api/**/route.ts` calls `guardHandler`.
   - Every export of a top-level `'use server'` file calls `guardAction`.
 - The check covers route handlers under all of `src/app`, and it scans `.js`, `.jsx`, `.mjs` and `.cjs` files as well as TypeScript. Destructured route exports fail, and inline `'use server'` functions are forbidden. The guard import must resolve to `src/server/auth/guard.ts`. Actions must await `guardAction()` at the top level, or inside `runAction` or a same-file wrapper.
-- Public entry points are allowlisted in the check, each with a reason: the sign-in, forgot password and reset password pages, `api/auth/[...all]` the contact Server Action, `src/server/contact/actions.ts`, and `src/app/api/visits/route.ts`. The visits route needs the same origin, takes only the path of a known public page, is rate limited and stores only a shortened address. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
+- Public entry points are allowlisted in the check, each with a reason: the sign-in, forgot password and reset password pages, `api/auth/[...all]` the contact Server Action, `src/server/contact/actions.ts`, `src/app/api/visits/route.ts` and `src/app/llms.txt/route.ts`. The visits route needs the same origin, takes only the path of a known public page, is rate limited and stores only a shortened address. The site guide route is a GET with no input and returns only the public page list. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
 - The check is shallow by design: it looks for the call inside the exported function and does not follow helper calls. Review covers the rest.
 
 ## Rate limiting
@@ -175,6 +175,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   3. The rate limit applies (see Rate limiting).
   4. In demo mode the action returns the summary. Otherwise it stores the message.
 - Field errors are codes (`required`, `too_long`, `invalid`) that the UI translates. Limits: name 100, email 254, subject 150, message 5000 characters.
+- The public form carries `toolname` and `tooldescription` attributes for WebMCP tools. The admin forms do not. CI does not check them, because the Chrome on the runner reports no WebMCP support.
 - The services in `src/server/contact/service.ts` are `listMessages({ limit, cursor })` (newest first, limit 1 to 100, default 20), `markMessageRead` and `deleteMessage`. They are not guarded themselves. Admin entry points must call `guardAction` first. The write services refuse in demo mode.
 - The contact page with the form and the message screen in the admin panel exist.
 
@@ -201,8 +202,9 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `src/app/sitemap.ts` and `src/app/robots.ts` are dynamic and read the settings per request. `robots.ts` gives the same rule to all crawlers and closes the whole site unless indexing is on. The sitemap has no `hreflang` entries; the language alternates are in the page head ([ADR 0009](adr/0009-quality-targets.md)).
 - The sitemap lists one entry per category and language, for categories that have products. The `lastmod` of a category is the later of its own change and its newest product's.
 - JSON-LD is built in `src/lib/structured-data.ts` and rendered by `src/components/json-ld.tsx`: `WebSite`, `Organization`, `ContactPage` and `BreadcrumbList`. There is no `Product` type, because nothing is for sale.
+- `/llms.txt` is a route handler in `src/app/llms.txt/route.ts`. It links 8 pages in `tr` and `en`, with addresses built from `SITE_URL`. It is not in the sitemap and not behind the locale proxy.
 - Page titles and descriptions come from the database in both languages. Production is indexable, previews are not.
-- Organization data has no placeholder profiles, a fallback logo, the tagline as description, and no contact point in demo mode.
+- Organization data has a fallback logo, the tagline as description, and no contact point in demo mode. `sameAs` is omitted in demo mode and lists the saved social links otherwise. The demo social links point to accounts the project does not own.
 - The product and category pages show a visible breadcrumb that matches the `BreadcrumbList` data and replaces the back link; Home is not part of the product and category data. The Products menu lists the categories, and home area cards link to their category. Product descriptions are built from power, size, colour and material; a detail that is empty is left out.
 - Open Graph url, locale, site name, type and the shared image are set on every page. The sign-in link and the product contact links are `nofollow`. An empty product list answers 200 with `noindex`.
 - Page titles come from the SEO screen on every page key, and the site adds " | Tanyeri Lighting" to each of them. The saved home title is shown as it is, so it must carry the brand. A page without a saved title uses its menu name.
