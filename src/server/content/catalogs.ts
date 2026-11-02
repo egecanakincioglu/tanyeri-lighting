@@ -7,11 +7,22 @@ import { assertCompleteOrder, nextPosition } from './order.ts';
 import { type Catalog, catalogSchema, type CatalogInput, idListSchema, idSchema } from './schemas.ts';
 
 function fromRow(row: CatalogRow): Catalog {
-  return { id: row.id, name: fromColumns('name', row), pdfUrl: row.pdfUrl, sizeBytes: row.sizeBytes };
+  return {
+    id: row.id,
+    name: fromColumns('name', row),
+    pdfUrl: row.pdfUrl,
+    coverImageUrl: row.coverImageUrl,
+    sizeBytes: row.sizeBytes,
+  };
 }
 
 function toColumnsOf(catalog: CatalogInput) {
-  return { ...toColumns('name', catalog.name), pdfUrl: catalog.pdfUrl, sizeBytes: catalog.sizeBytes };
+  return {
+    ...toColumns('name', catalog.name),
+    pdfUrl: catalog.pdfUrl,
+    coverImageUrl: catalog.coverImageUrl,
+    sizeBytes: catalog.sizeBytes,
+  };
 }
 
 export async function listCatalogs(): Promise<Catalog[]> {

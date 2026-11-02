@@ -259,15 +259,17 @@ model ProductSlugRedirect {
 
 // A downloadable PDF catalog. The file itself is stored by the storage module; this row keeps its address and size.
 model Catalog {
-  id          String       @id @default(uuid(7))
-  nameTr      String
-  nameEn      String
-  pdfUrl      String
-  sizeBytes   Int
-  sortOrder   Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  promoBoards PromoBoard[]
+  id            String       @id @default(uuid(7))
+  nameTr        String
+  nameEn        String
+  pdfUrl        String
+  // Empty when the catalog has no cover picture.
+  coverImageUrl String
+  sizeBytes     Int
+  sortOrder     Int
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  promoBoards   PromoBoard[]
 
   @@index([sortOrder])
   @@map("catalog")
