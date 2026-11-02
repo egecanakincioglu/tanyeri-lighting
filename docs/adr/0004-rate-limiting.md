@@ -35,7 +35,7 @@ Rules:
 3. For **other public write endpoints** (the contact form and similar), the `src/server/rate-limit` module and a counter table in the same database are used (`RateLimitCounter`: key, window start, counter).
    - The increment is one atomic statement: either an `upsert` that meets Prisma's database upsert conditions, or a parameterized `$executeRaw` with `INSERT ... ON CONFLICT ... DO UPDATE ... RETURNING`. Two-step code that reads first and then writes is forbidden.
    - Expired rows are deleted from time to time.
-4. **Key:** the endpoint name and the client IP. The IP is read only from a header that the server itself writes. On Vercel this is `x-forwarded-for`; outside Vercel the header is not trusted unless a trusted proxy (`trustedProxies`) is configured.
+4. **Key:** the endpoint name and the client IP. The IP is read only from a header that the server itself writes. On Vercel this is `x-forwarded-for`; outside Vercel the header is not trusted unless a trusted proxy (`trustedProxies`) is configured. For the library's limiter this is `advanced.ipAddress.trustedProxies`. Without it on another host, an unset header puts every request in one bucket, and a forged header lets a client evade the limit.
 5. When the limit is exceeded, the response is 429 with `Retry-After`.
 6. If the authentication library changes, the endpoints in rule 1 also move to the counter table in rule 3. The rule stays the same: Postgres, no extra service.
 

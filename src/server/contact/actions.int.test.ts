@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDb } from '../db.ts';
 import { submitContactMessage } from './actions.ts';
-import { HONEYPOT_FIELD } from './form.ts';
+import { HONEYPOT_FIELD, SITE_WIDE_LIMIT } from './form.ts';
 
 // The request headers of the code under test; `next/headers` has no request to read from outside Next.js.
 const request = vi.hoisted(() => ({ headers: new Headers() }));
@@ -81,6 +81,18 @@ describe('the contact form action on a real database', () => {
     expect((result as { retryAfterSeconds: number }).retryAfterSeconds).toBeGreaterThan(0);
     expect((result as { retryAfterSeconds: number }).retryAfterSeconds).toBeLessThanOrEqual(3600);
     expect(await getDb().contactMessage.count()).toBe(5);
+  });
+
+  it('refuses every client above the site-wide daily ceiling', async () => {
+    for (let i = 0; i < SITE_WIDE_LIMIT.limit; i++) {
+      request.headers = new Headers({ 'x-forwarded-for': `198.51.${Math.floor(i / 250)}.${(i % 250) + 1}` });
+      expect(await submit()).toEqual({ status: 'ok' });
+    }
+    request.headers = new Headers({ 'x-forwarded-for': '203.0.113.99' });
+    const result = await submit();
+    expect(result).toMatchObject({ status: 'rate-limited', values: { name: VALID.name } });
+    expect((result as { retryAfterSeconds: number }).retryAfterSeconds).toBeLessThanOrEqual(24 * 60 * 60);
+    expect(await getDb().contactMessage.count()).toBe(SITE_WIDE_LIMIT.limit);
   });
 
   it('limits each client address on its own', async () => {

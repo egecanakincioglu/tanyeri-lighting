@@ -83,3 +83,6 @@ export function parseContactForm(formData: FormData): ParsedContact {
   }
   return { success: false, fieldErrors };
 }
+
+// A ceiling for the whole site, so many client addresses together cannot fill the inbox.
+export const SITE_WIDE_LIMIT = { scope: 'contact-site', limit: 200, windowSeconds: 24 * 60 * 60 } as const;
