@@ -6,10 +6,11 @@ import en from '../../../messages/en.json' with { type: 'json' };
 import tr from '../../../messages/tr.json' with { type: 'json' };
 import { Header } from './header.tsx';
 
-const navigation = vi.hoisted(() => ({ pathname: '/tr' }));
+const navigation = vi.hoisted(() => ({ pathname: '/tr', params: {} as Record<string, string | string[]> }));
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   usePathname: () => navigation.pathname,
+  useParams: () => ({ locale: 'tr', ...navigation.params }),
 }));
 
 function renderHeader(locale: 'tr' | 'en' = 'tr') {
@@ -34,6 +35,7 @@ async function violations(container: HTMLElement) {
 describe('Header', () => {
   beforeEach(() => {
     navigation.pathname = '/tr';
+    navigation.params = {};
   });
   afterEach(() => {
     cleanup();
@@ -81,6 +83,29 @@ describe('Header', () => {
     expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products');
     expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('aria-current')).toBe('true');
     expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('aria-current')).toBeNull();
+  });
+
+  it('keeps the route parameters in the language links of a dynamic page', () => {
+    navigation.pathname = '/tr/urunler/cerceveli-gomme-spot-7w';
+    navigation.params = { slug: 'cerceveli-gomme-spot-7w' };
+    renderHeader();
+    const group = screen.getByRole('group', { name: 'Dil' });
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe(
+      '/en/products/cerceveli-gomme-spot-7w',
+    );
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe(
+      '/tr/urunler/cerceveli-gomme-spot-7w',
+    );
+    expect(desktopNav().getByRole('link', { name: 'Kategoriler' }).getAttribute('aria-current')).toBe('page');
+    expect(desktopNav().getByRole('button', { name: 'Ürünler' }).hasAttribute('data-current')).toBe(true);
+  });
+
+  it('renders the language links on an unknown address', () => {
+    navigation.pathname = '/tr/yok/bir-sayfa';
+    navigation.params = { rest: ['yok', 'bir-sayfa'] };
+    expect(() => renderHeader()).not.toThrow();
+    const group = screen.getByRole('group', { name: 'Dil' });
+    expect(within(group).getAllByRole('link')).toHaveLength(2);
   });
 
   it('adds the shadow after 4 px of scroll and removes it again', () => {
