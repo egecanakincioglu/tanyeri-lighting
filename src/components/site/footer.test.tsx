@@ -59,6 +59,14 @@ async function violations(container: HTMLElement) {
 describe('FooterContent', () => {
   afterEach(cleanup);
 
+  it('shows the uploaded logo, and the artwork when there is none', () => {
+    const { unmount } = renderFooter({ settings: { ...settings, logoUrl: '/demo/area-otel.webp' } });
+    expect(screen.getByRole('img', { name: 'Tanyeri Lighting' }).getAttribute('src')).toBe('/demo/area-otel.webp');
+    unmount();
+    renderFooter({ settings: { ...settings, logoUrl: null } });
+    expect(screen.getByRole('img', { name: 'Tanyeri Lighting' }).getAttribute('src')).toBe('/brand/logo.svg');
+  });
+
   it('shows the contact details, social links and legal links in Turkish', () => {
     renderFooter();
     const footer = screen.getByRole('contentinfo');
