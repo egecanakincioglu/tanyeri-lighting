@@ -139,6 +139,7 @@ describe('FooterContent', () => {
     expect(img.getAttribute('src')).toBe('/brand/flareye.webp');
     expect(img.getAttribute('width')).toBe('96');
     expect(img.getAttribute('height')).toBe('24');
+    expect(img.getAttribute('loading')).toBe('lazy');
     const webp = readFileSync(join(import.meta.dirname, '..', '..', '..', 'public', 'brand', 'flareye.webp'));
     // An extended WebP header stores width and height minus one as 24-bit little-endian numbers.
     expect(webp.subarray(12, 16).toString()).toBe('VP8X');

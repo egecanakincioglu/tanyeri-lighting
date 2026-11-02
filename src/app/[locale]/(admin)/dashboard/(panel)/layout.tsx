@@ -1,4 +1,4 @@
-import { hasLocale } from 'next-intl';
+import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { AdminFrame } from '../../../../../components/admin/frame.tsx';
@@ -20,24 +20,26 @@ export default async function PanelLayout({ children, params }: LayoutProps<'/[l
   const [t, unread] = await Promise.all([getTranslations({ locale, namespace: 'AdminNav' }), countUnreadMessages()]);
 
   return (
-    <AdminFrame
-      locale={locale}
-      logo={
-        <Link
-          href="/"
-          prefetch={false}
-          className="inline-flex min-h-touch min-w-0 items-center [&_img]:h-auto [&_img]:max-w-full"
-        >
-          <Logo label={t('logo')} />
-        </Link>
-      }
-      groups={buildNavGroups(t, unread)}
-      email={session.user.email}
-      {...(isDemoMode() ? { demoNotice: t('demoNotice') } : {})}
-      signOut={{ action: signOutAction, label: t('signOut') }}
-      labels={{ menu: t('menu'), openMenu: t('openMenu'), closeMenu: t('closeMenu'), viewSite: t('viewSite') }}
-    >
-      {children}
-    </AdminFrame>
+    <NextIntlClientProvider locale={locale} messages={null}>
+      <AdminFrame
+        locale={locale}
+        logo={
+          <Link
+            href="/"
+            prefetch={false}
+            className="inline-flex min-h-touch min-w-0 items-center [&_img]:h-auto [&_img]:max-w-full"
+          >
+            <Logo label={t('logo')} />
+          </Link>
+        }
+        groups={buildNavGroups(t, unread)}
+        email={session.user.email}
+        {...(isDemoMode() ? { demoNotice: t('demoNotice') } : {})}
+        signOut={{ action: signOutAction, label: t('signOut') }}
+        labels={{ menu: t('menu'), openMenu: t('openMenu'), closeMenu: t('closeMenu'), viewSite: t('viewSite') }}
+      >
+        {children}
+      </AdminFrame>
+    </NextIntlClientProvider>
   );
 }

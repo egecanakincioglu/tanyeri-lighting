@@ -230,8 +230,10 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Remote images need `images.remotePatterns` in `next.config.ts`. The image optimizer accepts only the host derived from `BLOB_READ_WRITE_TOKEN` (`<storeId>.public.blob.vercel-storage.com`, no query strings) and no remote host at all without a token. `next.config.ts` reads the token at load, so a store change needs a rebuild. The file sets `images.deviceSizes` with an extra 1440 step, so the browser does not jump past the image audit's upper bound on dense phones.
 - The image optimizer keeps results for 31 days (`images.minimumCacheTTL`). The static folders `/brand`, `/icons` and `/demo` are sent with `Cache-Control: public, max-age=86400, stale-while-revalidate=604800`: one day fresh and a week of revalidation. They are not `immutable` because a replaced file keeps its address.
 - The first picture of each page is fetched at once with `loading="eager"` and `fetchPriority="high"`; `next/image` `priority` is not used. The first item of each list is eager too.
+- The footer logo and credit image load lazily.
+- Photos use `getImageProps` with a plain `img`, so the image component script is not sent to the browser.
 - Page addresses are keyed by the English path in `src/i18n/routing.ts`. Turkish pages use Turkish addresses, for example `/tr/urunler` and `/en/products`. Internal links use `Link` from `src/i18n/navigation.ts` with `prefetch={false}`.
-- `[locale]/layout.tsx` provides an intl provider without messages. Client components get their texts as props.
+- The public client has no translation runtime. `[locale]/layout.tsx` has no intl provider; `AdminShell` and the panel layout carry the provider for the admin screens. New public client components receive their texts as props.
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.

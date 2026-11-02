@@ -24,7 +24,7 @@ export default async function ForgotPasswordPage({ params }: PageProps<'/[locale
   const admin = await getTranslations({ locale, namespace: 'Admin' });
 
   return (
-    <AdminShell logoLabel={admin('logo')} backLabel={admin('backToSite')}>
+    <AdminShell locale={locale} logoLabel={admin('logo')} backLabel={admin('backToSite')}>
       <h1 className="text-2xl font-bold">{t('requestTitle')}</h1>
       <div className="mt-6">
         {isPasswordResetAvailable() ? (
