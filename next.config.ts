@@ -11,7 +11,11 @@ const securityHeaders: Record<string, string> = {
 };
 
 // Static files keep their address when replaced, so no 'immutable': a day fresh, then a week of quiet revalidation.
-const staticFileCache = 'public, max-age=86400, stale-while-revalidate=604800';
+const staticFileHeaders: Record<string, string> = {
+  'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+};
+
+const toEntries = (headers: Record<string, string>) => Object.entries(headers).map(([key, value]) => ({ key, value }));
 
 // Only the store of this installation may be optimized; another store would spend its quota and serve foreign pictures
 // from our origin. Without a token there are no uploads, so there is no remote host either.
@@ -32,10 +36,10 @@ const nextConfig: NextConfig = {
   // The panel uploads files of up to 4 MB (MAX_UPLOAD_BYTES) through a Server Action; the default limit is 1 MB.
   experimental: { serverActions: { bodySizeLimit: '5mb' } },
   headers: async () => [
-    { source: '/:path*', headers: Object.entries(securityHeaders).map(([key, value]) => ({ key, value })) },
+    { source: '/:path*', headers: toEntries(securityHeaders) },
     ...['/brand', '/icons', '/demo'].map((dir) => ({
       source: dir + '/:path*',
-      headers: [{ key: 'Cache-Control', value: staticFileCache }],
+      headers: toEntries(staticFileHeaders),
     })),
   ],
 };
