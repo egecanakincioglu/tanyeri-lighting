@@ -84,6 +84,13 @@ const pageMetadata: Record<PageKey, ReturnType<typeof pair>[]> = {
       'A hotel lobby, a production hall and a detached house exterior: what changed, shown with before and after photos. Sample projects, fictional brand.',
     ),
   ],
+  blog: [
+    pair('Aydınlatma Rehberi: Blog Yazıları', 'Lighting Guides: Blog Articles'),
+    pair(
+      'Ray spot, lineer aydınlatma, gömme spot, ofis ışığı ve dış mekan armatürleri için seçim ve planlama rehberleri. Kurgusal demo markanın yazıları.',
+      'Choosing and planning guides for track spots, linear lighting, recessed spots, office light and outdoor luminaires. Articles of a fictional demo brand.',
+    ),
+  ],
   references: [
     pair('Aydınlatma Referansları (Örnek İşler)', 'Lighting References (Sample Work)'),
     pair(

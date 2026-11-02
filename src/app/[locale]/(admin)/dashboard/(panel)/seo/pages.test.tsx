@@ -54,9 +54,9 @@ describe('page info screens', () => {
     it('lists every page key, the vision page among them, with its saved title or that it is not set', async () => {
       inIntl('en', await SeoAdminPage(listProps('en')));
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Page Info (SEO)');
-      expect(screen.getAllByRole('listitem')).toHaveLength(11);
+      expect(screen.getAllByRole('listitem')).toHaveLength(12);
       expect(screen.getByText('Home page')).toBeTruthy();
-      expect(screen.getAllByText('Not set yet')).toHaveLength(10);
+      expect(screen.getAllByText('Not set yet')).toHaveLength(11);
       expect(screen.getByRole('link', { name: 'Edit: Our vision' }).getAttribute('href')).toBe('/en/admin/seo/vision');
     });
 

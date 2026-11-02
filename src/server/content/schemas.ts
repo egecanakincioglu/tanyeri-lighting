@@ -57,6 +57,7 @@ export const PAGE_KEYS = [
   'catalogs',
   'services',
   'projects',
+  'blog',
   'references',
   'about',
   'vision',
@@ -233,6 +234,25 @@ export const serviceSchema = z.strictObject({
 
 export type ServiceInput = z.infer<typeof serviceSchema>;
 export type Service = ServiceInput & { id: string };
+
+export const blogPostSchema = z.strictObject({
+  // The language independent address of the article.
+  slug: kebabCase(80),
+  title: bilingual(120),
+  description: bilingual(320),
+  excerpt: bilingual(320),
+  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
+  body: bilingual(50_000),
+  imageUrl: mediaUrl,
+  imageAlt: bilingual(200),
+  // Empty means a draft; a day in the future publishes the article on that day.
+  publishedAt: z.date().nullable(),
+});
+
+export type BlogPostInput = z.infer<typeof blogPostSchema>;
+export type BlogPost = BlogPostInput & { id: string; createdAt: Date; updatedAt: Date };
+// What the list and the cards need: no body.
+export type BlogPostSummary = Omit<BlogPost, 'body'>;
 
 export const aboutPageSchema = z.strictObject({
   // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.

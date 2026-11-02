@@ -374,3 +374,27 @@ model AboutPage {
 
   @@map("aboutPage")
 }
+
+// A blog article. Public only while publishedAt is set and not in the future; a row without it is a draft. The
+// body is limited Markdown stored as plain text. The slug is the language independent address.
+model BlogPost {
+  id            String    @id @default(uuid(7))
+  slug          String    @unique
+  titleTr       String
+  titleEn       String
+  descriptionTr String
+  descriptionEn String
+  excerptTr     String
+  excerptEn     String
+  bodyTr        String
+  bodyEn        String
+  imageUrl      String
+  imageAltTr    String
+  imageAltEn    String
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([publishedAt])
+  @@map("blog_post")
+}

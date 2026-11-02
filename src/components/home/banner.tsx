@@ -14,6 +14,7 @@ const PAGE_ROUTES = {
   catalogs: '/catalogs',
   services: '/services',
   projects: '/projects',
+  blog: '/blog',
   references: '/references',
   about: '/about',
   vision: '/vision',
