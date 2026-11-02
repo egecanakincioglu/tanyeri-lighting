@@ -162,6 +162,20 @@ describe('Header', () => {
     expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products/ray-spot');
   });
 
+  it('keeps the blog list and article pages in the language links', () => {
+    navigation.pathname = '/tr/blog';
+    renderHeader();
+    let group = screen.getByRole('group', { name: 'Dil' });
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/blog');
+    cleanup();
+    navigation.pathname = '/en/blog/linear-lighting';
+    renderHeader('en');
+    group = screen.getByRole('group', { name: 'Language' });
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe(
+      '/tr/blog/linear-lighting',
+    );
+  });
+
   it('writes the language cookie when the other language is chosen, and not for the current one', () => {
     document.cookie = 'NEXT_LOCALE=;path=/;max-age=0';
     renderHeader();
