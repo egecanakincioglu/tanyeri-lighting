@@ -70,15 +70,17 @@ export async function checkRateLimit({
   // A key that just opened a window is the cheap moment to sweep: traffic itself drives the cleanup.
   if (row.count === 1) {
     const cutoff = new Date(now - RETENTION_MS);
+    // MATERIALIZED makes the planner evaluate the limited, locking subquery exactly once; as a plain IN subquery it
+    // may be run again and delete more rows than one sweep allows.
     await db.$executeRaw`
-      DELETE FROM "rateLimitCounter"
-      WHERE "key" IN (
+      WITH doomed AS MATERIALIZED (
         SELECT "key" FROM "rateLimitCounter"
         WHERE "windowStart" < ${cutoff}
         ORDER BY "windowStart"
         LIMIT ${CLEANUP_BATCH}
         FOR UPDATE SKIP LOCKED
-      )`;
+      )
+      DELETE FROM "rateLimitCounter" t USING doomed WHERE t."key" = doomed."key"`;
   }
 
   if (row.count <= limit) return { ok: true };

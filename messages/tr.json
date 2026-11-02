@@ -192,6 +192,7 @@
     },
     "items": {
       "panel": "Panel",
+      "stats": "İstatistikler",
       "banner": "Banner",
       "featured": "Öne Çıkan Ürünler",
       "promo": "Tanıtım Panoları",
@@ -544,6 +545,20 @@
     "fieldPdf": "PDF dosyası",
     "fieldCover": "Kapak görseli",
     "coverHint": "JPEG, PNG veya WebP, en fazla 4 MB. A4 dikey gösterilir."
+  },
+  "AdminStats": {
+    "title": "İstatistikler",
+    "description": "Herkese açık sayfalara son 30 gündeki ziyaretler. Yalnız sayfa, dil ile barındırıcının verdiği ülke ve şehir saklanır; ziyaretçi adresi saklanmadan önce kısaltılır.",
+    "visits": "Ziyaret",
+    "views": "Sayfa görüntüleme",
+    "visitsHint": "Kısaltılmış ziyaretçi adresinden tahmin edilir",
+    "daily": "Günlük",
+    "countries": "Ülkeler",
+    "date": "Tarih",
+    "country": "Ülke",
+    "unknown": "Bilinmiyor",
+    "empty": "Son 30 günde kayıtlı ziyaret yok.",
+    "period": "Son 30 gün"
   },
   "AdminMessages": {
     "title": "Mesajlar",

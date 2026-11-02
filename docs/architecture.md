@@ -105,7 +105,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   - The default export of every page and layout under `src/app/[locale]/(admin)` calls `guardPage`.
   - Every exported method in `src/app/api/**/route.ts` calls `guardHandler`.
   - Every export of a top-level `'use server'` file calls `guardAction`.
-- Public entry points are allowlisted in the check, each with a reason: the sign-in, forgot password and reset password pages, `api/auth/[...all]` and the contact Server Action, `src/server/contact/actions.ts`. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
+- Public entry points are allowlisted in the check, each with a reason: the sign-in, forgot password and reset password pages, `api/auth/[...all]` the contact Server Action, `src/server/contact/actions.ts`, and `src/app/api/visits/route.ts`. The visits route needs the same origin, takes only the path of a known public page, is rate limited and stores only a shortened address. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
 - The check is shallow by design: it looks for the call inside the exported function and does not follow helper calls. Review covers the rest.
 
 ## Rate limiting
@@ -119,6 +119,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - When a window opens, rows older than 24 hours are removed, in batches of 100.
 - The contact form allows 5 submissions per 3600 seconds per client address (scope `contact`).
 - `checkRateLimit` can count a named `subject` instead of the client address. The password reset mail uses this with scope `reset-mail`: one account gets at most 3 reset mails per hour, however many addresses ask. The check runs after the response, so the answer is the same whether or not the mail is sent.
+- Page visits use the scope `visit`: 120 requests per 60 seconds per client address.
 - There is no in-memory limiter and no extra service, because instances on Vercel do not share memory.
 
 ## File storage
@@ -176,6 +177,15 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Field errors are codes (`required`, `too_long`, `invalid`) that the UI translates. Limits: name 100, email 254, subject 150, message 5000 characters.
 - The services in `src/server/contact/service.ts` are `listMessages({ limit, cursor })` (newest first, limit 1 to 100, default 20), `markMessageRead` and `deleteMessage`. They are not guarded themselves. Admin entry points must call `guardAction` first. The write services refuse in demo mode.
 - Planned: the contact page with the form, and the message screens in the admin panel.
+
+## Visit statistics
+
+- The `visit` table keeps one row per Europe/Istanbul day and shortened address. The stored fields are the day, the shortened address, the country, the city and `views`. The address is cut to /24 for IPv4 and /48 for IPv6 before it is stored. Country and city come from `x-vercel-ip-country` and `x-vercel-ip-city`. The table holds no path, locale, referrer or browser string. `views` grows by one in a single atomic statement, so concurrent requests lose no count.
+- `POST /api/visits` needs the same origin and a `content-length` of 1 to 256 bytes (411 and 413 otherwise). The path in the body must match a known public locale-prefixed page, or the answer is 400. The path is checked and not stored. The rate limit scope is `visit` (120 per 60 seconds). The write runs in `after()`, so the answer is 204 at once.
+- The public layout posts the opened path with `sendBeacon` from a very small client component (`src/components/site/visit-beacon.tsx`). Prefetches and crawlers that run no JavaScript are therefore not counted.
+- The Statistics screen in the admin panel shows the last 30 days: visits and page views per day, and the countries. A visit counts distinct shortened addresses, so it is an estimate: visitors on one network count once.
+- Recording also runs in demo mode, because no personal data is kept.
+- Rows older than 13 months are deleted when a visit is written, at most once a day per server instance.
 
 ## Security headers and CSP
 

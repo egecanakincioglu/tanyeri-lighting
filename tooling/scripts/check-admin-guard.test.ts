@@ -197,6 +197,15 @@ describe('check-admin-guard', () => {
     test('the Better Auth route is on the public allowlist', () =>
       passes({ [AUTH_ROUTE]: 'export function GET() { return new Response(); }' }));
 
+    test('the visit route is on the public allowlist', () =>
+      passes({ 'src/app/api/visits/route.ts': 'export function POST() { return new Response(); }' }));
+
+    test('another route under api/visits is not covered by the allowlist', () =>
+      fails(
+        { 'src/app/api/visits/extra/route.ts': 'export function GET() { return new Response(); }' },
+        'api/visits/extra/route.ts',
+      ));
+
     test('another route under api/auth is not covered by the allowlist', () =>
       fails(
         { 'src/app/api/auth/extra/route.ts': 'export function GET() { return new Response(); }' },

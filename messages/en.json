@@ -192,6 +192,7 @@
     },
     "items": {
       "panel": "Dashboard",
+      "stats": "Statistics",
       "banner": "Banner",
       "featured": "Featured Products",
       "promo": "Promo Boards",
@@ -544,6 +545,20 @@
     "fieldPdf": "PDF file",
     "fieldCover": "Cover image",
     "coverHint": "JPEG, PNG or WebP, up to 4 MB. It is shown in A4 portrait."
+  },
+  "AdminStats": {
+    "title": "Statistics",
+    "description": "Visits to the public pages over the last 30 days. Only the page, the language and the country and city given by the host are kept; the visitor address is shortened before it is stored.",
+    "visits": "Visits",
+    "views": "Page views",
+    "visitsHint": "Estimated from the shortened visitor address",
+    "daily": "Per day",
+    "countries": "Countries",
+    "date": "Date",
+    "country": "Country",
+    "unknown": "Unknown",
+    "empty": "No visits recorded in the last 30 days.",
+    "period": "Last 30 days"
   },
   "AdminMessages": {
     "title": "Messages",
