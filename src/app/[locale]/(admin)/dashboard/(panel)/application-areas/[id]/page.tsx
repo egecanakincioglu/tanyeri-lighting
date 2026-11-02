@@ -9,6 +9,7 @@ import { routing } from '../../../../../../../i18n/routing.ts';
 import { updateApplicationAreaAction } from '../../../../../../../server/admin/application-areas-actions.ts';
 import { guardPage } from '../../../../../../../server/auth/guard.ts';
 import { listApplicationAreas } from '../../../../../../../server/content/application-areas.ts';
+import { listCategories } from '../../../../../../../server/content/categories.ts';
 
 export async function generateMetadata({
   params,
@@ -24,11 +25,12 @@ export default async function EditApplicationAreaPage({
   const { locale, id } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   await guardPage(locale);
-  const [t, props, areas] = await Promise.all([
+  const [t, categories, areas] = await Promise.all([
     getTranslations({ locale, namespace: 'AdminAreas' }),
-    areaFormProps(locale),
+    listCategories(),
     listApplicationAreas(),
   ]);
+  const props = await areaFormProps(locale, categories);
   // There are only a few areas and no single-row reader, so the list is searched.
   const area = areas.find((item) => item.id === id);
   if (!area) notFound();

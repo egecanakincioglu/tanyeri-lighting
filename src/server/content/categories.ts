@@ -21,16 +21,49 @@ import {
 } from './schemas.ts';
 
 function fromRow(row: CategoryRow): Category {
-  return { id: row.id, key: row.key, name: fromColumns('name', row) };
+  return {
+    id: row.id,
+    key: row.key,
+    name: fromColumns('name', row),
+    seoTitle: fromColumns('seoTitle', row),
+    seoDescription: fromColumns('seoDescription', row),
+    h1: fromColumns('h1', row),
+    intro: fromColumns('intro', row),
+  };
 }
 
 function toColumnsOf(category: CategoryInput) {
-  return { key: category.key, ...toColumns('name', category.name) };
+  return {
+    key: category.key,
+    ...toColumns('name', category.name),
+    ...toColumns('seoTitle', category.seoTitle),
+    ...toColumns('seoDescription', category.seoDescription),
+    ...toColumns('h1', category.h1),
+    ...toColumns('intro', category.intro),
+  };
 }
 
 export async function listCategories(): Promise<Category[]> {
   const rows = await getDb().category.findMany({ orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }] });
   return rows.map(fromRow);
+}
+
+// The key and last change of every category that has products, for the sitemap: an empty category is not indexed. The
+// change time is the later of the category's own and its newest product's.
+export async function listCategoryChanges(): Promise<{ key: string; updatedAt: Date }[]> {
+  const rows = await getDb().category.findMany({
+    where: { products: { some: {} } },
+    select: {
+      key: true,
+      updatedAt: true,
+      products: { select: { updatedAt: true }, orderBy: { updatedAt: 'desc' }, take: 1 },
+    },
+    orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+  });
+  return rows.map(({ key, updatedAt, products }) => {
+    const newest = products[0]?.updatedAt;
+    return { key, updatedAt: newest && newest > updatedAt ? newest : updatedAt };
+  });
 }
 
 // The new category goes to the end of the list. At most MAX_CATEGORIES exist.

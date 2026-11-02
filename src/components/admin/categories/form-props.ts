@@ -13,6 +13,16 @@ export async function categoryFormProps(locale: 'tr' | 'en') {
     locale,
     formTexts,
     readOnlyReason: isDemoMode() ? formTexts.demoNote : undefined,
-    texts: { key: t('fieldKey'), keyHint: t('keyHint'), name: t('fieldName'), cancel: form('cancel') },
+    texts: {
+      key: t('fieldKey'),
+      keyHint: t('keyHint'),
+      name: t('fieldName'),
+      seoTitle: t('fieldSeoTitle'),
+      seoDescription: t('fieldSeoDescription'),
+      h1: t('fieldH1'),
+      intro: t('fieldIntro'),
+      pageHint: t('pageHint'),
+      cancel: form('cancel'),
+    },
   };
 }

@@ -24,7 +24,7 @@
     "projects": "Projeler",
     "products": "Ürünler",
     "catalogs": "Kataloglar",
-    "categories": "Kategoriler",
+    "categories": "Tüm Ürünler",
     "contact": "İletişim"
   },
   "Footer": {
@@ -53,10 +53,11 @@
     "previous": "Önceki",
     "next": "Sonraki",
     "empty": "Bu kategoride henüz ürün yok.",
-    "pageSuffix": "Sayfa {page}"
+    "pageSuffix": "Sayfa {page}",
+    "breadcrumb": "Sayfa yolu"
   },
   "Product": {
-    "back": "Tüm ürünler",
+    "breadcrumb": "Sayfa yolu",
     "request": "Bilgi talep et",
     "details": "Ürün bilgileri",
     "code": "Ürün kodu",
@@ -66,8 +67,7 @@
     "power": "Güç",
     "dimensions": "Ölçüler",
     "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
-    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
-    "backToCategory": "{category} kategorisine dön"
+    "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün."
   },
   "Catalogs": {
     "view": "Görüntüle",
@@ -381,7 +381,10 @@
     "reordered": "Sıra kaydedildi.",
     "fieldImage": "Görsel",
     "fieldTitle": "Başlık",
-    "fieldDescription": "Açıklama"
+    "fieldDescription": "Açıklama",
+    "fieldCategory": "Bağlantı kategorisi",
+    "noCategory": "Bağlantı yok",
+    "categoryHint": "Ana sayfadaki kart bu kategorinin ürünlerine bağlanır. Eşleşen kategori yoksa kart bağlantısız kalır."
   },
   "AdminSettings": {
     "title": "Kurumsal Ayarlar",
@@ -484,7 +487,12 @@
     "reordered": "Sıra kaydedildi.",
     "fieldKey": "Adresler için kısa ad",
     "keyHint": "Küçük harf, rakam ve tek tire. Ziyaretçiler ürünleri süzerken adreste görünür, örneğin ic-mekan-aydinlatma.",
-    "fieldName": "Ad"
+    "fieldName": "Ad",
+    "pageHint": "Kategorinin kendi sayfası için isteğe bağlı metinler. Boş bırakılan alan için kategori adı kullanılır. Başlığa site adını site kendisi ekler; başlıkta yazmayın.",
+    "fieldSeoTitle": "Arama sonucu başlığı",
+    "fieldSeoDescription": "Arama sonucu açıklaması",
+    "fieldH1": "Sayfa başlığı",
+    "fieldIntro": "Başlığın altındaki kısa metin"
   },
   "AdminProducts": {
     "title": "Ürünler",

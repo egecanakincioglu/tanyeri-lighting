@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,13 +7,13 @@ import EditCategoryPage from './[id]/page.tsx';
 import NewCategoryPage from './new/page.tsx';
 import CategoriesAdminPage, { generateMetadata } from './page.tsx';
 
-const mocks = vi.hoisted(() => ({ guardPage: vi.fn(), listCategories: vi.fn() }));
+const mocks = vi.hoisted(() => ({ guardPage: vi.fn(), listCategories: vi.fn(), update: vi.fn() }));
 
 vi.mock('../../../../../../server/auth/guard.ts', () => ({ guardPage: mocks.guardPage }));
 vi.mock('../../../../../../server/content/categories.ts', () => ({ listCategories: mocks.listCategories }));
 vi.mock('../../../../../../server/admin/categories-actions.ts', () => ({
   createCategoryAction: vi.fn(),
-  updateCategoryAction: vi.fn(),
+  updateCategoryAction: mocks.update,
   deleteCategoryAction: vi.fn(),
   reorderCategoriesAction: vi.fn(),
 }));
@@ -31,6 +31,10 @@ const category = (index: number) => ({
   id: `c${index}`,
   key: `group-${index}`,
   name: { tr: `Grup ${index}`, en: `Group ${index}` },
+  seoTitle: { tr: `Başlık ${index}`, en: `Title ${index}` },
+  seoDescription: { tr: `Açıklama ${index}`, en: `Description ${index}` },
+  h1: { tr: '', en: '' },
+  intro: { tr: `Giriş ${index}`, en: `Intro ${index}` },
 });
 
 const listProps = (locale: string) =>
@@ -53,6 +57,8 @@ describe('category screens', () => {
     mocks.guardPage.mockResolvedValue({ user: { email: 'admin@example.com' } });
     mocks.listCategories.mockClear();
     mocks.listCategories.mockResolvedValue([category(1), category(2)]);
+    mocks.update.mockClear();
+    mocks.update.mockResolvedValue({ status: 'success' });
   });
   afterEach(() => {
     cleanup();
@@ -119,6 +125,17 @@ describe('category screens', () => {
       expect(screen.getByText(/appears in the address/)).toBeTruthy();
     });
 
+    it('has the four optional page texts, empty, with the hint about the fallback', async () => {
+      inIntl('en', await NewCategoryPage(newProps('en')));
+      for (const name of ['seoTitle', 'seoDescription', 'h1', 'intro']) {
+        expect((document.getElementById(`${name}-tr`) as HTMLInputElement).value).toBe('');
+        expect((document.getElementById(`${name}-en`) as HTMLInputElement).required).toBe(false);
+      }
+      expect(screen.getByRole('group', { name: 'Search result title' })).toBeTruthy();
+      expect(screen.getByRole('group', { name: 'Short text under the heading' })).toBeTruthy();
+      expect(screen.getByText(/An empty field uses the category name/)).toBeTruthy();
+    });
+
     it('turns saving off in the demo', async () => {
       vi.stubEnv('DEMO_MODE', 'true');
       inIntl('en', await NewCategoryPage(newProps('en')));
@@ -137,7 +154,50 @@ describe('category screens', () => {
       inIntl('en', await EditCategoryPage(editProps('en', 'c2')));
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Edit category');
       expect((screen.getByLabelText('Short name for addresses') as HTMLInputElement).value).toBe('group-2');
-      expect((screen.getByLabelText('Turkish') as HTMLInputElement).value).toBe('Grup 2');
+      expect((document.getElementById('name-tr') as HTMLInputElement).value).toBe('Grup 2');
+    });
+
+    it('fills the page texts and sends them on save', async () => {
+      inIntl('en', await EditCategoryPage(editProps('en', 'c2')));
+      expect((document.getElementById('seoTitle-en') as HTMLInputElement).value).toBe('Title 2');
+      expect((document.getElementById('seoDescription-tr') as HTMLTextAreaElement).value).toBe('Açıklama 2');
+      expect((document.getElementById('intro-en') as HTMLTextAreaElement).value).toBe('Intro 2');
+      expect((document.getElementById('h1-en') as HTMLInputElement).value).toBe('');
+      fireEvent.change(document.getElementById('h1-en')!, { target: { value: 'New heading' } });
+      fireEvent.change(document.getElementById('h1-tr')!, { target: { value: 'Yeni başlık' } });
+      await act(async () => {
+        fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);
+      });
+      expect(Object.fromEntries(mocks.update.mock.calls[0]![1].entries())).toMatchObject({
+        id: 'c2',
+        'seoTitle.en': 'Title 2',
+        'seoDescription.tr': 'Açıklama 2',
+        'h1.en': 'New heading',
+        'h1.tr': 'Yeni başlık',
+        'intro.en': 'Intro 2',
+      });
+    });
+
+    it('says which page text is incomplete and keeps what was typed', async () => {
+      mocks.update.mockResolvedValue({
+        status: 'error',
+        code: 'invalid',
+        fieldErrors: { h1: { code: 'invalid' }, 'seoTitle.en': { code: 'tooLong', max: 70 } },
+      });
+      inIntl('en', await EditCategoryPage(editProps('en', 'c1')));
+      fireEvent.change(document.getElementById('h1-tr')!, { target: { value: 'Typed' } });
+      await act(async () => {
+        fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);
+      });
+      expect(document.getElementById('h1-error')).toBeTruthy();
+      expect(document.getElementById('seoTitle-en-error')?.textContent).toBe('At most 70 characters.');
+      expect((document.getElementById('h1-tr') as HTMLInputElement).value).toBe('Typed');
+    });
+
+    it('turns saving off in the demo', async () => {
+      vi.stubEnv('DEMO_MODE', 'true');
+      inIntl('en', await EditCategoryPage(editProps('en', 'c1')));
+      expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(true);
     });
 
     it('answers an id that does not exist with not found', async () => {

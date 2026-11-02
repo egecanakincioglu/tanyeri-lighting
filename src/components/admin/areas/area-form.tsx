@@ -6,10 +6,18 @@ import type { FormState } from '../../../server/admin/form.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { FormStatus } from '../form-status.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { SelectField } from '../select-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
-type AreaFormTexts = { image: string; title: string; description: string; cancel: string };
+type AreaFormTexts = {
+  image: string;
+  title: string;
+  description: string;
+  category: string;
+  categoryHint: string;
+  cancel: string;
+};
 
 type Action = (previous: FormState | null, formData: FormData) => Promise<FormState>;
 
@@ -23,7 +31,9 @@ type Props = {
     imageUrl: string;
     title: { tr: string; en: string };
     description: { tr: string; en: string };
+    categoryId: string | null;
   };
+  categories: readonly { value: string; label: string }[];
   texts: AreaFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
@@ -40,6 +50,7 @@ export function AreaForm({
   upload,
   locale,
   initial,
+  categories,
   texts,
   formTexts,
   mediaTexts,
@@ -92,6 +103,20 @@ export function AreaForm({
           multiline
           errors={{ tr: message('description.tr'), en: message('description.en') }}
         />
+        <div className="flex flex-col gap-2">
+          <SelectField
+            id="categoryId"
+            name="categoryId"
+            label={texts.category}
+            options={categories}
+            defaultValue={initial?.categoryId ?? ''}
+            error={message('categoryId')}
+            aria-describedby={message('categoryId') ? 'categoryId-error categoryId-hint' : 'categoryId-hint'}
+          />
+          <p id="categoryId-hint" className="text-sm text-muted">
+            {texts.categoryHint}
+          </p>
+        </div>
       </div>
       <FormStatus state={state} texts={formTexts} />
       {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}

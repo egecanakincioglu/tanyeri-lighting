@@ -1,8 +1,8 @@
-import type { ApplicationArea as ApplicationAreaRow } from '../../generated/prisma/client.ts';
+import type { Prisma } from '../../generated/prisma/client.ts';
 import { getDb } from '../db.ts';
 import { assertWritable } from '../demo/guard.ts';
 import { fromColumns, toColumns } from './bilingual.ts';
-import { ContentNotFoundError, isRecordNotFound } from './errors.ts';
+import { ContentNotFoundError, isForeignKeyViolation, isRecordNotFound } from './errors.ts';
 import { assertCompleteOrder, nextPosition } from './order.ts';
 import {
   type ApplicationArea,
@@ -12,12 +12,16 @@ import {
   idSchema,
 } from './schemas.ts';
 
-function fromRow(row: ApplicationAreaRow): ApplicationArea {
+const withCategory = { category: { select: { key: true } } } satisfies Prisma.ApplicationAreaInclude;
+
+function fromRow(row: Prisma.ApplicationAreaGetPayload<{ include: typeof withCategory }>): ApplicationArea {
   return {
     id: row.id,
     imageUrl: row.imageUrl,
     title: fromColumns('title', row),
     description: fromColumns('description', row),
+    categoryId: row.categoryId,
+    categoryKey: row.category?.key ?? null,
   };
 }
 
@@ -26,11 +30,15 @@ function toColumnsOf(area: ApplicationAreaInput) {
     imageUrl: area.imageUrl,
     ...toColumns('title', area.title),
     ...toColumns('description', area.description),
+    categoryId: area.categoryId,
   };
 }
 
 export async function listApplicationAreas(): Promise<ApplicationArea[]> {
-  const rows = await getDb().applicationArea.findMany({ orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }] });
+  const rows = await getDb().applicationArea.findMany({
+    orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    include: withCategory,
+  });
   return rows.map(fromRow);
 }
 
@@ -38,11 +46,19 @@ export async function listApplicationAreas(): Promise<ApplicationArea[]> {
 export async function createApplicationArea(input: unknown): Promise<ApplicationArea> {
   assertWritable();
   const columns = toColumnsOf(applicationAreaSchema.parse(input));
-  const row = await getDb().$transaction(async (tx) => {
-    const last = await tx.applicationArea.aggregate({ _max: { sortOrder: true } });
-    return tx.applicationArea.create({ data: { ...columns, sortOrder: nextPosition(last._max.sortOrder) } });
-  });
-  return fromRow(row);
+  try {
+    const row = await getDb().$transaction(async (tx) => {
+      const last = await tx.applicationArea.aggregate({ _max: { sortOrder: true } });
+      return tx.applicationArea.create({
+        data: { ...columns, sortOrder: nextPosition(last._max.sortOrder) },
+        include: withCategory,
+      });
+    });
+    return fromRow(row);
+  } catch (error) {
+    if (isForeignKeyViolation(error)) throw new ContentNotFoundError('Category');
+    throw error;
+  }
 }
 
 export async function updateApplicationArea(id: unknown, input: unknown): Promise<ApplicationArea> {
@@ -50,8 +66,11 @@ export async function updateApplicationArea(id: unknown, input: unknown): Promis
   const areaId = idSchema.parse(id);
   const columns = toColumnsOf(applicationAreaSchema.parse(input));
   try {
-    return fromRow(await getDb().applicationArea.update({ where: { id: areaId }, data: columns }));
+    return fromRow(
+      await getDb().applicationArea.update({ where: { id: areaId }, data: columns, include: withCategory }),
+    );
   } catch (error) {
+    if (isForeignKeyViolation(error)) throw new ContentNotFoundError('Category');
     if (isRecordNotFound(error)) throw new ContentNotFoundError('Application area');
     throw error;
   }

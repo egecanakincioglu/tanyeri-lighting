@@ -4,7 +4,7 @@ The project is developed in phases. The architecture is described in [architectu
 
 ## Status
 
-- **Current phase:** phase 8, hardening, plus the remaining page copy, categories and blog work.
+- **Current phase:** phase 8, hardening, plus the blog.
 - **Released:** see the [changelog](../CHANGELOG.md) and the [releases page](https://github.com/egecanakincioglu/tanyeri-lighting/releases).
 - **Live demo:** https://tanyeri-lighting.vercel.app. It stays out of search indexes until 1.0.0.
 
@@ -16,7 +16,7 @@ The project is developed in phases. The architecture is described in [architectu
 | 3 | Application skeleton and quality gates | Done (v0.1.0) |
 | 4 | Server foundation | Done |
 | 5 | Brand and design system | Done (v0.3.0) |
-| 6 | Public site (bilingual) | Done, except page copy, categories and blog |
+| 6 | Public site (bilingual) | Done, except the blog |
 | 7 | Admin panel | Done |
 | 8 | Hardening | In progress |
 | 9 | Launch (1.0.0) | Planned |
@@ -50,7 +50,8 @@ Done:
 - Done: header and footer, home, about, vision, services, products with tabs and pagination, product page, projects with a before and after slider, references, catalogs with a page-flip viewer, contact form, privacy, terms and a not-found page, in both languages.
 - Done: visit tracking (anonymous page views).
 - Done: SEO foundation (localized titles and descriptions, canonical addresses with language alternates, sitemap, `robots.txt`, structured data).
-- Remaining: final page copy, product categories and a blog.
+- Done: keyword-led page copy and product category pages with their own addresses, breadcrumbs and sitemap entries.
+- Remaining: a blog.
 
 ## Phase 7: admin panel
 
@@ -61,7 +62,7 @@ Done:
 ## Later phases
 
 - **Phase 8:** security review, accessibility review, performance work, a pixel-perfect pass on all widths and a final review of the whole site.
-- **Blog and categories:** a blog and the product category landing pages come in their own pull requests.
+- **Blog:** a blog comes in its own pull request.
 - **Phase 9:** production environment, the 1.0.0 release with indexing turned on, and a release and rollback runbook.
 
 ## Manual steps

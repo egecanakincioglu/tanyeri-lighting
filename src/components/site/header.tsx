@@ -5,14 +5,29 @@ import { Logo } from '../logo.tsx';
 import { HeaderMenu, type MenuItem } from './header-menu.tsx';
 import { CONTACT_PATH, NAV } from './nav.ts';
 
-export function Header({ logoUrl }: { logoUrl?: string | null }) {
+type HeaderProps = {
+  logoUrl?: string | null;
+  /** The product categories, named in the page language, listed under Products. */
+  categories?: { key: string; name: string }[];
+};
+
+export function Header({ logoUrl, categories = [] }: HeaderProps) {
   const t = useTranslations('Header');
   const locale = useLocale();
 
   const items: MenuItem[] = NAV.map((entry) => ({
     label: t(entry.id),
     href: entry.path,
-    children: entry.children?.map((child) => ({ label: t(child.id), href: child.path })),
+    children: entry.children && [
+      ...entry.children.map((child) => ({ label: t(child.id), href: child.path })),
+      ...(entry.id === 'products'
+        ? categories.map((category) => ({
+            label: category.name,
+            href: '/products' as const,
+            query: { category: category.key },
+          }))
+        : []),
+    ],
   }));
 
   return (

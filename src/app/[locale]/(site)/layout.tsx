@@ -1,4 +1,7 @@
+import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
+import { routing } from '../../../i18n/routing.ts';
+import { listCategories } from '../../../server/content/categories.ts';
 import { getSiteSettings } from '../../../server/content/site-settings.ts';
 import { isDemoMode } from '../../../server/env.ts';
 import { Footer } from '../../../components/site/footer.tsx';
@@ -7,9 +10,10 @@ import { VisitBeacon } from '../../../components/site/visit-beacon.tsx';
 
 export default async function SiteLayout({ children, params }: LayoutProps<'/[locale]'>) {
   const { locale } = await params;
+  const language = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
   const t = await getTranslations({ locale, namespace: 'Header' });
   const band = await getTranslations({ locale, namespace: 'DemoBand' });
-  const settings = await getSiteSettings();
+  const [settings, categories] = await Promise.all([getSiteSettings(), listCategories()]);
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -24,7 +28,10 @@ export default async function SiteLayout({ children, params }: LayoutProps<'/[lo
           <p>{band('text')}</p>
         </aside>
       )}
-      <Header logoUrl={settings.logoUrl} />
+      <Header
+        logoUrl={settings.logoUrl}
+        categories={categories.map((category) => ({ key: category.key, name: category.name[language] }))}
+      />
       <main id="main" tabIndex={-1} data-page-region className="grow focus:outline-none">
         {children}
       </main>
