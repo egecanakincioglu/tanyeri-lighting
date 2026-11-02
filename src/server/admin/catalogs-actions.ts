@@ -8,7 +8,10 @@ import { safeLocale } from '../auth/paths.ts';
 import { createCatalog, deleteCatalog, listCatalogs, reorderCatalogs, updateCatalog } from '../content/catalogs.ts';
 import { assertWritable } from '../demo/guard.ts';
 import { storedFileSize } from '../storage/index.ts';
+import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
+
+const FILE_FIELDS = ['pdfUrl', 'coverImageUrl'] as const;
 
 // The size is what the file store holds for the address, never a value of the form. A catalog whose PDF did not change
 // keeps the size it has, so saving the name does not need the store.
@@ -44,7 +47,9 @@ export async function updateCatalogAction(_previous: FormState | null, formData:
   return runAction(async () => {
     await guardAction();
     const id = formText(formData, 'id');
-    await updateCatalog(id, await catalogInput(formData, id));
+    const before = (await listCatalogs()).find((item) => item.id === id);
+    const saved = await updateCatalog(id, await catalogInput(formData, id));
+    await discardChangedFiles(before, saved, FILE_FIELDS);
     refresh();
   });
 }
@@ -52,7 +57,10 @@ export async function updateCatalogAction(_previous: FormState | null, formData:
 export async function deleteCatalogAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await deleteCatalog(formText(formData, 'id'));
+    const id = formText(formData, 'id');
+    const before = (await listCatalogs()).find((item) => item.id === id);
+    await deleteCatalog(id);
+    await discardChangedFiles(before, null, FILE_FIELDS);
     refresh();
   });
 }

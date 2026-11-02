@@ -11,6 +11,8 @@ interface RecordedRequest {
 export interface FakeBlobServer {
   url: string;
   requests: RecordedRequest[];
+  // The addresses of the files deleted so far.
+  deleted: string[];
   // The next response is a Vercel Blob API error with this code (and HTTP status) instead of success.
   failNextWith(code: string, status: number): void;
   close(): Promise<void>;
@@ -20,6 +22,7 @@ export interface FakeBlobServer {
 export async function startFakeBlobServer(): Promise<FakeBlobServer> {
   const requests: RecordedRequest[] = [];
   let failure: { code: string; status: number } | null = null;
+  const deleted: string[] = [];
   const sizes = new Map<string, number>();
 
   const server = createServer((request, response) => {
@@ -79,6 +82,9 @@ export async function startFakeBlobServer(): Promise<FakeBlobServer> {
         );
         return;
       }
+      if (recorded.method === 'POST' && recorded.url.startsWith('/delete')) {
+        deleted.push(...(JSON.parse(recorded.body.toString()) as { urls: string[] }).urls);
+      }
       response.end('{}');
     });
   });
@@ -89,6 +95,7 @@ export async function startFakeBlobServer(): Promise<FakeBlobServer> {
   return {
     url: `http://127.0.0.1:${port}`,
     requests,
+    deleted,
     failNextWith(code, status) {
       failure = { code, status };
     },

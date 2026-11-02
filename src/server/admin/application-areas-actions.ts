@@ -8,10 +8,19 @@ import { safeLocale } from '../auth/paths.ts';
 import {
   createApplicationArea,
   deleteApplicationArea,
+  listApplicationAreas,
   reorderApplicationAreas,
   updateApplicationArea,
 } from '../content/application-areas.ts';
+import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
+
+const FILE_FIELDS = ['imageUrl'] as const;
+
+// The record as it is before a change, to know which files the change leaves behind.
+async function findApplicationArea(id: string) {
+  return (await listApplicationAreas()).find((item) => item.id === id);
+}
 
 function areaInput(formData: FormData) {
   return {
@@ -35,7 +44,10 @@ export async function createApplicationAreaAction(_previous: FormState | null, f
 export async function updateApplicationAreaAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await updateApplicationArea(formText(formData, 'id'), areaInput(formData));
+    const id = formText(formData, 'id');
+    const before = await findApplicationArea(id);
+    const saved = await updateApplicationArea(id, areaInput(formData));
+    await discardChangedFiles(before, saved, FILE_FIELDS);
     refresh();
   });
 }
@@ -43,7 +55,10 @@ export async function updateApplicationAreaAction(_previous: FormState | null, f
 export async function deleteApplicationAreaAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await deleteApplicationArea(formText(formData, 'id'));
+    const id = formText(formData, 'id');
+    const before = await findApplicationArea(id);
+    await deleteApplicationArea(id);
+    await discardChangedFiles(before, null, FILE_FIELDS);
     refresh();
   });
 }

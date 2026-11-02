@@ -5,8 +5,22 @@ import { redirect } from 'next/navigation';
 import { getPathname } from '../../i18n/navigation.ts';
 import { guardAction } from '../auth/guard.ts';
 import { safeLocale } from '../auth/paths.ts';
-import { createReference, deleteReference, reorderReferences, updateReference } from '../content/references.ts';
+import {
+  createReference,
+  deleteReference,
+  listReferences,
+  reorderReferences,
+  updateReference,
+} from '../content/references.ts';
+import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
+
+const FILE_FIELDS = ['imageUrl'] as const;
+
+// The record as it is before a change, to know which files the change leaves behind.
+async function findReference(id: string) {
+  return (await listReferences()).find((item) => item.id === id);
+}
 
 // The pattern for a resource: the form fields become the input of the content service, which validates it again and
 // refuses writes in the demo. The public pages read the database on every request (the root layout awaits
@@ -35,7 +49,10 @@ export async function createReferenceAction(_previous: FormState | null, formDat
 export async function updateReferenceAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await updateReference(formText(formData, 'id'), referenceInput(formData));
+    const id = formText(formData, 'id');
+    const before = await findReference(id);
+    const saved = await updateReference(id, referenceInput(formData));
+    await discardChangedFiles(before, saved, FILE_FIELDS);
     refresh();
   });
 }
@@ -43,7 +60,10 @@ export async function updateReferenceAction(_previous: FormState | null, formDat
 export async function deleteReferenceAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await deleteReference(formText(formData, 'id'));
+    const id = formText(formData, 'id');
+    const before = await findReference(id);
+    await deleteReference(id);
+    await discardChangedFiles(before, null, FILE_FIELDS);
     refresh();
   });
 }

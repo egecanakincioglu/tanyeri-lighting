@@ -24,3 +24,21 @@ export async function discardReplacedFile(before: string | null | undefined, aft
     console.error('Could not delete a replaced file', error);
   }
 }
+
+// The same for a record: `before` and `after` are the record as it was and as it is now (`after` is null once it is
+// deleted); every listed field that held a file and now holds another one, or none, has its old file discarded. The forms
+// upload a new file for every record, so one address is not shared by two records.
+export async function discardChangedFiles<T extends object>(
+  before: T | null | undefined,
+  after: T | null | undefined,
+  fields: readonly (keyof T)[],
+): Promise<void> {
+  for (const field of fields) {
+    const previous = before?.[field];
+    const current = after?.[field];
+    await discardReplacedFile(
+      typeof previous === 'string' ? previous : null,
+      typeof current === 'string' ? current : null,
+    );
+  }
+}
