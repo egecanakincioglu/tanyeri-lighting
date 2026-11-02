@@ -53,7 +53,7 @@ Done:
 ## Phase 7: admin panel
 
 - Done: sign-in page, sign-out and a protected panel page.
-- Remaining: content management screens, messages, visit statistics and the Google Ads screen.
+- Remaining: content management screens, messages and visit statistics.
 
 ## Later phases
 

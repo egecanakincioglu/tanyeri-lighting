@@ -29,7 +29,6 @@ The project started in 2023 as a website for a client. The rewrite takes the sam
 - Public pages: home, products (categories and product pages), catalogs, services, projects, references, about (including the vision), contact, privacy and terms.
 - Admin panel: content and product management, messages and visit statistics.
 - A read-only demo admin.
-- An optional Google Ads module.
 
 ## Out of scope
 
