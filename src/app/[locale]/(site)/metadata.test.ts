@@ -111,6 +111,7 @@ describe('page metadata', () => {
       const { generateMetadata } = await load();
       const metadata = await generateMetadata(props(locale));
       expect(metadata.alternates?.canonical).toBe(paths[locale]);
+      expect(metadata.openGraph).toMatchObject({ url: paths[locale], siteName: 'Tanyeri Lighting' });
       expect(metadata.alternates?.languages).toEqual({
         tr: paths.tr,
         en: paths.en,

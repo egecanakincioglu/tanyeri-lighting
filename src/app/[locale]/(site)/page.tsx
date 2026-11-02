@@ -8,7 +8,7 @@ import { Highlights } from '../../../components/home/highlights.tsx';
 import { WorkAreas } from '../../../components/home/work-areas.tsx';
 import { routing } from '../../../i18n/routing.ts';
 import { toMetadata } from '../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../lib/seo.ts';
+import { pageSeo } from '../../../lib/seo.ts';
 import { organizationData, websiteData } from '../../../lib/structured-data.ts';
 import { listApplicationAreas } from '../../../server/content/application-areas.ts';
 import { listFeaturedProducts } from '../../../server/content/featured-products.ts';
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]'>): Prom
   const page = await getPageMetadata('home');
   const { title, ...rest } = toMetadata(page, locale);
   // The saved home title already carries the brand, so the site template is skipped.
-  return { ...rest, ...(title ? { title: { absolute: String(title) } } : {}), alternates: pageAlternates(locale, '/') };
+  return { ...rest, ...(title ? { title: { absolute: String(title) } } : {}), ...pageSeo(locale, '/') };
 }
 
 export default async function HomePage({ params }: PageProps<'/[locale]'>) {

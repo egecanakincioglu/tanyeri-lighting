@@ -10,7 +10,7 @@ import { SectionTitle } from '../../../../components/section-title.tsx';
 import { PROSE } from '../../../../components/site/prose.ts';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getAboutPage } from '../../../../server/content/about-page.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/about'>)
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const [t, metadata] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('about')]);
-  return { ...toMetadata(metadata, locale, undefined, t('about')), alternates: pageAlternates(locale, '/about') };
+  return { ...toMetadata(metadata, locale, undefined, t('about')), ...pageSeo(locale, '/about') };
 }
 
 export default async function AboutPage({ params }: PageProps<'/[locale]/about'>) {

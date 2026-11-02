@@ -249,6 +249,15 @@ describe('HomePage', () => {
     await expect(generateMetadata(props('en'))).resolves.not.toHaveProperty('title');
   });
 
+  it('adds the Open Graph basics of the home page', async () => {
+    expect((await generateMetadata(props('tr'))).openGraph).toMatchObject({
+      type: 'website',
+      url: '/tr',
+      locale: 'tr_TR',
+      siteName: 'Tanyeri Lighting',
+    });
+  });
+
   it('gives the home page the root address as x-default and its own canonical', async () => {
     const metadata = await generateMetadata(props('en'));
     expect(metadata.alternates).toEqual({

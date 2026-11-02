@@ -210,6 +210,14 @@ describe('ProductsPage', () => {
     expect(metadata.alternates?.canonical).toBe('/en/products');
   });
 
+  it('keeps an empty list out of the index and a filled one in', async () => {
+    expect(await generateMetadata(props('en'))).not.toHaveProperty('robots');
+    content.products.mockResolvedValue([]);
+    expect(await generateMetadata(props('en', { category: 'outdoor' }))).toMatchObject({
+      robots: { index: false, follow: true },
+    });
+  });
+
   it('omits the description when none is saved, and returns nothing for an unknown language', async () => {
     content.metadata.mockResolvedValue(null);
     const metadata = await generateMetadata(props('en'));

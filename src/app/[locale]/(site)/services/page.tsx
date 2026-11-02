@@ -11,7 +11,7 @@ import { SiteImage } from '../../../../components/site-image.tsx';
 import { PROSE } from '../../../../components/site/prose.ts';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listServices } from '../../../../server/content/services.ts';
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/services
     getTranslations({ locale, namespace: 'Header' }),
     getPageMetadata('services'),
   ]);
-  return { ...toMetadata(metadata, locale, undefined, t('services')), alternates: pageAlternates(locale, '/services') };
+  return { ...toMetadata(metadata, locale, undefined, t('services')), ...pageSeo(locale, '/services') };
 }
 
 export default async function ServicesPage({ params }: PageProps<'/[locale]/services'>) {

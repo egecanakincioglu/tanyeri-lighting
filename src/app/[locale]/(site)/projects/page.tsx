@@ -9,7 +9,7 @@ import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listProjects } from '../../../../server/content/projects.ts';
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/projects
     return {};
   }
   const [t, page] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('projects')]);
-  return { ...toMetadata(page, locale, undefined, t('projects')), alternates: pageAlternates(locale, '/projects') };
+  return { ...toMetadata(page, locale, undefined, t('projects')), ...pageSeo(locale, '/projects') };
 }
 
 export default async function ProjectsPage({ params }: PageProps<'/[locale]/projects'>) {

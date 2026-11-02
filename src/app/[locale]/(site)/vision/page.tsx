@@ -10,7 +10,7 @@ import { SectionTitle } from '../../../../components/section-title.tsx';
 import { PROSE } from '../../../../components/site/prose.ts';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getAboutPage } from '../../../../server/content/about-page.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/vision'>
     getTranslations({ locale, namespace: 'Header' }),
     getPageMetadata('vision'),
   ]);
-  return { ...toMetadata(metadata, locale, undefined, t('vision')), alternates: pageAlternates(locale, '/vision') };
+  return { ...toMetadata(metadata, locale, undefined, t('vision')), ...pageSeo(locale, '/vision') };
 }
 
 export default async function VisionPage({ params }: PageProps<'/[locale]/vision'>) {

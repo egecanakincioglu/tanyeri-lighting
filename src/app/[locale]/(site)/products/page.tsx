@@ -13,7 +13,7 @@ import { SectionTitle } from '../../../../components/section-title.tsx';
 import { getPathname } from '../../../../i18n/navigation.ts';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
-import { pageAlternates, type PageHref } from '../../../../lib/seo.ts';
+import { pageSeo, type PageHref } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { listCategories } from '../../../../server/content/categories.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
@@ -69,7 +69,9 @@ export async function generateMetadata({ params, searchParams }: PageProps<'/[lo
   return {
     ...metadata,
     ...(paged ? { title: `${String(metadata.title)} - ${products('pageSuffix', { page: listing.current })}` } : {}),
-    alternates: pageAlternates(locale, href),
+    ...pageSeo(locale, href),
+    // An empty list answers 200, so it is kept out of the index instead of looking like a soft 404.
+    ...(listing.products.length === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
