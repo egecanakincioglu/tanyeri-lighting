@@ -27,6 +27,7 @@ function areaInput(formData: FormData) {
     imageUrl: formText(formData, 'imageUrl'),
     title: formPair(formData, 'title'),
     description: formPair(formData, 'description'),
+    categoryId: formText(formData, 'categoryId') || null,
   };
 }
 

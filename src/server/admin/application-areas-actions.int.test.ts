@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDb } from '../db.ts';
 import { listApplicationAreas } from '../content/application-areas.ts';
+import { createCategory } from '../content/categories.ts';
 import {
   createApplicationAreaAction,
   deleteApplicationAreaAction,
@@ -44,6 +45,8 @@ async function titles(): Promise<string[]> {
 describe('application area actions on a real database', () => {
   beforeEach(async () => {
     await getDb().applicationArea.deleteMany();
+    await getDb().product.deleteMany();
+    await getDb().category.deleteMany();
     mocks.guardAction.mockClear();
     mocks.guardAction.mockResolvedValue({ user: { email: 'admin@example.com' } });
     mocks.refresh.mockClear();
@@ -77,6 +80,26 @@ describe('application area actions on a real database', () => {
     expect(await titles()).toEqual([]);
   });
 
+  it('links an area to a category from the form, unlinks it with the empty choice, and refuses an unknown category', async () => {
+    const category = await createCategory({ key: 'ray-spot', name: { tr: 'Ray Spot', en: 'Track Spots' } });
+    await expect(createApplicationAreaAction(null, form(valid('Shops', { categoryId: category.id })))).rejects.toThrow(
+      'redirect:',
+    );
+    const [linked] = await listApplicationAreas();
+    expect(linked).toMatchObject({ categoryId: category.id, categoryKey: 'ray-spot' });
+    expect(await updateApplicationAreaAction(null, form(valid('Shops', { id: linked!.id, categoryId: '' })))).toEqual({
+      status: 'success',
+    });
+    expect((await listApplicationAreas())[0]).toMatchObject({ categoryId: null, categoryKey: null });
+    expect(
+      await updateApplicationAreaAction(null, form(valid('Shops', { id: linked!.id, categoryId: 'gone' }))),
+    ).toMatchObject({ status: 'error', code: 'notFound' });
+    expect(await createApplicationAreaAction(null, form(valid('Other', { categoryId: 'gone' })))).toMatchObject({
+      code: 'notFound',
+    });
+    expect(await titles()).toEqual(['Shops']);
+  });
+
   it('updates, deletes and reorders, and says not found for an area that is gone', async () => {
     for (const name of ['A', 'B', 'C']) {
       await expect(createApplicationAreaAction(null, form(valid(name)))).rejects.toThrow('redirect:');
@@ -106,7 +129,9 @@ describe('application area actions on a real database', () => {
       const [item] = await listApplicationAreas();
       return [
         await createApplicationAreaAction(null, form(valid('Offices'))),
+        await createApplicationAreaAction(null, form(valid('Offices', { categoryId: 'any' }))),
         await updateApplicationAreaAction(null, form(valid('Changed', { id: item!.id }))),
+        await updateApplicationAreaAction(null, form(valid('Changed', { id: item!.id, categoryId: 'any' }))),
         await deleteApplicationAreaAction(null, form({ id: item!.id })),
         await reorderApplicationAreasAction([item!.id]),
       ];

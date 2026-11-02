@@ -35,6 +35,17 @@ const valid = (key: string, extra: Record<string, string> = {}) => ({
   ...extra,
 });
 
+const pageTexts = {
+  'seoTitle.tr': 'Gömme Spot ve Downlight',
+  'seoTitle.en': 'Recessed Spotlights',
+  'seoDescription.tr': 'Tavan için gömme spot modelleri.',
+  'seoDescription.en': 'Recessed spot models for ceilings.',
+  'h1.tr': 'Gömme Spot Aydınlatma',
+  'h1.en': 'Recessed Spotlights',
+  'intro.tr': 'Kısa giriş metni.',
+  'intro.en': 'Short intro text.',
+};
+
 async function keys(): Promise<string[]> {
   return (await listCategories()).map((item) => item.key);
 }
@@ -72,6 +83,44 @@ describe('category actions on a real database', () => {
       status: 'error',
       code: 'invalid',
       fieldErrors: { key: { code: 'invalid' }, 'name.en': { code: 'required' } },
+    });
+    expect(await keys()).toEqual([]);
+  });
+
+  it('saves the page texts of a category on create and on update, and clears them when emptied', async () => {
+    await expect(createCategoryAction(null, form(valid('indoor', pageTexts)))).rejects.toThrow('redirect:');
+    const [created] = await listCategories();
+    expect(created).toMatchObject({
+      seoTitle: { tr: 'Gömme Spot ve Downlight', en: 'Recessed Spotlights' },
+      seoDescription: { tr: 'Tavan için gömme spot modelleri.', en: 'Recessed spot models for ceilings.' },
+      h1: { tr: 'Gömme Spot Aydınlatma', en: 'Recessed Spotlights' },
+      intro: { tr: 'Kısa giriş metni.', en: 'Short intro text.' },
+    });
+    const changed = { ...pageTexts, 'h1.tr': 'Yeni başlık', 'h1.en': 'New heading' };
+    expect(await updateCategoryAction(null, form(valid('indoor', { id: created!.id, ...changed })))).toEqual({
+      status: 'success',
+    });
+    expect((await listCategories())[0]?.h1).toEqual({ tr: 'Yeni başlık', en: 'New heading' });
+    expect(await updateCategoryAction(null, form(valid('indoor', { id: created!.id })))).toEqual({ status: 'success' });
+    expect(await listCategories()).toMatchObject([
+      {
+        seoTitle: { tr: '', en: '' },
+        seoDescription: { tr: '', en: '' },
+        h1: { tr: '', en: '' },
+        intro: { tr: '', en: '' },
+      },
+    ]);
+  });
+
+  it('names the page text that is filled in one language only or is too long, and writes nothing', async () => {
+    const result = await createCategoryAction(
+      null,
+      form(valid('indoor', { 'seoTitle.tr': 'Yalnız Türkçe', 'h1.tr': 'a'.repeat(101), 'h1.en': 'b' })),
+    );
+    expect(result).toEqual({
+      status: 'error',
+      code: 'invalid',
+      fieldErrors: { seoTitle: { code: 'invalid' }, 'h1.tr': { code: 'tooLong', max: 100 } },
     });
     expect(await keys()).toEqual([]);
   });
@@ -181,12 +230,15 @@ describe('category actions on a real database', () => {
       const [item] = await listCategories();
       const results = [
         await createCategoryAction(null, form(valid('outdoor'))),
+        await createCategoryAction(null, form(valid('outdoor', pageTexts))),
         await updateCategoryAction(null, form(valid('changed', { id: item!.id }))),
+        await updateCategoryAction(null, form(valid('indoor', { id: item!.id, ...pageTexts }))),
         await deleteCategoryAction(null, form({ id: item!.id })),
         await reorderCategoriesAction([item!.id]),
       ];
       for (const result of results) expect(result).toMatchObject({ status: 'error', code: 'demo' });
       expect(await keys()).toEqual(['indoor']);
+      expect((await listCategories())[0]).toMatchObject({ seoTitle: { tr: '', en: '' }, intro: { tr: '', en: '' } });
     });
   });
 });

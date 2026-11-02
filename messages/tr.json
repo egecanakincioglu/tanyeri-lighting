@@ -380,7 +380,10 @@
     "reordered": "Sıra kaydedildi.",
     "fieldImage": "Görsel",
     "fieldTitle": "Başlık",
-    "fieldDescription": "Açıklama"
+    "fieldDescription": "Açıklama",
+    "fieldCategory": "Bağlantı kategorisi",
+    "noCategory": "Bağlantı yok",
+    "categoryHint": "Ana sayfadaki kart bu kategorinin ürünlerine bağlanır. Eşleşen kategori yoksa kart bağlantısız kalır."
   },
   "AdminSettings": {
     "title": "Kurumsal Ayarlar",
@@ -483,7 +486,12 @@
     "reordered": "Sıra kaydedildi.",
     "fieldKey": "Adresler için kısa ad",
     "keyHint": "Küçük harf, rakam ve tek tire. Ziyaretçiler ürünleri süzerken adreste görünür, örneğin ic-mekan-aydinlatma.",
-    "fieldName": "Ad"
+    "fieldName": "Ad",
+    "pageHint": "Kategorinin kendi sayfası için isteğe bağlı metinler. Boş bırakılan alan için kategori adı kullanılır. Başlığa site adını site kendisi ekler; başlıkta yazmayın.",
+    "fieldSeoTitle": "Arama sonucu başlığı",
+    "fieldSeoDescription": "Arama sonucu açıklaması",
+    "fieldH1": "Sayfa başlığı",
+    "fieldIntro": "Başlığın altındaki kısa metin"
   },
   "AdminProducts": {
     "title": "Ürünler",

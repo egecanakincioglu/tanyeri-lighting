@@ -380,7 +380,10 @@
     "reordered": "Order saved.",
     "fieldImage": "Image",
     "fieldTitle": "Title",
-    "fieldDescription": "Description"
+    "fieldDescription": "Description",
+    "fieldCategory": "Linked category",
+    "noCategory": "No link",
+    "categoryHint": "The card on the home page links to the products of this category. Without a matching category the card stays unlinked."
   },
   "AdminSettings": {
     "title": "Company Settings",
@@ -483,7 +486,12 @@
     "reordered": "Order saved.",
     "fieldKey": "Short name for addresses",
     "keyHint": "Lowercase letters, digits and single hyphens. It appears in the address when visitors filter the products, for example indoor-lighting.",
-    "fieldName": "Name"
+    "fieldName": "Name",
+    "pageHint": "Optional texts for the category's own page. An empty field uses the category name. The site adds its own name to the title, so leave it out.",
+    "fieldSeoTitle": "Search result title",
+    "fieldSeoDescription": "Search result description",
+    "fieldH1": "Page heading",
+    "fieldIntro": "Short text under the heading"
   },
   "AdminProducts": {
     "title": "Products",
