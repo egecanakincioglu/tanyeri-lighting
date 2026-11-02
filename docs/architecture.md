@@ -13,8 +13,8 @@ This page gives an overview of how Tanyeri Lighting is built. Each section says 
 
 | Location | Purpose | Status |
 |---|---|---|
-| `src/app/[locale]/(site)` | Public pages | Placeholder home page; other pages planned |
-| `src/app/[locale]/(admin)/dashboard` | Admin panel | Planned |
+| `src/app/[locale]/(site)` | Public pages | Home, about, vision, services, products, catalogs, projects, references, contact, privacy, terms |
+| `src/app/[locale]/(admin)/dashboard` | Admin panel | Exists |
 | `src/app/api` | Route handlers; `api/auth/[...all]` serves Better Auth | Auth handler exists |
 | `src/proxy.ts` | Locale routing and security headers | Exists |
 
@@ -81,7 +81,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   - Raw HTML and images are dropped.
   - Unsafe link targets such as `javascript:` and `data:` lose their `href`. External links get `rel="noopener noreferrer"`.
   - `dangerouslySetInnerHTML` is not used.
-- Status: the tables, services and renderer exist. No page uses them yet.
+- Status: the tables, services and renderer exist, and the public pages and admin screens use them.
 
 ## Authentication
 
@@ -141,7 +141,6 @@ The proxy does only two things: locale routing and security headers. It is not t
   - `printf '%s\n' '<new password>' | pnpm admin:reset-password --email <address>`
   - The password comes only from standard input, never from the arguments.
   - The command stores a new hash and ends all sessions of the user. It exits with code 1 for an unknown email or a password shorter than 12 characters.
-- Planned: email change verification comes with the account screen.
 
 ## Demo mode
 
@@ -164,8 +163,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `guardPage` redirects a visitor who has no session to the localized sign-in address. It builds the address from the locale only and takes no target from the request.
 - Sign-in, sign-out and get-session stay open, so the demo admin can still sign in and read everything.
 - A test fails when a Better Auth upgrade adds an endpoint that is on neither the blocked list nor the open list.
-- In demo mode the contact form does not store messages. It returns a summary for the sender with a note that the message was not saved. This is the server side; the form UI is planned.
-- Planned: a banner on the site says that the brand is fictional and that nothing is for sale.
+- In demo mode the contact form does not store messages. It returns a summary for the sender with a note that the message was not saved.
 - The public demo is read-only and uses a demo admin account.
 
 ## Contact form
@@ -177,7 +175,7 @@ The proxy does only two things: locale routing and security headers. It is not t
   4. In demo mode the action returns the summary. Otherwise it stores the message.
 - Field errors are codes (`required`, `too_long`, `invalid`) that the UI translates. Limits: name 100, email 254, subject 150, message 5000 characters.
 - The services in `src/server/contact/service.ts` are `listMessages({ limit, cursor })` (newest first, limit 1 to 100, default 20), `markMessageRead` and `deleteMessage`. They are not guarded themselves. Admin entry points must call `guardAction` first. The write services refuse in demo mode.
-- Planned: the contact page with the form, and the message screens in the admin panel.
+- The contact page with the form and the message screen in the admin panel exist.
 
 ## Visit statistics
 
@@ -197,7 +195,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 ## SEO and structured data
 
-- Today: the site sends `noindex, nofollow` until 1.0.0. `SITE_INDEXING=on` turns indexing on. Every page has a localized document title.
+- The site sends `noindex, nofollow` until 1.0.0. `SITE_INDEXING=on` turns indexing on. Every page has a localized document title.
 - `SITE_URL` sets the site address. Without it, the production host is used on Vercel and `http://localhost:3000` in a local run. One helper in `src/lib/seo.ts` builds the canonical address and the language alternates (`tr`, `en` and `x-default`) of each page.
 - `src/app/sitemap.ts` and `src/app/robots.ts` are dynamic and read the settings per request. `robots.ts` gives the same rule to all crawlers and closes the whole site unless indexing is on. The sitemap has no `hreflang` entries; the language alternates are in the page head ([ADR 0009](adr/0009-quality-targets.md)).
 - JSON-LD is built in `src/lib/structured-data.ts` and rendered by `src/components/json-ld.tsx`: `WebSite`, `Organization`, `ContactPage` and `BreadcrumbList`. There is no `Product` type, because nothing is for sale.
@@ -247,7 +245,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Automatic Git deployments are turned off (`git.deploymentEnabled: false`). Deployments start only from the GitHub workflows, through the Vercel REST API.
 - Releases are tag-based ([ADR 0011](adr/0011-versioning-and-releases.md)). A preview of the release branch is rehearsed with `release-rehearsal.yml`. Pushing a `vX.Y.Z` tag runs the `release` workflow, which deploys the tagged commit to production and creates the GitHub release.
 - The Vercel build command (`tooling/scripts/vercel-build.ts`) generates the Prisma client, applies migrations with `prisma migrate deploy` in preview and production, and then runs `next build`.
-- The live demo is v0.1.0 and stays `noindex` until 1.0.0.
+- The live demo stays `noindex` until 1.0.0.
 
 ## Repository layout
 
@@ -255,15 +253,17 @@ The proxy does only two things: locale routing and security headers. It is not t
 .github/       CI workflows, pull request template, Dependabot
 docs/          documentation
 messages/      tr.json, en.json (interface texts)
-prisma/        schema and migrations
+prisma/        schema, migrations and seeds
+public/        brand files, icons and demo files
 releases/      release notes
 src/
-  app/         App Router
+  app/         App Router: [locale]/(site), [locale]/(admin), api
   i18n/        routing and request configuration
-  server/      env, db, auth, storage, rate-limit, demo guard, contact, content
-  components/  shared components (logo, Markdown renderer, container, button, card, pagination, site image, section title, site header and footer)
+  lib/         shared helpers: SEO, structured data, slugs, page metadata
+  server/      env, db, auth, content, admin actions, contact, visits, rate-limit, storage, email, demo guard
+  components/  shared components (logo, Markdown renderer, button, card, field, pagination, JSON-LD), site/ for header and footer, admin/ for the panel
+  test/        helpers for integration tests
   proxy.ts     locale routing and security headers
 tooling/       git hooks, scripts, Semgrep rules, site-audit, pinned CI images
 ```
 
-Planned additions: `src/lib` (shared pure helpers), `public/`, `docs/runbooks/` and `docs/security/`.
