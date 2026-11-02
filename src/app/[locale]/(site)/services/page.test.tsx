@@ -8,13 +8,14 @@ const content = vi.hoisted(() => ({
   metadata: null as null | { description: { tr: string; en: string } },
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
   notFound: () => {
     throw new Error('not found');
   },
 }));
 vi.mock('next-intl/server', () => ({
-  getTranslations: async () => (key: string) => ({ services: 'Services' })[key],
+  getTranslations: async () => (key: string) => ({ home: 'Home', services: 'Services' })[key],
 }));
 vi.mock('../../../../server/content/services.ts', () => ({ listServices: async () => content.services }));
 vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata: async () => content.metadata }));
@@ -67,9 +68,27 @@ describe('ServicesPage', () => {
   });
 
   it('gives the page name and the saved description as metadata', async () => {
-    await expect(generateMetadata(props('en'))).resolves.toEqual({ title: 'Services', description: 'Description' });
+    await expect(generateMetadata(props('en'))).resolves.toMatchObject({
+      title: 'Services',
+      description: 'Description',
+    });
     content.metadata = null;
-    await expect(generateMetadata(props('en'))).resolves.toEqual({ title: 'Services' });
+    const metadata = await generateMetadata(props('en'));
+    expect(metadata.title).toBe('Services');
+    expect(metadata).not.toHaveProperty('description');
+    expect(metadata.alternates?.canonical).toBe('/en/services');
+  });
+
+  it('describes the trail to the page as structured data', async () => {
+    const { container } = render(await ServicesPage(props('en')));
+    const script = container.querySelector('script[type="application/ld+json"]');
+    expect(JSON.parse(script?.textContent ?? '')).toMatchObject({
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { position: 1, name: 'Home', item: expect.stringMatching(/\/en$/) },
+        { position: 2, name: 'Services', item: expect.stringMatching(/\/en\/services$/) },
+      ],
+    });
   });
 
   it('answers an unknown language with not found and no metadata', async () => {

@@ -3,14 +3,20 @@ import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Banner } from '../../../components/home/banner.tsx';
+import { JsonLd } from '../../../components/json-ld.tsx';
 import { Highlights } from '../../../components/home/highlights.tsx';
 import { WorkAreas } from '../../../components/home/work-areas.tsx';
 import { routing } from '../../../i18n/routing.ts';
+import { pageAlternates } from '../../../lib/seo.ts';
+import { organizationData, websiteData } from '../../../lib/structured-data.ts';
 import { listApplicationAreas } from '../../../server/content/application-areas.ts';
 import { listFeaturedProducts } from '../../../server/content/featured-products.ts';
 import { getHomeBanner } from '../../../server/content/home-banner.ts';
 import { getPageMetadata } from '../../../server/content/page-metadata.ts';
 import { listPromoBoards } from '../../../server/content/promo-boards.ts';
+import { getSiteSettings } from '../../../server/content/site-settings.ts';
+import { listSocialLinks } from '../../../server/content/social-links.ts';
+import { isDemoMode } from '../../../server/env.ts';
 
 export async function generateMetadata({ params }: PageProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
@@ -19,7 +25,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]'>): Prom
   }
   const page = await getPageMetadata('home');
   const description = page?.description[locale];
-  return description ? { description } : {};
+  return { ...(description ? { description } : {}), alternates: pageAlternates(locale, '/') };
 }
 
 export default async function HomePage({ params }: PageProps<'/[locale]'>) {
@@ -28,8 +34,11 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     notFound();
   }
 
-  const [t, banner, boards, products, areas] = await Promise.all([
+  const [t, demo, settings, links, banner, boards, products, areas] = await Promise.all([
     getTranslations({ locale, namespace: 'Home' }),
+    getTranslations({ locale, namespace: 'DemoBand' }),
+    getSiteSettings(),
+    listSocialLinks(),
     getHomeBanner(),
     listPromoBoards(),
     listFeaturedProducts(),
@@ -39,6 +48,8 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   // Scaled and tilted cards must never widen the page.
   return (
     <div className="overflow-x-clip">
+      <JsonLd data={websiteData(settings, locale)} />
+      <JsonLd data={organizationData(settings, links, locale, isDemoMode() ? demo('text') : undefined)} />
       <Banner banner={banner} locale={locale} />
       <Highlights
         title={t('highlightsTitle')}
