@@ -4,9 +4,11 @@ import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '../../../../../components/admin/shell.tsx';
 import { SignInForm } from '../../../../../components/admin/sign-in-form.tsx';
+import { Link } from '../../../../../i18n/navigation.ts';
 import { routing } from '../../../../../i18n/routing.ts';
 import { currentSession } from '../../../../../server/auth/guard.ts';
 import { panelPath } from '../../../../../server/auth/paths.ts';
+import { isPasswordResetAvailable } from '../../../../../server/auth/reset-available.ts';
 import { signInAction } from '../../../../../server/auth/sign-in-action.ts';
 import { getDemoAdminCredentials, isDemoMode } from '../../../../../server/env.ts';
 
@@ -62,7 +64,17 @@ export default async function SignInPage({ params }: PageProps<'/[locale]/dashbo
       )}
       <section className="mt-8 border-t border-hairline pt-5 text-sm text-muted">
         <h2 className="font-semibold text-ink">{t('forgotTitle')}</h2>
-        <p className="mt-1 leading-6">{t('forgotText')}</p>
+        {isPasswordResetAvailable() ? (
+          <Link
+            href="/dashboard/forgot-password"
+            prefetch={false}
+            className="inline-flex min-h-touch items-center font-medium text-ink underline underline-offset-4"
+          >
+            {t('forgotLink')}
+          </Link>
+        ) : (
+          <p className="mt-1 leading-6">{t('forgotText')}</p>
+        )}
       </section>
     </AdminShell>
   );

@@ -91,7 +91,7 @@ describe('password reset email', () => {
     const sent = sendMail.mock.calls[0]![0];
     expect(sent.to).toBe('admin@example.com');
     expect(sent.from).toBe('Tanyeri <no-reply@example.com>');
-    expect(sent.text).toContain('https://tanyeri.example.com/tr/dashboard/reset-password?token=abc123');
+    expect(sent.text).toContain('https://tanyeri.example.com/tr/yonetim/parola-sifirla?token=abc123');
   });
 });
 

@@ -5,19 +5,19 @@ import { resetPasswordEmail, resetPasswordLink } from './reset-password-email.ts
 describe('resetPasswordLink', () => {
   it('points to the reset page of the panel in the default locale', () => {
     expect(resetPasswordLink('https://tanyeri.example.com', 'tok123')).toBe(
-      'https://tanyeri.example.com/tr/dashboard/reset-password?token=tok123',
+      'https://tanyeri.example.com/tr/yonetim/parola-sifirla?token=tok123',
     );
   });
 
   it('encodes the token', () => {
     expect(resetPasswordLink('http://localhost:3000', 'a b&c=d')).toBe(
-      'http://localhost:3000/tr/dashboard/reset-password?token=a+b%26c%3Dd',
+      'http://localhost:3000/tr/yonetim/parola-sifirla?token=a+b%26c%3Dd',
     );
   });
 });
 
 describe('resetPasswordEmail', () => {
-  const link = 'https://tanyeri.example.com/tr/dashboard/reset-password?token=tok123';
+  const link = 'https://tanyeri.example.com/tr/yonetim/parola-sifirla?token=tok123';
   const message = resetPasswordEmail('admin@example.com', link);
 
   it('is plain text addressed to the user, with a bilingual subject', () => {

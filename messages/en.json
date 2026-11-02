@@ -138,7 +138,40 @@
     "demoTitle": "Demo account",
     "demoText": "This is a demo. Use the account below to look around the panel; changes are not saved.",
     "demoEmail": "E-mail",
-    "demoPass": "Password"
+    "demoPass": "Password",
+    "forgotLink": "Reset it by e-mail"
+  },
+  "AdminReset": {
+    "requestTitle": "Reset your password",
+    "requestText": "Enter the e-mail address you sign in with. If it belongs to an administrator, a reset link is sent to it.",
+    "email": "E-mail",
+    "requestSubmit": "Send the reset link",
+    "requestSubmitting": "Sending…",
+    "requestDone": "If the address belongs to an administrator, a reset link was sent to it. The link works for one hour.",
+    "resetTitle": "Choose a new password",
+    "resetText": "The new password signs you out on every device.",
+    "nextLabel": "New password",
+    "repeatLabel": "Repeat the new password",
+    "hint": "Use 8 to 128 characters.",
+    "resetSubmit": "Change the password",
+    "resetSubmitting": "Changing…",
+    "resetDone": "The password was changed. Sign in with the new password.",
+    "signIn": "Go to sign-in",
+    "invalidTitle": "This link does not work",
+    "invalidText": "The link has expired or was already used. Request a new one.",
+    "requestAgain": "Request a new link",
+    "unavailableTitle": "Reset by e-mail is not available",
+    "unavailableText": "This site does not send e-mail, or it is the demo. The person who runs the site can reset the password with a command on the server.",
+    "errors": {
+      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "demo": "This is not possible in the demo.",
+      "generic": "Something went wrong. Try again in a moment."
+    },
+    "issues": {
+      "tooShort": "Use at least 8 characters.",
+      "tooLong": "Use at most 128 characters.",
+      "mismatch": "The two passwords are not the same."
+    }
   },
   "AdminNav": {
     "logo": "Tanyeri Lighting",
