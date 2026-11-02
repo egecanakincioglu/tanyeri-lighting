@@ -14,7 +14,7 @@ import { StorageDisabledError, UploadRejectedError } from '../storage/index.ts';
 // What every panel Server Action hands back to its form. The texts live in messages/*.json (AdminForm); the server
 // only names the case, so the language of the page decides the wording and no raw error text reaches the browser.
 
-export type FieldError = { code: 'required' | 'tooLong' | 'invalid'; max?: number };
+export type FieldError = { code: 'required' | 'tooLong' | 'invalid' | 'taken'; max?: number };
 
 export type ErrorCode =
   | 'invalid'
@@ -23,7 +23,9 @@ export type ErrorCode =
   | 'notFound'
   | 'invalidOrder'
   | 'taken'
-  | 'conflict'
+  | 'categoryLimit'
+  | 'categoryNotEmpty'
+  | 'catalogInUse'
   | 'storageOff'
   | 'tooLarge'
   | 'unsupportedType'
@@ -64,14 +66,11 @@ function mapError(error: unknown): FormState {
   if (error instanceof UnauthorizedError) return failure('unauthorized');
   if (error instanceof ContentNotFoundError) return failure('notFound');
   if (error instanceof InvalidOrderError) return failure('invalidOrder');
-  if (error instanceof ValueTakenError) return failure('taken');
-  if (
-    error instanceof CategoryLimitError ||
-    error instanceof CategoryNotEmptyError ||
-    error instanceof CatalogInUseError
-  ) {
-    return failure('conflict');
-  }
+  // The field that collided is marked, so the form shows the message next to the value to change.
+  if (error instanceof ValueTakenError) return failure('taken', { [error.field]: { code: 'taken' } });
+  if (error instanceof CategoryLimitError) return failure('categoryLimit');
+  if (error instanceof CategoryNotEmptyError) return failure('categoryNotEmpty');
+  if (error instanceof CatalogInUseError) return failure('catalogInUse');
   if (error instanceof StorageDisabledError) return failure('storageOff');
   if (error instanceof UploadRejectedError) return failure(REJECTIONS[error.reason]);
   // The real cause stays in the server log; the form only says that something went wrong.

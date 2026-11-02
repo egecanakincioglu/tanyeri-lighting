@@ -62,6 +62,12 @@ describe('proxy', () => {
       expect(csp).not.toContain('upgrade-insecure-requests');
     });
 
+    it('lets the catalog reader fetch from the public file store and nowhere else', async () => {
+      const csp = (await get('/tr')).headers.get('content-security-policy') ?? '';
+      const connect = csp.split('; ').find((directive) => directive.startsWith('connect-src ')) ?? '';
+      expect(connect).toBe("connect-src 'self' https://*.public.blob.vercel-storage.com");
+    });
+
     it('uses a fresh nonce for every request', async () => {
       const first = (await get('/tr')).headers.get('content-security-policy');
       const second = (await get('/tr')).headers.get('content-security-policy');

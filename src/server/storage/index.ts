@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { del, put } from '@vercel/blob';
+import { del, head, put } from '@vercel/blob';
 import { getBlobToken } from '../env.ts';
 import { StorageDisabledError, StorageRequestError } from './errors.ts';
 import { prepareUpload } from './prepare.ts';
@@ -47,5 +47,16 @@ export async function deleteFile(url: string): Promise<void> {
     await del(url, { token });
   } catch (error) {
     throw new StorageRequestError('delete', error);
+  }
+}
+
+// The size of a stored file as the file store reports it, so a size saved next to an address is never taken from the
+// browser.
+export async function storedFileSize(url: string): Promise<number> {
+  const token = requireToken();
+  try {
+    return (await head(url, { token })).size;
+  } catch (error) {
+    throw new StorageRequestError('lookup', error);
   }
 }

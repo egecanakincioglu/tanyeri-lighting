@@ -16,7 +16,8 @@ function buildCsp(nonce: string): string {
     "font-src 'self'",
     // The PDF reader runs in a worker from our own origin.
     "worker-src 'self'",
-    "connect-src 'self'",
+    // The catalog reader fetches the PDF from the public file store, which answers cross-origin reads.
+    "connect-src 'self' https://*.public.blob.vercel-storage.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

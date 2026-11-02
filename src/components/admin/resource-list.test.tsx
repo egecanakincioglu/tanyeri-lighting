@@ -75,6 +75,45 @@ describe('ResourceList', () => {
     expect(screen.getByRole('button', { name: 'Delete: Beta' })).toBeTruthy();
   });
 
+  it('has no arrows when the list has no reorder action', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={{}}>
+        <ResourceList rows={rows} locale="en" texts={texts} formTexts={formTexts} deleteAction={deleteAction} />
+      </NextIntlClientProvider>,
+    );
+    expect(screen.queryByRole('button', { name: /^Move/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Delete: Beta' })).toBeTruthy();
+  });
+
+  it('says what a deletion takes along in the dialog of a row that has such a text', () => {
+    setup([{ ...rows[0]!, deleteBody: '“{name}” is also on the home page.' }, rows[1]!]);
+    expect(document.body.textContent).toContain('“Alpha” is also on the home page.');
+    expect(document.body.textContent).toContain('“Beta” will be deleted.');
+  });
+
+  it('shows cover thumbnails in a portrait box when asked', () => {
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={{}}>
+        <ResourceList
+          rows={rows}
+          locale="en"
+          texts={texts}
+          formTexts={formTexts}
+          reorder={reorder}
+          deleteAction={deleteAction}
+          portraitImages
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(container.querySelector('img')!.parentElement!.className).toContain('aspect-[210/297]');
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('56px');
+  });
+
+  it('tells the browser the real width of a landscape thumbnail', () => {
+    const { container } = setup();
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('80px');
+  });
+
   it('works for a row without a picture or subtitle', () => {
     const { container } = setup([{ id: 'x', title: 'Plain', edit: '/dashboard/references' }]);
     expect(container.querySelector('img')).toBeNull();
