@@ -22,6 +22,26 @@ export const routing = defineRouting({
     // The admin side lives in the (admin)/dashboard folder, which tooling/scripts/check-admin-guard.ts expects.
     '/dashboard': { tr: '/yonetim', en: '/admin' },
     '/dashboard/sign-in': { tr: '/yonetim/giris', en: '/admin/sign-in' },
+    // Every panel screen has its address here, so a screen is only a page file away. The ones without a page yet are
+    // answered by (panel)/[section]/page.tsx.
+    '/dashboard/banner': { tr: '/yonetim/banner', en: '/admin/banner' },
+    '/dashboard/featured-products': { tr: '/yonetim/one-cikan-urunler', en: '/admin/featured-products' },
+    '/dashboard/promo-boards': { tr: '/yonetim/tanitim-panolari', en: '/admin/promo-boards' },
+    '/dashboard/application-areas': { tr: '/yonetim/calisma-alanlari', en: '/admin/application-areas' },
+    '/dashboard/settings': { tr: '/yonetim/kurumsal-ayarlar', en: '/admin/settings' },
+    '/dashboard/about': { tr: '/yonetim/hakkimizda', en: '/admin/about' },
+    '/dashboard/references': { tr: '/yonetim/referanslar', en: '/admin/references' },
+    '/dashboard/references/new': { tr: '/yonetim/referanslar/yeni', en: '/admin/references/new' },
+    '/dashboard/references/[id]': { tr: '/yonetim/referanslar/[id]', en: '/admin/references/[id]' },
+    '/dashboard/services': { tr: '/yonetim/hizmetler', en: '/admin/services' },
+    '/dashboard/projects': { tr: '/yonetim/projeler', en: '/admin/projects' },
+    '/dashboard/products': { tr: '/yonetim/urunler', en: '/admin/products' },
+    '/dashboard/categories': { tr: '/yonetim/kategoriler', en: '/admin/categories' },
+    '/dashboard/catalogs': { tr: '/yonetim/kataloglar', en: '/admin/catalogs' },
+    '/dashboard/messages': { tr: '/yonetim/mesajlar', en: '/admin/messages' },
+    '/dashboard/legal-pages': { tr: '/yonetim/yasal-sayfalar', en: '/admin/legal-pages' },
+    '/dashboard/seo': { tr: '/yonetim/sayfa-bilgileri', en: '/admin/seo' },
+    '/dashboard/account': { tr: '/yonetim/hesabim', en: '/admin/account' },
   },
 });
 

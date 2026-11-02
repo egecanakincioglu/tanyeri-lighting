@@ -111,7 +111,7 @@
     "errors": {
       "required": "This field is required.",
       "too_long": "This text is too long.",
-      "invalid": "Enter a valid value."
+      "invalid": "Missing or invalid value."
     },
     "invalidSummary": "Your message was not sent. Check the fields marked below.",
     "rateLimited": "You have sent too many messages. Try again in {minutes} minutes.",
@@ -132,9 +132,135 @@
     "rateLimited": "Too many attempts. Wait a few seconds and try again.",
     "forgotTitle": "Forgot your password?",
     "forgotText": "If the site sends no e-mail, the owner resets the password with a command on the server. Ask the person who runs the site.",
-    "panelTitle": "Admin panel",
-    "signedInAs": "Signed in as {email}",
+    "demoTitle": "Demo account",
+    "demoText": "This is a demo. Use the account below to look around the panel; changes are not saved.",
+    "demoEmail": "E-mail",
+    "demoPass": "Password"
+  },
+  "AdminNav": {
+    "logo": "Tanyeri Lighting",
+    "menu": "Admin menu",
+    "openMenu": "Open the menu",
+    "closeMenu": "Close the menu",
+    "viewSite": "View the site",
+    "demoNotice": "This is a demo: look around, changes are not saved.",
     "signOut": "Sign out",
-    "next": "Content management comes next."
+    "unread": "{count} unread messages",
+    "comingNext": "This section is coming in the next step.",
+    "groups": {
+      "general": "General",
+      "home": "Home Page",
+      "corporate": "Company",
+      "content": "Content",
+      "products": "Products",
+      "inbox": "Inbox",
+      "site": "Site",
+      "account": "Account"
+    },
+    "items": {
+      "panel": "Dashboard",
+      "banner": "Banner",
+      "featured": "Featured Products",
+      "promo": "Promo Boards",
+      "areas": "Application Areas",
+      "settings": "Company Settings",
+      "about": "About and Vision",
+      "references": "References",
+      "services": "Services",
+      "projects": "Projects",
+      "products": "Products",
+      "categories": "Categories",
+      "catalogs": "Catalogs",
+      "messages": "Messages",
+      "legal": "Legal Pages",
+      "seo": "Page Info (SEO)",
+      "account": "My Account"
+    }
+  },
+  "AdminHome": {
+    "title": "Dashboard",
+    "description": "A summary of the content on the site. Select a card to open its section.",
+    "cards": {
+      "products": "Products",
+      "categories": "Categories",
+      "catalogs": "Catalogs",
+      "projects": "Projects",
+      "references": "References",
+      "services": "Services",
+      "messages": "Messages"
+    },
+    "unread": "{count} unread",
+    "quickTitle": "Quick links",
+    "quick": {
+      "newReference": "New reference",
+      "messages": "Go to messages",
+      "site": "View the site"
+    }
+  },
+  "AdminForm": {
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "cancel": "Cancel",
+    "demoNote": "In the demo, saving, deleting, reordering and uploading are off.",
+    "languageTr": "Turkish",
+    "languageEn": "English",
+    "errors": {
+      "invalid": "Some fields need to be corrected.",
+      "demo": "Changes are not possible in the demo.",
+      "unauthorized": "Your session has ended. Sign in again.",
+      "notFound": "The item was not found. It may have been deleted.",
+      "invalidOrder": "The list changed while you were looking at it. Reload the page and try again.",
+      "taken": "This value is used by another item.",
+      "conflict": "The action could not be done because the item is in use.",
+      "storageOff": "File upload is off on this site.",
+      "tooLarge": "The file can not be larger than 4 MB.",
+      "unsupportedType": "Only JPEG, PNG, WebP or PDF files can be uploaded.",
+      "unreadableImage": "The image could not be opened. Try another file.",
+      "generic": "Something went wrong. Try again in a moment."
+    },
+    "fieldErrors": {
+      "required": "This field is required.",
+      "tooLong": "At most {max} characters.",
+      "invalid": "Missing or invalid value."
+    }
+  },
+  "AdminMedia": {
+    "choose": "Choose a file",
+    "replace": "Replace",
+    "clear": "Remove",
+    "uploading": "Uploading…",
+    "none": "No file chosen yet.",
+    "imageHint": "JPEG, PNG or WebP, up to 4 MB.",
+    "fileHint": "PDF, up to 4 MB.",
+    "open": "Open the file",
+    "storageOff": "File upload is off on this site (no file store is connected). The current file is kept."
+  },
+  "AdminMarkdown": {
+    "hint": "**text** for bold, *text* for italic, ## Heading for a heading, - item for a list, [text](https://address) for a link.",
+    "edit": "Edit",
+    "preview": "Preview",
+    "loading": "Loading the preview…"
+  },
+  "AdminReferences": {
+    "title": "References",
+    "description": "The work shown on the References page of the site. Change the order with the arrows.",
+    "create": "New reference",
+    "createTitle": "New reference",
+    "editTitle": "Edit reference",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete this reference?",
+    "deleteBody": "“{name}” will be deleted for good. This can not be undone.",
+    "deleteConfirm": "Yes, delete",
+    "deleting": "Deleting…",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "empty": "There are no references yet. Add the first one.",
+    "reordered": "Order saved.",
+    "fieldImage": "Image",
+    "fieldName": "Company name",
+    "fieldTitle": "Kind of work",
+    "fieldDescription": "Description"
   }
 }
