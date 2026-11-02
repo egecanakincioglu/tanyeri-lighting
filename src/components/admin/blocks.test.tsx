@@ -128,11 +128,12 @@ describe('texts', () => {
     const texts = buildFormTexts(t);
     expect(texts.save).toBe('Save');
     expect(texts.languages).toEqual({ tr: 'Turkish', en: 'English' });
-    expect(Object.keys(texts.errors)).toHaveLength(12);
+    expect(Object.keys(texts.errors)).toHaveLength(14);
     expect(Object.values(texts.errors).every(Boolean)).toBe(true);
     expect(fieldMessage(texts, { code: 'required' })).toBe('This field is required.');
     expect(fieldMessage(texts, { code: 'tooLong', max: 100 })).toBe('At most 100 characters.');
     expect(fieldMessage(texts, { code: 'invalid' })).toBeTruthy();
+    expect(fieldMessage(texts, { code: 'taken' })).toBe('This value is used by another item.');
     expect(fieldMessage(texts, undefined)).toBeUndefined();
   });
 

@@ -12,7 +12,9 @@ const ERROR_CODES: readonly ErrorCode[] = [
   'notFound',
   'invalidOrder',
   'taken',
-  'conflict',
+  'categoryLimit',
+  'categoryNotEmpty',
+  'catalogInUse',
   'storageOff',
   'tooLarge',
   'unsupportedType',
@@ -28,7 +30,7 @@ export type FormTexts = {
   demoNote: string;
   languages: { tr: string; en: string };
   errors: Record<ErrorCode, string>;
-  fieldErrors: { required: string; /** Holds `{max}`. */ tooLong: string; invalid: string };
+  fieldErrors: { required: string; /** Holds `{max}`. */ tooLong: string; invalid: string; taken: string };
 };
 
 export function buildFormTexts(t: Translate): FormTexts {
@@ -43,6 +45,7 @@ export function buildFormTexts(t: Translate): FormTexts {
       required: t('fieldErrors.required'),
       tooLong: t('fieldErrors.tooLong'),
       invalid: t('fieldErrors.invalid'),
+      taken: t('fieldErrors.taken'),
     },
   };
 }

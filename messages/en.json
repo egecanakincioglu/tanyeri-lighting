@@ -212,17 +212,20 @@
       "notFound": "The item was not found. It may have been deleted.",
       "invalidOrder": "The list changed while you were looking at it. Reload the page and try again.",
       "taken": "This value is used by another item.",
-      "conflict": "The action could not be done because the item is in use.",
       "storageOff": "File upload is off on this site.",
       "tooLarge": "The file can not be larger than 4 MB.",
       "unsupportedType": "Only JPEG, PNG, WebP or PDF files can be uploaded.",
       "unreadableImage": "The image could not be opened. Try another file.",
-      "generic": "Something went wrong. Try again in a moment."
+      "generic": "Something went wrong. Try again in a moment.",
+      "categoryLimit": "There can be at most 8 categories. Delete one before adding another.",
+      "categoryNotEmpty": "This category still has products. Move or delete them first.",
+      "catalogInUse": "A promo board still uses this catalog. Change or delete the board first."
     },
     "fieldErrors": {
       "required": "This field is required.",
       "tooLong": "At most {max} characters.",
-      "invalid": "Missing or invalid value."
+      "invalid": "Missing or invalid value.",
+      "taken": "This value is used by another item."
     }
   },
   "AdminMedia": {

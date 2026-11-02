@@ -212,17 +212,20 @@
       "notFound": "Kayıt bulunamadı. Silinmiş olabilir.",
       "invalidOrder": "Liste siz bakarken değişti. Sayfayı yenileyip tekrar deneyin.",
       "taken": "Bu değer başka bir kayıtta kullanılıyor.",
-      "conflict": "Bu kayıt kullanımda olduğu için işlem yapılamadı.",
       "storageOff": "Dosya yükleme bu sitede kapalı.",
       "tooLarge": "Dosya 4 MB'tan büyük olamaz.",
       "unsupportedType": "Yalnızca JPEG, PNG, WebP veya PDF yükleyebilirsiniz.",
       "unreadableImage": "Görsel açılamadı. Başka bir dosya deneyin.",
-      "generic": "Bir sorun oluştu. Biraz sonra tekrar deneyin."
+      "generic": "Bir sorun oluştu. Biraz sonra tekrar deneyin.",
+      "categoryLimit": "En fazla 8 kategori olabilir. Yenisini eklemeden önce birini silin.",
+      "categoryNotEmpty": "Bu kategoride hâlâ ürün var. Önce ürünleri taşıyın veya silin.",
+      "catalogInUse": "Bir tanıtım panosu bu kataloğu hâlâ kullanıyor. Önce panoyu değiştirin veya silin."
     },
     "fieldErrors": {
       "required": "Bu alan zorunlu.",
       "tooLong": "En fazla {max} karakter olabilir.",
-      "invalid": "Eksik veya geçersiz değer."
+      "invalid": "Eksik veya geçersiz değer.",
+      "taken": "Bu değer başka bir kayıtta kullanılıyor."
     }
   },
   "AdminMedia": {
