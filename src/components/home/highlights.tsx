@@ -26,6 +26,7 @@ type HighlightsProps = {
 
 function Board({ board, label, locale }: { board: PromoBoard; label: string; locale: Locale }) {
   const title = board.title[locale];
+  const subtitle = board.subtitle[locale];
   return (
     <article className="relative col-span-2 flex min-h-36 items-end overflow-hidden rounded-lg bg-ink duration-300 mid:min-h-48 lg:aspect-[562/269] lg:min-h-0 hover:shadow-lg motion-safe:transition-[scale,rotate,opacity,box-shadow] motion-safe:hover:scale-105 motion-safe:hover:-rotate-3 motion-safe:hover:opacity-90">
       <SiteImage src={board.imageUrl} alt="" fill sizes={boardSizes} />
@@ -35,6 +36,7 @@ function Board({ board, label, locale }: { board: PromoBoard; label: string; loc
       />
       <div className="relative w-full px-4 py-3.5 text-white xl:px-6 xl:py-5">
         <h3 className="text-lg leading-tight font-bold xl:text-[1.375rem]">{title}</h3>
+        {subtitle && <p className="mt-0.5 text-sm text-white/85 xl:text-base">{subtitle}</p>}
         <Link
           href={getPathname({ locale, href: '/catalogs' })}
           prefetch={false}

@@ -47,6 +47,7 @@ const boards: PromoBoard[] = [1, 2, 3].map((n) => ({
   id: `board-${n}`,
   imageUrl: '/demo/promo-dekoratif.webp',
   title: pair(`Board ${n}`),
+  subtitle: n === 1 ? pair('Line 1') : { tr: '', en: '' },
   catalogId: 'catalog-1',
   catalogName: pair('Catalog'),
   catalogPdfUrl: '/demo/catalog-2026.pdf',
@@ -109,6 +110,8 @@ describe('HomePage', () => {
     expect(boardLinks).toHaveLength(3);
     expect(boardLinks.every((a) => a.getAttribute('href') === paths.catalogs)).toBe(true);
     expect(boardLinks[0]?.textContent).toContain(`Board 1 ${l}`);
+    expect(screen.getByText(`Line 1 ${l}`)).toBeTruthy();
+    expect(boardLinks[1]?.closest('article')?.querySelector('p')).toBeNull();
     expect(screen.getByRole('link', { name: `Lamp 2 ${l}` }).getAttribute('href')).toBe(paths.product);
     expect(screen.getByRole('heading', { level: 3, name: `Area 1 ${l}` })).toBeTruthy();
     expect(screen.getByText(`Area text 2 ${l}`)).toBeTruthy();
