@@ -191,7 +191,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
             <p className="mt-8 text-center text-muted">{t('empty')}</p>
           ) : (
             <ul className="mt-8 grid grid-cols-2 gap-3 xs:grid-cols-3 xs:gap-4 wide:grid-cols-4 xl:grid-cols-6 xl:gap-5">
-              {visible.map((product) => (
+              {visible.map((product, index) => (
                 <li key={product.id}>
                   <ProductCard
                     imageUrl={product.imageUrl}
@@ -201,6 +201,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
                       href: { pathname: '/products/[slug]', params: { slug: product.slug } },
                     })}
                     sizes={cardSizes}
+                    eager={index === 0}
                   />
                 </li>
               ))}

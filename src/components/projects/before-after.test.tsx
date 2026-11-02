@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations } from '../../test/axe.ts';
+import { imageLoading } from '../../test/image-loading.ts';
 import { BeforeAfter } from './before-after.tsx';
 
 const props = {
@@ -52,6 +53,14 @@ describe('BeforeAfter', () => {
     const images = screen.getAllByRole('img');
     expect(images.map((img) => img.getAttribute('alt'))).toEqual(['Housing, After', 'Housing, Before']);
     expect(images.every((img) => img.getAttribute('sizes') === '30rem')).toBe(true);
+  });
+
+  it('fetches both photos at once and ahead of the rest only when asked to', () => {
+    const { container } = render(<BeforeAfter {...props} />);
+    expect(imageLoading(container)).toEqual(['lazy/null', 'lazy/null']);
+    cleanup();
+    const eager = render(<BeforeAfter {...props} eager />);
+    expect(imageLoading(eager.container)).toEqual(['eager/high', 'eager/high']);
   });
 
   it('has no axe violations', async () => {

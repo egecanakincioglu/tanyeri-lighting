@@ -10,6 +10,7 @@ import type {
   SiteSettings,
 } from '../../../server/content/schemas.ts';
 import { axeViolations } from '../../../test/axe.ts';
+import { imageLoading } from '../../../test/image-loading.ts';
 import HomePage, { generateMetadata } from './page.tsx';
 
 const content = vi.hoisted(() => ({
@@ -167,6 +168,7 @@ describe('HomePage', () => {
     expect(levels.filter((tag) => tag === 'H1')).toHaveLength(1);
     expect(container.querySelector('main')).toBeNull();
     const eager = [...container.querySelectorAll('img')].filter((img) => img.getAttribute('loading') !== 'lazy');
+    expect(imageLoading(container)[0]).toBe('eager/high');
     expect(eager).toHaveLength(1);
     expect(eager[0]?.getAttribute('sizes')).toBe('100vw');
   });
