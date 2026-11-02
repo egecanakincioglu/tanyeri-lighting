@@ -8,8 +8,8 @@ export type VisitInput = {
   address: string;
 };
 
-export type DayStat = { day: string; visits: number; views: number };
-export type CountryStat = { country: string | null; visits: number; views: number };
+type DayStat = { day: string; visits: number; views: number };
+type CountryStat = { country: string | null; visits: number; views: number };
 export type VisitStats = {
   days: DayStat[];
   countries: CountryStat[];
