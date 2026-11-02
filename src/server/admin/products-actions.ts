@@ -5,8 +5,16 @@ import { redirect } from 'next/navigation';
 import { getPathname } from '../../i18n/navigation.ts';
 import { guardAction } from '../auth/guard.ts';
 import { safeLocale } from '../auth/paths.ts';
-import { createProduct, deleteProduct, reorderProducts, updateProduct } from '../content/products.ts';
+import { createProduct, deleteProduct, listProducts, reorderProducts, updateProduct } from '../content/products.ts';
+import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
+
+const FILE_FIELDS = ['imageUrl'] as const;
+
+// The record as it is before a change, to know which files the change leaves behind.
+async function findProduct(id: string) {
+  return (await listProducts()).find((item) => item.id === id);
+}
 
 function productInput(formData: FormData) {
   return {
@@ -36,7 +44,10 @@ export async function createProductAction(_previous: FormState | null, formData:
 export async function updateProductAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await updateProduct(formText(formData, 'id'), productInput(formData));
+    const id = formText(formData, 'id');
+    const before = await findProduct(id);
+    const saved = await updateProduct(id, productInput(formData));
+    await discardChangedFiles(before, saved, FILE_FIELDS);
     refresh();
   });
 }
@@ -44,7 +55,10 @@ export async function updateProductAction(_previous: FormState | null, formData:
 export async function deleteProductAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await deleteProduct(formText(formData, 'id'));
+    const id = formText(formData, 'id');
+    const before = await findProduct(id);
+    await deleteProduct(id);
+    await discardChangedFiles(before, null, FILE_FIELDS);
     refresh();
   });
 }

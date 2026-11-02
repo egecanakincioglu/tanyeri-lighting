@@ -3,8 +3,9 @@
 import { refresh } from 'next/cache';
 import { guardAction } from '../auth/guard.ts';
 import { updateAboutPage } from '../content/about-page.ts';
-import { updateSiteSettings } from '../content/site-settings.ts';
+import { getSiteSettings, updateSiteSettings } from '../content/site-settings.ts';
 import { createSocialLink, deleteSocialLink, reorderSocialLinks, updateSocialLink } from '../content/social-links.ts';
+import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
 
 // The company screens: the business details with the social links, and the about page. The services validate again
@@ -15,7 +16,8 @@ export async function updateSiteSettingsAction(_previous: FormState | null, form
   return runAction(async () => {
     await guardAction();
     const logoUrl = formText(formData, 'logoUrl');
-    await updateSiteSettings({
+    const before = await getSiteSettings();
+    const saved = await updateSiteSettings({
       siteName: formPair(formData, 'siteName'),
       logoUrl: logoUrl === '' ? null : logoUrl,
       phone: formText(formData, 'phone'),
@@ -25,6 +27,7 @@ export async function updateSiteSettingsAction(_previous: FormState | null, form
       serviceArea: formPair(formData, 'serviceArea'),
       languages: formPair(formData, 'languages'),
     });
+    await discardChangedFiles(before, saved, ['logoUrl']);
     refresh();
   });
 }

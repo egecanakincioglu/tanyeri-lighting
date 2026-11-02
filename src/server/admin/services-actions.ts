@@ -5,8 +5,16 @@ import { redirect } from 'next/navigation';
 import { getPathname } from '../../i18n/navigation.ts';
 import { guardAction } from '../auth/guard.ts';
 import { safeLocale } from '../auth/paths.ts';
-import { createService, deleteService, reorderServices, updateService } from '../content/services.ts';
+import { createService, deleteService, listServices, reorderServices, updateService } from '../content/services.ts';
+import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
+
+const FILE_FIELDS = ['imageUrl'] as const;
+
+// The record as it is before a change, to know which files the change leaves behind.
+async function findService(id: string) {
+  return (await listServices()).find((item) => item.id === id);
+}
 
 function serviceInput(formData: FormData) {
   return {
@@ -31,7 +39,10 @@ export async function createServiceAction(_previous: FormState | null, formData:
 export async function updateServiceAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await updateService(formText(formData, 'id'), serviceInput(formData));
+    const id = formText(formData, 'id');
+    const before = await findService(id);
+    const saved = await updateService(id, serviceInput(formData));
+    await discardChangedFiles(before, saved, FILE_FIELDS);
     refresh();
   });
 }
@@ -39,7 +50,10 @@ export async function updateServiceAction(_previous: FormState | null, formData:
 export async function deleteServiceAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();
-    await deleteService(formText(formData, 'id'));
+    const id = formText(formData, 'id');
+    const before = await findService(id);
+    await deleteService(id);
+    await discardChangedFiles(before, null, FILE_FIELDS);
     refresh();
   });
 }
