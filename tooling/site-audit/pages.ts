@@ -35,7 +35,14 @@ export const PAGES: readonly string[] = [
 
 // The sign-in pages are public and checked signed out. The panel redirects a visitor without a session, so its screens
 // are listed apart, in ADMIN_PAGES, and visited with the demo admin's session.
-export const SIGN_IN_PAGES: readonly string[] = ['/tr/yonetim/giris', '/en/admin/sign-in'];
+export const SIGN_IN_PAGES: readonly string[] = [
+  '/tr/yonetim/giris',
+  '/en/admin/sign-in',
+  '/tr/yonetim/parola-unuttum',
+  '/en/admin/forgot-password',
+  '/tr/yonetim/parola-sifirla',
+  '/en/admin/reset-password',
+];
 
 // Every panel screen without a parameter in its address. The edit screens take a record id, which the seeded content
 // does not fix, so their components are covered by unit tests and the browser walkthrough instead.
