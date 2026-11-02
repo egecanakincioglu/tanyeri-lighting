@@ -11,10 +11,24 @@ type Props = {
   maxLength?: number;
   /** Already translated, one per language. */
   errors?: { tr?: string | undefined; en?: string | undefined };
+  /** Neither language is required; the form-level rule (both or none) is shown through `error`. */
+  optional?: boolean;
+  /** Already translated message about the pair as a whole. */
+  error?: string | undefined;
 };
 
-/** Turkish and English side by side on wide screens, stacked on phones. Both are required by the schemas. */
-export function BilingualField({ name, label, languages, defaultValue, multiline, maxLength, errors }: Props) {
+/** Turkish and English side by side on wide screens, stacked on phones. Both are required unless `optional` is set. */
+export function BilingualField({
+  name,
+  label,
+  languages,
+  defaultValue,
+  multiline,
+  maxLength,
+  errors,
+  optional,
+  error,
+}: Props) {
   const Field = multiline ? TextAreaField : TextField;
   return (
     <fieldset className="min-w-0">
@@ -29,11 +43,16 @@ export function BilingualField({ name, label, languages, defaultValue, multiline
             lang={language}
             defaultValue={defaultValue?.[language] ?? ''}
             maxLength={maxLength}
-            required
+            required={!optional}
             error={errors?.[language]}
           />
         ))}
       </div>
+      {error && (
+        <p id={`${name}-error`} role="alert" className="mt-2 text-sm font-medium text-error">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }
