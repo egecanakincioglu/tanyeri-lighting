@@ -49,7 +49,7 @@ Done:
 - Done: fictional demo content and the `pnpm db:seed:demo` command, with demo photos and a catalog under `public/demo`.
 - Done: header and footer, home, about, vision, services, products with tabs and pagination, product page, projects with a before and after slider, references, catalogs with a page-flip viewer, contact form, privacy, terms and a not-found page, in both languages.
 - Done: visit tracking (anonymous page views).
-- Done: SEO foundation (localized titles and descriptions, canonical addresses with language alternates, sitemap, `robots.txt`, structured data).
+- Done: SEO foundation (localized titles and descriptions, canonical addresses with language alternates, sitemap, `robots.txt`, plain-text site guide, structured data).
 - Remaining: final page copy, product categories and a blog.
 
 ## Phase 7: admin panel
