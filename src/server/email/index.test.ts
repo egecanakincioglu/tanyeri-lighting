@@ -102,6 +102,23 @@ describe('sendEmailAfterResponse', () => {
     expect(sendMail).toHaveBeenCalledWith({ from: smtp.SMTP_FROM, ...message });
   });
 
+  it('sends nothing when the check run after the response refuses', async () => {
+    stubSmtp();
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+
+    sendEmailAfterResponse(message, () => Promise.resolve(false));
+    await tasks[0]!();
+    expect(sendMail).not.toHaveBeenCalled();
+
+    sendEmailAfterResponse(message, () => Promise.resolve(true));
+    await tasks[1]!();
+    expect(sendMail).toHaveBeenCalledTimes(1);
+  });
+
   it('uses the after() of Next.js unless a scheduler is set', () => {
     sendEmailAfterResponse(message);
     expect(after).toHaveBeenCalledTimes(1);

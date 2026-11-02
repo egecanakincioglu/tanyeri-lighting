@@ -83,6 +83,9 @@ describe('the account actions on a real database', () => {
         newPassword: 'required',
       });
       expect(await issues({ newPassword: 'short', confirm: 'short' })).toEqual({ newPassword: 'tooShort' });
+      expect(await issues({ newPassword: 'x'.repeat(11), confirm: 'x'.repeat(11) })).toEqual({
+        newPassword: 'tooShort',
+      });
       expect(await issues({ newPassword: 'x'.repeat(129), confirm: 'x'.repeat(129) })).toEqual({
         newPassword: 'tooLong',
       });

@@ -4,6 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setEmailScheduler, setEmailTransport } from '../email/index.ts';
 import { buildAuthOptions } from './auth.ts';
 
+const limiter = vi.hoisted(() => ({ check: vi.fn() }));
+vi.mock('../rate-limit/index.ts', () => ({ checkRateLimit: limiter.check }));
+
 const settings = {
   secret: 'a-secret-of-at-least-thirty-two-characters',
   baseURL: 'https://tanyeri.example.com',
@@ -16,6 +19,7 @@ describe('buildAuthOptions', () => {
     const options = buildAuthOptions(settings);
     expect(options.emailAndPassword).toEqual({
       enabled: true,
+      minPasswordLength: 12,
       disableSignUp: true,
       revokeSessionsOnPasswordReset: true,
       resetPasswordTokenExpiresIn: 3600,
@@ -81,8 +85,9 @@ describe('password reset email', () => {
     const tasks: (() => Promise<void>)[] = [];
     setEmailScheduler((task) => tasks.push(task));
 
+    limiter.check.mockResolvedValue({ ok: true });
     const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
-    await emailAndPassword.sendResetPassword!({ user: { email: 'admin@example.com' }, token: 'abc123' });
+    await emailAndPassword.sendResetPassword!({ user: { id: 'user-1', email: 'admin@example.com' }, token: 'abc123' });
 
     expect(tasks).toHaveLength(1);
     expect(sendMail).not.toHaveBeenCalled();
@@ -92,6 +97,34 @@ describe('password reset email', () => {
     expect(sent.to).toBe('admin@example.com');
     expect(sent.from).toBe('Tanyeri <no-reply@example.com>');
     expect(sent.text).toContain('https://tanyeri.example.com/tr/yonetim/parola-sifirla?token=abc123');
+    expect(limiter.check).toHaveBeenCalledWith({
+      scope: 'reset-mail',
+      limit: 3,
+      windowSeconds: 3600,
+      subject: 'user-1',
+    });
+  });
+
+  it('drops the mail without a sign when the account has used its three mails of the hour', async () => {
+    vi.stubEnv('SMTP_HOST', 'smtp.example.com');
+    vi.stubEnv('SMTP_PORT', '587');
+    vi.stubEnv('SMTP_USER', 'mailer');
+    vi.stubEnv('SMTP_PASSWORD', 'mailer-password');
+    vi.stubEnv('SMTP_FROM', 'Tanyeri <no-reply@example.com>');
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+    limiter.check.mockResolvedValue({ ok: false, retryAfterSeconds: 60 });
+
+    const { emailAndPassword } = buildAuthOptions({ ...settings, emailEnabled: true });
+    await expect(
+      emailAndPassword.sendResetPassword!({ user: { id: 'user-1', email: 'admin@example.com' }, token: 'abc123' }),
+    ).resolves.toBeUndefined();
+    await tasks[0]!();
+
+    expect(sendMail).not.toHaveBeenCalled();
   });
 });
 
@@ -131,5 +164,36 @@ describe('changing the sign-in email', () => {
     expect(sendMail.mock.calls[0]![0]).toMatchObject({ to: 'new@example.com' });
     expect(sendMail.mock.calls[0]![0].text).toContain('verify-email?token=abc');
     vi.unstubAllEnvs();
+  });
+
+  it('asks the current address to approve first, naming the new address', async () => {
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+    vi.stubEnv('SMTP_HOST', 'smtp.example.com');
+    vi.stubEnv('SMTP_PORT', '587');
+    vi.stubEnv('SMTP_USER', 'mailer');
+    vi.stubEnv('SMTP_PASSWORD', 'mailer-password');
+    vi.stubEnv('SMTP_FROM', 'Tanyeri <no-reply@example.com>');
+
+    const { changeEmail } = buildAuthOptions({ ...settings, emailEnabled: true }).user;
+    await changeEmail.sendChangeEmailConfirmation!({
+      user: { email: 'admin@example.com' },
+      newEmail: 'new@example.com',
+      url: 'https://tanyeri.example.com/api/auth/verify-email?token=abc',
+    });
+    await tasks[0]!();
+
+    const sent = sendMail.mock.calls[0]![0];
+    expect(sent.to).toBe('admin@example.com');
+    expect(sent.text).toContain('new@example.com');
+    expect(sent.text).toContain('verify-email?token=abc');
+    vi.unstubAllEnvs();
+  });
+
+  it('has no approval step while email is off, because the change is off', () => {
+    expect(buildAuthOptions(settings).user.changeEmail).toEqual({ enabled: false });
   });
 });

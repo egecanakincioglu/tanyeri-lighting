@@ -149,7 +149,7 @@
     "resetText": "Yeni parola, bütün cihazlardaki oturumlarınızı kapatır.",
     "nextLabel": "Yeni parola",
     "repeatLabel": "Yeni parolayı tekrar yazın",
-    "hint": "8 ile 128 karakter arasında olmalı.",
+    "hint": "12 ile 128 karakter arasında olmalı.",
     "resetSubmit": "Parolayı değiştir",
     "resetSubmitting": "Değiştiriliyor…",
     "resetDone": "Parola değiştirildi. Yeni parolayla giriş yapın.",
@@ -165,7 +165,7 @@
       "generic": "Bir şeyler ters gitti. Biraz sonra tekrar deneyin."
     },
     "issues": {
-      "tooShort": "En az 8 karakter kullanın.",
+      "tooShort": "En az 12 karakter kullanın.",
       "tooLong": "En çok 128 karakter kullanın.",
       "mismatch": "İki parola aynı değil."
     }
@@ -614,16 +614,16 @@
     "currentLabel": "Mevcut parola",
     "newLabel": "Yeni parola",
     "confirmLabel": "Yeni parola (tekrar)",
-    "passHint": "En az 8 karakter. Diğer tüm cihazların oturumu kapatılır.",
+    "passHint": "En az 12 karakter. Diğer tüm cihazların oturumu kapatılır.",
     "passButton": "Parolayı değiştir",
     "passWorking": "Değiştiriliyor…",
     "passDone": "Parola değiştirildi. Diğer tüm cihazların oturumu kapatıldı.",
     "emailTitle": "Giriş e-postasını değiştir",
     "emailLabel": "Yeni e-posta adresi",
-    "emailHint": "Yeni adrese bir onay bağlantısı gönderilir. Adres, bağlantıyı açtığınızda değişir.",
+    "emailHint": "Önce şu anki adresinize bir bağlantı gönderilir. Onu açtığınızda yeni adrese ikinci bir bağlantı gider; adres, o bağlantıyı açtığınızda değişir. Ardından tüm cihazların oturumu kapatılır.",
     "emailButton": "Onay bağlantısını gönder",
     "emailWorking": "Gönderiliyor…",
-    "emailDone": "Adres kullanılabiliyorsa ona bir onay bağlantısı gönderildi. Değişikliği bitirmek için bağlantıyı açın.",
+    "emailDone": "Adres kullanılabiliyorsa şu anki adresinize bir bağlantı gönderildi. Onu açın, ardından yeni adrese gönderilen bağlantıyı açın. Sonra tüm cihazların oturumu kapatılır.",
     "emailOffNote": "E-posta değişikliği için giden e-posta gerekir; bu sitede kurulu değil.",
     "demoNote": "Demoda parola ve e-posta değiştirilemez.",
     "errors": {
@@ -637,7 +637,7 @@
     "issues": {
       "required": "Bu alan zorunludur.",
       "wrongCurrent": "Mevcut parola doğru değil.",
-      "tooShort": "En az 8 karakter kullanın.",
+      "tooShort": "En az 12 karakter kullanın.",
       "tooLong": "En fazla 128 karakter kullanın.",
       "mismatch": "İki parola aynı değil.",
       "invalid": "Geçerli bir e-posta adresi girin.",

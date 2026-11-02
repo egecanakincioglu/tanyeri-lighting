@@ -1,6 +1,6 @@
 import { hashPassword } from 'better-auth/crypto';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { POST } from '../../app/api/auth/[...all]/route.ts';
+import { handle } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { guardAction, guardHandler, guardPage, UnauthorizedError } from './guard.ts';
@@ -16,7 +16,7 @@ const PASSWORD = 'correct horse battery staple';
 let nextAddress = 1;
 
 async function signInCookie(): Promise<string> {
-  const response = await POST(
+  const response = await handle(
     new Request(`${TEST_AUTH_URL}/api/auth/sign-in/email`, {
       method: 'POST',
       headers: {
