@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "Tanyeri"
+    "title": "Tanyeri Lighting"
   },
   "DemoBand": {
     "label": "Demo notice",
@@ -52,7 +52,8 @@
     "pages": "Pages",
     "previous": "Previous",
     "next": "Next",
-    "empty": "There are no products in this category yet."
+    "empty": "There are no products in this category yet.",
+    "pageSuffix": "Page {page}"
   },
   "Product": {
     "back": "All products",

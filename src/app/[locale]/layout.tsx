@@ -19,7 +19,7 @@ const figtree = localFont({
 export async function generateMetadata({ params }: Omit<LayoutProps<'/[locale]'>, 'children'>): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Metadata' });
-  const base = { metadataBase: getSiteUrl(), title: t('title') };
+  const base = { metadataBase: getSiteUrl(), title: { default: t('title'), template: `%s | ${t('title')}` } };
   return isIndexingEnabled() ? base : { ...base, robots: { index: false, follow: false } };
 }
 

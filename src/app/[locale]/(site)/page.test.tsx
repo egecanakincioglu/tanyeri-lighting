@@ -238,6 +238,17 @@ describe('HomePage', () => {
     expect(ldBlocks(container)[1]).toMatchObject({ description: en.DemoBand.text });
   });
 
+  it('shows the saved home title as it is, without the site template', async () => {
+    content.metadata.mockResolvedValue({
+      title: pair('Title'),
+      description: pair('Description'),
+      updatedAt: new Date(),
+    });
+    expect((await generateMetadata(props('en'))).title).toEqual({ absolute: 'Title EN' });
+    content.metadata.mockResolvedValue(null);
+    await expect(generateMetadata(props('en'))).resolves.not.toHaveProperty('title');
+  });
+
   it('gives the home page the root address as x-default and its own canonical', async () => {
     const metadata = await generateMetadata(props('en'));
     expect(metadata.alternates).toEqual({

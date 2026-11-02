@@ -2,6 +2,7 @@ import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { Container } from '../../../../components/container.tsx';
 import { JsonLd } from '../../../../components/json-ld.tsx';
@@ -11,7 +12,8 @@ import { ScrollToCurrent } from '../../../../components/scroll-to-current.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { getPathname } from '../../../../i18n/navigation.ts';
 import { routing } from '../../../../i18n/routing.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { toMetadata } from '../../../../lib/page-metadata.ts';
+import { pageAlternates, type PageHref } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { listCategories } from '../../../../server/content/categories.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
@@ -24,20 +26,6 @@ const PAGE_SIZE = 24;
 const cardSizes =
   '(min-width: 150rem) 224px, (min-width: 120rem) 197px, (min-width: 90rem) 176px, (min-width: 80rem) calc(15.3vw - 2.7rem), (min-width: 56.25rem) calc(23vw - 2.4rem), (min-width: 33.75rem) calc(30.7vw - 2.3rem), calc(46vw - 2rem)';
 
-export async function generateMetadata({ params }: PageProps<'/[locale]/products'>): Promise<Metadata> {
-  const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) {
-    return {};
-  }
-  const [t, page] = await Promise.all([getTranslations({ locale, namespace: 'Header' }), getPageMetadata('products')]);
-  const description = page?.description[locale];
-  return {
-    title: t('products'),
-    ...(description ? { description } : {}),
-    alternates: pageAlternates(locale, '/products'),
-  };
-}
-
 // A value that is missing, repeated or not a positive whole number counts as absent.
 function single(value: string | string[] | undefined): string | undefined {
   return typeof value === 'string' ? value : undefined;
@@ -48,6 +36,43 @@ function parsePage(value: string | undefined, pageCount: number): number {
   return page <= pageCount ? page : 1;
 }
 
+// The page and its metadata read the same list, so it is loaded once per request.
+const loadListing = cache(async (requested: string | undefined, rawPage: string | undefined) => {
+  const categories = await listCategories();
+  const category = categories.find((entry) => entry.key === requested)?.key;
+  const products = await listProducts(category);
+  const pageCount = Math.ceil(products.length / PAGE_SIZE);
+  return { categories, category, products, pageCount, current: parsePage(rawPage, pageCount) };
+});
+
+export async function generateMetadata({ params, searchParams }: PageProps<'/[locale]/products'>): Promise<Metadata> {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    return {};
+  }
+  const query = await searchParams;
+  const [t, products, page, listing] = await Promise.all([
+    getTranslations({ locale, namespace: 'Header' }),
+    getTranslations({ locale, namespace: 'Products' }),
+    getPageMetadata('products'),
+    loadListing(single(query.category), single(query.page)),
+  ]);
+  const metadata = toMetadata(page, locale, undefined, t('products'));
+  // A later page is its own address with its own title; it must not point its canonical at the first page.
+  const paged = listing.current > 1;
+  const href: PageHref = paged
+    ? {
+        pathname: '/products',
+        query: { ...(listing.category ? { category: listing.category } : {}), page: listing.current },
+      }
+    : '/products';
+  return {
+    ...metadata,
+    ...(paged ? { title: `${String(metadata.title)} - ${products('pageSuffix', { page: listing.current })}` } : {}),
+    alternates: pageAlternates(locale, href),
+  };
+}
+
 export default async function ProductsPage({ params, searchParams }: PageProps<'/[locale]/products'>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
@@ -55,16 +80,14 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
   }
   const query = await searchParams;
 
-  const [t, header, categories] = await Promise.all([
+  const [t, header] = await Promise.all([
     getTranslations({ locale, namespace: 'Products' }),
     getTranslations({ locale, namespace: 'Header' }),
-    listCategories(),
   ]);
-  const requested = single(query.category);
-  const category = categories.find((entry) => entry.key === requested)?.key;
-  const products = await listProducts(category);
-  const pageCount = Math.ceil(products.length / PAGE_SIZE);
-  const current = parsePage(single(query.page), pageCount);
+  const { categories, category, products, pageCount, current } = await loadListing(
+    single(query.category),
+    single(query.page),
+  );
 
   // The first page and the all-products list carry no query, so their address is the plain one.
   const listHref = (categoryKey: string | undefined, page = 1) => {

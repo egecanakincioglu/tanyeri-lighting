@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "Tanyeri"
+    "title": "Tanyeri Lighting"
   },
   "DemoBand": {
     "label": "Demo bildirimi",
@@ -52,7 +52,8 @@
     "pages": "Sayfalar",
     "previous": "Önceki",
     "next": "Sonraki",
-    "empty": "Bu kategoride henüz ürün yok."
+    "empty": "Bu kategoride henüz ürün yok.",
+    "pageSuffix": "Sayfa {page}"
   },
   "Product": {
     "back": "Tüm ürünler",
