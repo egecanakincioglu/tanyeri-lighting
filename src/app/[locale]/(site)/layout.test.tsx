@@ -9,6 +9,7 @@ import SiteLayout from './layout.tsx';
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   usePathname: () => '/tr',
+  useParams: () => ({ locale: 'tr' }),
 }));
 vi.mock('next-intl/server', () => ({
   getTranslations: async ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Header' | 'DemoBand' }) =>

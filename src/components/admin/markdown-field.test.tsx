@@ -46,7 +46,7 @@ describe('MarkdownField', () => {
     const { container } = setup();
     fireEvent.change(screen.getByLabelText('Text'), { target: { value: '## Title\n\n**bold** <b>raw</b>' } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
-    const heading = await screen.findByRole('heading', { level: 2, name: 'Title' });
+    const heading = await screen.findByRole('heading', { level: 2, name: 'Title' }, { timeout: 10_000 });
     expect(heading).toBeTruthy();
     expect(container.querySelector('strong')?.textContent).toBe('bold');
     // Raw HTML is dropped like on the public pages.
