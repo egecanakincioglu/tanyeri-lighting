@@ -46,4 +46,12 @@ export const ADMIN_PAGES: readonly string[] = [
   '/en/admin/references',
   '/tr/yonetim/referanslar/yeni',
   '/en/admin/references/new',
+  '/tr/yonetim/hizmetler',
+  '/en/admin/services',
+  '/tr/yonetim/hizmetler/yeni',
+  '/en/admin/services/new',
+  '/tr/yonetim/projeler',
+  '/en/admin/projects',
+  '/tr/yonetim/projeler/yeni',
+  '/en/admin/projects/new',
 ];
