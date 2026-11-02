@@ -2,6 +2,42 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-11-02
+
+### Features
+- use real network addresses for demo social links (dd155d8)
+- add tool hints to the public contact form (53fb088)
+- serve a plain text map of the main pages (bf9636a)
+- seed category page texts and area links (8aaf636)
+- add breadcrumb, category menu and linked work areas (b1631e5)
+- give each category its own indexable address (75b7819)
+- edit category page texts and the area category link (32aa84c)
+- add page texts and a link to category on records (4e0b658)
+- write keyword-led page titles, descriptions and headings (7a00694)
+- link the category and describe products from details (bf19269)
+- add open graph basics, nofollow and noindex for empty lists (0acb5c9)
+- add the title template and read saved titles on every page (969f78c)
+
+### Fixes
+- list the public site guide route in the admin guard (bfaa67b)
+- name the category address field slug (5a7a762)
+- drop placeholder profiles and demo contacts from org data (3b5577a)
+
+### Other
+- docs(architecture): describe lazy footer images and the client bundle (4334721)
+- docs(roadmap): mark page copy and category pages as done (b65d54a)
+- docs(readme): list the plain-text site guide route (80f992d)
+- refactor(config): build cache headers from a record like the others (df4136c)
+- refactor(seo): keep the site name private to the module (ecd0c56)
+- perf(i18n): keep next-intl out of the public client bundle (227ffa9)
+- perf(images): render photos with a plain img element (d18fbe4)
+- perf(site): load the footer logo and credit image lazily (75d29b5)
+- chore(deps): update lighthouse to 13.6.0 (79eeef7)
+- perf(cache): keep optimized images for 31 days and cache static folders (64a6021)
+- perf(site): draw the section title watermark in css (6e196e5)
+- perf(brand): serve the footer logo and three area photos lighter (30cd893)
+- perf(images): fetch the first photo of each page at once (543f5a3)
+
 ## [0.4.0] - 2026-11-02
 
 ### Features
