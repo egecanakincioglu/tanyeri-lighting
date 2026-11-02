@@ -26,7 +26,7 @@ import {
 } from './checks.ts';
 import { findChrome } from './chrome.ts';
 import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } from './devices.ts';
-import { PAGES } from './pages.ts';
+import { ADMIN_PAGES, PAGES } from './pages.ts';
 import {
   agenticFailures,
   discardReason,
@@ -93,7 +93,7 @@ async function redirectOf(pathname: string, lang?: string) {
 }
 
 async function httpChecks(): Promise<void> {
-  for (const p of PAGES) {
+  for (const p of [...PAGES, ...ADMIN_PAGES]) {
     const res = await fetch(BASE + p, { redirect: 'manual' });
     if (res.status !== 200) fail(`http ${p}`, `status ${res.status}, expected 200`);
   }
@@ -225,10 +225,11 @@ async function browserChecks(): Promise<string> {
       return page;
     };
     const warm = await openPage();
-    for (const url of PAGES) {
+    const browserPages = [...PAGES, ...ADMIN_PAGES];
+    for (const url of browserPages) {
       await warm.goto(BASE + url, { waitUntil: 'networkidle0' });
     }
-    for (const p of PAGES) {
+    for (const p of browserPages) {
       const url = BASE + p;
       await overflowSweep(warm, url);
       // A new page per device view, so the image check sees what a first-time visitor at that device gets.

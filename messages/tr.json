@@ -36,7 +36,8 @@
     "email": "E-posta",
     "hours": "Çalışma saatleri",
     "copyright": "© {year} {name}. Tüm hakları saklıdır.",
-    "poweredBy": "Powered by"
+    "poweredBy": "Powered by",
+    "adminSignIn": "Yönetici girişi"
   },
   "Home": {
     "highlightsTitle": "Favori Ürünlerimiz",
@@ -118,5 +119,22 @@
     "okText": "Teşekkürler. Mesajınız bize ulaştı, en kısa sürede dönüş yapacağız.",
     "demoTitle": "Demo: mesajınız kaydedilmedi",
     "demoNote": "Bu site bir demodur; mesaj kaydedilmedi ve gönderilmedi. Yazdığınız mesaj aşağıdadır."
+  },
+  "Admin": {
+    "logo": "Tanyeri Lighting",
+    "backToSite": "Siteye dön",
+    "signInTitle": "Yönetici girişi",
+    "email": "E-posta",
+    "passLabel": "Parola",
+    "submit": "Giriş yap",
+    "submitting": "Giriş yapılıyor…",
+    "error": "E-posta veya parola yanlış.",
+    "rateLimited": "Çok fazla deneme yapıldı. Birkaç saniye bekleyip tekrar deneyin.",
+    "forgotTitle": "Parolanızı mı unuttunuz?",
+    "forgotText": "Site e-posta göndermiyorsa parolayı site sahibi sunucuda bir komutla sıfırlar. Siteyi yöneten kişiye başvurun.",
+    "panelTitle": "Yönetim paneli",
+    "signedInAs": "{email} olarak giriş yapıldı",
+    "signOut": "Çıkış yap",
+    "next": "İçerik yönetimi sıradaki adım."
   }
 }
