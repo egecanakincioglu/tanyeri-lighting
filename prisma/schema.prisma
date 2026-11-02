@@ -13,6 +13,7 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  isDemo        Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
@@ -104,6 +105,22 @@ model ContactMessage {
 
   @@index([createdAt])
   @@map("contactMessage")
+}
+
+// One row per day and anonymized visitor address, so a client can not grow the table by sending more requests. The
+// address is cut to its /24 (IPv4) or /48 (IPv6) before it is stored; no path, referrer or browser identification
+// string is kept. The day is the Europe/Istanbul calendar day. Rows are kept for 13 months.
+model Visit {
+  id      String   @id @default(cuid())
+  day     DateTime @db.Date
+  address String
+  country String?
+  city    String?
+  views   Int      @default(1)
+
+  @@unique([day, address])
+  @@index([day])
+  @@map("visit")
 }
 
 // Every bilingual field below is two required columns, `<field>Tr` and `<field>En`; a page never falls back from one

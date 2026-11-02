@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MIN_PASSWORD_LENGTH } from '../lib/password-rules.ts';
 
 const databaseUrl = z
   .url({ protocol: /^postgres(ql)?$/ })
@@ -62,7 +63,7 @@ export function getBlobToken(source: Record<string, string | undefined> = proces
 // Shared by the seed and the recovery command, so the rules live in one place.
 // Better Auth stores and looks up emails in lower case, so the address is normalised the same way.
 export const adminEmailSchema = z.email().transform((value) => value.toLowerCase());
-export const adminPasswordSchema = z.string().min(12);
+export const adminPasswordSchema = z.string().min(MIN_PASSWORD_LENGTH);
 
 const adminSchema = z.object({
   ADMIN_EMAIL: adminEmailSchema,

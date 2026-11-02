@@ -140,7 +140,7 @@ const legalPages = {
         'Bu sayfa **kurgusal bir örnektir**. Gerçek bir şirketin gizlilik politikası değildir.',
         '## Hangi veriler toplanır?',
         '- İletişim formuna yazdığınız ad, e-posta, konu ve mesaj.',
-        '- Siteyi kullanırken IP adresi veya tarayıcı kimliği saklanmaz.',
+        '- Yönetici girişi denemelerinde ve oturum kayıtlarında IP adresi, oturumlarda ayrıca tarayıcı bilgisi saklanır. Ziyaretçilerin IP adresi iletişim formu sınırı için yalnız geri döndürülemeyen bir özet olarak tutulur. Ziyaret istatistiği için kısaltılmış IP adresi, ülke, şehir ve günlük görüntüleme sayısı saklanır ve 13 ay sonra silinir.',
         '## Verilerin kullanımı',
         'Formdaki bilgiler yalnızca size yanıt vermek için kullanılır. Demo sitede gönderilen mesajlar gerçek bir kişiye ulaşmaz.',
       ].join('\n\n'),
@@ -149,7 +149,7 @@ const legalPages = {
         'This page is a **fictional sample**. It is not the privacy policy of a real company.',
         '## What data is collected?',
         '- The name, email, subject and message you write in the contact form.',
-        '- No IP address or browser identification string is stored while you use the site.',
+        '- Sign-in attempts and session records store the IP address, and sessions also store the browser identification string. For visitors, the contact form limit keeps only a one-way hash of the IP address. Visit statistics store a shortened IP address, country, city and a daily view count, and are deleted after 13 months.',
         '## How the data is used',
         'The form details are only used to reply to you. Messages sent on the demo site do not reach a real person.',
       ].join('\n\n'),
@@ -183,7 +183,7 @@ const legalPages = {
 // The words of each category's own address; the titles have no brand, the site template adds it.
 const categories = [
   {
-    key: 'gomme-spot',
+    slug: 'gomme-spot',
     name: pair('Gömme Spot', 'Recessed Spots'),
     seoTitle: pair('Gömme Spot ve Sıva Altı Downlight', 'Recessed Spotlights and LED Downlights'),
     seoDescription: pair(
@@ -197,7 +197,7 @@ const categories = [
     ),
   },
   {
-    key: 'sarkit',
+    slug: 'sarkit',
     name: pair('Sarkıt', 'Pendants'),
     seoTitle: pair('Sarkıt Aydınlatma ve Halka Sarkıt', 'Pendant Lighting and Ring Pendants'),
     seoDescription: pair(
@@ -211,7 +211,7 @@ const categories = [
     ),
   },
   {
-    key: 'panel',
+    slug: 'panel',
     name: pair('Panel', 'Panels'),
     seoTitle: pair('LED Panel Armatür ve 60x60 Panel', 'LED Panel Lights, 600x600 and Round'),
     seoDescription: pair(
@@ -225,7 +225,7 @@ const categories = [
     ),
   },
   {
-    key: 'lineer',
+    slug: 'lineer',
     name: pair('Lineer', 'Linear'),
     seoTitle: pair('Lineer Aydınlatma Armatür ve Profil', 'Linear Lighting Fixtures and Profiles'),
     seoDescription: pair(
@@ -239,7 +239,7 @@ const categories = [
     ),
   },
   {
-    key: 'ray-spot',
+    slug: 'ray-spot',
     name: pair('Ray Spot', 'Track Spots'),
     seoTitle: pair('Ray Spot Modelleri ve Magnet Ray Spot', 'Track Lighting and Magnetic Track Spots'),
     seoDescription: pair(
@@ -253,7 +253,7 @@ const categories = [
     ),
   },
   {
-    key: 'dis-mekan',
+    slug: 'dis-mekan',
     name: pair('Dış Mekan', 'Outdoor'),
     seoTitle: pair('Dış Mekan Aydınlatma: Bahçe ve Cephe', 'Outdoor Lighting: Garden and Facade'),
     seoDescription: pair(
@@ -266,7 +266,7 @@ const categories = [
       'Five outdoor luminaires for gardens, paths and facades: garden luminaire, IP65 in-ground spot, wall washer, bollard and facade wall light. Power runs from 6 to 24 W. They are made of die-cast aluminium and tempered glass, in anthracite and black. Sizes and product codes are on each product page.',
     ),
   },
-].map((category) => categorySchema.parse(category));
+].map(({ slug, ...category }) => categorySchema.parse({ key: slug, ...category }));
 
 const colors = {
   black: pair('Siyah', 'Black'),

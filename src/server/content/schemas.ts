@@ -124,13 +124,10 @@ export const referenceOrderSchema = z.array(referenceIdSchema);
 export const idSchema = z.string().min(1).max(64);
 export const idListSchema = z.array(idSchema);
 
+export const KEBAB_CASE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 const kebabCase = (maxLength: number) =>
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(maxLength)
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Use lowercase letters, digits and single hyphens');
+  z.string().trim().min(1).max(maxLength).regex(KEBAB_CASE, 'Use lowercase letters, digits and single hyphens');
 
 export const MAX_CATEGORIES = 8;
 

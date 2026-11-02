@@ -11,15 +11,21 @@ This guide explains how to set up and run the project on your machine. The Git r
 
 ## First setup
 
-Once per clone:
+Once per clone, to run the site. Docker must be running.
 
-1. Clone the repository: `git clone <repository-url> tanyeri-lighting`, then enter the folder.
-2. Enable Corepack: `corepack enable`.
+1. Clone the repository: `git clone https://github.com/egecanakincioglu/tanyeri-lighting.git`, then enter the folder.
+2. Enable Corepack: `corepack enable`. On Windows this can fail with `EPERM` when it writes to `C:\Program Files\nodejs`. Run it once in an administrator terminal, or install pnpm with `npm install -g pnpm@12.15.0`.
 3. Install the dependencies from the lock file: `pnpm install --frozen-lockfile`. The `postinstall` script generates the Prisma client.
-4. Install the Git hooks: `bash tooling/scripts/setup-git-hooks.sh`. The script sets `core.hooksPath` to `tooling/git-hooks`, turns off `core.autocrlf` and runs the commit signing setup.
-5. Check the environment: `node tooling/scripts/doctor.ts`.
+4. Copy the environment file: `cp .env.example .env`.
+5. Start the database and prepare it: `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm db:seed:demo`. Without the demo seed the site is empty.
+6. Start the site with `pnpm dev` and open http://localhost:3000. The admin panel is at `/tr/yonetim/giris`; sign in with `ADMIN_EMAIL` and `ADMIN_PASSWORD` from `.env`.
 
-Commit signing is set up by the script in step 4 (`tooling/scripts/setup-commit-signing.sh`). Commits are signed with an SSH key. Your Git identity (`user.email`) must be set; if it is not, the script stops. An existing `user.signingkey` is kept. Without one, the script generates the key `~/.ssh/tanyeri_signing_ed25519`.
+Only if you plan to commit:
+
+7. Install the Git hooks: `bash tooling/scripts/setup-git-hooks.sh`. The script sets `core.hooksPath` to `tooling/git-hooks`, turns off `core.autocrlf` and runs the commit signing setup.
+8. Check the environment: `node tooling/scripts/doctor.ts`.
+
+Commit signing is set up by the script in step 7 (`tooling/scripts/setup-commit-signing.sh`). Commits are signed with an SSH key. Your Git identity (`user.email`) must be set; if it is not, the script stops. An existing `user.signingkey` is kept. Without one, the script generates the key `~/.ssh/tanyeri_signing_ed25519`.
 
 `doctor` lists every check and shows a fix command for each failed check. It exits with code 1 when a check fails; a warning (`warn`) does not change the exit code. Add `--json` for machine-readable output. The checks are: Node version, Git identity, Git hooks, commit signing, allowed signers, line endings, gitleaks, the GitHub CLI (`gh`) and pnpm.
 
@@ -47,8 +53,10 @@ Copy `.env.example` to `.env` and adjust it. Never commit `.env`. The applicatio
 | `BETTER_AUTH_URL` | yes | The site's own address (scheme and host); the only origin the auth routes trust. |
 | `SITE_INDEXING` | no | `off` (default) sends `noindex`; `on` lets crawlers index the site. It stays `off` until 1.0.0. |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | no, all or none | Email through SMTP. With all five set, the password reset link is sent by email. With none set, email is off and recovery is `pnpm admin:reset-password`. A partly set group is an error. Port 465 uses TLS from the start. `SMTP_FROM` is an address or `Name <address>`. |
+| `SITE_URL` | no | Public address (scheme and host) for canonical links, the sitemap and structured data. On Vercel the production host is used when it is empty; a local run uses `http://localhost:3000`. |
+| `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | no, both or neither | A read-only demo account, created by `pnpm db:seed:demo` and shown on the sign-in page while `DEMO_MODE` is `true`. The password has at least 12 characters and is public by design. |
 | `BLOB_READ_WRITE_TOKEN` | no | Vercel Blob token. Without it, uploads are off. Use a separate development store, never the production one. |
-| `DEMO_MODE` | no | `true` or `false` (default `false`); any other value is an error. The guard that uses it is still planned. |
+| `DEMO_MODE` | no | `true` or `false` (default `false`); any other value is an error. `true` makes the site a read-only demo: writes are refused and contact messages are not stored. |
 | `ADMIN_EMAIL` | for the seed | Email address of the first admin. Only `pnpm db:seed` reads it; the running site does not. |
 | `ADMIN_PASSWORD` | for the seed | Password of the first admin, at least 12 characters. It is stored only as a hash and is never printed. |
 
@@ -87,7 +95,7 @@ All of these are scripts in `package.json`, run with `pnpm <name>`:
 - `pnpm format`: formats files with Prettier (writes).
 - `pnpm format:check`: checks formatting without writing. CI runs this.
 - `pnpm knip`: scans for dead code and unused dependencies.
-- `pnpm site-audit --leg <pages|mobile|desktop>`: audits the built site in a real Chrome; run `pnpm build` first.
+- `pnpm site-audit --leg <pages|mobile|desktop>`: audits the built site in a real Chrome; run `pnpm build` first. If Chrome is not found, set `CHROME_PATH` to the Chrome executable (`tooling/site-audit/chrome.ts` reads it first, then known install locations).
 - `pnpm release:prepare`: prepares a release (see the [Git workflow guide](git-workflow.md)).
 
 Tooling scripts (`node tooling/scripts/<name>.ts`) are run directly. For example, `node tooling/scripts/check-docs-language.ts` and `node tooling/scripts/check-doc-links.ts` check the documentation.

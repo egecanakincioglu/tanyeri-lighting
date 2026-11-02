@@ -108,7 +108,7 @@ export default async function ProductsAdminPage({ params, searchParams }: PagePr
               delete: {
                 trigger: t('delete'),
                 title: t('deleteTitle'),
-                body: t('deleteBody'),
+                body: t('deleteBody', { name: '{name}' }),
                 confirm: t('deleteConfirm'),
                 working: t('deleting'),
                 cancel: form('cancel'),
