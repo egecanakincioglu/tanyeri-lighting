@@ -51,7 +51,7 @@ Done:
 - Done: visit tracking (anonymous page views).
 - Done: SEO foundation (localized titles and descriptions, canonical addresses with language alternates, sitemap, `robots.txt`, plain-text site guide, structured data).
 - Done: keyword-led page copy and product category pages with their own addresses, breadcrumbs and sitemap entries.
-- Done: blog list and article pages, with a Blog screen in the admin panel and eight demo articles.
+- Done: blog list and article pages, with a Blog screen in the admin panel and six demo articles.
 
 ## Phase 7: admin panel
 
