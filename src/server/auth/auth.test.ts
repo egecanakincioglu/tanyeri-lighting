@@ -165,3 +165,34 @@ describe('changing the sign-in email', () => {
     vi.unstubAllEnvs();
   });
 });
+
+  it('asks the current address to approve first, naming the new address', async () => {
+    const transport = createTransport({ jsonTransport: true });
+    const sendMail = vi.spyOn(transport, 'sendMail');
+    setEmailTransport(transport);
+    const tasks: (() => Promise<void>)[] = [];
+    setEmailScheduler((task) => tasks.push(task));
+    vi.stubEnv('SMTP_HOST', 'smtp.example.com');
+    vi.stubEnv('SMTP_PORT', '587');
+    vi.stubEnv('SMTP_USER', 'mailer');
+    vi.stubEnv('SMTP_PASSWORD', 'mailer-password');
+    vi.stubEnv('SMTP_FROM', 'Tanyeri <no-reply@example.com>');
+
+    const { changeEmail } = buildAuthOptions({ ...settings, emailEnabled: true }).user;
+    await changeEmail.sendChangeEmailConfirmation!({
+      user: { email: 'admin@example.com' },
+      newEmail: 'new@example.com',
+      url: 'https://tanyeri.example.com/api/auth/verify-email?token=abc',
+    });
+    await tasks[0]!();
+
+    const sent = sendMail.mock.calls[0]![0];
+    expect(sent.to).toBe('admin@example.com');
+    expect(sent.text).toContain('new@example.com');
+    expect(sent.text).toContain('verify-email?token=abc');
+    vi.unstubAllEnvs();
+  });
+
+  it('has no approval step while email is off, because the change is off', () => {
+    expect(buildAuthOptions(settings).user.changeEmail).toEqual({ enabled: false });
+  });

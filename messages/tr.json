@@ -620,10 +620,10 @@
     "passDone": "Parola değiştirildi. Diğer tüm cihazların oturumu kapatıldı.",
     "emailTitle": "Giriş e-postasını değiştir",
     "emailLabel": "Yeni e-posta adresi",
-    "emailHint": "Yeni adrese bir onay bağlantısı gönderilir. Adres, bağlantıyı açtığınızda değişir.",
+    "emailHint": "Önce şu anki adresinize bir bağlantı gönderilir. Onu açtığınızda yeni adrese ikinci bir bağlantı gider; adres, o bağlantıyı açtığınızda değişir. Ardından tüm cihazların oturumu kapatılır.",
     "emailButton": "Onay bağlantısını gönder",
     "emailWorking": "Gönderiliyor…",
-    "emailDone": "Adres kullanılabiliyorsa ona bir onay bağlantısı gönderildi. Değişikliği bitirmek için bağlantıyı açın.",
+    "emailDone": "Adres kullanılabiliyorsa şu anki adresinize bir bağlantı gönderildi. Onu açın, ardından yeni adrese gönderilen bağlantıyı açın. Sonra tüm cihazların oturumu kapatılır.",
     "emailOffNote": "E-posta değişikliği için giden e-posta gerekir; bu sitede kurulu değil.",
     "demoNote": "Demoda parola ve e-posta değiştirilemez.",
     "errors": {

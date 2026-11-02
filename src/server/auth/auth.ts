@@ -6,7 +6,7 @@ import { buildDemoAuthHooks } from '../demo/auth-hooks.ts';
 import { sendEmailAfterResponse } from '../email/index.ts';
 import { getEnv, isEmailEnabled, isProduction } from '../env.ts';
 import { checkRateLimit } from '../rate-limit/index.ts';
-import { CHANGE_EMAIL_LIFETIME_SECONDS, changeEmailEmail } from './change-email-email.ts';
+import { CHANGE_EMAIL_LIFETIME_SECONDS, changeEmailApprovalEmail, changeEmailEmail } from './change-email-email.ts';
 import { RESET_TOKEN_LIFETIME_SECONDS, resetPasswordEmail, resetPasswordLink } from './reset-password-email.ts';
 
 type AuthSettings = { secret: string; baseURL: string; production: boolean; emailEnabled: boolean };
@@ -39,14 +39,36 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled }: 
         },
       }),
     },
-    // The admin changes the sign-in address from the account screen. The new address gets a link and only the link
-    // applies the change, so a typo can not lock the admin out. Without email there is no link: the change is off.
-    user: { changeEmail: { enabled: emailEnabled } },
+    // The admin changes the sign-in address from the account screen, in two steps: the current address approves, then
+    // the new address gets a link and only that link applies the change, so neither a typo nor a stolen session can
+    // move the account. Without email there is no link: the change is off.
+    user: {
+      changeEmail: {
+        enabled: emailEnabled,
+        ...(emailEnabled && {
+          sendChangeEmailConfirmation: async ({
+            user,
+            newEmail,
+            url,
+          }: {
+            user: { email: string };
+            newEmail: string;
+            url: string;
+          }) => {
+            sendEmailAfterResponse(changeEmailApprovalEmail(user.email, newEmail, url));
+          },
+        }),
+      },
+    },
     ...(emailEnabled && {
       emailVerification: {
         expiresIn: CHANGE_EMAIL_LIFETIME_SECONDS,
         sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
           sendEmailAfterResponse(changeEmailEmail(user.email, url));
+        },
+        // The link signs its holder in, so once the address has changed every session ends, the holder's included.
+        afterEmailVerification: async (user: { id: string }) => {
+          await getDb().session.deleteMany({ where: { userId: user.id } });
         },
       },
     }),
