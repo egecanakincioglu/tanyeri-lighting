@@ -183,6 +183,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The `visit` table keeps one row per Europe/Istanbul day and shortened address. The stored fields are the day, the shortened address, the country, the city and `views`. The address is cut to /24 for IPv4 and /48 for IPv6 before it is stored. Country and city come from `x-vercel-ip-country` and `x-vercel-ip-city`. The table holds no path, locale, referrer or browser string. `views` grows by one in a single atomic statement, so concurrent requests lose no count.
 - `POST /api/visits` needs the same origin and a `content-length` of 1 to 256 bytes (411 and 413 otherwise). The path in the body must match a known public locale-prefixed page, or the answer is 400. The path is checked and not stored. The rate limit scope is `visit` (120 per 60 seconds). The write runs in `after()`, so the answer is 204 at once.
 - The public layout posts the opened path with `sendBeacon` from a very small client component (`src/components/site/visit-beacon.tsx`). Prefetches and crawlers that run no JavaScript are therefore not counted.
+- The Statistics screen in the admin panel shows the last 30 days: visits and page views per day, and the countries. A visit counts distinct shortened addresses, so it is an estimate: visitors on one network count once.
 - Recording also runs in demo mode, because no personal data is kept.
 - Rows older than 13 months are deleted when a visit is written, at most once a day per server instance.
 

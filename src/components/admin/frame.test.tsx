@@ -51,10 +51,13 @@ describe('AdminFrame', () => {
     expect(nav.getByText('Home Page')).toBeTruthy();
     expect(nav.getByText('Inbox')).toBeTruthy();
     expect(nav.getByRole('link', { name: 'Dashboard', hidden: true }).getAttribute('href')).toBe('/en/admin');
+    expect(nav.getByRole('link', { name: 'Statistics', hidden: true }).getAttribute('href')).toBe(
+      '/en/admin/statistics',
+    );
     expect(nav.getByRole('link', { name: 'References', hidden: true }).getAttribute('href')).toBe(
       '/en/admin/references',
     );
-    expect(nav.getAllByRole('link', { hidden: true })).toHaveLength(17);
+    expect(nav.getAllByRole('link', { hidden: true })).toHaveLength(18);
   });
 
   it('uses the Turkish labels and addresses', async () => {

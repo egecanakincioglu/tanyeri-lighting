@@ -55,6 +55,8 @@ export const ADMIN_PAGES: readonly string[] = [
   '/en/admin/references/new',
   '/tr/yonetim/mesajlar',
   '/en/admin/messages',
+  '/tr/yonetim/istatistikler',
+  '/en/admin/statistics',
   '/tr/yonetim/yasal-sayfalar',
   '/en/admin/legal-pages',
   '/tr/yonetim/sayfa-bilgileri',
