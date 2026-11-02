@@ -88,9 +88,11 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Better Auth with email and password. There is no public sign-up. Sessions are stored in the database, and the session cookie is not trusted without a database check (`session.cookieCache` is off), so a revoked session stops working at once ([ADR 0003](adr/0003-authentication.md)).
 - Cookies are `HttpOnly` and `SameSite=Lax`, and `Secure` in production. The origin and CSRF checks stay on in every environment. `BETTER_AUTH_URL` is the only trusted origin.
 - Resetting a password revokes all sessions of the user (`revokeSessionsOnPasswordReset`).
-- Sign-in and password reset requests go from the browser directly to `/api/auth/*`. They are not made through server-side `auth.api` calls, because server-side calls are not rate limited.
+- Auth requests reach the library through its request handler, never through server-side `auth.api` calls, because those are not rate limited. The browser calls `/api/auth/*` only for the two reset POSTs and the verify-email GET. Sign-in and sign-out go through `callAuth` in Server Actions.
+- The route `api/auth/[...all]` has an allow-list and answers 404 for any other path, because the library counts requests before it matches a route and a random path would write a rate limit row per request. `POST /api/auth/request-password-reset` and `POST /api/auth/reset-password` are on it because the forgot and reset forms post from the browser. `GET /api/auth/verify-email` is on it because the link in the change-email mails opens in the browser. Tests call the library handler directly.
+- The password needs 12 to 128 characters everywhere: the library option `minPasswordLength`, the account action, the reset forms, the seed and the reset command share one constant in `src/lib/password-rules.ts`.
 - The first admin comes from `pnpm db:seed`. The seed is idempotent and never prints the password. It needs `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, the `BETTER_AUTH_*` variables, `ADMIN_EMAIL` and an `ADMIN_PASSWORD` of at least 12 characters.
-- Planned: the sign-in pages.
+- The forgot password page (`/admin/forgot-password`, Turkish `/yonetim/parola-unuttum`) and the reset password page (`/admin/reset-password`, Turkish `/yonetim/parola-sifirla`) are public and noindex. Their forms post to the auth endpoints from the browser.
 
 ## Authorization
 
@@ -103,20 +105,22 @@ The proxy does only two things: locale routing and security headers. It is not t
   - The default export of every page and layout under `src/app/[locale]/(admin)` calls `guardPage`.
   - Every exported method in `src/app/api/**/route.ts` calls `guardHandler`.
   - Every export of a top-level `'use server'` file calls `guardAction`.
-- Public entry points are allowlisted in the check, each with a reason: the sign-in page, `api/auth/[...all]` and the contact Server Action, `src/server/contact/actions.ts`. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
 - The check covers route handlers under all of `src/app`, and it scans `.js`, `.jsx`, `.mjs` and `.cjs` files as well as TypeScript. Destructured route exports fail, and inline `'use server'` functions are forbidden. The guard import must resolve to `src/server/auth/guard.ts`. Actions must await `guardAction()` at the top level, or inside `runAction` or a same-file wrapper.
+- Public entry points are allowlisted in the check, each with a reason: the sign-in, forgot password and reset password pages, `api/auth/[...all]` the contact Server Action, `src/server/contact/actions.ts`, and `src/app/api/visits/route.ts`. The visits route needs the same origin, takes only the path of a known public page, is rate limited and stores only a shortened address. The sign-in page must stay outside any guarded layout, or visitors could never reach it.
 - The check is shallow by design: it looks for the call inside the exported function and does not follow helper calls. Review covers the rest.
 
 ## Rate limiting
 
 - Sign-in and password routes use the rate limiter of Better Auth, with storage in the `rateLimit` table in Postgres. This exists today ([ADR 0004](adr/0004-rate-limiting.md)).
 - The rules are explicit, per client address: `/sign-in/email` 3 requests per 10 seconds, `/request-password-reset` 3 per 60 seconds and `/reset-password` 5 per 60 seconds.
-- Public forms such as the contact form use `checkRateLimit({ scope, limit, windowSeconds, headers })` from `src/server/rate-limit`, with the `rateLimitCounter` table in the same database. It uses a fixed window aligned to the epoch and one row per key. The increment is a single `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` statement, so concurrent requests cannot read the same count. A refused request still counts. `windowSeconds` must be between 1 and 86400.
+- Public forms such as the contact form use `checkRateLimit({ scope, limit, windowSeconds, headers, address? })` from `src/server/rate-limit`, with the `rateLimitCounter` table in the same database. It uses a fixed window aligned to the epoch and one row per key. The increment is a single `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` statement, so concurrent requests cannot read the same count. A refused request still counts. `windowSeconds` must be between 1 and 86400. The optional `address` replaces the client address, for a ceiling shared by every client.
 - The `tooManyRequests(retryAfterSeconds)` helper builds a 429 response with `Retry-After`.
-- The key is the HMAC-SHA256 of `<scope>:<address>`, under a key derived from `BETTER_AUTH_SECRET` with the label `rate-limit`, so no plain IP address is stored.
-- On Vercel (`VERCEL=1`) the client address is the first value of `x-forwarded-for`. Outside Vercel, or when the header is missing, every request shares one bucket. IPv6 addresses are grouped by /64, and an IPv4-mapped IPv6 address counts as IPv4.
+- The key is the HMAC-SHA256 of `<scope>:<address>`, under a key derived from `BETTER_AUTH_SECRET` with the label `rate-limit`, so the `rateLimitCounter` table stores no plain IP address. Other tables do: the `rateLimit` table of Better Auth keeps its key (which contains the address), and `session.ipAddress` holds the address of each session.
+- On Vercel (`VERCEL=1`) the client address is the first value of `x-forwarded-for`. Outside Vercel, or when the header is missing, every request shares one bucket. The limits are designed for Vercel, which overwrites `x-forwarded-for`. On another host, `advanced.ipAddress.trustedProxies` must be set for Better Auth. Without it, an unset header puts every request in one bucket, and a forged header lets a client evade the limit. IPv6 addresses are grouped by /64, and an IPv4-mapped IPv6 address counts as IPv4.
 - When a window opens, rows older than 24 hours are removed, in batches of 100.
-- The contact form allows 5 submissions per 3600 seconds per client address (scope `contact`).
+- The contact form allows 5 submissions per 3600 seconds per client address (scope `contact`). The form also has a site-wide ceiling of 200 submissions per day (scope `contact-site`, `subject` `all`), checked after the per-address limit.
+- `checkRateLimit` can count a named `subject` instead of the client address. The password reset mail uses this with scope `reset-mail`: one account gets at most 3 reset mails per hour, however many addresses ask. The check runs after the response, so the answer is the same whether or not the mail is sent.
+- Page visits use the scope `visit`: 120 requests per 60 seconds per client address.
 - There is no in-memory limiter and no extra service, because instances on Vercel do not share memory.
 
 ## File storage
@@ -130,10 +134,11 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - SMTP is optional and all or none: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` and `SMTP_FROM`. Without them, email is off. A partly set group is an error that names the missing variables.
 - Port 465 uses TLS from the start. Other ports use STARTTLS when the server offers it.
-- With SMTP, the password reset link is sent by email. The email is plain text, Turkish first and then English. The link is `/tr/dashboard/reset-password?token=...`; that page is planned.
+- With SMTP, the password reset link is sent by email. The email is plain text, Turkish first and then English. The link is `/tr/yonetim/parola-sifirla?token=...`, and that page exists.
 - The token is valid for 1 hour and works once. A password reset ends every session of the user.
 - The email is sent after the response with `after()`, so a known and an unknown address get the same answer. A send failure is logged as the error kind and code only.
-- Without SMTP, the reset request is refused (`RESET_PASSWORD_DISABLED`), the "forgot password" link is hidden and recovery is a command run on the server (`pnpm admin:reset-password`). This exists today:
+- The sign-in page shows the "forgot password" link only when SMTP is set and demo mode is off. In any other case, both pages show a "not available" notice.
+- Without SMTP, the reset request is refused (`RESET_PASSWORD_DISABLED`), the "forgot password" link on the sign-in page is hidden and recovery is a command run on the server (`pnpm admin:reset-password`). This exists today:
   - `printf '%s\n' '<new password>' | pnpm admin:reset-password --email <address>`
   - The password comes only from standard input, never from the arguments.
   - The command stores a new hash and ends all sessions of the user. It exits with code 1 for an unknown email or a password shorter than 12 characters.
@@ -143,17 +148,18 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 - `DEMO_MODE` is read in `src/server/env.ts`. It is `true` or `false`, the default is `false`, and any other value is an error. The mode is read on every request, not once at startup.
 - `assertWritable()` in `src/server/demo/guard.ts` is called by every content write service right after the session guard. In demo mode it throws `DemoModeError`. Route handlers turn the error into a 403 JSON response with `demoModeResponse(error)`; Server Actions map it to a form result.
-- A `hooks.before` deny list in `src/server/demo/auth-hooks.ts` refuses state-changing account endpoints with 403 ("This action is disabled in demo mode"): change password, change email, update user, update session, delete user, password reset request and reset, verification email, session revocation and provider linking.
+- A `hooks.before` deny list in `src/server/demo/auth-hooks.ts` refuses state-changing account endpoints with 403 ("This action is disabled in demo mode"): change password, change email, update user, update session, delete user, password reset request and reset, verification email, session revocation and provider linking. `/list-sessions` is blocked too, because the demo account is shared and the list would show every visitor the addresses and browsers of the others.
 - The administrator signs in at `/admin/sign-in` (Turkish: `/yonetim/giris`) and lands on `/admin` (Turkish: `/yonetim`). The pages live in the `(admin)/dashboard` route folder and do not show the public header and footer. Sign-in is a Server Action that calls the auth handler on the server, so it works without JavaScript and shares the auth rate limits. Every failed attempt shows one generic error. Sign-out is a POST form. Both pages are noindex.
 - The panel lives under `(admin)/dashboard/(panel)`. `ADMIN_NAV` in `src/components/admin/nav.ts` is the single menu map; a screen without its own page shows a shared placeholder. Server Actions live in `src/server/admin/`; each calls `guardAction()` inside `runAction()` from `form.ts`, which turns validation, demo mode and content errors into form state. The references screen is the pattern for the other screens.
 - The messages screen lists newest first at 50 per page; opening a message marks it read. Legal pages use Markdown with a preview, and empty text hides the page and its footer link. Page information covers every page key, with recommended lengths of 60 and 155 characters.
-- The account screen changes the password, which ends other sessions, and the sign-in address, which sends a one-hour link to the new address and needs SMTP. Both are disabled in demo mode.
+- The account screen changes the password, which ends other sessions, and the sign-in address, which needs SMTP. The address changes in two steps: a one-hour link goes to the current address first, and only after that link is opened a second link goes to the new address. Opening the second link changes the address and ends every session, so the person must sign in again. Both are disabled in demo mode.
 - `discardReplacedFile` in `src/server/admin/files.ts` deletes a replaced file only when it is on the file store host. When an administrator replaces or removes an uploaded image or PDF, including by deleting its record, the old file is deleted from the file store after the save succeeds. Demo pictures are never deleted, and a store failure is logged without failing the save.
 - The products screen searches by name or code, filters by category and shows 24 per page; arrows appear only when one category is shown with an empty search. The slug is filled in from the Turkish name, and changing it keeps the old address as a redirect. Conflicts on slug, code or key show on their own fields.
 - The categories screen shows the limit of eight. The catalogs screen takes a PDF up to 4 MB and a cover; the size comes from the file store, not the form, and the delete dialog names the promo boards that use the catalog.
 - The home page screens edit the banner, up to six featured products as one ordered list, promo boards with an optional subtitle in both languages, and the work areas.
 - The services screen edits an image, a title, a Markdown description and an optional note in both languages. The projects screen edits a title, a Markdown description and before and after pictures. Both reorder with arrows and are read-only in demo mode.
 - Company Settings saves the site name, logo, languages, contact details and service area; the header, footer and contact page read them on every request. Social links are managed on the same screen. The About and Vision screen edits limited Markdown per language with a preview.
+- The demo account is marked by `user.isDemo`. Better Auth never accepts the field from a client (`input: false`). The session guard returns no session for this account unless `DEMO_MODE=true`, so a demo database deployed with demo mode off or unset opens nothing. An existing demo database needs `pnpm db:seed:demo` after the migration, which marks the account.
 - In demo mode a read-only demo account (`DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD`) is created by the demo seed and shown on the sign-in page. Save, delete, reorder and upload controls are disabled and the server refuses writes.
 - Uploads go through `uploadMediaAction` with a limit of 4 MB; `next.config.ts` allows the file store's image host.
 - `guardPage` redirects a visitor who has no session to the localized sign-in address. It builds the address from the locale only and takes no target from the request.
@@ -173,6 +179,15 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Field errors are codes (`required`, `too_long`, `invalid`) that the UI translates. Limits: name 100, email 254, subject 150, message 5000 characters.
 - The services in `src/server/contact/service.ts` are `listMessages({ limit, cursor })` (newest first, limit 1 to 100, default 20), `markMessageRead` and `deleteMessage`. They are not guarded themselves. Admin entry points must call `guardAction` first. The write services refuse in demo mode.
 - Planned: the contact page with the form, and the message screens in the admin panel.
+
+## Visit statistics
+
+- The `visit` table keeps one row per Europe/Istanbul day and shortened address. The stored fields are the day, the shortened address, the country, the city and `views`. The address is cut to /24 for IPv4 and /48 for IPv6 before it is stored. Country and city come from `x-vercel-ip-country` and `x-vercel-ip-city`. The table holds no path, locale, referrer or browser string. `views` grows by one in a single atomic statement, so concurrent requests lose no count.
+- `POST /api/visits` needs the same origin and a `content-length` of 1 to 256 bytes (411 and 413 otherwise). The path in the body must match a known public locale-prefixed page, or the answer is 400. The path is checked and not stored. The rate limit scope is `visit` (120 per 60 seconds). The write runs in `after()`, so the answer is 204 at once.
+- The public layout posts the opened path with `sendBeacon` from a very small client component (`src/components/site/visit-beacon.tsx`). Prefetches and crawlers that run no JavaScript are therefore not counted.
+- The Statistics screen in the admin panel shows the last 30 days: visits and page views per day, and the countries. A visit counts distinct shortened addresses, so it is an estimate: visitors on one network count once.
+- Recording also runs in demo mode, because no personal data is kept.
+- Rows older than 13 months are deleted when a visit is written, at most once a day per server instance.
 
 ## Security headers and CSP
 
@@ -206,7 +221,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `/products/[slug]` (tr `/urunler/[slug]`) shows name, summary, photo and a details list. Old slugs answer with a 308 redirect and unknown slugs with 404. The "Request information" link goes to `/contact?product=<slug>`.
 - The contact page reads `?product=<slug>` and prefills the subject only when `getProductBySlug` finds a current product. The form posts through a Server Action and works without JavaScript: a refused submission returns the typed values, never the honeypot. In demo mode the message is shown back to the sender and is not saved.
 - Form fields live in `src/components/field.tsx`. Legal pages render the saved Markdown with the shared prose style and answer 404 when no text was saved.
-- Remote images need `images.remotePatterns` in `next.config.ts` before uploaded files are used on public pages. The file sets `images.deviceSizes` with an extra 1440 step, so the browser does not jump past the image audit's upper bound on dense phones.
+- Remote images need `images.remotePatterns` in `next.config.ts`. The image optimizer accepts only the host derived from `BLOB_READ_WRITE_TOKEN` (`<storeId>.public.blob.vercel-storage.com`, no query strings) and no remote host at all without a token. `next.config.ts` reads the token at load, so a store change needs a rebuild. The file sets `images.deviceSizes` with an extra 1440 step, so the browser does not jump past the image audit's upper bound on dense phones.
 - Page addresses are keyed by the English path in `src/i18n/routing.ts`. Turkish pages use Turkish addresses, for example `/tr/urunler` and `/en/products`. Internal links use `Link` from `src/i18n/navigation.ts` with `prefetch={false}`.
 - `[locale]/layout.tsx` provides an intl provider without messages. Client components get their texts as props.
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.

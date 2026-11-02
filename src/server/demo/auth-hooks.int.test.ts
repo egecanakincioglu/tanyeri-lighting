@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GET, POST } from '../../app/api/auth/[...all]/route.ts';
+import { handle } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { createFirstAdmin } from '../auth/admin.ts';
 import { getAuth } from '../auth/auth.ts';
@@ -17,7 +17,6 @@ const OPEN_AUTH_PATHS: ReadonlySet<string> = new Set([
   '/sign-up/email',
   '/sign-out',
   '/get-session',
-  '/list-sessions',
   '/list-accounts',
   '/account-info',
   '/verify-password',
@@ -40,7 +39,9 @@ function post(path: string, body: unknown, cookie?: string): Promise<Response> {
     'x-forwarded-for': freshAddress(),
   });
   if (cookie) headers.set('cookie', cookie);
-  return POST(new Request(`${TEST_AUTH_URL}/api/auth${path}`, { method: 'POST', headers, body: JSON.stringify(body) }));
+  return handle(
+    new Request(`${TEST_AUTH_URL}/api/auth${path}`, { method: 'POST', headers, body: JSON.stringify(body) }),
+  );
 }
 
 async function signInCookie(): Promise<string> {
@@ -53,7 +54,7 @@ async function signInCookie(): Promise<string> {
 }
 
 async function sessionOf(cookie: string): Promise<unknown> {
-  const response = await GET(
+  const response = await handle(
     new Request(`${TEST_AUTH_URL}/api/auth/get-session`, { headers: { cookie, 'x-forwarded-for': freshAddress() } }),
   );
   expect(response.status).toBe(200);
@@ -125,6 +126,16 @@ describe('demo mode on the Better Auth endpoints, on a real database', () => {
       expect(response.status).toBe(403);
       expect(await accountState()).toEqual(before);
       expect(await sessionOf(cookie)).not.toBeNull();
+    });
+
+    it('refuses list-sessions, which would show every demo visitor their addresses and browsers', async () => {
+      const cookie = await signInCookie();
+      const response = await handle(
+        new Request(`${TEST_AUTH_URL}/api/auth/list-sessions`, {
+          headers: { cookie, 'x-forwarded-for': freshAddress() },
+        }),
+      );
+      expect(response.status).toBe(403);
     });
 
     it('keeps the other sessions alive when revoke-other-sessions is refused', async () => {

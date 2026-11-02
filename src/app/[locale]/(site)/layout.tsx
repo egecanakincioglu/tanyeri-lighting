@@ -3,6 +3,7 @@ import { getSiteSettings } from '../../../server/content/site-settings.ts';
 import { isDemoMode } from '../../../server/env.ts';
 import { Footer } from '../../../components/site/footer.tsx';
 import { Header } from '../../../components/site/header.tsx';
+import { VisitBeacon } from '../../../components/site/visit-beacon.tsx';
 
 export default async function SiteLayout({ children, params }: LayoutProps<'/[locale]'>) {
   const { locale } = await params;
@@ -28,6 +29,7 @@ export default async function SiteLayout({ children, params }: LayoutProps<'/[lo
         {children}
       </main>
       <Footer settings={settings} />
+      <VisitBeacon />
     </div>
   );
 }

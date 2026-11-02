@@ -135,7 +135,40 @@
     "demoTitle": "Demo hesabı",
     "demoText": "Bu bir demo. Aşağıdaki hesapla paneli gezebilirsiniz; değişiklikler kaydedilmez.",
     "demoEmail": "E-posta",
-    "demoPass": "Parola"
+    "demoPass": "Parola",
+    "forgotLink": "E-posta ile sıfırlayın"
+  },
+  "AdminReset": {
+    "requestTitle": "Parolanızı sıfırlayın",
+    "requestText": "Giriş yaptığınız e-posta adresini yazın. Adres bir yöneticiye aitse adrese bir sıfırlama bağlantısı gönderilir.",
+    "email": "E-posta",
+    "requestSubmit": "Sıfırlama bağlantısı gönder",
+    "requestSubmitting": "Gönderiliyor…",
+    "requestDone": "Adres bir yöneticiye aitse adrese bir sıfırlama bağlantısı gönderildi. Bağlantı bir saat geçerlidir.",
+    "resetTitle": "Yeni parola belirleyin",
+    "resetText": "Yeni parola, bütün cihazlardaki oturumlarınızı kapatır.",
+    "nextLabel": "Yeni parola",
+    "repeatLabel": "Yeni parolayı tekrar yazın",
+    "hint": "12 ile 128 karakter arasında olmalı.",
+    "resetSubmit": "Parolayı değiştir",
+    "resetSubmitting": "Değiştiriliyor…",
+    "resetDone": "Parola değiştirildi. Yeni parolayla giriş yapın.",
+    "signIn": "Giriş sayfasına git",
+    "invalidTitle": "Bu bağlantı çalışmıyor",
+    "invalidText": "Bağlantının süresi dolmuş ya da bağlantı daha önce kullanılmış. Yeni bir bağlantı isteyin.",
+    "requestAgain": "Yeni bağlantı iste",
+    "unavailableTitle": "E-posta ile sıfırlama kullanılamıyor",
+    "unavailableText": "Bu site e-posta göndermiyor ya da demo sürümü. Siteyi yöneten kişi parolayı sunucuda bir komutla sıfırlayabilir.",
+    "errors": {
+      "rateLimited": "Çok fazla deneme yapıldı. Bir dakika bekleyip tekrar deneyin.",
+      "demo": "Demoda bu işlem yapılamaz.",
+      "generic": "Bir şeyler ters gitti. Biraz sonra tekrar deneyin."
+    },
+    "issues": {
+      "tooShort": "En az 12 karakter kullanın.",
+      "tooLong": "En çok 128 karakter kullanın.",
+      "mismatch": "İki parola aynı değil."
+    }
   },
   "AdminNav": {
     "logo": "Tanyeri Lighting",
@@ -159,6 +192,7 @@
     },
     "items": {
       "panel": "Panel",
+      "stats": "İstatistikler",
       "banner": "Banner",
       "featured": "Öne Çıkan Ürünler",
       "promo": "Tanıtım Panoları",
@@ -512,6 +546,20 @@
     "fieldCover": "Kapak görseli",
     "coverHint": "JPEG, PNG veya WebP, en fazla 4 MB. A4 dikey gösterilir."
   },
+  "AdminStats": {
+    "title": "İstatistikler",
+    "description": "Herkese açık sayfalara son 30 gündeki ziyaretler. Yalnız sayfa, dil ile barındırıcının verdiği ülke ve şehir saklanır; ziyaretçi adresi saklanmadan önce kısaltılır.",
+    "visits": "Ziyaret",
+    "views": "Sayfa görüntüleme",
+    "visitsHint": "Kısaltılmış ziyaretçi adresinden tahmin edilir",
+    "daily": "Günlük",
+    "countries": "Ülkeler",
+    "date": "Tarih",
+    "country": "Ülke",
+    "unknown": "Bilinmiyor",
+    "empty": "Son 30 günde kayıtlı ziyaret yok.",
+    "period": "Son 30 gün"
+  },
   "AdminMessages": {
     "title": "Mesajlar",
     "description": "Ziyaretçilerin sitedeki iletişim formundan gönderdikleri mesajlar, en yeni en üstte.",
@@ -581,16 +629,16 @@
     "currentLabel": "Mevcut parola",
     "newLabel": "Yeni parola",
     "confirmLabel": "Yeni parola (tekrar)",
-    "passHint": "En az 8 karakter. Diğer tüm cihazların oturumu kapatılır.",
+    "passHint": "En az 12 karakter. Diğer tüm cihazların oturumu kapatılır.",
     "passButton": "Parolayı değiştir",
     "passWorking": "Değiştiriliyor…",
     "passDone": "Parola değiştirildi. Diğer tüm cihazların oturumu kapatıldı.",
     "emailTitle": "Giriş e-postasını değiştir",
     "emailLabel": "Yeni e-posta adresi",
-    "emailHint": "Yeni adrese bir onay bağlantısı gönderilir. Adres, bağlantıyı açtığınızda değişir.",
+    "emailHint": "Önce şu anki adresinize bir bağlantı gönderilir. Onu açtığınızda yeni adrese ikinci bir bağlantı gider; adres, o bağlantıyı açtığınızda değişir. Ardından tüm cihazların oturumu kapatılır.",
     "emailButton": "Onay bağlantısını gönder",
     "emailWorking": "Gönderiliyor…",
-    "emailDone": "Adres kullanılabiliyorsa ona bir onay bağlantısı gönderildi. Değişikliği bitirmek için bağlantıyı açın.",
+    "emailDone": "Adres kullanılabiliyorsa şu anki adresinize bir bağlantı gönderildi. Onu açın, ardından yeni adrese gönderilen bağlantıyı açın. Sonra tüm cihazların oturumu kapatılır.",
     "emailOffNote": "E-posta değişikliği için giden e-posta gerekir; bu sitede kurulu değil.",
     "demoNote": "Demoda parola ve e-posta değiştirilemez.",
     "errors": {
@@ -604,7 +652,7 @@
     "issues": {
       "required": "Bu alan zorunludur.",
       "wrongCurrent": "Mevcut parola doğru değil.",
-      "tooShort": "En az 8 karakter kullanın.",
+      "tooShort": "En az 12 karakter kullanın.",
       "tooLong": "En fazla 128 karakter kullanın.",
       "mismatch": "İki parola aynı değil.",
       "invalid": "Geçerli bir e-posta adresi girin.",

@@ -27,10 +27,20 @@ import ts from 'typescript';
 
 type Kind = 'page' | 'handler' | 'action';
 
-// The sign-in page is how a visitor gets a session, so it can not require one.
-const PUBLIC_PAGES: ReadonlySet<string> = new Set(['src/app/[locale]/(admin)/dashboard/sign-in/page.tsx']);
+// The sign-in page is how a visitor gets a session, so it can not require one. The two password recovery pages are for
+// a visitor who has lost the password, so they can not require one either.
+const PUBLIC_PAGES: ReadonlySet<string> = new Set([
+  'src/app/[locale]/(admin)/dashboard/sign-in/page.tsx',
+  'src/app/[locale]/(admin)/dashboard/forgot-password/page.tsx',
+  'src/app/[locale]/(admin)/dashboard/reset-password/page.tsx',
+]);
 // The Better Auth endpoints do their own session handling and rate limiting.
-const PUBLIC_HANDLERS: ReadonlySet<string> = new Set(['src/app/api/auth/[...all]/route.ts']);
+const PUBLIC_HANDLERS: ReadonlySet<string> = new Set([
+  'src/app/api/auth/[...all]/route.ts',
+  // Visitors without an account post the page they opened. It takes only a same-origin request with a known public
+  // path, is rate limited and stores an anonymized address.
+  'src/app/api/visits/route.ts',
+]);
 // The contact form is for visitors without an account. It protects itself with a honeypot, validation and a rate limit.
 const PUBLIC_ACTIONS: ReadonlySet<string> = new Set([
   'src/server/contact/actions.ts',
