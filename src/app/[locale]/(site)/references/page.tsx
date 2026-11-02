@@ -6,7 +6,7 @@ import { Card } from '../../../../components/card.tsx';
 import { Container } from '../../../../components/container.tsx';
 import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
-import { SiteImage } from '../../../../components/site-image.tsx';
+import { eagerWhen, SiteImage } from '../../../../components/site-image.tsx';
 import { routing } from '../../../../i18n/routing.ts';
 import { toMetadata } from '../../../../lib/page-metadata.ts';
 import { pageSeo } from '../../../../lib/seo.ts';
@@ -50,11 +50,11 @@ export default async function ReferencesPage({ params }: PageProps<'/[locale]/re
       {references.length > 0 && (
         <Container>
           <ul className="grid grid-cols-1 gap-6 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-            {references.map((reference) => (
+            {references.map((reference, index) => (
               <li key={reference.id} className="h-full">
                 <Card>
                   <div className="relative aspect-4/3 flex-none overflow-hidden">
-                    <SiteImage src={reference.imageUrl} alt="" fill sizes={sizes} />
+                    <SiteImage src={reference.imageUrl} alt="" fill sizes={sizes} {...eagerWhen(index === 0)} />
                   </div>
                   <div className="flex-1 px-4.5 pt-4 pb-5 wrap-break-word">
                     <h2 className="text-lg leading-tight font-bold text-ink">{reference.name}</h2>

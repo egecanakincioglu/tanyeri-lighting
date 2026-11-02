@@ -161,7 +161,7 @@ Rules:
    Design rules:
    - Components are server components by default; a client component is written only for interaction.
    - Only the needed message namespaces are given to the client provider of next-intl.
-   - The image in the first screen is loaded with `next/image` with `preload`, `fetchPriority="high"` and the correct `sizes`; images outside the first screen are lazy loaded.
+   - The image in the first screen is loaded with `next/image` with `loading="eager"`, `fetchPriority="high"` and the correct `sizes`, because `preload` is not for use with `fetchPriority` and did not help; the first item of each list is eager. Images outside the first screen are lazy loaded.
    - Fonts come from `next/font`, at most two files.
    - The catalog viewer is loaded only when the user opens it.
    - No third-party scripts.

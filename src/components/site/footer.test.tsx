@@ -136,12 +136,14 @@ describe('FooterContent', () => {
   it('shows the developer credit at exactly twice its shown size', () => {
     renderFooter();
     const img = screen.getByRole('img', { name: 'Flareye' });
-    expect(img.getAttribute('src')).toBe('/brand/flareye.png');
+    expect(img.getAttribute('src')).toBe('/brand/flareye.webp');
     expect(img.getAttribute('width')).toBe('96');
     expect(img.getAttribute('height')).toBe('24');
-    const png = readFileSync(join(import.meta.dirname, '..', '..', '..', 'public', 'brand', 'flareye.png'));
-    expect(png.readUInt32BE(16)).toBe(192);
-    expect(png.readUInt32BE(20)).toBe(48);
+    const webp = readFileSync(join(import.meta.dirname, '..', '..', '..', 'public', 'brand', 'flareye.webp'));
+    // An extended WebP header stores width and height minus one as 24-bit little-endian numbers.
+    expect(webp.subarray(12, 16).toString()).toBe('VP8X');
+    expect(webp.readUIntLE(24, 3) + 1).toBe(192);
+    expect(webp.readUIntLE(27, 3) + 1).toBe(48);
   });
 
   it('has no axe violations with and without content', async () => {

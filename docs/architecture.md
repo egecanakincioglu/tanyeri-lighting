@@ -218,6 +218,8 @@ The proxy does only two things: locale routing and security headers. It is not t
 - In demo mode every public page shows a notice above the header saying that the brand is fictional and nothing is for sale. The `site-audit` job runs with demo mode on.
 - The menu is defined once in `src/components/site/nav.ts` and feeds the header, the side menu and the footer. `header-menu.tsx` is the only client part of the header.
 - The footer reads site settings, social links and the two legal pages from the database and omits empty rows, so the `site-audit` job runs against a seeded database.
+- The footer credit logo is `/brand/flareye.webp`, a static file at twice its shown size.
+- The section title text is in the HTML once. CSS draws the faint repeat behind it with `attr(data-title)`.
 - The home page has three blocks: the banner, the highlights grid (three promo boards, then six featured products) and the work areas. Each block renders nothing when its content is empty. An empty banner title hides the banner.
 - About and vision read one `AboutPage` row; services reads the `Service` list. Markdown goes through `MarkdownContent`, styled by the `PROSE` class constant in `src/components/site/prose.ts`. Empty content renders only the page title. The services grid has two columns from 600 px.
 - `/products` (tr `/urunler`) lists products. `?category=<key>` filters and `?page=N` paginates at 24 per page; invalid values fall back to all products or page 1. Category tabs are real links in their own scroll container below 1025 px, with an "All" tab first.
@@ -225,11 +227,14 @@ The proxy does only two things: locale routing and security headers. It is not t
 - The contact page reads `?product=<slug>` and prefills the subject only when `getProductBySlug` finds a current product. The form posts through a Server Action and works without JavaScript: a refused submission returns the typed values, never the honeypot. In demo mode the message is shown back to the sender and is not saved.
 - Form fields live in `src/components/field.tsx`. Legal pages render the saved Markdown with the shared prose style and answer 404 when no text was saved.
 - Remote images need `images.remotePatterns` in `next.config.ts`. The image optimizer accepts only the host derived from `BLOB_READ_WRITE_TOKEN` (`<storeId>.public.blob.vercel-storage.com`, no query strings) and no remote host at all without a token. `next.config.ts` reads the token at load, so a store change needs a rebuild. The file sets `images.deviceSizes` with an extra 1440 step, so the browser does not jump past the image audit's upper bound on dense phones.
+- The image optimizer keeps results for 31 days (`images.minimumCacheTTL`). The static folders `/brand`, `/icons` and `/demo` are sent with `Cache-Control: public, max-age=86400, stale-while-revalidate=604800`: one day fresh and a week of revalidation. They are not `immutable` because a replaced file keeps its address.
+- The first picture of each page is fetched at once with `loading="eager"` and `fetchPriority="high"`; `next/image` `priority` is not used. The first item of each list is eager too.
 - Page addresses are keyed by the English path in `src/i18n/routing.ts`. Turkish pages use Turkish addresses, for example `/tr/urunler` and `/en/products`. Internal links use `Link` from `src/i18n/navigation.ts` with `prefetch={false}`.
 - `[locale]/layout.tsx` provides an intl provider without messages. Client components get their texts as props.
 - Unknown addresses under a valid locale get the header and footer because not-found handling lives inside `(site)`. An invalid locale gets the plain 404.
 - The layout is designed for widths from 320 to 2560 px. Primary touch targets are at least 44 px.
 - The `site-audit` job enforces overflow, accessibility, console and Lighthouse checks on ten device views and on a width sweep in CI. It exists today and audits the pages listed in `tooling/site-audit/pages.ts`.
+- Lighthouse 13.6.0 finds ARD through `ard.json`.
 - Admin screens are listed in `ADMIN_PAGES` and get status, axe, overflow and console checks only. Lighthouse and its thresholds apply to public pages.
 - `SIGN_IN_PAGES` holds the public sign-in pages. The audit signs in once through the real form before visiting `ADMIN_PAGES`.
 - The catalogs page is a grid of cover cards (1 column, 2 from 540 px, 3 from 900 px): each shows a portrait cover, the name, the size, a view link and a download link. A catalog without a cover shows a placeholder.
