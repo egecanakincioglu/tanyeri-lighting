@@ -187,6 +187,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `SITE_URL` sets the site address. Without it, the production host is used on Vercel and `http://localhost:3000` in a local run. One helper in `src/lib/seo.ts` builds the canonical address and the language alternates (`tr`, `en` and `x-default`) of each page.
 - `src/app/sitemap.ts` and `src/app/robots.ts` are dynamic and read the settings per request. `robots.ts` gives the same rule to all crawlers and closes the whole site unless indexing is on. The sitemap has no `hreflang` entries; the language alternates are in the page head ([ADR 0009](adr/0009-quality-targets.md)).
 - JSON-LD is built in `src/lib/structured-data.ts` and rendered by `src/components/json-ld.tsx`: `WebSite`, `Organization`, `ContactPage` and `BreadcrumbList`. There is no `Product` type, because nothing is for sale.
+- `/llms.txt` is a route handler in `src/app/llms.txt/route.ts`. It links 8 pages in `tr` and `en`, with addresses built from `SITE_URL`. It is not in the sitemap and not behind the locale proxy.
 - Page titles and descriptions come from the database in both languages. Production is indexable, previews are not.
 - Organization data has no placeholder profiles, a fallback logo, the tagline as description, and no contact point in demo mode.
 - The product page links its category, and its breadcrumb data has a category level. Product descriptions are built from power, size, colour and material; a detail that is empty is left out.
