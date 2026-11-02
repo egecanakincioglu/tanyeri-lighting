@@ -78,6 +78,13 @@ describe('BlogPostPage', () => {
     expect(screen.getByRole('link', { name: /All articles/ }).getAttribute('href')).toBe('/en/blog');
   });
 
+  it('loads the article picture at once, as a plain image', async () => {
+    render(await BlogPostPage(props('en')));
+    const picture = screen.getByRole('img', { name: 'A linear pendant luminaire' });
+    expect(picture.getAttribute('loading')).toBe('eager');
+    expect(picture.getAttribute('fetchpriority')).toBe('high');
+  });
+
   it('links to two other articles', async () => {
     render(await BlogPostPage(props('en')));
     expect(content.others).toHaveBeenCalledWith('linear-lighting', 2);

@@ -58,6 +58,15 @@ describe('BlogPage', () => {
     expect(screen.queryByRole('navigation', { name: 'Pages' })).toBeNull();
   });
 
+  it('loads the first picture at once and the rest lazily', async () => {
+    const { container } = render(await BlogPage(props('en')));
+    const pictures = [...container.querySelectorAll('img')];
+    expect(pictures).toHaveLength(3);
+    expect(pictures[0]!.getAttribute('loading')).toBe('eager');
+    expect(pictures[0]!.getAttribute('fetchpriority')).toBe('high');
+    expect(pictures.slice(1).map((picture) => picture.getAttribute('loading'))).toEqual(['lazy', 'lazy']);
+  });
+
   it('is Turkish at the Turkish address', async () => {
     render(await BlogPage(props('tr')));
     expect(screen.getByRole('link', { name: 'Yazı 3' }).getAttribute('href')).toBe('/tr/blog/post-3');

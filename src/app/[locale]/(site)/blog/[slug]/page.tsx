@@ -7,7 +7,7 @@ import { PostDate } from '../../../../../components/blog/post-date.tsx';
 import { Container } from '../../../../../components/container.tsx';
 import { JsonLd } from '../../../../../components/json-ld.tsx';
 import { MarkdownContent } from '../../../../../components/markdown-content.tsx';
-import { SiteImage } from '../../../../../components/site-image.tsx';
+import { SiteImage, eagerWhen } from '../../../../../components/site-image.tsx';
 import { PROSE } from '../../../../../components/site/prose.ts';
 import { getPathname } from '../../../../../i18n/navigation.ts';
 import { routing } from '../../../../../i18n/routing.ts';
@@ -113,7 +113,13 @@ export default async function BlogPostPage({ params }: PageProps<'/[locale]/blog
                 <p className="mt-4 text-lg leading-relaxed text-ink">{post.description[locale]}</p>
               </div>
               <span className="relative block aspect-4/3 w-60 max-w-full overflow-hidden rounded-md bg-page md:col-start-1 md:row-start-1">
-                <SiteImage src={post.imageUrl} alt={post.imageAlt[locale]} fill sizes={IMAGE_SIZES} priority />
+                <SiteImage
+                  src={post.imageUrl}
+                  alt={post.imageAlt[locale]}
+                  fill
+                  sizes={IMAGE_SIZES}
+                  {...eagerWhen(true)}
+                />
               </span>
             </header>
             <div className={`mt-8 break-words ${PROSE}`}>

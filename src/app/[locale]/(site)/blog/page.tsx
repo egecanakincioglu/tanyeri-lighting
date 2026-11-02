@@ -96,12 +96,13 @@ export default async function BlogPage({ params, searchParams }: PageProps<'/[lo
             <p className="text-center text-muted">{t('empty')}</p>
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-              {visible.map((post) => (
+              {visible.map((post, index) => (
                 <li key={post.id}>
                   <PostCard
                     title={post.title[locale]}
                     excerpt={post.excerpt[locale]}
                     imageUrl={post.imageUrl}
+                    eager={index === 0}
                     href={getPathname({ locale, href: { pathname: '/blog/[slug]', params: { slug: post.slug } } })}
                     date={
                       post.publishedAt ? (
