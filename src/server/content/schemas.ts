@@ -189,13 +189,20 @@ export const homeBannerSchema = z.strictObject({
 export type HomeBanner = z.infer<typeof homeBannerSchema>;
 
 // The order of the list is the order on the home page. Each product can appear once.
-export const featuredProductIdsSchema = idListSchema.refine((ids) => new Set(ids).size === ids.length, {
-  message: 'Each product can be featured once',
-});
+// The home grid has room for six.
+export const FEATURED_LIMIT = 6;
+
+export const featuredProductIdsSchema = idListSchema
+  .max(FEATURED_LIMIT)
+  .refine((ids) => new Set(ids).size === ids.length, {
+    message: 'Each product can be featured once',
+  });
 
 export const promoBoardSchema = z.strictObject({
   imageUrl: mediaUrl,
   title: bilingual(100),
+  // One short line under the title; empty in both languages when the board has none.
+  subtitle: optionalBilingual(120),
   // The catalog the board links to.
   catalogId: idSchema,
 });

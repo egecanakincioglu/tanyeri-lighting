@@ -309,15 +309,18 @@ model FeaturedProduct {
 
 // A picture on the home page that links to a catalog. A catalog that a board links to cannot be deleted.
 model PromoBoard {
-  id        String   @id @default(uuid(7))
-  imageUrl  String
-  titleTr   String
-  titleEn   String
-  catalogId String
-  catalog   Catalog  @relation(fields: [catalogId], references: [id], onDelete: Restrict)
-  sortOrder Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid(7))
+  imageUrl   String
+  titleTr    String
+  titleEn    String
+  // One short line under the title; both empty when the board has none.
+  subtitleTr String
+  subtitleEn String
+  catalogId  String
+  catalog    Catalog  @relation(fields: [catalogId], references: [id], onDelete: Restrict)
+  sortOrder  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([sortOrder])
   @@index([catalogId])
