@@ -1,3 +1,4 @@
+import { getPathname } from '../../i18n/navigation.ts';
 import { routing } from '../../i18n/routing.ts';
 import type { EmailMessage } from '../email/index.ts';
 
@@ -7,7 +8,7 @@ export const RESET_TOKEN_LIFETIME_SECONDS = 3600;
 // The reset page lives in the panel, which has no visitor language yet at this point, so the link uses the
 // default locale and the text carries both languages: Turkish first, then English.
 export function resetPasswordLink(baseURL: string, token: string): string {
-  const link = new URL(`/${routing.defaultLocale}/dashboard/reset-password`, baseURL);
+  const link = new URL(getPathname({ locale: routing.defaultLocale, href: '/dashboard/reset-password' }), baseURL);
   link.searchParams.set('token', token);
   return link.href;
 }

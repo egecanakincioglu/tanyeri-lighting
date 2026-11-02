@@ -92,7 +92,7 @@ describe('password reset with email on', () => {
     const mail = sentMail();
     expect(mail.to).toBe(ADMIN_EMAIL);
     expect(mail.from).toBe(SMTP.SMTP_FROM);
-    expect(mail.text).toContain(`${TEST_AUTH_URL}/tr/dashboard/reset-password?token=`);
+    expect(mail.text).toContain(`${TEST_AUTH_URL}/tr/yonetim/parola-sifirla?token=`);
     const token = tokenOf(mail);
 
     const reset = await resetPassword(token, OTHER_PASSWORD);
@@ -172,6 +172,19 @@ describe('password reset with email on', () => {
 
     // The budget belongs to the address: another visitor is not limited.
     expect((await requestReset(ADMIN_EMAIL, '198.51.100.31')).status).toBe(200);
+  });
+
+  it('sends one account at most three reset mails an hour however many addresses ask, and every answer is alike', async () => {
+    const answers = [];
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const response = await requestReset(ADMIN_EMAIL, `198.51.100.${60 + attempt}`);
+      answers.push([response.status, await response.json()]);
+    }
+    await runScheduled();
+
+    expect(sendMail).toHaveBeenCalledTimes(3);
+    expect(new Set(answers.map((answer) => JSON.stringify(answer))).size).toBe(1);
+    expect(answers[0]![0]).toBe(200);
   });
 
   it('allows five reset attempts per address per minute, then answers 429 even for a valid token', async () => {

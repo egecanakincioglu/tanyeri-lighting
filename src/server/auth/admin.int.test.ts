@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { verifyPassword } from 'better-auth/crypto';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { POST } from '../../app/api/auth/[...all]/route.ts';
+import { handle } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { createFirstAdmin, resetAdminPassword, upsertDemoAdmin } from './admin.ts';
@@ -15,7 +15,7 @@ const NEW_PASSWORD = 'another long passphrase 42';
 let nextAddress = 1;
 
 function signIn(email: string, password: string): Promise<Response> {
-  return POST(
+  return handle(
     new Request(`${TEST_AUTH_URL}/api/auth/sign-in/email`, {
       method: 'POST',
       headers: {

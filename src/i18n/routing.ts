@@ -22,6 +22,8 @@ export const routing = defineRouting({
     // The admin side lives in the (admin)/dashboard folder, which tooling/scripts/check-admin-guard.ts expects.
     '/dashboard': { tr: '/yonetim', en: '/admin' },
     '/dashboard/sign-in': { tr: '/yonetim/giris', en: '/admin/sign-in' },
+    '/dashboard/forgot-password': { tr: '/yonetim/parola-unuttum', en: '/admin/forgot-password' },
+    '/dashboard/reset-password': { tr: '/yonetim/parola-sifirla', en: '/admin/reset-password' },
     // Every panel screen has its address here, so a screen is only a page file away. The ones without a page yet are
     // answered by (panel)/[section]/page.tsx.
     '/dashboard/banner': { tr: '/yonetim/banner', en: '/admin/banner' },

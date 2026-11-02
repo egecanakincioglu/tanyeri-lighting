@@ -116,7 +116,7 @@ describe('account screen', () => {
     });
     const sent = Object.fromEntries((mocks.changeEmail.mock.calls[0]![1] as FormData).entries());
     expect(sent).toEqual({ locale: 'tr', email: 'new@example.com' });
-    expect(screen.getByText(/onay bağlantısı gönderildi/)).toBeTruthy();
+    expect(screen.getByText(/bağlantı gönderildi/)).toBeTruthy();
   });
 
   it('turns both forms off in the demo and says why', async () => {

@@ -109,6 +109,52 @@ describe('SignInPage', () => {
     });
   });
 
+  describe('forgot password link', () => {
+    const SMTP = {
+      SMTP_HOST: 'mail.example.com',
+      SMTP_PORT: '587',
+      SMTP_USER: 'sender',
+      SMTP_PASSWORD: 'x'.repeat(12),
+      SMTP_FROM: 'noreply@example.com',
+    };
+    afterEach(() => vi.unstubAllEnvs());
+
+    function stub(values: Record<string, string>) {
+      for (const [name, value] of Object.entries(values)) vi.stubEnv(name, value);
+    }
+
+    it('links to the request page when e-mail is set up and the demo is off', async () => {
+      stub({ ...SMTP, DEMO_MODE: 'false' });
+      await renderPage('en');
+      expect(screen.getByRole('link', { name: 'Reset it by e-mail' }).getAttribute('href')).toBe(
+        '/en/admin/forgot-password',
+      );
+      expect(screen.queryByText(/with a command on the server/)).toBeNull();
+    });
+
+    it('links in Turkish to the Turkish address', async () => {
+      stub({ ...SMTP, DEMO_MODE: 'false' });
+      await renderPage('tr');
+      expect(screen.getByRole('link', { name: 'E-posta ile sıfırlayın' }).getAttribute('href')).toBe(
+        '/tr/yonetim/parola-unuttum',
+      );
+    });
+
+    it('shows the note and no link without e-mail', async () => {
+      stub({ SMTP_HOST: '', SMTP_PORT: '', SMTP_USER: '', SMTP_PASSWORD: '', SMTP_FROM: '', DEMO_MODE: 'false' });
+      await renderPage('en');
+      expect(screen.queryByRole('link', { name: 'Reset it by e-mail' })).toBeNull();
+      expect(screen.getByText(/with a command on the server/)).toBeTruthy();
+    });
+
+    it('shows the note and no link in demo mode', async () => {
+      stub({ ...SMTP, DEMO_MODE: 'true' });
+      await renderPage('en');
+      expect(screen.queryByRole('link', { name: 'Reset it by e-mail' })).toBeNull();
+      expect(screen.getByText(/with a command on the server/)).toBeTruthy();
+    });
+  });
+
   it('answers an unknown language with not found', async () => {
     await expect(SignInPage(props('xx'))).rejects.toThrow('not-found');
   });
