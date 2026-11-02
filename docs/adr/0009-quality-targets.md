@@ -216,6 +216,7 @@ Rules:
     - The Vercel function region and the Neon region are the same (Frankfurt: `fra1` and `aws-eu-central-1`). The Neon region is chosen when the project is created; this is done in the manual step in phase 3; `regions` in `vercel.json`.
     - The database is reached with the pooled connection address.
     - The visit record is written after the response with `after()`.
+    - The beacon component that sends the visit is very small and does not import next-intl, to keep the home page weight low.
     - Public pages do not run session queries.
     - `unstable_cache` is not used: in Next.js 16 `use cache` replaced it, it needs Cache Components, and ADR 0001 keeps those off. The topic is revisited together with ADR 0001 in Next.js 17.
     - In phase 9, production is measured with PageSpeed Insights and the result is recorded.
