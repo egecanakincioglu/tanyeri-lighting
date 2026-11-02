@@ -18,9 +18,41 @@ describe('ids', () => {
 describe('categorySchema', () => {
   const valid = { key: 'indoor', name: pair('İç mekan', 'Indoor') };
 
-  it('accepts a category and trims the key', () => {
-    expect(categorySchema.parse(valid)).toEqual(valid);
+  const empty = { tr: '', en: '' };
+
+  it('accepts a category and trims the key, with empty page texts when none are given', () => {
+    expect(categorySchema.parse(valid)).toEqual({
+      ...valid,
+      seoTitle: empty,
+      seoDescription: empty,
+      h1: empty,
+      intro: empty,
+    });
     expect(categorySchema.parse({ ...valid, key: ' indoor ' }).key).toBe('indoor');
+  });
+
+  it('keeps the page texts of a category, trimmed', () => {
+    const texts = {
+      seoTitle: pair(' Başlık ', ' Title '),
+      seoDescription: pair('Açıklama', 'Description'),
+      h1: pair('Ana başlık', 'Heading'),
+      intro: pair('Giriş', 'Intro'),
+    };
+    expect(categorySchema.parse({ ...valid, ...texts }).seoTitle).toEqual(pair('Başlık', 'Title'));
+    expect(categorySchema.parse({ ...valid, ...texts }).intro).toEqual(pair('Giriş', 'Intro'));
+  });
+
+  it.each([
+    ['seoTitle', 70],
+    ['seoDescription', 320],
+    ['h1', 100],
+    ['intro', 600],
+  ] as const)('limits %s to %i characters and wants it in both languages or neither', (field, max) => {
+    expect(categorySchema.safeParse({ ...valid, [field]: pair('a'.repeat(max), 'b') }).success).toBe(true);
+    expect(categorySchema.safeParse({ ...valid, [field]: pair('a', 'b'.repeat(max + 1)) }).success).toBe(false);
+    expect(categorySchema.safeParse({ ...valid, [field]: pair('a', '') }).success).toBe(false);
+    expect(categorySchema.safeParse({ ...valid, [field]: pair('', 'b') }).success).toBe(false);
+    expect(categorySchema.safeParse({ ...valid, [field]: pair('  ', '') }).success).toBe(true);
   });
 
   it('allows at most 8 categories', () => {

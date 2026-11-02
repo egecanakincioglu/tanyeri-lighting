@@ -163,11 +163,19 @@ describe('applicationAreaSchema', () => {
     description: pair('Lobiler ve odalar.', 'Lobbies and rooms.'),
   };
 
-  it('accepts an area and trims the text', () => {
-    expect(applicationAreaSchema.parse(valid)).toEqual(valid);
+  it('accepts an area and trims the text, with no category when none is given', () => {
+    expect(applicationAreaSchema.parse(valid)).toEqual({ ...valid, categoryId: null });
     expect(applicationAreaSchema.parse({ ...valid, description: pair(' a ', ' b ') }).description).toEqual(
       pair('a', 'b'),
     );
+  });
+
+  it('takes the id of a category, or none, and nothing else', () => {
+    expect(applicationAreaSchema.parse({ ...valid, categoryId: 'category-1' }).categoryId).toBe('category-1');
+    expect(applicationAreaSchema.parse({ ...valid, categoryId: null }).categoryId).toBeNull();
+    for (const categoryId of ['', 'x'.repeat(65), 7]) {
+      expect(applicationAreaSchema.safeParse({ ...valid, categoryId }).success).toBe(false);
+    }
   });
 
   it.each(['title', 'description'] as const)('requires %s in both languages', (field) => {
