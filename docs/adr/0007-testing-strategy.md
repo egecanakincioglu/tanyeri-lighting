@@ -50,6 +50,8 @@ Rules:
 7. Visual check: every PR that touches the UI gets a browser check at desktop (1440) and mobile (390) widths, and the visual check section of the PR template is filled in.
 8. `pnpm test` locally and the `test` job in CI run the same commands: the same Postgres major version and the same migrations.
 
+Note (2026-11-02): Google Ads integration was dropped from the project on 2026-11-02.
+
 ## Consequences
 
 - Positive: the server layer (authorization, demo protection, rate limiting, upload validation, encryption) is tested against a real database. The code with the highest risk passes the strictest gate.
