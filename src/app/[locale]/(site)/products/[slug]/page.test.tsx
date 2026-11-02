@@ -56,20 +56,20 @@ describe('ProductPage', () => {
     [
       'tr',
       ['Ürün kodu', 'Kategori', 'Renk', 'Malzeme', 'Güç', 'Ölçüler'],
-      '/tr/urunler',
+      '/tr/urunler?category=indoor',
       '/tr/iletisim?product=spot-12w',
     ],
     [
       'en',
       ['Code', 'Category', 'Colour', 'Material', 'Power', 'Dimensions'],
-      '/en/products',
+      '/en/products?category=indoor',
       '/en/contact?product=spot-12w',
     ],
   ])('shows the name, photo, details and links in %s', async (locale, labels, list, contact) => {
     const l = locale.toUpperCase();
     const { container } = render(await ProductPage(props(locale)));
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(`Spot 12W ${l}`);
-    expect(screen.getByText(`Indoor ${l} · SP-12`)).toBeTruthy();
+    expect(container.querySelector('h1 + p')?.textContent).toBe(`Indoor ${l} · SP-12`);
     expect(screen.getByRole('img', { name: `Spot 12W ${l}` }).getAttribute('sizes')).toBe('240px');
     expect([...container.querySelectorAll('dt')].map((dt) => dt.textContent)).toEqual(labels);
     expect([...container.querySelectorAll('dd')].map((dd) => dd.textContent)).toEqual([
@@ -84,7 +84,25 @@ describe('ProductPage', () => {
       within(container)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href')),
-    ).toEqual([list, contact]);
+    ).toEqual([list, list, contact]);
+  });
+
+  it('links the category text and the back link to the category, and keeps the contact link out of the crawl', async () => {
+    render(await ProductPage(props('en')));
+    expect(screen.getByRole('link', { name: 'Indoor EN' }).getAttribute('href')).toBe('/en/products?category=indoor');
+    expect(screen.getByRole('link', { name: /Back to Indoor EN/ }).getAttribute('href')).toBe(
+      '/en/products?category=indoor',
+    );
+    expect(screen.getByRole('link', { name: 'Request information' }).getAttribute('rel')).toBe('nofollow');
+  });
+
+  it('goes back to the whole list when the category is unknown', async () => {
+    content.categories.mockResolvedValue([]);
+    const { container } = render(await ProductPage(props('en')));
+    expect(screen.getByRole('link', { name: /All products/ }).getAttribute('href')).toBe('/en/products');
+    expect(container.querySelectorAll('p a')).toHaveLength(0);
+    const data = JSON.parse(container.querySelector('script[type="application/ld+json"]')?.textContent ?? '');
+    expect(data.itemListElement).toHaveLength(3);
   });
 
   it('leaves out a detail that has no value', async () => {
@@ -107,11 +125,23 @@ describe('ProductPage', () => {
   });
 
   it.each([
-    ['tr', 'Anasayfa', 'Ürünler', 'https://example.test/tr/urunler/spot-12w'],
-    ['en', 'Home', 'Products', 'https://example.test/en/products/spot-12w'],
+    [
+      'tr',
+      'Anasayfa',
+      'Ürünler',
+      'https://example.test/tr/urunler/spot-12w',
+      'https://example.test/tr/urunler?category=indoor',
+    ],
+    [
+      'en',
+      'Home',
+      'Products',
+      'https://example.test/en/products/spot-12w',
+      'https://example.test/en/products?category=indoor',
+    ],
   ])(
     'describes the trail to the product as structured data in %s, without a price',
-    async (locale, home, list, url) => {
+    async (locale, home, list, url, categoryUrl) => {
       vi.stubEnv('SITE_URL', 'https://example.test');
       const { container } = render(await ProductPage(props(locale)));
       const scripts = container.querySelectorAll('script[type="application/ld+json"]');
@@ -121,9 +151,11 @@ describe('ProductPage', () => {
       expect(data.itemListElement.map((item: { name: string }) => item.name)).toEqual([
         home,
         list,
+        `Indoor ${locale.toUpperCase()}`,
         `Spot 12W ${locale.toUpperCase()}`,
       ]);
-      expect(data.itemListElement[2].item).toBe(url);
+      expect(data.itemListElement[2].item).toBe(categoryUrl);
+      expect(data.itemListElement[3].item).toBe(url);
       expect(JSON.stringify(data)).not.toMatch(/offers|price/i);
       vi.unstubAllEnvs();
     },
@@ -151,11 +183,36 @@ describe('ProductPage', () => {
   });
 
   it.each([
-    ['tr', 'Spot 12W TR, Indoor TR. Ürün kodu: SP-12.'],
-    ['en', 'Spot 12W EN, Indoor EN. Product code: SP-12.'],
-  ])('describes the product in %s', async (locale, description) => {
+    [
+      'tr',
+      'Spot 12W TR: 12W, 10 x 10 cm, White TR, Aluminium TR. Ürün kodu SP-12; teknik bilgi talep edin. Demo ürün.',
+    ],
+    [
+      'en',
+      'Spot 12W EN: 12W, 10 x 10 cm, White EN, Aluminium EN. Product code SP-12; ask for technical details. Demo product.',
+    ],
+  ])('titles the product with its category and describes it from its details in %s', async (locale, description) => {
+    const l = locale.toUpperCase();
     const metadata = await generateMetadata(props(locale));
-    expect(metadata).toMatchObject({ title: `Spot 12W ${locale.toUpperCase()}`, description });
+    expect(metadata).toMatchObject({ title: `Spot 12W ${l} | Indoor ${l}`, description });
+    expect(metadata.openGraph).toMatchObject({ type: 'website', locale: locale === 'tr' ? 'tr_TR' : 'en_US' });
+  });
+
+  it('leaves out the details that are empty, and the category when it is unknown', async () => {
+    content.categories.mockResolvedValue([]);
+    content.product.mockResolvedValue({
+      product: { ...product, power: '', dimensions: '', color: { tr: '', en: '' }, material: pair('Aluminium') },
+    });
+    expect(await generateMetadata(props('en'))).toMatchObject({
+      title: 'Spot 12W EN',
+      description: 'Spot 12W EN: Aluminium EN. Product code SP-12; ask for technical details. Demo product.',
+    });
+    content.product.mockResolvedValue({
+      product: { ...product, power: '', dimensions: '', color: { tr: '', en: '' }, material: { tr: '', en: '' } },
+    });
+    expect((await generateMetadata(props('en'))).description).toBe(
+      'Spot 12W EN. Product code SP-12; ask for technical details. Demo product.',
+    );
   });
 
   it('has no metadata for a missing product, a redirect or an unknown language', async () => {

@@ -22,6 +22,11 @@ describe('toMetadata', () => {
     expect(toMetadata(saved, 'en', 'Privacy Policy')).toEqual({ title: 'Privacy Policy', description: 'Write to us' });
   });
 
+  it('falls back to the name the page gives when no title is saved', () => {
+    expect(toMetadata(null, 'en', undefined, 'Contact')).toEqual({ title: 'Contact' });
+    expect(toMetadata(saved, 'en', undefined, 'Other')).toMatchObject({ title: 'Contact' });
+  });
+
   it('skips empty texts', () => {
     const empty: PageMetadata = { ...saved, title: { tr: '', en: '' }, description: { tr: '', en: '' } };
     expect(toMetadata(empty, 'tr')).toEqual({});

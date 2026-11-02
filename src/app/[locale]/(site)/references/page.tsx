@@ -8,7 +8,8 @@ import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
 import { SiteImage } from '../../../../components/site-image.tsx';
 import { routing } from '../../../../i18n/routing.ts';
-import { pageAlternates } from '../../../../lib/seo.ts';
+import { toMetadata } from '../../../../lib/page-metadata.ts';
+import { pageSeo } from '../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listReferences } from '../../../../server/content/references.ts';
@@ -26,12 +27,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/referenc
     getTranslations({ locale, namespace: 'Header' }),
     getPageMetadata('references'),
   ]);
-  const description = page?.description[locale];
-  return {
-    title: t('references'),
-    ...(description ? { description } : {}),
-    alternates: pageAlternates(locale, '/references'),
-  };
+  return { ...toMetadata(page, locale, undefined, t('references')), ...pageSeo(locale, '/references') };
 }
 
 export default async function ReferencesPage({ params }: PageProps<'/[locale]/references'>) {

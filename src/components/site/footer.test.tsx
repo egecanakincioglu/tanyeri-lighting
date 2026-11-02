@@ -92,6 +92,7 @@ describe('FooterContent', () => {
     expect(within(footer).getByRole('link', { name: 'Yönetici girişi' }).getAttribute('href')).toBe(
       '/tr/yonetim/giris',
     );
+    expect(within(footer).getByRole('link', { name: 'Yönetici girişi' }).getAttribute('rel')).toBe('nofollow');
     expect(within(footer).getByText('© 2031 Tanyeri Lighting. Tüm hakları saklıdır.')).toBeTruthy();
     const nav = within(footer).getByRole('navigation', { name: 'Site' });
     expect(within(nav).getByRole('link', { name: 'Kurumsal' }).getAttribute('href')).toBe('/tr/hakkimizda');

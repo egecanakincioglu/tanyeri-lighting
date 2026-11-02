@@ -9,12 +9,21 @@ import { JsonLd } from '../../../../../components/json-ld.tsx';
 import { SiteImage } from '../../../../../components/site-image.tsx';
 import { getPathname } from '../../../../../i18n/navigation.ts';
 import { routing } from '../../../../../i18n/routing.ts';
-import { pageAlternates } from '../../../../../lib/seo.ts';
+import type { Product } from '../../../../../server/content/schemas.ts';
+import { pageSeo } from '../../../../../lib/seo.ts';
 import { breadcrumbData } from '../../../../../lib/structured-data.ts';
 import { listCategories } from '../../../../../server/content/categories.ts';
 import { getProductBySlug } from '../../../../../server/content/products.ts';
 
 type Locale = (typeof routing.locales)[number];
+
+const categoryHref = (key: string) => ({ pathname: '/products' as const, query: { category: key } });
+
+// Power, size, colour and material in one line; a detail that is not filled in is left out.
+const specsOf = (product: Product, locale: Locale) =>
+  [product.power, product.dimensions, product.color[locale], product.material[locale]]
+    .filter((value) => value !== '')
+    .join(', ');
 
 // The demo photos are 480 px wide, so the image is shown at most 240 px wide: sharp on 2x screens and not blown up.
 const IMAGE_SIZES = '240px';
@@ -45,10 +54,11 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/products
   if (!found || 'redirectTo' in found) return {};
   const category = await categoryName(found.product.categoryKey, locale);
   const name = found.product.name[locale];
+  const specs = specsOf(found.product, locale);
   return {
-    title: name,
-    description: t('description', { name, category, code: found.product.code }),
-    alternates: pageAlternates(locale, { pathname: '/products/[slug]', params: { slug: found.product.slug } }),
+    title: category ? `${name} | ${category}` : name,
+    description: t(specs ? 'description' : 'descriptionPlain', { name, specs, code: found.product.code }),
+    ...pageSeo(locale, { pathname: '/products/[slug]', params: { slug: found.product.slug } }),
   };
 }
 
@@ -66,6 +76,15 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
   const { product, category } = loaded;
   const name = product.name[locale];
 
+  const categoryLink = (
+    <Link
+      href={getPathname({ locale, href: categoryHref(product.categoryKey) })}
+      prefetch={false}
+      className="underline underline-offset-4 hover:text-accent-text"
+    >
+      {category}
+    </Link>
+  );
   const rows = [
     [t('code'), product.code],
     [t('category'), category],
@@ -81,19 +100,20 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
         data={breadcrumbData(locale, [
           { name: header('home'), href: '/' },
           { name: header('products'), href: '/products' },
+          ...(category ? [{ name: category, href: categoryHref(product.categoryKey) }] : []),
           { name, href: { pathname: '/products/[slug]', params: { slug: product.slug } } },
         ])}
       />
       <Container>
         <Link
-          href={getPathname({ locale, href: '/products' })}
+          href={getPathname({ locale, href: category ? categoryHref(product.categoryKey) : '/products' })}
           prefetch={false}
           className="group/back mb-2 inline-flex min-h-touch items-center gap-1.5 font-semibold text-accent-text hover:underline hover:underline-offset-4"
         >
           <span aria-hidden="true" className="transition-transform duration-200 group-hover/back:-translate-x-0.75">
             ←
           </span>
-          {t('back')}
+          {category ? t('backToCategory', { category }) : t('back')}
         </Link>
 
         <Card>
@@ -102,7 +122,15 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
               <h1 className="text-[length:clamp(1.5rem,2.2vw,2rem)] leading-[1.2] font-bold tracking-tight text-ink">
                 {name}
               </h1>
-              <p className="mt-1 text-muted">{category ? `${category} · ${product.code}` : product.code}</p>
+              <p className="mt-1 text-muted">
+                {category ? (
+                  <>
+                    {categoryLink} · {product.code}
+                  </>
+                ) : (
+                  product.code
+                )}
+              </p>
             </div>
             <div className="md:col-start-1 md:row-span-3 md:row-start-1">
               <span className="relative mx-auto block aspect-square w-60 max-w-full overflow-hidden rounded-md">
@@ -127,6 +155,7 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
               <Link
                 href={getPathname({ locale, href: { pathname: '/contact', query: { product: product.slug } } })}
                 prefetch={false}
+                rel="nofollow"
                 className="inline-flex min-h-touch items-center justify-center rounded-md bg-accent px-6 font-semibold text-on-accent transition-colors duration-300 hover:bg-accent-hover"
               >
                 {t('request')}

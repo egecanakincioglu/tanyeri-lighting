@@ -154,6 +154,7 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
               <Link
                 href="/dashboard/sign-in"
                 prefetch={false}
+                rel="nofollow"
                 className="inline-flex min-h-touch items-center hover:text-ink hover:underline"
               >
                 {t('adminSignIn')}

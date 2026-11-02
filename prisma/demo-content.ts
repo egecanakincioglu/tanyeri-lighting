@@ -47,71 +47,87 @@ const socialLinks = [
   { platform: 'youtube', label: pair('YouTube', 'YouTube'), url: 'https://www.example.com/tanyeri/youtube' },
 ].map((link) => socialLinkSchema.parse(link));
 
+// The site adds " | Tanyeri Lighting" to every title but the home one, which is shown as saved.
 const pageMetadata: Record<PageKey, ReturnType<typeof pair>[]> = {
   home: [
-    pair('Tanyeri Lighting - Aydınlatma Çözümleri', 'Tanyeri Lighting - Lighting Solutions'),
+    pair('LED ve Mimari Aydınlatma Çözümleri | Tanyeri Lighting', 'LED and Architectural Lighting | Tanyeri Lighting'),
     pair(
-      'Konuttan endüstriyel tesise, enerji verimli ve estetik aydınlatma ürünleri ve uygulamaları. Bu site bir demodur.',
-      'Energy-efficient and well-designed lighting products and installations, from homes to industrial sites. This site is a demo.',
+      'Konuttan endüstriyel tesise gömme spot, sarkıt, lineer, ray spot ve dış mekan armatürleri; aydınlatma projesi ve uygulama. Kurgusal demo marka.',
+      'Recessed spots, pendants, linear, track and outdoor luminaires, with lighting design and installation from homes to industrial sites. Fictional demo brand.',
     ),
   ],
   products: [
-    pair('Ürünler', 'Products'),
+    pair('Aydınlatma Armatürleri ve LED Ürünler', 'Lighting Fixtures and LED Luminaires'),
     pair(
-      'Gömme spot, sarkıt, panel, lineer, ray spot ve dış mekan armatürleri. Örnek ürün listesi.',
-      'Recessed spots, pendants, panels, linear, track spots and outdoor luminaires. Sample product list.',
+      'Gömme spot, sarkıt, LED panel, lineer, ray spot ve dış mekan armatürleri. Güç, ölçü, renk ve malzeme bilgileriyle 30 model inceleyin. Demo ürünler.',
+      'Browse 30 recessed, pendant, LED panel, linear, track and outdoor lighting fixtures, each with power, size, colour and material details. Demo products.',
     ),
   ],
   catalogs: [
-    pair('Kataloglar', 'Catalogs'),
-    pair('Örnek PDF kataloglarını indirin.', 'Download the sample PDF catalogs.'),
+    pair('Aydınlatma Kataloğu PDF İndir', 'Lighting Catalogs (PDF Download)'),
+    pair(
+      'Genel, dekoratif ve dış mekan aydınlatma kataloglarını PDF olarak indirin veya sitede sayfa sayfa görüntüleyin. Örnek kataloglar, kurgusal marka.',
+      'Download the general, decorative and outdoor lighting catalogs as PDF files or read them page by page on the site. Sample catalogs, fictional brand.',
+    ),
   ],
   services: [
-    pair('Hizmetler', 'Services'),
+    pair('Aydınlatma Projesi, Tasarım ve Uygulama', 'Lighting Design and Installation'),
     pair(
-      'Aydınlatma tasarımı, uygulama, yenileme ve teknik destek hizmetleri.',
-      'Lighting design, installation, retrofit and technical support services.',
+      'Aydınlatma projesi, aydınlık düzeyi hesabı, anahtar teslim uygulama, LED dönüşüm ve bakım hizmetlerinin kapsamı. Kurgusal demo marka, örnek hizmetler.',
+      'Lighting design with illuminance calculation, turnkey installation, LED retrofit and maintenance: what each service covers. Fictional demo brand.',
     ),
   ],
   projects: [
-    pair('Projeler', 'Projects'),
+    pair('Aydınlatma Projeleri: Önce ve Sonra', 'Lighting Projects: Before and After'),
     pair(
-      'Önce ve sonra görselleriyle tamamlanmış örnek aydınlatma projeleri.',
-      'Sample lighting projects with before and after pictures.',
+      'Otel lobisi, üretim salonu ve müstakil ev dış aydınlatması: önce ve sonra görselleriyle yapılan işler ve sonuçlar. Örnek projeler, kurgusal marka.',
+      'A hotel lobby, a production hall and a detached house exterior: what changed, shown with before and after photos. Sample projects, fictional brand.',
     ),
   ],
   references: [
-    pair('Referanslar', 'References'),
-    pair('Birlikte çalıştığımız kurumlar (kurgusal isimler).', 'Organisations we work with (fictional names).'),
+    pair('Aydınlatma Referansları (Örnek İşler)', 'Lighting References (Sample Work)'),
+    pair(
+      'Otel, konut, ofis, depo ve peyzaj için yapılan aydınlatma işlerinden örnekler. Firma adları ve işler kurgusaldır; bu site bir demodur.',
+      'Sample lighting work for hotels, housing, offices, warehouses and parks. The company names and the work are fictional; this site is a demo.',
+    ),
   ],
   about: [
-    pair('Hakkımızda', 'About us'),
     pair(
-      'Tanyeri Lighting demo şirketinin hikâyesi, yaklaşımı ve vizyonu.',
-      'The story, approach and vision of the Tanyeri Lighting demo company.',
+      'Tanyeri Lighting Hakkında: Kurgusal Aydınlatma Markası',
+      'About Tanyeri Lighting, a Fictional Lighting Brand',
+    ),
+    pair(
+      'Tanyeri Lighting, konut, ofis, otel, fabrika ve açık alanlar için aydınlatma ürünleri ve projeleri anlatan kurgusal bir demo markadır. Yaklaşımı burada.',
+      'Tanyeri Lighting is a fictional demo brand showing lighting products and projects for homes, offices, hotels, factories and open spaces, and its approach.',
     ),
   ],
   vision: [
-    pair('Vizyonumuz', 'Our vision'),
+    pair('Vizyonumuz: Enerji Verimli Aydınlatma', 'Our Vision: Energy-Efficient Lighting'),
     pair(
-      'Tanyeri Lighting demo şirketinin aydınlatma alanındaki hedefleri ve ilkeleri.',
-      'The goals and principles of the Tanyeri Lighting demo company in lighting.',
+      'Yaşanan ve çalışılan her yerde doğru, verimli ve estetik ışık: Tanyeri Lighting demo markasının aydınlatma ve enerji tasarrufu konusundaki ilkeleri.',
+      'The right, efficient and well-designed light wherever people live and work: the lighting and energy-saving principles of the Tanyeri Lighting demo brand.',
     ),
   ],
   contact: [
-    pair('İletişim', 'Contact'),
+    pair('İletişim ve Proje Talebi', 'Contact and Project Enquiries'),
     pair(
-      'Adres, telefon ve e-posta bilgileri ile iletişim formu. Bilgiler kurgusaldır.',
-      'Address, phone and email details with a contact form. The details are fictional.',
+      'Ürün bilgisi veya aydınlatma projeniz için formu kullanın. Adres, telefon ve e-posta kurgusaldır; demo sitede mesajlar gerçek bir kişiye ulaşmaz.',
+      'Use the form for product details or a lighting project. The address, phone and email are fictional; on the demo site messages do not reach a person.',
     ),
   ],
   privacy: [
     pair('Gizlilik Politikası', 'Privacy Policy'),
-    pair('Demo sitenin gizlilik politikası örneği.', 'A sample privacy policy for the demo site.'),
+    pair(
+      'Tanyeri Lighting demo sitesinin gizlilik politikası örneği: iletişim formunda hangi verilerin istendiği ve nasıl kullanıldığı. Gerçek bir şirket metni değildir.',
+      'A sample privacy policy for the Tanyeri Lighting demo site: what the contact form asks for and how it is used. Not the text of a real company.',
+    ),
   ],
   terms: [
     pair('Kullanım Koşulları', 'Terms of Use'),
-    pair('Demo sitenin kullanım koşulları örneği.', 'Sample terms of use for the demo site.'),
+    pair(
+      'Tanyeri Lighting demo sitesinin kullanım koşulları örneği: ürünler, adresler ve isimler kurgusaldır, yapılan değişiklikler kaydedilmez.',
+      'Sample terms of use for the Tanyeri Lighting demo site: the products, addresses and names are fictional, and changes made here are not saved.',
+    ),
   ],
 };
 
@@ -534,7 +550,7 @@ const promoBoards = [
 
 const homeBanner = homeBannerSchema.parse({
   imageUrl: img('banner.webp'),
-  title: pair('Her mekâna doğru ışık', 'The right light for every space'),
+  title: pair('Her mekâna doğru LED aydınlatma', 'The right LED light for every space'),
   description: pair(
     'Konuttan endüstriyel tesise, enerji verimli ve estetik aydınlatma çözümleri tasarlıyor, üretiyor ve uyguluyoruz.',
     'From homes to industrial sites, we design, make and install energy-efficient, well-designed lighting.',
@@ -593,8 +609,8 @@ const services = [
     imageUrl: img('service-tasarim.webp'),
     title: pair('Aydınlatma Tasarımı', 'Lighting Design'),
     description: pair(
-      'Mekânı ve kullanımı inceleyip **ışık planını** çiziyoruz.\n\n- Aydınlık düzeyi hesabı\n- Armatür seçimi ve yerleşimi\n- Kontrol ve dimleme önerisi',
-      'We study the space and how it is used, then draw the **lighting plan**.\n\n- Illuminance calculation\n- Luminaire choice and layout\n- Control and dimming proposal',
+      'Mekânı ve kullanımı inceleyip **ışık planını** çiziyoruz.\n\n- Aydınlık düzeyi hesabı\n- [Armatür](/tr/urunler) seçimi ve yerleşimi\n- Kontrol ve dimleme önerisi',
+      'We study the space and how it is used, then draw the **lighting plan**.\n\n- Illuminance calculation\n- [Luminaire](/en/products) choice and layout\n- Control and dimming proposal',
     ),
     note: pair('İlk keşif görüşmesi ücretsizdir (demo).', 'The first survey visit is free (demo).'),
   },
@@ -602,8 +618,8 @@ const services = [
     imageUrl: img('service-uygulama.webp'),
     title: pair('Proje ve Uygulama', 'Installation'),
     description: pair(
-      'Onaylanan planı **anahtar teslim** uyguluyoruz.\n\n- Montaj ve kablolama\n- Devreye alma ve ayar\n- Teslim sonrası ölçüm',
-      'We install the approved plan **turnkey**.\n\n- Fitting and wiring\n- Commissioning and adjustment\n- Measurements after handover',
+      'Onaylanan planı **anahtar teslim** uyguluyoruz; tamamlanan işler [projeler](/tr/projeler) sayfasında.\n\n- Montaj ve kablolama\n- Devreye alma ve ayar\n- Teslim sonrası ölçüm',
+      'We install the approved plan **turnkey**; finished work is on the [projects](/en/projects) page.\n\n- Fitting and wiring\n- Commissioning and adjustment\n- Measurements after handover',
     ),
     note: pair('', ''),
   },
@@ -620,8 +636,8 @@ const services = [
     imageUrl: img('area-ofis.webp'),
     title: pair('Danışmanlık ve Bakım', 'Consulting and Maintenance'),
     description: pair(
-      'Tamamlanan işler için **bakım ve teknik destek** veriyoruz.\n\n- Periyodik kontrol\n- Yedek parça ve sürücü değişimi\n- Telefonla destek',
-      'We give **maintenance and technical support** for finished work.\n\n- Periodic checks\n- Spare parts and driver replacement\n- Support by phone',
+      'Tamamlanan işler için **bakım ve teknik destek** veriyoruz.\n\n- Periyodik kontrol\n- Yedek parça ve sürücü değişimi\n- Telefonla destek ([iletişim](/tr/iletisim))',
+      'We give **maintenance and technical support** for finished work.\n\n- Periodic checks\n- Spare parts and driver replacement\n- Support by phone ([contact](/en/contact))',
     ),
     note: pair('Destek saatleri çalışma saatleriyle aynıdır.', 'Support hours are the same as working hours.'),
   },
@@ -651,24 +667,24 @@ const projects = [
     files: 'project-konut',
     title: pair('Orman Evi Dış Aydınlatma', 'Forest House Exterior Lighting'),
     description: pair(
-      'Müstakil bir evin cephesi, girişi ve bahçe yolu yeniden aydınlatıldı.\n\n- **Cephe:** sıcak beyaz duvar yıkama\n- **Yol:** düşük seviyeli bollard armatürler',
-      'The facade, entrance and garden path of a detached house were relit.\n\n- **Facade:** warm white wall washing\n- **Path:** low-level bollard luminaires',
+      'Müstakil bir evin cephesi, girişi ve bahçe yolu yeniden aydınlatıldı.\n\n- **Cephe:** sıcak beyaz duvar yıkama\n- **Yol:** düşük seviyeli [bollard armatürler](/tr/urunler?category=dis-mekan)',
+      'The facade, entrance and garden path of a detached house were relit.\n\n- **Facade:** warm white wall washing\n- **Path:** low-level [bollard luminaires](/en/products?category=dis-mekan)',
     ),
   },
   {
     files: 'project-otel',
     title: pair('Otel Lobisi Yenileme', 'Hotel Lobby Refit'),
     description: pair(
-      'Lobi tavanındaki eski armatürler **LED** ile değiştirildi ve tavan hattına gizli ışık eklendi.\n\n- Enerji tüketimi yarıya indi (örnek değer)\n- Daha sıcak ve dengeli ışık',
-      'The old ceiling luminaires of the lobby were replaced with **LED** and a hidden light line was added.\n\n- Energy use fell by half (sample figure)\n- Warmer, more even light',
+      'Lobi tavanındaki eski armatürler **LED** ile değiştirildi ve tavan hattına gizli [lineer](/tr/urunler?category=lineer) ışık eklendi.\n\n- Enerji tüketimi yarıya indi (örnek değer)\n- Daha sıcak ve dengeli ışık',
+      'The old ceiling luminaires of the lobby were replaced with **LED** and a hidden [linear](/en/products?category=lineer) light line was added.\n\n- Energy use fell by half (sample figure)\n- Warmer, more even light',
     ),
   },
   {
     files: 'project-fabrika',
     title: pair('Üretim Salonu Aydınlatması', 'Production Hall Lighting'),
     description: pair(
-      'Yüksek tavanlı üretim salonuna **yüksek verimli** armatürler yerleştirildi.\n\n- Çalışma düzleminde eşit aydınlık\n- Daha az bakım gerektiren sürücüler',
-      'Highly efficient luminaires were fitted in a high-ceiling production hall.\n\n- Even light on the work plane\n- Drivers that need less maintenance',
+      'Yüksek tavanlı üretim salonuna **yüksek verimli** [armatürler](/tr/urunler) yerleştirildi.\n\n- Çalışma düzleminde eşit aydınlık\n- Daha az bakım gerektiren sürücüler',
+      'Highly efficient [luminaires](/en/products) were fitted in a high-ceiling production hall.\n\n- Even light on the work plane\n- Drivers that need less maintenance',
     ),
   },
 ].map(({ files, title, description }) =>

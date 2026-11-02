@@ -43,11 +43,14 @@ describe('RootLayout', () => {
     });
   });
 
-  it.each(['tr', 'en'])('returns the localized document title for %s', async (locale) => {
-    await expect(generateMetadata(metadataProps(locale))).resolves.toMatchObject({
-      title: 'Tanyeri',
-    });
-  });
+  it.each(['tr', 'en'])(
+    'returns the site title and the template that adds the brand to page titles for %s',
+    async (locale) => {
+      await expect(generateMetadata(metadataProps(locale))).resolves.toMatchObject({
+        title: { default: 'Tanyeri Lighting', template: '%s | Tanyeri Lighting' },
+      });
+    },
+  );
 
   it('sets the base address that relative canonical links are resolved against', async () => {
     vi.stubEnv('SITE_URL', 'https://example.test/ignored');
