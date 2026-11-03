@@ -2,7 +2,7 @@ import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { PostDate } from '../../../../../components/blog/post-date.tsx';
 import { Container } from '../../../../../components/container.tsx';
 import { JsonLd } from '../../../../../components/json-ld.tsx';
@@ -13,7 +13,11 @@ import { getPathname } from '../../../../../i18n/navigation.ts';
 import { routing } from '../../../../../i18n/routing.ts';
 import { pageSeo } from '../../../../../lib/seo.ts';
 import { articleData, breadcrumbData } from '../../../../../lib/structured-data.ts';
-import { getPublishedPostBySlug, listOtherPosts } from '../../../../../server/content/blog.ts';
+import {
+  getPublishedPostBySlug,
+  getPublishedPostRedirect,
+  listOtherPosts,
+} from '../../../../../server/content/blog.ts';
 
 const postHref = (slug: string) => ({ pathname: '/blog/[slug]' as const, params: { slug } });
 
@@ -51,7 +55,11 @@ export default async function BlogPostPage({ params }: PageProps<'/[locale]/blog
     getTranslations({ locale, namespace: 'Header' }),
     getPublishedPostBySlug(slug),
   ]);
-  if (!post?.publishedAt) notFound();
+  if (!post?.publishedAt) {
+    const current = await getPublishedPostRedirect(slug);
+    if (current) permanentRedirect(getPathname({ locale, href: postHref(current) }));
+    notFound();
+  }
   const published = post.publishedAt;
   const others = await listOtherPosts(post.slug, 2);
   const title = post.title[locale];

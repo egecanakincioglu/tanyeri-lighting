@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../../../test/axe.ts';
 import BlogPostPage, { generateMetadata } from './page.tsx';
 
-const content = vi.hoisted(() => ({ post: vi.fn(), others: vi.fn() }));
+const content = vi.hoisted(() => ({ post: vi.fn(), others: vi.fn(), redirect: vi.fn() }));
 
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
@@ -16,6 +16,7 @@ vi.mock('next-intl/server', async () => ({
 }));
 vi.mock('../../../../../server/content/blog.ts', () => ({
   getPublishedPostBySlug: content.post,
+  getPublishedPostRedirect: content.redirect,
   listOtherPosts: content.others,
 }));
 
@@ -55,6 +56,8 @@ describe('BlogPostPage', () => {
     vi.stubEnv('SITE_URL', 'https://example.test');
     content.post.mockReset();
     content.post.mockResolvedValue(post);
+    content.redirect.mockReset();
+    content.redirect.mockResolvedValue(null);
     content.others.mockReset();
     content.others.mockResolvedValue([other(1), other(2)]);
   });
@@ -112,6 +115,18 @@ describe('BlogPostPage', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Lineer aydınlatma nedir?');
     expect(screen.getByText('Yayın tarihi: 1 Mart 2026')).toBeTruthy();
     expect(screen.getByRole('img', { name: 'Askılı lineer armatür' })).toBeTruthy();
+  });
+
+  it('answers an old slug with a permanent redirect to the current address', async () => {
+    content.post.mockResolvedValue(null);
+    content.redirect.mockResolvedValue('new-slug');
+    await expect(BlogPostPage(props('tr', 'old-slug'))).rejects.toMatchObject({
+      digest: 'NEXT_REDIRECT;replace;/tr/blog/new-slug;308;',
+    });
+    await expect(BlogPostPage(props('en', 'old-slug'))).rejects.toMatchObject({
+      digest: 'NEXT_REDIRECT;replace;/en/blog/new-slug;308;',
+    });
+    expect(content.redirect).toHaveBeenCalledWith('old-slug');
   });
 
   it('answers a slug that does not exist, a draft and an unknown language with not found', async () => {

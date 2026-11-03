@@ -25,6 +25,7 @@ async function findApplicationArea(id: string) {
 function areaInput(formData: FormData) {
   return {
     imageUrl: formText(formData, 'imageUrl'),
+    imageAlt: formPair(formData, 'imageAlt'),
     title: formPair(formData, 'title'),
     description: formPair(formData, 'description'),
     categoryId: formText(formData, 'categoryId') || null,

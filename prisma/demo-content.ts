@@ -27,6 +27,79 @@ import {
 
 const pair = (tr: string, en: string) => ({ tr, en });
 const img = (file: string) => `/demo/${file}`;
+
+// What each demo picture shows, written from the picture itself. A picture used on more than one page has one
+// description. The wording differs from the card titles on purpose, so a screen reader does not read the same words twice.
+const hall = pair(
+  'Mavi çelik çatı kafesi ve tavandan sarkan armatürleriyle boş bir üretim salonu.',
+  'An empty hall with a blue steel roof frame and luminaires hanging from the ceiling.',
+);
+const imageDescriptions: Record<string, ReturnType<typeof pair>> = {
+  'area-konut.webp': pair(
+    'Akşam ışığında, tavana ve rafın arkasına gizlenmiş şeritlerle aydınlatılmış bir oturma odası.',
+    'A living room in the evening, lit by strips hidden in the ceiling and behind a shelf.',
+  ),
+  'area-ofis.webp': pair(
+    'Geniş bir atriyumun tavanında altıgen biçimli, beyaz ışık veren büyük armatürler.',
+    'Large hexagon-shaped luminaires giving white light on the ceiling of a wide atrium.',
+  ),
+  'area-endustriyel.webp': hall,
+  'service-uygulama.webp': hall,
+  'area-otel.webp': pair(
+    'Ahşap çıtalı kavisli bir duvarın önünde karşılama bankosu olan geniş ve aydınlık bir lobi.',
+    'A wide, bright lobby with a reception desk in front of a curved wall of wooden slats.',
+  ),
+  'area-peyzaj.webp': pair(
+    'Geceleyin taş bir bahçe yolunu ve ağaçları aydınlatan alçak lambalar.',
+    'Low lamps lighting a stone garden path and the trees around it at night.',
+  ),
+  'area-cephe.webp': pair(
+    'Çam ağaçlarının arasında, pencereleri ve duvar lambalarıyla geceleyin ışıldayan beyaz bir ev.',
+    'A white house among pine trees at night, glowing from its windows and wall lamps.',
+  ),
+  'service-tasarim.webp': pair(
+    'Siyah ve altın tonlarında, ışık şeritleriyle aydınlatılmış bir yatak odası ve giyinme odası.',
+    'A bedroom and walk-in wardrobe in black and gold, lit by light strips.',
+  ),
+  'service-yenileme.webp': pair(
+    'Sarı kapılı ve ahşap garaj kapılı, duvar lambalarıyla aydınlatılmış beyaz bir ev; gökyüzü gece mavisi.',
+    'A white house with a yellow door and wooden garage doors, lit by wall lamps under a night-blue sky.',
+  ),
+  'banner.webp': pair(
+    'Koyu mavi gece gökyüzünün altında, duvar lambalarıyla aydınlatılmış büyük bir ev ve garaj.',
+    'A large house and garage lit by wall lamps under a deep blue night sky.',
+  ),
+  'promo-dekoratif.webp': pair(
+    'Karanlıkta asılı duran, sıcak ışık veren çok sayıda ampul.',
+    'Many bulbs hanging in the dark, giving off warm light.',
+  ),
+  'promo-yasam.webp': pair(
+    'Mavi ve pembe ışıkla aydınlanmış, televizyonlu ve rafları kitap dolu bir oturma odası.',
+    'A living room with a television and full bookshelves, lit in blue and pink.',
+  ),
+  'promo-dis-mekan.webp': pair(
+    'Geceleyin bahçe yolu, çim ve terası küçük lambalarla aydınlatılmış modern bir ev.',
+    'A modern house at night, with its garden path, lawn and terrace lit by small lamps.',
+  ),
+  'catalog-2026-cover.webp': pair(
+    'Üstte şirket logosu, altta geceleyin aydınlatılmış bir evin fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of a lit house at night.',
+  ),
+  'catalog-dekoratif-cover.webp': pair(
+    'Üstte şirket logosu, altta parlayan sarkıt ampullerin fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of glowing hanging bulbs.',
+  ),
+  'catalog-dis-mekan-cover.webp': pair(
+    'Üstte şirket logosu, altta geceleyin aydınlatılmış bir bahçe ve terasın fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of a lit garden and terrace at night.',
+  ),
+};
+function describeImage(file: string) {
+  const description = imageDescriptions[file];
+  if (!description) throw new Error(`No description for ${file}`);
+  return description;
+}
+
 const pdfSize = (file: string) => statSync(new URL(`../public/demo/${file}`, import.meta.url)).size;
 
 const settings = siteSettingsSchema.parse({
@@ -304,6 +377,253 @@ type Row = [
   image: string,
   color: keyof typeof colors,
 ];
+
+// Fictional technical values and a short description for each demo product, by slug. Light output follows the power
+// (about 85-110 lm per watt) and the protection class follows where the fixture is used.
+type Details = [flux: string, temperature: string, cri: string, ip: string, tr: string, en: string];
+
+const productDetails: Record<string, Details> = {
+  'cerceveli-gomme-spot-7w': [
+    '630 lm',
+    '3000 K',
+    'Ra 80',
+    'IP20',
+    '7 W gücündeki bu çerçeveli gömme spot, tavana sabit çerçevesiyle düzgün bir görünüm verir. 630 lm ışık akısı ve sıcak beyaz ışığıyla ofis, mağaza ve evlerde genel aydınlatma için uygundur.',
+    'This 7 W framed recessed spot sits behind a fixed trim for a clean ceiling line. It gives 630 lm of warm white light, enough for general lighting in offices, stores and homes.',
+  ],
+  'cob-gomme-spot-15w': [
+    '1500 lm',
+    '4000 K',
+    'Ra 90',
+    'IP20',
+    'COB LED kaynaklı 15 W gömme spot, tek bir parlak ışık noktası oluşturur. 1500 lm ışık akısı ve Ra 90 renksel geri verimiyle ürünlerin renklerini doğal gösterir; mağaza ve showroom için uygundur.',
+    'This 15 W recessed spot uses a COB LED, so the light comes from one bright point. With 1500 lm and a CRI of Ra 90 it shows colours true, which suits stores and showrooms.',
+  ],
+  'slim-gomme-spot-12w': [
+    '1080 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '25 mm yüksekliğiyle ince tasarlanmış 12 W gömme spottur. Tavan boşluğunun az olduğu yerlerde kullanılabilir ve 1080 lm ile koridor, ofis ve mutfaklara yeterli ışık verir.',
+    'A 12 W recessed spot only 25 mm high, made for ceilings with little room above them. Its 1080 lm of neutral white light is enough for corridors, offices and kitchens.',
+  ],
+  'downlight-18w': [
+    '1800 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '150 mm çapındaki 18 W sıva altı downlight, geniş açılı ve yumuşak bir ışık dağılımı sağlar. 1800 lm ışık akısıyla lobi, ofis ve ticari alanlarda genel aydınlatma için kullanılır.',
+    'A 150 mm recessed downlight rated at 18 W, with a wide and soft spread of light. At 1800 lm it serves as general lighting in lobbies, offices and commercial spaces.',
+  ],
+  'antiparlama-spot-20w': [
+    '1800 lm',
+    '3000 K',
+    'Ra 90',
+    'IP20',
+    'Derin yuvasıyla ışık kaynağını gizleyen 20 W antiparlama spottur. 1800 lm ışık akısı ve sıcak beyaz ışığı gözü almaz; toplantı odaları, restoranlar ve oteller için uygundur.',
+    'This 20 W anti-glare spot hides the light source deep in the housing, so it does not dazzle. Its 1800 lm of warm white light suits meeting rooms, restaurants and hotels.',
+  ],
+  'halka-sarkit-40w': [
+    '3600 lm',
+    '3000 K',
+    'Ra 80',
+    'IP20',
+    '600 mm çaplı halka biçimindeki 40 W sarkıt armatür, masa ve tezgâh üzerinde dengeli bir ışık verir. 3600 lm ışık akısıyla ofis, restoran ve karşılama alanlarında kullanılır.',
+    'A 40 W pendant luminaire in the shape of a 600 mm ring, giving even light over a table or counter. At 3600 lm it works in offices, restaurants and reception areas.',
+  ],
+  'cift-halka-sarkit-60w': [
+    '5400 lm',
+    '3000 K',
+    'Ra 80',
+    'IP20',
+    'İç içe iki halkadan oluşan 60 W sarkıt, 800 mm genişliğiyle geniş masa ve lobilerde dikkat çeker. 5400 lm ışık akısı ve sıcak beyaz ışığı yüksek tavanlı alanlara uygundur.',
+    'Two nested rings make up this 60 W pendant, which stands out over a large table or in a lobby at 800 mm wide. Its 5400 lm of warm white light suits spaces with high ceilings.',
+  ],
+  'ucgen-sarkit-36w': [
+    '3240 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    'Üçgen çerçeveli 36 W sarkıt armatür, düz hatlı iç mekânlara geometrik bir vurgu katar. 3240 lm ışık akısı ve nötr beyaz ışığıyla çalışma alanlarında rahat okuma ışığı verir.',
+    'A 36 W pendant with a triangular frame that adds a geometric accent to plain interiors. Its 3240 lm of neutral white light gives comfortable light for work areas.',
+  ],
+  'kare-cerceve-sarkit-48w': [
+    '4320 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '600 x 600 mm kare çerçeveli 48 W sarkıt armatür, ışığı aşağıya doğru geniş bir alana yayar. 4320 lm ışık akısıyla toplantı masaları ve açık ofis alanlarının üstüne uygundur.',
+    'A 48 W square-frame pendant, 600 x 600 mm, that spreads its light over a wide area below. At 4320 lm it fits over meeting tables and open-plan offices.',
+  ],
+  'tek-halka-sarkit-30w': [
+    '2700 lm',
+    '3000 K',
+    'Ra 80',
+    'IP20',
+    '400 mm çaplı tek halkalı 30 W sarkıt, küçük masalar ve giriş alanları için sade bir seçenektir. 2700 lm ışık akısı ve sıcak beyaz ışığı rahat bir ortam oluşturur.',
+    'A single-ring 30 W pendant, 400 mm across, and a simple choice for small tables and entrances. Its 2700 lm of warm white light makes a relaxed setting.',
+  ],
+  'sivaustu-kare-panel-24w': [
+    '2400 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    'Sıva üstü monte edilen 300 x 300 mm kare 24 W LED paneldir. Tavanı oymak gerekmez; 2400 lm ışık akısıyla koridor, depo ve küçük ofislere eşit ve gölgesiz ışık verir.',
+    'A 300 x 300 mm square 24 W LED panel that mounts on the surface, so the ceiling does not need to be cut. Its 2400 lm gives even, shadow-free light in corridors, storerooms and small offices.',
+  ],
+  'yuvarlak-slim-panel-18w': [
+    '1800 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    'Yalnızca 20 mm kalınlığındaki 18 W yuvarlak LED panel, 225 mm çapıyla sıva altı yuvaya oturur. 1800 lm ışık akısı ve nötr beyaz ışığı mutfak, banyo girişi ve ofislerde işe yarar.',
+    'This 18 W round LED panel is only 20 mm thick and fits a 225 mm recessed opening. Its 1800 lm of neutral white light works in kitchens, hallways and offices.',
+  ],
+  'sivaalti-panel-600-40w': [
+    '4000 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    'Asma tavan modüllerine uyan 595 x 595 mm sıva altı 40 W LED paneldir. 4000 lm ışık akısı ve nötr beyaz ışığıyla ofis, okul ve mağazalarda standart genel aydınlatmayı karşılar.',
+    'A 595 x 595 mm recessed 40 W LED panel made for suspended ceiling grids. Its 4000 lm of neutral white light covers standard general lighting in offices, schools and stores.',
+  ],
+  'sivaustu-yuvarlak-panel-24w': [
+    '2400 lm',
+    '3000 K',
+    'Ra 80',
+    'IP20',
+    '300 mm çaplı sıva üstü yuvarlak 24 W LED paneldir. Sıcak beyaz 2400 lm ışığı, oturma odası, kafe ve bekleme alanları gibi daha rahat ortamlara uygundur.',
+    'A round 24 W surface-mounted LED panel, 300 mm across. Its warm white 2400 lm suits more relaxed settings such as living rooms, cafés and waiting areas.',
+  ],
+  'cerceveli-kare-panel-36w': [
+    '3600 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '600 x 600 mm çerçeveli 36 W kare panel, kenarlarındaki alüminyum çerçeveyle sağlam ve düzgün bir görünüm verir. 3600 lm ışık akısıyla açık ofis ve toplantı salonlarına uygundur.',
+    'A 600 x 600 mm framed 36 W square panel whose aluminium frame gives a solid, tidy look. At 3600 lm it fits open offices and meeting halls.',
+  ],
+  'kare-lineer-cerceve-40w': [
+    '4000 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '800 x 800 mm ölçüsündeki 40 W kare lineer çerçeve, ince profil çizgileriyle tavanda grafik bir şekil oluşturur. 4000 lm ışık akısıyla mağaza ve ofis için hem aydınlatır hem de dekor katar.',
+    'This 40 W square linear frame, 800 x 800 mm, draws a graphic shape on the ceiling with its thin profile lines. At 4000 lm it lights stores and offices and adds to the decor.',
+  ],
+  'ucgen-lineer-modul-36w': [
+    '3600 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '700 x 700 mm üçgen biçimli 36 W lineer modüldür. Birden çok modül yan yana getirilerek özgün bir tavan deseni kurulabilir; her biri 3600 lm ışık akısı verir.',
+    'A triangular 36 W linear module, 700 x 700 mm. Several modules can be placed side by side to build a ceiling pattern, and each one gives 3600 lm.',
+  ],
+  'askili-lineer-profil-150': [
+    '4500 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    '150 cm uzunluğundaki 45 W askılı lineer profil, tavandan askı teli ile sarkar ve ışığı hem aşağı hem yukarı verir. 4500 lm ışık akısı ofis ve atölye çalışma masaları için uygundur.',
+    'This 45 W suspended linear profile, 150 cm long, hangs from cables and sends light both down and up. Its 4500 lm suits desks in offices and workshops.',
+  ],
+  'sivaustu-lineer-120': [
+    '3600 lm',
+    '4000 K',
+    'Ra 80',
+    'IP20',
+    'Doğrudan tavana vidalanan 120 cm boyunda 36 W lineer armatürdür. Depo, garaj ve teknik alanlarda 3600 lm ile sade ve ekonomik bir aydınlatma sağlar.',
+    'A 120 cm, 36 W linear luminaire that screws straight onto the ceiling. At 3600 lm it provides simple and economical lighting in storerooms, garages and utility rooms.',
+  ],
+  'kose-lineer-profil-45w': [
+    '4500 lm',
+    '3000 K',
+    'Ra 80',
+    'IP20',
+    'Köşelere uyan L biçimli 45 W lineer profil, iki duvar boyunca kesintisiz bir ışık hattı çizer. 4500 lm ışık akısı ve sıcak beyaz ışığı lobi ve showroom köşelerini öne çıkarır.',
+    'An L-shaped 45 W linear profile for corners, drawing an unbroken line of light along two walls. Its 4500 lm of warm white light brings out lobby and showroom corners.',
+  ],
+  'ray-spot-20w': [
+    '1800 lm',
+    '3000 K',
+    'Ra 90',
+    'IP20',
+    'Ray sistemine takılan 20 W spot, yönü elle değiştirilebilir. 1800 lm ışık akısı ve Ra 90 renksel geri verimiyle mağaza vitrinleri ve ürün tezgâhları için uygundur.',
+    'A 20 W spot for track systems, with a head you can aim by hand. With 1800 lm and a CRI of Ra 90 it suits shop windows and product counters.',
+  ],
+  'silindir-ray-spot-25w': [
+    '2250 lm',
+    '3000 K',
+    'Ra 90',
+    'IP20',
+    'Silindir gövdeli 25 W ray spot, dar bir ışık huzmesiyle belirli bir noktayı vurgular. 2250 lm ışık akısıyla galeri duvarları ve mağaza reyonlarında kullanılır.',
+    'A 25 W track spot in a cylinder body, using a narrow beam to pick out one point. At 2250 lm it is used on gallery walls and store shelves.',
+  ],
+  'mini-ray-spot-12w': [
+    '1080 lm',
+    '3000 K',
+    'Ra 90',
+    'IP20',
+    '50 mm çapıyla küçük kalan 12 W ray spot, evlerde ve butiklerde göze batmadan ışık verir. 1080 lm ışık akısı tablo, raf ve küçük sergi alanları için yeterlidir.',
+    'At 50 mm across, this 12 W track spot stays small and gives light without drawing the eye in homes and boutiques. Its 1080 lm is enough for pictures, shelves and small displays.',
+  ],
+  'ray-spot-cob-30w': [
+    '2850 lm',
+    '4000 K',
+    'Ra 90',
+    'IP20',
+    'COB LED kaynaklı 30 W ray spot, güçlü ve temiz bir ışık verir. 2850 lm ışık akısı ve Ra 90 renksel geri verimiyle yüksek tavanlı mağaza ve showroomlar için uygundur.',
+    'A 30 W track spot with a COB LED that gives strong, clean light. With 2850 lm and a CRI of Ra 90 it suits stores and showrooms with high ceilings.',
+  ],
+  'magnet-ray-spot-10w': [
+    '900 lm',
+    '3000 K',
+    'Ra 90',
+    'IP20',
+    'Manyetik ray üzerine tutturulan 10 W spottur ve yeri kolayca değiştirilir. 900 lm ışık akısı ve sıcak beyaz ışığıyla ev, ofis ve sergi alanlarında esnek bir vurgu ışığıdır.',
+    'A 10 W spot that clips onto a magnetic track, so it is easy to move. Its 900 lm of warm white light is a flexible accent for homes, offices and display areas.',
+  ],
+  'bahce-armaturu-10w': [
+    '800 lm',
+    '3000 K',
+    'Ra 70',
+    'IP65',
+    '350 mm yüksekliğindeki 10 W bahçe armatürü, patikaları ve çalılıkları yumuşak bir ışıkla aydınlatır. IP65 koruma sınıfı yağmura ve toza karşı dayanıklıdır; 800 lm ışık akısı sıcak beyazdır.',
+    'A 10 W garden luminaire, 350 mm tall, that lights paths and planting with soft light. Its IP65 rating protects against rain and dust, and its 800 lm output is warm white.',
+  ],
+  'yer-spotu-ip65-6w': [
+    '480 lm',
+    '3000 K',
+    'Ra 70',
+    'IP65',
+    'Zemine gömülen 6 W yer spotu, ağaçları ve duvar diplerini aşağıdan yukarıya aydınlatır. IP65 koruma sınıfı su püskürtmesine ve toza dayanır; 480 lm ışık akısı sıcak beyazdır.',
+    'A 6 W in-ground spot set into the ground to light trees and wall bases from below. Its IP65 rating withstands water jets and dust, and its 480 lm output is warm white.',
+  ],
+  'duvar-yikama-24w': [
+    '2160 lm',
+    '4000 K',
+    'Ra 80',
+    'IP66',
+    '1000 mm boyundaki 24 W duvar yıkama armatürü, cephe ve duvar yüzeylerini baştan sona eşit ışıkla boyar. IP66 koruma sınıfı şiddetli yağmura dayanır; 2160 lm ışık akısı nötr beyazdır.',
+    'A 24 W wall washer, 1000 mm long, that covers facades and walls from end to end with even light. Its IP66 rating handles heavy rain, and its 2160 lm output is neutral white.',
+  ],
+  'bollard-yol-8w': [
+    '640 lm',
+    '3000 K',
+    'Ra 70',
+    'IP65',
+    '800 mm yüksekliğindeki 8 W bollard, yaya yollarını ve park girişlerini göz hizasının altından aydınlatır. IP65 koruma sınıfı dış mekâna uygundur; 640 lm ışık akısı sıcak beyazdır.',
+    'An 8 W bollard, 800 mm tall, that lights footpaths and car park entrances from below eye level. Its IP65 rating suits outdoor use, and its 640 lm output is warm white.',
+  ],
+  'cephe-aplik-12w': [
+    '960 lm',
+    '3000 K',
+    'Ra 80',
+    'IP54',
+    'Bina girişlerine ve teras duvarlarına takılan 12 W cephe apliğidir. Işığı hem yukarı hem aşağı verir; IP54 koruma sınıfı çatı altı ve korunaklı dış duvarlar için yeterlidir. Işık akısı 960 lm, renk sıcak beyazdır.',
+    'A 12 W facade wall light for building entrances and terrace walls. It sends light both up and down, and its IP54 rating is enough for sheltered outer walls under a roof. It gives 960 lm of warm white light.',
+  ],
+};
 
 // Five products per category, in the order of `categories`.
 const productRows: Record<string, { code: string; material: keyof typeof materials; rows: Row[] }> = {
@@ -643,6 +963,7 @@ const promoBoards = [
 
 const homeBanner = homeBannerSchema.parse({
   imageUrl: img('banner.webp'),
+  imageAlt: describeImage('banner.webp'),
   title: pair('Her mekâna doğru LED aydınlatma', 'The right LED light for every space'),
   description: pair(
     'Konuttan endüstriyel tesise, enerji verimli ve estetik aydınlatma çözümleri tasarlıyor, üretiyor ve uyguluyoruz.',
@@ -707,6 +1028,7 @@ const areas = [
 const services = [
   {
     imageUrl: img('service-tasarim.webp'),
+    imageAlt: describeImage('service-tasarim.webp'),
     title: pair('Aydınlatma Tasarımı', 'Lighting Design'),
     description: pair(
       'Mekânı ve kullanımı inceleyip **ışık planını** çiziyoruz.\n\n- Aydınlık düzeyi hesabı\n- [Armatür](/tr/urunler) seçimi ve yerleşimi\n- Kontrol ve dimleme önerisi',
@@ -716,6 +1038,7 @@ const services = [
   },
   {
     imageUrl: img('service-uygulama.webp'),
+    imageAlt: describeImage('service-uygulama.webp'),
     title: pair('Proje ve Uygulama', 'Installation'),
     description: pair(
       'Onaylanan planı **anahtar teslim** uyguluyoruz; tamamlanan işler [projeler](/tr/projeler) sayfasında.\n\n- Montaj ve kablolama\n- Devreye alma ve ayar\n- Teslim sonrası ölçüm',
@@ -725,6 +1048,7 @@ const services = [
   },
   {
     imageUrl: img('service-yenileme.webp'),
+    imageAlt: describeImage('service-yenileme.webp'),
     title: pair('Yenileme ve Verimlilik', 'Retrofit and Efficiency'),
     description: pair(
       'Eski armatürleri **LED** ile değiştirerek enerji tüketimini düşürüyoruz.\n\n- Mevcut durum analizi\n- Tasarruf tahmini\n- Aşamalı geçiş planı',
@@ -734,6 +1058,7 @@ const services = [
   },
   {
     imageUrl: img('area-ofis.webp'),
+    imageAlt: describeImage('area-ofis.webp'),
     title: pair('Danışmanlık ve Bakım', 'Consulting and Maintenance'),
     description: pair(
       'Tamamlanan işler için **bakım ve teknik destek** veriyoruz.\n\n- Periyodik kontrol\n- Yedek parça ve sürücü değişimi\n- Telefonla destek ([iletişim](/tr/iletisim))',
@@ -815,6 +1140,7 @@ const projects = [
 const references = [
   {
     imageUrl: img('area-otel.webp'),
+    imageAlt: describeImage('area-otel.webp'),
     name: 'Örnek Otel İşletmeleri',
     title: pair('Otel aydınlatması', 'Hotel lighting'),
     description: pair(
@@ -824,6 +1150,7 @@ const references = [
   },
   {
     imageUrl: img('area-konut.webp'),
+    imageAlt: describeImage('area-konut.webp'),
     name: 'Demo Konut Yapı',
     title: pair('Konut projesi', 'Housing project'),
     description: pair(
@@ -833,6 +1160,7 @@ const references = [
   },
   {
     imageUrl: img('area-ofis.webp'),
+    imageAlt: describeImage('area-ofis.webp'),
     name: 'Lorem Plaza',
     title: pair('Ofis binası', 'Office building'),
     description: pair(
@@ -842,6 +1170,7 @@ const references = [
   },
   {
     imageUrl: img('area-endustriyel.webp'),
+    imageAlt: describeImage('area-endustriyel.webp'),
     name: 'Example Lojistik',
     title: pair('Depo ve lojistik', 'Warehouse and logistics'),
     description: pair(
@@ -851,6 +1180,7 @@ const references = [
   },
   {
     imageUrl: img('area-peyzaj.webp'),
+    imageAlt: describeImage('area-peyzaj.webp'),
     name: 'Demo Peyzaj Parkı',
     title: pair('Peyzaj aydınlatması', 'Landscape lighting'),
     description: pair(
@@ -894,12 +1224,14 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       name: catalog.name,
       pdfUrl: img(`${catalog.file}.pdf`),
       coverImageUrl: img(`${catalog.file}-cover.webp`),
+      imageAlt: describeImage(`${catalog.file}-cover.webp`),
       sizeBytes: pdfSize(`${catalog.file}.pdf`),
     }),
   );
   const areaRows = areas.map(([file, tr, en, descriptionTr, descriptionEn, categoryKey]) => ({
     ...applicationAreaSchema.parse({
       imageUrl: img(file),
+      imageAlt: describeImage(file),
       title: pair(tr, en),
       description: pair(descriptionTr, descriptionEn),
       categoryId: null,
@@ -981,6 +1313,9 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         const group = productRows[category.key];
         if (!group) throw new Error(`No products for the category ${category.key}`);
         for (const [position, [slug, tr, en, power, dimensions, image, color]] of group.rows.entries()) {
+          const details = productDetails[slug];
+          if (!details) throw new Error(`No details for the product ${slug}`);
+          const [luminousFlux, colorTemperature, cri, ip, descriptionTr, descriptionEn] = details;
           const product = productSchema.parse({
             categoryId: row.id,
             slug,
@@ -990,6 +1325,11 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
             material: materials[group.material],
             power,
             dimensions,
+            description: pair(descriptionTr, descriptionEn),
+            luminousFlux,
+            colorTemperature,
+            cri,
+            ip,
             imageUrl: img(`${image}.webp`),
           });
           const created = await tx.product.create({
@@ -1002,6 +1342,11 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
               ...toColumns('material', product.material),
               power: product.power,
               dimensions: product.dimensions,
+              ...toColumns('description', product.description),
+              luminousFlux: product.luminousFlux,
+              colorTemperature: product.colorTemperature,
+              cri: product.cri,
+              ip: product.ip,
               imageUrl: product.imageUrl,
               sortOrder: position,
             },
@@ -1029,6 +1374,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
             ...toColumns('name', catalog.name),
             pdfUrl: catalog.pdfUrl,
             coverImageUrl: catalog.coverImageUrl,
+            ...toColumns('imageAlt', catalog.imageAlt),
             sizeBytes: catalog.sizeBytes,
             sortOrder,
           },
@@ -1041,6 +1387,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         if (!catalogId) throw new Error('A promo board needs a catalog');
         const parsed = promoBoardSchema.parse({
           imageUrl: img(board.image),
+          imageAlt: describeImage(board.image),
           title: board.title,
           subtitle: board.subtitle,
           catalogId,
@@ -1048,6 +1395,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         await tx.promoBoard.create({
           data: {
             imageUrl: parsed.imageUrl,
+            ...toColumns('imageAlt', parsed.imageAlt),
             ...toColumns('title', parsed.title),
             ...toColumns('subtitle', parsed.subtitle),
             catalogId,
@@ -1058,6 +1406,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
 
       const bannerData = {
         imageUrl: homeBanner.imageUrl,
+        ...toColumns('imageAlt', homeBanner.imageAlt),
         ...toColumns('title', homeBanner.title),
         ...toColumns('description', homeBanner.description),
         ...toColumns('primaryLabel', homeBanner.primaryAction.label),
@@ -1070,6 +1419,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.applicationArea.createMany({
         data: areaRows.map((area, sortOrder) => ({
           imageUrl: area.imageUrl,
+          ...toColumns('imageAlt', area.imageAlt),
           ...toColumns('title', area.title),
           ...toColumns('description', area.description),
           categoryId: area.categoryKey ? (categoryIds.get(area.categoryKey) ?? null) : null,
@@ -1080,6 +1430,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.service.createMany({
         data: services.map((service, sortOrder) => ({
           imageUrl: service.imageUrl,
+          ...toColumns('imageAlt', service.imageAlt),
           ...toColumns('title', service.title),
           ...toColumns('description', service.description),
           ...toColumns('note', service.note),
@@ -1103,6 +1454,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.reference.createMany({
         data: references.map((reference, sortOrder) => ({
           imageUrl: reference.imageUrl,
+          ...toColumns('imageAlt', reference.imageAlt),
           name: reference.name,
           ...toColumns('title', reference.title),
           ...toColumns('description', reference.description),

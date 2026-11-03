@@ -29,6 +29,7 @@ async function findReference(id: string) {
 function referenceInput(formData: FormData) {
   return {
     imageUrl: formText(formData, 'imageUrl'),
+    imageAlt: formPair(formData, 'imageAlt'),
     name: formText(formData, 'name'),
     title: formPair(formData, 'title'),
     description: formPair(formData, 'description'),

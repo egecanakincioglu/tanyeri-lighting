@@ -34,11 +34,13 @@ const catalog = {
   name: { tr: 'Genel katalog', en: 'General catalog' },
   pdfUrl: '/demo/general.pdf',
   coverImageUrl: '/demo/general.webp',
+  imageAlt: { tr: 'Genel kapak', en: 'A general cover' },
   sizeBytes: 3 * 1024 * 1024,
 };
 const board = (title: string, catalogId: string) => ({
   id: `b-${title}`,
   imageUrl: '/demo/area-otel.webp',
+  imageAlt: { tr: 'Lobi', en: 'A lobby' },
   title: { tr: `${title} tr`, en: title },
   catalogId,
   catalogName: catalog.name,
@@ -151,7 +153,8 @@ describe('catalog screens', () => {
     it('fills the form with the stored catalog and shows its PDF', async () => {
       inIntl('en', await EditCatalogPage(editProps('en', 'k2')));
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Edit catalog');
-      expect((screen.getByLabelText('Turkish') as HTMLInputElement).value).toBe('Ikinci');
+      expect((screen.getByLabelText('Turkish', { selector: '#name-tr' }) as HTMLInputElement).value).toBe('Ikinci');
+      expect((document.getElementById('imageAlt-en') as HTMLInputElement).value).toBe('A general cover');
       expect(screen.getByRole('link', { name: 'Open the file' }).getAttribute('href')).toBe('/demo/general.pdf');
     });
 

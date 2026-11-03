@@ -74,6 +74,16 @@ describe('reference actions on a real database', () => {
     );
   });
 
+  it('stores the image description from the form and reports a half-filled one', async () => {
+    await expect(
+      createReferenceAction(null, form(valid('Alpha', { 'imageAlt.tr': 'Bir oda', 'imageAlt.en': 'A room' }))),
+    ).rejects.toThrow('redirect:');
+    expect((await listReferences())[0]!.imageAlt).toEqual({ tr: 'Bir oda', en: 'A room' });
+    const half = await createReferenceAction(null, form(valid('Beta', { 'imageAlt.tr': 'Yalnız Türkçe' })));
+    expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    expect(await listReferences()).toHaveLength(1);
+  });
+
   it('reports the invalid fields and writes nothing', async () => {
     const result = await createReferenceAction(null, form(valid('', { 'title.en': 'x'.repeat(101) })));
     expect(result).toEqual({
