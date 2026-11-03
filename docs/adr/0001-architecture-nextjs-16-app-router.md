@@ -45,7 +45,7 @@ The project uses **Next.js 16 App Router and React 19.** The runtime is Node 24,
 
 Rules:
 
-1. **Version floor:** `next` is at least 16.4.3, `react` and `react-dom` are at least 19.3.1. The app skeleton PR in phase 3 waits for the 2026-11-03 security release or takes it right after. Versions are pinned exactly in the lock file; Dependabot proposes upgrades.
+1. **Version floor:** `next` is at least 16.4.5, `react` and `react-dom` are at least 19.3.1. The app skeleton PR in phase 3 waits for the 2026-11-03 security release or takes it right after. Versions are pinned exactly in the lock file; Dependabot proposes upgrades.
 2. **Routes:** `src/app/[locale]/(site)/...` for public pages, `src/app/[locale]/(admin)/dashboard/...` for the admin, `src/app/api/...` for route handlers.
 3. **`proxy.ts` does only two things:** locale routing ([ADR 0006](0006-internationalization-next-intl.md)) and security headers (including the CSP nonce). **Authorization is checked separately in every page, every Server Action and every route handler**; the proxy is not trusted for it. The proxy may do an optimistic redirect based on a session cookie, but this is never assumed to provide security.
 4. **Async request APIs:** `params`, `searchParams`, `cookies()` and `headers()` are always used with `await`. Types are written with `PageProps`/`LayoutProps`/`RouteContext`, produced by `next typegen`.
