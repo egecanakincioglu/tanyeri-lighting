@@ -680,7 +680,6 @@
     "empty": "No messages yet.",
     "emptyDemo": "This is a demo: contact messages are not stored here, so this list stays empty.",
     "unread": "New",
-    "open": "Open",
     "older": "Older messages",
     "newest": "Back to the newest",
     "back": "All messages",
