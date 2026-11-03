@@ -272,6 +272,11 @@
       "categoryNotEmpty": "Bu kategoride hâlâ ürün var. Önce ürünleri taşıyın veya silin.",
       "catalogInUse": "Bir tanıtım panosu bu kataloğu hâlâ kullanıyor. Önce panoyu değiştirin veya silin."
     },
+    "imageAlt": {
+      "label": "Görsel açıklaması",
+      "hint": "Görselde ne olduğunu kısa bir cümleyle yazın. Yalnızca süs olan bir görsel için ikisini de boş bırakın.",
+      "both": "Açıklamayı iki dilde de doldurun ya da ikisini de boş bırakın."
+    },
     "fieldErrors": {
       "required": "Bu alan zorunlu.",
       "tooLong": "En fazla {max} karakter olabilir.",

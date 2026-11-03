@@ -5,6 +5,7 @@ import type { FormState } from '../../../server/admin/form.ts';
 import type { HomeBanner } from '../../../server/content/schemas.ts';
 import { SelectField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
+import { ImageAltField } from '../image-alt-field.tsx';
 import { FormStatus } from '../form-status.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
@@ -82,6 +83,7 @@ export function BannerForm({
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />
+        <ImageAltField texts={formTexts} defaultValue={initial.imageAlt} errors={errors} />
         <BilingualField
           name="title"
           label={texts.title}

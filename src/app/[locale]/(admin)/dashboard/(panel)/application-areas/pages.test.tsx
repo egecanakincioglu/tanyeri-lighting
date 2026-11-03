@@ -39,6 +39,7 @@ vi.mock('next-intl/server', async () => ({
 const area = {
   id: 'a1',
   imageUrl: '/demo/area-konut.webp',
+  imageAlt: { tr: 'Oturma odası', en: 'A living room' },
   title: { tr: 'Konut', en: 'Homes' },
   description: { tr: 'Konut açıklaması', en: 'Homes text' },
   categoryId: null,
@@ -213,6 +214,7 @@ describe('application area screens', () => {
       inIntl('en', await EditApplicationAreaPage(editProps('en', 'a2')));
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Edit application area');
       expect((document.getElementById('title-en') as HTMLInputElement).value).toBe('Offices');
+      expect((document.getElementById('imageAlt-en') as HTMLInputElement).value).toBe('A living room');
       await act(async () => {
         fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);
       });

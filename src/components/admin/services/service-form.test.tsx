@@ -37,6 +37,7 @@ const texts = {
 const initial = {
   id: 's1',
   imageUrl: '/demo/area-otel.webp',
+  imageAlt: { tr: 'Otel lobisi', en: 'A hotel lobby' },
   title: { tr: 'Aydınlatma', en: 'Lighting' },
   description: { tr: 'Açıklama', en: 'Description text' },
   note: { tr: '', en: '' },
@@ -92,6 +93,8 @@ describe('ServiceForm', () => {
       locale: 'en',
       id: 's1',
       imageUrl: '/demo/area-otel.webp',
+      'imageAlt.tr': 'Otel lobisi',
+      'imageAlt.en': 'A hotel lobby',
       'title.tr': 'Aydınlatma',
       'title.en': 'Lighting',
       'description.tr': 'Açıklama',
@@ -108,6 +111,16 @@ describe('ServiceForm', () => {
     await submit();
     expect(document.getElementById('note-error')?.textContent).toBe(texts.noteBoth);
     expect(container.querySelector<HTMLInputElement>('input[name="note.tr"]')!.value).toBe('Yalnız Türkçe');
+  });
+
+  it('keeps the image description optional and explains a half-filled one', async () => {
+    action.mockResolvedValue({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    const { container } = setup();
+    expect(container.querySelector<HTMLInputElement>('input[name="imageAlt.tr"]')!.required).toBe(false);
+    fireEvent.change(container.querySelector('input[name="imageAlt.en"]')!, { target: { value: 'Only English' } });
+    await submit();
+    expect(document.getElementById('imageAlt-error')?.textContent).toBe(formTexts.imageAlt.both);
+    expect(container.querySelector<HTMLInputElement>('input[name="imageAlt.en"]')!.value).toBe('Only English');
   });
 
   it('shows the error under a long title', async () => {

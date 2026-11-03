@@ -4,6 +4,7 @@ import { useActionState, startTransition, type FormEvent } from 'react';
 import type { FormState } from '../../../server/admin/form.ts';
 import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
+import { ImageAltField } from '../image-alt-field.tsx';
 import { FormStatus } from '../form-status.tsx';
 import { FileField, ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
@@ -23,6 +24,7 @@ type Props = {
     name: { tr: string; en: string };
     pdfUrl: string;
     coverImageUrl: string;
+    imageAlt: { tr: string; en: string };
   };
   texts: CatalogFormTexts;
   formTexts: FormTexts;
@@ -101,6 +103,7 @@ export function CatalogForm({
           disabledReason={disabledReason}
           error={message('coverImageUrl')}
         />
+        <ImageAltField texts={formTexts} defaultValue={initial?.imageAlt} errors={errors} />
       </div>
       <FormStatus state={state} texts={formTexts} />
       {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
