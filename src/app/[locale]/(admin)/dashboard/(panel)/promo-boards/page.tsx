@@ -33,18 +33,17 @@ export default async function PromoBoardsAdminPage({ params }: PageProps<'/[loca
   ]);
   const formTexts = buildFormTexts(form);
 
+  const create = (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/promo-boards/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          <ButtonLink href={getPathname({ locale, href: '/dashboard/promo-boards/new' })} prefetch={false}>
-            {t('create')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       <ResourceList
+        createAction={create}
         locale={locale}
         rows={boards.map((board) => ({
           id: board.id,

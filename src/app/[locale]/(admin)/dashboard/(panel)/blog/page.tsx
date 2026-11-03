@@ -36,18 +36,17 @@ export default async function BlogAdminPage({ params }: PageProps<'/[locale]/das
     return t(date > new Date() ? 'scheduled' : 'publishedOn', { date: day });
   };
 
+  const create = (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/blog/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          <ButtonLink href={getPathname({ locale, href: '/dashboard/blog/new' })} prefetch={false}>
-            {t('create')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       <ResourceList
+        createAction={create}
         locale={locale}
         rows={posts.map((post) => ({
           id: post.id,

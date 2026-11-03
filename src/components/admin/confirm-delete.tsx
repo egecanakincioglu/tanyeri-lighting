@@ -3,6 +3,7 @@
 import { useActionState, useId, useRef } from 'react';
 import type { FormState } from '../../server/admin/form.ts';
 import { Button } from '../button.tsx';
+import { ActionIcon } from './action-icons.tsx';
 import { FormStatus } from './form-status.tsx';
 import { SubmitButton } from './submit-button.tsx';
 import type { FormTexts } from './texts.ts';
@@ -28,10 +29,12 @@ type Props = {
   formTexts: Pick<FormTexts, 'saved' | 'errors'>;
   /** The reason the button is off (the demo); the server refuses the delete anyway. */
   disabledReason?: string | undefined;
+  /** An icon button for dense rows; the name for screen readers and the tooltip stay the same. */
+  compact?: boolean;
 };
 
 /** A delete button that asks first, in a native modal dialog. Escape and the cancel button close it. */
-export function ConfirmDelete({ name, fields, action, texts, formTexts, disabledReason }: Props) {
+export function ConfirmDelete({ name, fields, action, texts, formTexts, disabledReason, compact }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [state, formAction] = useActionState(action, null);
   const titleId = useId();
@@ -40,16 +43,30 @@ export function ConfirmDelete({ name, fields, action, texts, formTexts, disabled
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        aria-label={`${texts.trigger}: ${name}`}
-        aria-describedby={disabledReason ? reasonId : undefined}
-        disabled={Boolean(disabledReason)}
-        onClick={() => dialog.current?.showModal()}
-      >
-        {texts.trigger}
-      </Button>
+      {compact ? (
+        <button
+          type="button"
+          aria-label={`${texts.trigger}: ${name}`}
+          aria-describedby={disabledReason ? reasonId : undefined}
+          title={texts.trigger}
+          disabled={Boolean(disabledReason)}
+          onClick={() => dialog.current?.showModal()}
+          className="grid size-touch place-items-center rounded-md text-muted transition-colors duration-200 hover:bg-error/10 hover:text-error focus-visible:bg-error/10 focus-visible:text-error disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-muted motion-reduce:transition-none"
+        >
+          <ActionIcon name="trash" />
+        </button>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          aria-label={`${texts.trigger}: ${name}`}
+          aria-describedby={disabledReason ? reasonId : undefined}
+          disabled={Boolean(disabledReason)}
+          onClick={() => dialog.current?.showModal()}
+        >
+          {texts.trigger}
+        </Button>
+      )}
       {disabledReason && (
         <span id={reasonId} className="sr-only">
           {disabledReason}

@@ -42,6 +42,40 @@ function setup(disabledReason?: string) {
 }
 
 describe('ConfirmDelete', () => {
+  it('can be an icon button that keeps the name and opens the same dialog', () => {
+    render(
+      <ConfirmDelete
+        name="Alpha Hotel"
+        fields={{ id: 'r1' }}
+        action={action}
+        texts={texts}
+        formTexts={formTexts}
+        compact
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Delete: Alpha Hotel' });
+    expect(button.textContent).toBe('');
+    fireEvent.click(button);
+    expect(screen.getByRole('dialog', { name: 'Delete this reference?' })).toBeTruthy();
+  });
+
+  it('turns the icon button off in the demo and points to the reason', () => {
+    render(
+      <ConfirmDelete
+        name="Alpha Hotel"
+        fields={{ id: 'r1' }}
+        action={action}
+        texts={texts}
+        formTexts={formTexts}
+        disabledReason="Not in the demo."
+        compact
+      />,
+    );
+    const button = screen.getByRole<HTMLButtonElement>('button', { name: 'Delete: Alpha Hotel' });
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-describedby')).toBeTruthy();
+  });
+
   it('names what the button deletes and keeps the dialog closed until asked', () => {
     setup();
     expect(screen.getByRole('button', { name: 'Delete: Alpha Hotel' })).toBeTruthy();

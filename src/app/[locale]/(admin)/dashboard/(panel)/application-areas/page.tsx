@@ -37,18 +37,17 @@ export default async function ApplicationAreasAdminPage({
   ]);
   const formTexts = buildFormTexts(form);
 
+  const create = (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/application-areas/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          <ButtonLink href={getPathname({ locale, href: '/dashboard/application-areas/new' })} prefetch={false}>
-            {t('create')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       <ResourceList
+        createAction={create}
         locale={locale}
         rows={areas.map((area) => ({
           id: area.id,

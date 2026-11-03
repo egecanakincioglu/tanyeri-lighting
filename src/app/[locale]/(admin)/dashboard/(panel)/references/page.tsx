@@ -30,18 +30,17 @@ export default async function ReferencesAdminPage({ params }: PageProps<'/[local
   ]);
   const formTexts = buildFormTexts(form);
 
+  const create = (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/references/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          <ButtonLink href={getPathname({ locale, href: '/dashboard/references/new' })} prefetch={false}>
-            {t('create')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       <ResourceList
+        createAction={create}
         locale={locale}
         rows={references.map((reference) => ({
           id: reference.id,

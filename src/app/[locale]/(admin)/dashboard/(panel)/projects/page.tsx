@@ -30,18 +30,17 @@ export default async function ProjectsAdminPage({ params }: PageProps<'/[locale]
   ]);
   const formTexts = buildFormTexts(form);
 
+  const create = (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/projects/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          <ButtonLink href={getPathname({ locale, href: '/dashboard/projects/new' })} prefetch={false}>
-            {t('create')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       <ResourceList
+        createAction={create}
         locale={locale}
         rows={projects.map((project) => ({
           id: project.id,
