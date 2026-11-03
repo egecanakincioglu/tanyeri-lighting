@@ -221,6 +221,31 @@ describe('demo content seed on a real database', () => {
     expect(perCategory.every((c) => c._count.products >= 4)).toBe(true);
   });
 
+  it('describes every picture in both languages, in a short sentence that is not the card title', async () => {
+    const banner = await db.homeBanner.findUniqueOrThrow({ where: { id: 'home' } });
+    const rows = [
+      ...(await db.promoBoard.findMany()),
+      ...(await db.applicationArea.findMany()),
+      ...(await db.service.findMany()),
+      ...(await db.reference.findMany()),
+      ...(await db.catalog.findMany()),
+      banner,
+    ];
+    expect(rows.length).toBe(3 + 6 + 4 + 5 + 3 + 1);
+    for (const row of rows) {
+      expect(isTranslated(row.imageAltTr, row.imageAltEn), row.imageAltEn).toBe(true);
+      expect(row.imageAltTr.length).toBeLessThanOrEqual(200);
+      expect(row.imageAltEn.length).toBeLessThanOrEqual(200);
+    }
+    for (const row of [
+      ...(await db.promoBoard.findMany()),
+      ...(await db.applicationArea.findMany()),
+      ...(await db.service.findMany()),
+    ]) {
+      expect(row.imageAltEn.toLowerCase()).not.toBe(row.titleEn.toLowerCase());
+    }
+  });
+
   it('points every picture and file at an existing file under public/demo', async () => {
     const urls = new Set<string>([
       ...(await db.product.findMany()).map((r) => r.imageUrl),
