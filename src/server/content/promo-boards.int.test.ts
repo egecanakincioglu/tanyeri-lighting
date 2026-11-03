@@ -16,6 +16,7 @@ const pair = (tr: string, en: string) => ({ tr, en });
 function board(catalogId: string, name: string) {
   return {
     imageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
+    imageAlt: pair(`${name} picture TR`, `${name} picture EN`),
     title: pair(`${name} TR`, `${name} EN`),
     subtitle: pair(`${name} line TR`, `${name} line EN`),
     catalogId,
@@ -42,12 +43,14 @@ describe('promo boards on a real database', () => {
       name: pair('Genel', 'General'),
       pdfUrl: 'https://store.example.com/general.pdf',
       coverImageUrl: '',
+      imageAlt: { tr: '', en: '' },
       sizeBytes: 1000,
     });
     outdoor = await createCatalog({
       name: pair('Dış mekan', 'Outdoor'),
       pdfUrl: 'https://store.example.com/outdoor.pdf',
       coverImageUrl: '',
+      imageAlt: { tr: '', en: '' },
       sizeBytes: 2000,
     });
   });
@@ -100,6 +103,7 @@ describe('promo boards on a real database', () => {
       name: pair('Yeni genel', 'New general'),
       pdfUrl: 'https://store.example.com/new.pdf',
       coverImageUrl: '',
+      imageAlt: { tr: '', en: '' },
       sizeBytes: 5,
     });
     expect((await listPromoBoards())[0]).toMatchObject({
@@ -161,6 +165,18 @@ describe('promo boards on a real database', () => {
     expect(await titles()).toEqual(['Spring EN', 'Summer EN', 'Autumn EN']);
   });
 
+  it('stores a picture without a description, and refuses a description in one language only', async () => {
+    const created = await createPromoBoard({ ...board(general.id, 'Spring'), imageAlt: pair('', '') });
+    expect(created.imageAlt).toEqual(pair('', ''));
+    await expect(
+      updatePromoBoard(created.id, { ...board(general.id, 'Spring'), imageAlt: pair('Yalnız Türkçe', '') }),
+    ).rejects.toThrow();
+    await expect(
+      createPromoBoard({ ...board(general.id, 'Summer'), imageAlt: pair('', 'English only') }),
+    ).rejects.toThrow();
+    expect(await listPromoBoards()).toEqual([created]);
+  });
+
   it('rejects invalid input and stores nothing', async () => {
     await expect(createPromoBoard({ ...board(general.id, 'Spring'), title: { tr: 'Bahar' } })).rejects.toThrow();
     await expect(
@@ -195,6 +211,7 @@ describe('promo boards on a real database', () => {
         name: pair('Ofis', 'Office'),
         pdfUrl: 'https://store.example.com/office.pdf',
         coverImageUrl: '',
+        imageAlt: { tr: '', en: '' },
         sizeBytes: 3,
       });
       await expect(deleteCatalog(outdoor.id)).rejects.toThrow(CatalogInUseError);

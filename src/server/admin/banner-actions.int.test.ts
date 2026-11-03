@@ -48,6 +48,19 @@ describe('banner action on a real database', () => {
     await getDb().$disconnect();
   });
 
+  it('stores the image description from the form and reports a half-filled one', async () => {
+    expect(
+      await updateBannerAction(
+        null,
+        form(valid('First', { 'imageAlt.tr': 'Gece evi', 'imageAlt.en': 'A house at night' })),
+      ),
+    ).toEqual({ status: 'success' });
+    expect((await getHomeBanner()).imageAlt).toEqual({ tr: 'Gece evi', en: 'A house at night' });
+    const half = await updateBannerAction(null, form(valid('Second', { 'imageAlt.en': 'Only English' })));
+    expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    expect((await getHomeBanner()).imageAlt).toEqual({ tr: 'Gece evi', en: 'A house at night' });
+  });
+
   it('saves the whole banner and redraws the screen', async () => {
     expect(await updateBannerAction(null, form(valid('First')))).toEqual({ status: 'success' });
     expect(await updateBannerAction(null, form(valid('Second', { secondaryTarget: 'catalogs' })))).toEqual({

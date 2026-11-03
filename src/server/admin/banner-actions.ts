@@ -17,6 +17,7 @@ export async function updateBannerAction(_previous: FormState | null, formData: 
     const before = await getHomeBanner();
     const saved = await updateHomeBanner({
       imageUrl: formText(formData, 'imageUrl'),
+      imageAlt: formPair(formData, 'imageAlt'),
       title: formPair(formData, 'title'),
       description: formPair(formData, 'description'),
       primaryAction: actionInput(formData, 'primary'),

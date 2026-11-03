@@ -207,6 +207,9 @@ model Project {
 model Reference {
   id            String   @id @default(uuid(7))
   imageUrl      String
+  // Empty when the picture has no description (a decorative picture).
+  imageAltTr    String   @default("")
+  imageAltEn    String   @default("")
   name          String
   titleTr       String
   titleEn       String
@@ -292,6 +295,9 @@ model Catalog {
   pdfUrl        String
   // Empty when the catalog has no cover picture.
   coverImageUrl String
+  // Empty when the picture has no description (a decorative picture).
+  imageAltTr    String       @default("")
+  imageAltEn    String       @default("")
   sizeBytes     Int
   sortOrder     Int
   createdAt     DateTime     @default(now())
@@ -307,6 +313,9 @@ model Catalog {
 model HomeBanner {
   id               String   @id
   imageUrl         String
+  // Empty when the picture has no description (a decorative picture).
+  imageAltTr       String   @default("")
+  imageAltEn       String   @default("")
   titleTr          String
   titleEn          String
   descriptionTr    String
@@ -338,6 +347,9 @@ model FeaturedProduct {
 model PromoBoard {
   id         String   @id @default(uuid(7))
   imageUrl   String
+  // Empty when the picture has no description (a decorative picture).
+  imageAltTr String   @default("")
+  imageAltEn String   @default("")
   titleTr    String
   titleEn    String
   // One short line under the title; both empty when the board has none.
@@ -358,6 +370,9 @@ model PromoBoard {
 model ApplicationArea {
   id            String    @id @default(uuid(7))
   imageUrl      String
+  // Empty when the picture has no description (a decorative picture).
+  imageAltTr    String    @default("")
+  imageAltEn    String    @default("")
   titleTr       String
   titleEn       String
   descriptionTr String
@@ -378,6 +393,9 @@ model ApplicationArea {
 model Service {
   id            String   @id @default(uuid(7))
   imageUrl      String
+  // Empty when the picture has no description (a decorative picture).
+  imageAltTr    String   @default("")
+  imageAltEn    String   @default("")
   titleTr       String
   titleEn       String
   descriptionTr String
