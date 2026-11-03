@@ -23,8 +23,8 @@ type BlogFormTexts = {
   body: string;
   slug: string;
   slugHint: string;
-  /** Said on the edit page only: a changed address breaks the old links. */
-  slugEditHint: string;
+  /** Said on the edit page only: a changed address keeps the old one as a redirect. */
+  slugRedirectHint: string;
   publishedAt: string;
   publishedAtHint: string;
   cancel: string;
@@ -145,7 +145,7 @@ export function BlogForm({
               aria-describedby={message('slug') ? 'slug-error slug-hint' : 'slug-hint'}
             />
             <p id="slug-hint" className="text-sm text-muted">
-              {initial ? `${texts.slugHint} ${texts.slugEditHint}` : texts.slugHint}
+              {initial ? `${texts.slugHint} ${texts.slugRedirectHint}` : texts.slugHint}
             </p>
           </div>
           <div className="flex flex-col gap-2">

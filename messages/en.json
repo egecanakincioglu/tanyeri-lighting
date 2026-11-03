@@ -492,7 +492,7 @@
     "fieldBody": "Text",
     "fieldSlug": "Address",
     "slugHint": "Lowercase letters, digits and hyphens. It is the end of the article address and is the same in both languages.",
-    "slugEditHint": "Changing the address of a published article breaks the links that point to the old one.",
+    "slugRedirectHint": "If you change it, the old address keeps working and leads to the new one.",
     "fieldPublishedAt": "Publication date",
     "publishedAtHint": "Leave empty to keep the article as a draft. A date in the future publishes it on that day."
   },

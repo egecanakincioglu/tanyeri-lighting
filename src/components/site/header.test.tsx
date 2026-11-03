@@ -7,10 +7,15 @@ import tr from '../../../messages/tr.json' with { type: 'json' };
 import { optimizedSource } from '../../test/optimized-source.ts';
 import { Header } from './header.tsx';
 
-const navigation = vi.hoisted(() => ({ pathname: '/tr', params: {} as Record<string, string | string[]> }));
+const navigation = vi.hoisted(() => ({
+  pathname: '/tr',
+  search: '',
+  params: {} as Record<string, string | string[]>,
+}));
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   usePathname: () => navigation.pathname,
+  useSearchParams: () => new URLSearchParams(navigation.search),
   useParams: () => ({ locale: 'tr', ...navigation.params }),
 }));
 
@@ -53,6 +58,7 @@ describe('Header', () => {
 
   beforeEach(() => {
     navigation.pathname = '/tr';
+    navigation.search = '';
     navigation.params = {};
   });
   afterEach(() => {
@@ -137,6 +143,19 @@ describe('Header', () => {
     expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe('/en/products');
     expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('aria-current')).toBe('true');
     expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('aria-current')).toBeNull();
+  });
+
+  it('keeps the query of the product list in the language links, in both directions', () => {
+    navigation.pathname = '/tr/urunler';
+    navigation.search = 'category=panel&page=2';
+    renderHeader();
+    const group = screen.getByRole('group', { name: 'Dil' });
+    expect(within(group).getByRole('link', { name: 'EN, English' }).getAttribute('href')).toBe(
+      '/en/products?category=panel&page=2',
+    );
+    expect(within(group).getByRole('link', { name: 'TR, Türkçe' }).getAttribute('href')).toBe(
+      '/tr/urunler?category=panel&page=2',
+    );
   });
 
   it('keeps the route parameters in the language links of a dynamic page', () => {

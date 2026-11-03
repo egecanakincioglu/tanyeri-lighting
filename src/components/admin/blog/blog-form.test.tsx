@@ -34,7 +34,7 @@ const texts = {
   body: 'Text',
   slug: 'Address',
   slugHint: 'Lowercase letters.',
-  slugEditHint: 'Changing it breaks old links.',
+  slugRedirectHint: 'If you change it, the old address redirects.',
   publishedAt: 'Publication date',
   publishedAtHint: 'Leave empty for a draft.',
   cancel: 'Cancel',
@@ -91,7 +91,7 @@ describe('BlogForm', () => {
     expect(container.querySelector('input[name="id"]')).toBeNull();
     expect(container.querySelector<HTMLInputElement>('input[name="publishedAt"]')!.value).toBe('');
     expect(screen.getByRole('link', { name: 'Cancel' }).getAttribute('href')).toBe('/en/admin/blog');
-    expect(screen.queryByText(/breaks old links/)).toBeNull();
+    expect(screen.queryByText(/old address redirects/)).toBeNull();
   });
 
   it('follows the Turkish title with the address until the address is edited by hand', () => {
@@ -109,7 +109,7 @@ describe('BlogForm', () => {
     const { container } = setup({ initial });
     fireEvent.input(container.querySelector('input[name="title.tr"]')!, { target: { value: 'Yeni başlık' } });
     expect(container.querySelector<HTMLInputElement>('input[name="slug"]')!.value).toBe('linear-lighting');
-    expect(screen.getByText(/Changing it breaks old links/)).toBeTruthy();
+    expect(screen.getByText(/old address redirects/)).toBeTruthy();
   });
 
   it('sends the stored values as the action input', async () => {
