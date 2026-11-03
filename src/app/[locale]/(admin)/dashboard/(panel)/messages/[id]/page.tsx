@@ -3,14 +3,15 @@ import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ConfirmDelete } from '../../../../../../../components/admin/confirm-delete.tsx';
+import { MarkRead } from '../../../../../../../components/admin/mark-read.tsx';
 import { PageHeader } from '../../../../../../../components/admin/page-header.tsx';
 import { buildFormTexts } from '../../../../../../../components/admin/texts.ts';
 import { ButtonLink } from '../../../../../../../components/button.tsx';
 import { Link } from '../../../../../../../i18n/navigation.ts';
 import { routing } from '../../../../../../../i18n/routing.ts';
-import { deleteMessageAction } from '../../../../../../../server/admin/messages-actions.ts';
+import { deleteMessageAction, markMessageReadAction } from '../../../../../../../server/admin/messages-actions.ts';
 import { guardPage } from '../../../../../../../server/auth/guard.ts';
-import { getMessage, markMessageRead } from '../../../../../../../server/contact/service.ts';
+import { getMessage } from '../../../../../../../server/contact/service.ts';
 import { isDemoMode } from '../../../../../../../server/env.ts';
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/dashboard/messages/[id]'>): Promise<Metadata> {
@@ -29,15 +30,14 @@ export default async function MessagePage({ params }: PageProps<'/[locale]/dashb
     getMessage(id),
   ]);
   if (!message) notFound();
-  // Opening a message is what reads it. The demo writes nothing.
   const demo = isDemoMode();
-  if (!message.readAt && !demo) await markMessageRead(message.id);
   const formTexts = buildFormTexts(form);
   const sent = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Istanbul' });
   const reply = `mailto:${encodeURI(message.email)}?subject=${encodeURIComponent(t('replyPrefix') + message.subject)}`;
 
   return (
     <>
+      {!message.readAt && !demo && <MarkRead id={message.id} action={markMessageReadAction} />}
       <PageHeader title={message.subject} description={message.name} />
       <div className="flex flex-col gap-6">
         <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-hairline bg-surface p-5 sm:grid-cols-[auto_1fr] sm:p-6">
