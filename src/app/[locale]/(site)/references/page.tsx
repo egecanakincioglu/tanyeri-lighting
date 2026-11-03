@@ -2,7 +2,7 @@ import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Card } from '../../../../components/card.tsx';
+import { Card, CARD_FRAME } from '../../../../components/card.tsx';
 import { Container } from '../../../../components/container.tsx';
 import { JsonLd } from '../../../../components/json-ld.tsx';
 import { SectionTitle } from '../../../../components/section-title.tsx';
@@ -51,17 +51,21 @@ export default async function ReferencesPage({ params }: PageProps<'/[locale]/re
         <Container>
           <ul className="grid grid-cols-1 gap-6 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {references.map((reference, index) => (
-              <li key={reference.id} className="h-full">
-                <Card>
-                  <div className="relative aspect-4/3 flex-none overflow-hidden">
-                    <SiteImage src={reference.imageUrl} alt="" fill sizes={sizes} {...eagerWhen(index === 0)} />
-                  </div>
-                  <div className="flex-1 px-4.5 pt-4 pb-5 wrap-break-word">
-                    <h2 className="text-lg leading-tight font-bold text-ink">{reference.name}</h2>
-                    <p className="mt-1 text-[0.95rem] font-semibold text-accent-text">{reference.title[locale]}</p>
-                    <p className="mt-2 text-[0.95rem] leading-relaxed text-muted">{reference.description[locale]}</p>
-                  </div>
-                </Card>
+              <li key={reference.id} className="group h-full">
+                <div className={CARD_FRAME}>
+                  <Card>
+                    <div className="relative aspect-4/3 flex-none overflow-hidden motion-safe:[&_img]:transition-transform motion-safe:[&_img]:duration-400 motion-safe:group-hover:[&_img]:scale-[1.08]">
+                      <SiteImage src={reference.imageUrl} alt="" fill sizes={sizes} {...eagerWhen(index === 0)} />
+                    </div>
+                    <div className="flex-1 px-4.5 pt-4 pb-5 wrap-break-word">
+                      <h2 className="text-lg leading-tight font-bold text-ink transition-colors duration-300 group-hover:text-accent-text">
+                        {reference.name}
+                      </h2>
+                      <p className="mt-1 text-[0.95rem] font-semibold text-accent-text">{reference.title[locale]}</p>
+                      <p className="mt-2 text-[0.95rem] leading-relaxed text-muted">{reference.description[locale]}</p>
+                    </div>
+                  </Card>
+                </div>
               </li>
             ))}
           </ul>

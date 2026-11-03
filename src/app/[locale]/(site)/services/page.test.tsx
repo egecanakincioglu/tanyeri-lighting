@@ -68,6 +68,19 @@ describe('ServicesPage', () => {
     expect(imageLoading(container)).toEqual(['eager/high', 'lazy/null']);
   });
 
+  it('gives each card a hover shadow and a photo zoom that stop for reduced motion, without link behaviour', async () => {
+    const { container } = render(await ServicesPage(props('en')));
+    const items = container.querySelectorAll('li.group');
+    expect(items).toHaveLength(2);
+    for (const item of items) {
+      expect(
+        item.querySelector('div.motion-safe\\:hover\\:shadow-\\[0_8px_16px_rgb\\(0_0_0\\/0\\.12\\)\\]'),
+      ).toBeTruthy();
+      expect(item.querySelector('[class*="motion-safe:group-hover:[&_img]:scale"]')).toBeTruthy();
+      expect(item.querySelector('a, button')).toBeNull();
+    }
+  });
+
   it('renders cleanly with empty content', async () => {
     content.services = [];
     const { container } = render(await ServicesPage(props('tr')));

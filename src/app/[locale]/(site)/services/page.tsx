@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { Card } from '../../../../components/card.tsx';
+import { Card, CARD_FRAME } from '../../../../components/card.tsx';
 import { Container } from '../../../../components/container.tsx';
 import { MarkdownContent } from '../../../../components/markdown-content.tsx';
 import { JsonLd } from '../../../../components/json-ld.tsx';
@@ -57,19 +57,29 @@ export default async function ServicesPage({ params }: PageProps<'/[locale]/serv
               {services.map((service, index) => {
                 const note = service.note[locale];
                 return (
-                  <li key={service.id}>
-                    <Card>
-                      <div className="relative aspect-video overflow-hidden bg-page motion-safe:hover:[&_img]:scale-[1.08] [&_img]:transition-transform [&_img]:duration-[400ms]">
-                        <SiteImage src={service.imageUrl} alt="" fill sizes={IMAGE_SIZES} {...eagerWhen(index === 0)} />
-                      </div>
-                      <div className="flex grow flex-col gap-4 p-6">
-                        <h2 className="text-2xl leading-tight font-bold text-ink">{service.title[locale]}</h2>
-                        <div className={PROSE}>
-                          <MarkdownContent>{service.description[locale]}</MarkdownContent>
+                  <li key={service.id} className="group h-full">
+                    <div className={CARD_FRAME}>
+                      <Card>
+                        <div className="relative aspect-video overflow-hidden bg-page motion-safe:[&_img]:transition-transform motion-safe:[&_img]:duration-400 motion-safe:group-hover:[&_img]:scale-[1.08]">
+                          <SiteImage
+                            src={service.imageUrl}
+                            alt=""
+                            fill
+                            sizes={IMAGE_SIZES}
+                            {...eagerWhen(index === 0)}
+                          />
                         </div>
-                        {note ? <p className="mt-auto text-sm text-muted">{note}</p> : null}
-                      </div>
-                    </Card>
+                        <div className="flex grow flex-col gap-4 p-6">
+                          <h2 className="text-2xl leading-tight font-bold text-ink transition-colors duration-300 group-hover:text-accent-text">
+                            {service.title[locale]}
+                          </h2>
+                          <div className={PROSE}>
+                            <MarkdownContent>{service.description[locale]}</MarkdownContent>
+                          </div>
+                          {note ? <p className="mt-auto text-sm text-muted">{note}</p> : null}
+                        </div>
+                      </Card>
+                    </div>
                   </li>
                 );
               })}
