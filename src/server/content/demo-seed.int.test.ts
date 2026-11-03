@@ -139,7 +139,7 @@ describe('demo content seed on a real database', () => {
     const site = await db.siteSettings.findUniqueOrThrow({ where: { id: 'site' } });
     expect(isTranslated(site.addressTr, site.addressEn)).toBe(true);
     expect(site.phone).toBe('+90 212 000 00 00');
-    expect(site.email.endsWith('.example')).toBe(true);
+    expect(site.email).toBe('info@tanyeri-lighting.vercel.app');
 
     const links = await db.socialLink.findMany({ orderBy: { position: 'asc' } });
     expect(links.map((link) => link.url)).toEqual([

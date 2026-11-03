@@ -106,7 +106,7 @@ const settings = siteSettingsSchema.parse({
   siteName: pair('Tanyeri Lighting', 'Tanyeri Lighting'),
   logoUrl: null,
   phone: '+90 212 000 00 00',
-  email: 'info@tanyeri.example',
+  email: 'info@tanyeri-lighting.vercel.app',
   address: pair(
     'Örnek Organize Sanayi Bölgesi, 1. Cadde No: 0, Esenyurt, İstanbul (demo adresi)',
     'Example Industrial Zone, 1st Street No: 0, Esenyurt, Istanbul (demo address)',
