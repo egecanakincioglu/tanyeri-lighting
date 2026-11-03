@@ -408,8 +408,8 @@ model AboutPage {
 // A blog article. Public only while publishedAt is set and not in the future; a row without it is a draft. The
 // body is limited Markdown stored as plain text. The slug is the language independent address.
 model BlogPost {
-  id            String    @id @default(uuid(7))
-  slug          String    @unique
+  id            String                 @id @default(uuid(7))
+  slug          String                 @unique
   titleTr       String
   titleEn       String
   descriptionTr String
@@ -422,9 +422,22 @@ model BlogPost {
   imageAltTr    String
   imageAltEn    String
   publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  redirects     BlogPostSlugRedirect[]
 
   @@index([publishedAt])
   @@map("blog_post")
+}
+
+// An earlier slug of a blog article, kept so the old address answers with a redirect to the current one.
+model BlogPostSlugRedirect {
+  id        String   @id @default(uuid(7))
+  oldSlug   String   @unique
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@map("blogPostSlugRedirect")
 }

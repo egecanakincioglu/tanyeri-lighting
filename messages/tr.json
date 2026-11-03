@@ -488,7 +488,7 @@
     "fieldBody": "Metin",
     "fieldSlug": "Adres",
     "slugHint": "Küçük harf, rakam ve tire. Yazı adresinin son parçasıdır ve iki dilde aynıdır.",
-    "slugEditHint": "Yayındaki bir yazının adresini değiştirmek, eski adrese verilen bağlantıları bozar.",
+    "slugRedirectHint": "Değiştirirseniz eski adres çalışmaya devam eder ve yenisine yönlendirir.",
     "fieldPublishedAt": "Yayın tarihi",
     "publishedAtHint": "Taslak olarak kalması için boş bırakın. İleri bir tarih, yazıyı o gün yayınlar."
   },

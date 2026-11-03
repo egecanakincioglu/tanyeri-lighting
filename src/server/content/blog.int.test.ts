@@ -6,6 +6,7 @@ import {
   deletePost,
   getPost,
   getPublishedPostBySlug,
+  getPublishedPostRedirect,
   listOtherPosts,
   listPostChanges,
   listPosts,
@@ -131,6 +132,56 @@ describe('blog posts on a real database', () => {
     await expect(deletePost('missing')).rejects.toThrow(ContentNotFoundError);
   });
 
+  it('keeps the old slug as a redirect to the current one, however often it changed', async () => {
+    const one = await createPost(post('one'));
+    await updatePost(one.id, post('two'));
+    await updatePost(one.id, post('three'));
+    expect(await getPublishedPostRedirect('one')).toBe('three');
+    expect(await getPublishedPostRedirect('two')).toBe('three');
+    expect(await getPublishedPostRedirect('three')).toBeNull();
+    expect(await getPublishedPostRedirect('unknown')).toBeNull();
+    expect(await getPublishedPostRedirect('Not A Slug')).toBeNull();
+    expect(await getDb().blogPostSlugRedirect.count()).toBe(2);
+  });
+
+  it('gives a draft or a future post no redirect', async () => {
+    const draft = await createPost(post('draft-old', null));
+    await updatePost(draft.id, post('draft-new', null));
+    expect(await getPublishedPostRedirect('draft-old')).toBeNull();
+    await updatePost(draft.id, post('draft-new', new Date(Date.now() + 86_400_000)));
+    expect(await getPublishedPostRedirect('draft-old')).toBeNull();
+    await updatePost(draft.id, post('draft-new', day('2026-03-01')));
+    expect(await getPublishedPostRedirect('draft-old')).toBe('draft-new');
+  });
+
+  it('keeps a redirect from being taken by another post, and frees it for the post itself', async () => {
+    const one = await createPost(post('one'));
+    const other = await createPost(post('other'));
+    await updatePost(one.id, post('two'));
+    await expect(createPost(post('one'))).rejects.toThrow(ValueTakenError);
+    await expect(updatePost(other.id, post('one'))).rejects.toThrow(ValueTakenError);
+    expect(await getPublishedPostRedirect('one')).toBe('two');
+    await updatePost(one.id, post('one'));
+    expect(await getPublishedPostRedirect('one')).toBeNull();
+    expect(await getPublishedPostRedirect('two')).toBe('one');
+  });
+
+  it('does not remember a redirect when the slug stays the same or the update fails', async () => {
+    const one = await createPost(post('one'));
+    const two = await createPost(post('two'));
+    await updatePost(one.id, { ...post('one'), title: pair('Yeni', 'New') });
+    await expect(updatePost(two.id, post('one'))).rejects.toThrow(ValueTakenError);
+    expect(await getDb().blogPostSlugRedirect.count()).toBe(0);
+  });
+
+  it('deletes the redirects with the post', async () => {
+    const one = await createPost(post('one'));
+    await updatePost(one.id, post('two'));
+    await deletePost(one.id);
+    expect(await getDb().blogPostSlugRedirect.count()).toBe(0);
+    expect(await getPublishedPostRedirect('one')).toBeNull();
+  });
+
   it('deletes a post', async () => {
     const one = await createPost(post('one'));
     await deletePost(one.id);
@@ -142,6 +193,8 @@ describe('blog posts on a real database', () => {
     vi.stubEnv('DEMO_MODE', 'true');
     await expect(createPost(post('two'))).rejects.toThrow(DemoModeError);
     await expect(updatePost(one.id, post('one', null))).rejects.toThrow(DemoModeError);
+    await expect(updatePost(one.id, post('renamed'))).rejects.toThrow(DemoModeError);
+    expect(await getDb().blogPostSlugRedirect.count()).toBe(0);
     await expect(deletePost(one.id)).rejects.toThrow(DemoModeError);
     expect(await getPost(one.id)).toEqual(one);
   });
