@@ -160,8 +160,8 @@ const pageMetadata: Record<PageKey, ReturnType<typeof pair>[]> = {
   projects: [
     pair('Aydınlatma Projeleri: Önce ve Sonra', 'Lighting Projects: Before and After'),
     pair(
-      'Otel lobisi, üretim salonu ve müstakil ev dış aydınlatması: önce ve sonra görselleriyle yapılan işler ve sonuçlar. Örnek projeler, kurgusal marka.',
-      'A hotel lobby, a production hall and a detached house exterior: what changed, shown with before and after photos. Sample projects, fictional brand.',
+      'İki müstakil evin dış aydınlatması: önce ve sonra görselleriyle yapılan işler. Örnek projeler, kurgusal marka.',
+      'The exterior lighting of two detached houses: what changed, shown with before and after photos. Sample projects, fictional brand.',
     ),
   ],
   blog: [
@@ -1105,7 +1105,7 @@ const aboutPage = aboutPageSchema.parse({
 
 const projects = [
   {
-    files: 'project-konut',
+    files: 'project-orman-evi',
     title: pair('Orman Evi Dış Aydınlatma', 'Forest House Exterior Lighting'),
     description: pair(
       'Müstakil bir evin cephesi, girişi ve bahçe yolu yeniden aydınlatıldı.\n\n- **Cephe:** sıcak beyaz duvar yıkama\n- **Yol:** düşük seviyeli [bollard armatürler](/tr/urunler?category=dis-mekan)',
@@ -1113,19 +1113,11 @@ const projects = [
     ),
   },
   {
-    files: 'project-otel',
-    title: pair('Otel Lobisi Yenileme', 'Hotel Lobby Refit'),
+    files: 'project-garajli-ev',
+    title: pair('Garajlı Ev Dış Aydınlatma', 'House with Garage Doors Exterior Lighting'),
     description: pair(
-      'Lobi tavanındaki eski armatürler **LED** ile değiştirildi ve tavan hattına gizli [lineer](/tr/urunler?category=lineer) ışık eklendi.\n\n- Enerji tüketimi yarıya indi (örnek değer)\n- Daha sıcak ve dengeli ışık',
-      'The old ceiling luminaires of the lobby were replaced with **LED** and a hidden [linear](/en/products?category=lineer) light line was added.\n\n- Energy use fell by half (sample figure)\n- Warmer, more even light',
-    ),
-  },
-  {
-    files: 'project-fabrika',
-    title: pair('Üretim Salonu Aydınlatması', 'Production Hall Lighting'),
-    description: pair(
-      'Yüksek tavanlı üretim salonuna **yüksek verimli** [armatürler](/tr/urunler) yerleştirildi.\n\n- Çalışma düzleminde eşit aydınlık\n- Daha az bakım gerektiren sürücüler',
-      'Highly efficient [luminaires](/en/products) were fitted in a high-ceiling production hall.\n\n- Even light on the work plane\n- Drivers that need less maintenance',
+      'Garaj cephesi, kapılar ve giriş yeniden aydınlatıldı.\n\n- **Cephe:** duvara yakın [duvar yıkama](/tr/urunler?category=dis-mekan) ışığı\n- **Giriş:** kapının üstüne sıcak beyaz aplikler\n- **Çatı altı:** saçak hattında lineer ışık',
+      'The garage facade, the doors and the entrance were relit.\n\n- **Facade:** close-to-wall [wall washing](/en/products?category=dis-mekan)\n- **Entrance:** warm white wall lights above the door\n- **Eaves:** a linear light along the roof edge',
     ),
   },
 ].map(({ files, title, description }) =>
