@@ -36,6 +36,7 @@ describe('VisionPage', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Our vision');
     expect(screen.getByText('light').tagName).toBe('STRONG');
+    expect(screen.getByText('light').closest('div')?.className).not.toContain('text-center');
     expect(await axeViolations(container)).toEqual([]);
   });
 

@@ -30,6 +30,8 @@ export type FormTexts = {
   demoNote: string;
   languages: { tr: string; en: string };
   errors: Record<ErrorCode, string>;
+  /** The optional description of a picture, shared by every form that has one. */
+  imageAlt: { label: string; hint: string; both: string };
   fieldErrors: { required: string; /** Holds `{max}`. */ tooLong: string; invalid: string; taken: string };
 };
 
@@ -41,6 +43,7 @@ export function buildFormTexts(t: Translate): FormTexts {
     demoNote: t('demoNote'),
     languages: { tr: t('languageTr'), en: t('languageEn') },
     errors: Object.fromEntries(ERROR_CODES.map((code) => [code, t(`errors.${code}`)])) as Record<ErrorCode, string>,
+    imageAlt: { label: t('imageAlt.label'), hint: t('imageAlt.hint'), both: t('imageAlt.both') },
     fieldErrors: {
       required: t('fieldErrors.required'),
       // The placeholder is its own value: the browser fills in the limit of the field that failed.

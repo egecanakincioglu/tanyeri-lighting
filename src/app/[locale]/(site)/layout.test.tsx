@@ -10,6 +10,7 @@ import SiteLayout from './layout.tsx';
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   usePathname: () => '/tr',
+  useSearchParams: () => new URLSearchParams(),
   useParams: () => ({ locale: 'tr' }),
 }));
 vi.mock('next-intl/server', () => ({

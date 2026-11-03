@@ -12,6 +12,7 @@ function fromRow(row: CatalogRow): Catalog {
     name: fromColumns('name', row),
     pdfUrl: row.pdfUrl,
     coverImageUrl: row.coverImageUrl,
+    imageAlt: fromColumns('imageAlt', row),
     sizeBytes: row.sizeBytes,
   };
 }
@@ -21,6 +22,7 @@ function toColumnsOf(catalog: CatalogInput) {
     ...toColumns('name', catalog.name),
     pdfUrl: catalog.pdfUrl,
     coverImageUrl: catalog.coverImageUrl,
+    ...toColumns('imageAlt', catalog.imageAlt),
     sizeBytes: catalog.sizeBytes,
   };
 }

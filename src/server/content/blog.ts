@@ -1,9 +1,16 @@
-import type { BlogPost as BlogPostRow } from '../../generated/prisma/client.ts';
+import type { BlogPost as BlogPostRow, Prisma } from '../../generated/prisma/client.ts';
 import { getDb } from '../db.ts';
 import { assertWritable } from '../demo/guard.ts';
 import { fromColumns, toColumns } from './bilingual.ts';
-import { ContentNotFoundError, isRecordNotFound, mapUniqueViolation } from './errors.ts';
-import { blogPostSchema, type BlogPost, type BlogPostInput, type BlogPostSummary, idSchema } from './schemas.ts';
+import { ContentNotFoundError, mapUniqueViolation, ValueTakenError } from './errors.ts';
+import {
+  blogPostSchema,
+  idSchema,
+  KEBAB_CASE,
+  type BlogPost,
+  type BlogPostInput,
+  type BlogPostSummary,
+} from './schemas.ts';
 
 // A draft has no publication date, and a date in the future is not public yet. Every public read goes through this
 // filter, so there is one rule for what a visitor can see.
@@ -68,6 +75,18 @@ export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | n
   return row ? fromRow(row) : null;
 }
 
+// An old slug of a published article gives its current slug, however many times the slug changed since. A draft's old
+// address is as unknown as the draft itself. A value that cannot be a slug is unknown, so the lookup never runs.
+export async function getPublishedPostRedirect(slug: string): Promise<string | null> {
+  if (!KEBAB_CASE.test(slug)) return null;
+  const redirect = await getDb().blogPostSlugRedirect.findUnique({
+    where: { oldSlug: slug },
+    select: { post: { select: { slug: true, publishedAt: true } } },
+  });
+  const { post } = redirect ?? {};
+  return post?.publishedAt && post.publishedAt <= new Date() ? post.slug : null;
+}
+
 export async function listPostChanges(): Promise<{ slug: string; updatedAt: Date }[]> {
   return getDb().blogPost.findMany({
     where: isPublic(),
@@ -90,28 +109,54 @@ export async function getPost(id: unknown): Promise<BlogPost | null> {
   return row ? fromRow(row) : null;
 }
 
+// A slug is free when no other article has it and it is not an old slug of another article: that redirect is kept, so
+// the other article's old address never starts to show a different one. The article's own old slug is free; the
+// caller removes that redirect.
+async function assertSlugFree(tx: Prisma.TransactionClient, slug: string, postId?: string): Promise<void> {
+  const post = await tx.blogPost.findUnique({ where: { slug }, select: { id: true } });
+  const redirect = await tx.blogPostSlugRedirect.findUnique({ where: { oldSlug: slug }, select: { postId: true } });
+  if ((post && post.id !== postId) || (redirect && redirect.postId !== postId)) throw new ValueTakenError('slug');
+}
+
 export async function createPost(input: unknown): Promise<BlogPost> {
   assertWritable();
   const columns = toColumnsOf(blogPostSchema.parse(input));
   try {
-    return fromRow(await getDb().blogPost.create({ data: columns }));
+    return fromRow(
+      await getDb().$transaction(async (tx) => {
+        await assertSlugFree(tx, columns.slug);
+        return tx.blogPost.create({ data: columns });
+      }),
+    );
   } catch (error) {
     throw mapUniqueViolation(error);
   }
 }
 
+// A changed slug is remembered as a redirect.
 export async function updatePost(id: unknown, input: unknown): Promise<BlogPost> {
   assertWritable();
   const postId = idSchema.parse(id);
   const columns = toColumnsOf(blogPostSchema.parse(input));
   try {
-    return fromRow(await getDb().blogPost.update({ where: { id: postId }, data: columns }));
+    return fromRow(
+      await getDb().$transaction(async (tx) => {
+        const current = await tx.blogPost.findUnique({ where: { id: postId }, select: { slug: true } });
+        if (!current) throw new ContentNotFoundError('Blog post');
+        if (columns.slug !== current.slug) {
+          await assertSlugFree(tx, columns.slug, postId);
+          await tx.blogPostSlugRedirect.deleteMany({ where: { oldSlug: columns.slug, postId } });
+          await tx.blogPostSlugRedirect.create({ data: { oldSlug: current.slug, postId } });
+        }
+        return tx.blogPost.update({ where: { id: postId }, data: columns });
+      }),
+    );
   } catch (error) {
-    if (isRecordNotFound(error)) throw new ContentNotFoundError('Blog post');
     throw mapUniqueViolation(error);
   }
 }
 
+// The redirects of the article are deleted with it.
 export async function deletePost(id: unknown): Promise<void> {
   assertWritable();
   const result = await getDb().blogPost.deleteMany({ where: { id: idSchema.parse(id) } });

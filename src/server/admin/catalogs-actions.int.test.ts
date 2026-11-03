@@ -87,6 +87,16 @@ describe('catalog actions on a real database', () => {
     expect(await names()).toEqual(['Alpha catalog', 'Beta catalog']);
   });
 
+  it('stores the image description from the form and reports a half-filled one', async () => {
+    await expect(
+      createCatalogAction(null, form(valid('Alpha', { 'imageAlt.tr': 'Bir oda', 'imageAlt.en': 'A room' }))),
+    ).rejects.toThrow('redirect:');
+    expect((await listCatalogs())[0]!.imageAlt).toEqual({ tr: 'Bir oda', en: 'A room' });
+    const half = await createCatalogAction(null, form(valid('Beta', { 'imageAlt.tr': 'Yalnız Türkçe' })));
+    expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    expect(await listCatalogs()).toHaveLength(1);
+  });
+
   it('reports the invalid fields and writes nothing', async () => {
     const result = await createCatalogAction(null, form(valid('Alpha', { pdfUrl: '', 'name.en': '' })));
     expect(result).toMatchObject({

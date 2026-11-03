@@ -37,6 +37,7 @@ vi.mock('next-intl/server', async () => ({
 const board = {
   id: 'b1',
   imageUrl: '/demo/promo-yasam.webp',
+  imageAlt: { tr: 'Oturma odası', en: 'A living room' },
   title: { tr: 'Yaşam Alanları', en: 'Living Spaces' },
   subtitle: { tr: 'Sıcak ışık', en: 'Warm light' },
   catalogId: 'c2',
@@ -124,6 +125,7 @@ describe('promo board screens', () => {
       expect([...select.options].map((option) => option.text)).toEqual(['General', 'Outdoor']);
       expect((document.getElementById('subtitle-en') as HTMLInputElement).required).toBe(false);
       expect((document.getElementById('title-en') as HTMLInputElement).required).toBe(true);
+      expect((document.getElementById('imageAlt-en') as HTMLInputElement).required).toBe(false);
     });
 
     it('asks for a catalog first when there is none, and cannot save', async () => {
@@ -148,6 +150,7 @@ describe('promo board screens', () => {
       inIntl('en', await EditPromoBoardPage(editProps('en', 'b1')));
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Edit promo board');
       expect((document.getElementById('subtitle-tr') as HTMLInputElement).value).toBe('Sıcak ışık');
+      expect((document.getElementById('imageAlt-tr') as HTMLInputElement).value).toBe('Oturma odası');
       expect((screen.getByLabelText('Catalog') as HTMLSelectElement).value).toBe('c2');
       await act(async () => {
         fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);

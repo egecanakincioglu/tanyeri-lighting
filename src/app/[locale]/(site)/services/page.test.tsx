@@ -29,6 +29,7 @@ describe('ServicesPage', () => {
       {
         id: 'a',
         imageUrl: '/demo/service-tasarim.webp',
+        imageAlt: { tr: 'Aydınlatılmış yatak odası', en: 'A lit bedroom' },
         title: { tr: 'Tasarım', en: 'Design' },
         description: { tr: 'Plan **çizeriz**', en: 'We draw the **plan**\n\n- Layout' },
         note: { tr: 'Not', en: 'First visit is free' },
@@ -36,6 +37,7 @@ describe('ServicesPage', () => {
       {
         id: 'b',
         imageUrl: '/demo/service-uygulama.webp',
+        imageAlt: { tr: '', en: '' },
         title: { tr: 'Uygulama', en: 'Installation' },
         description: { tr: 'Kurarız', en: 'We install' },
         note: { tr: '', en: '' },
@@ -61,6 +63,14 @@ describe('ServicesPage', () => {
     expect(container.querySelectorAll('p.text-muted')).toHaveLength(1);
     expect(screen.queryByRole('button')).toBeNull();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it.each([
+    ['en', 'A lit bedroom'],
+    ['tr', 'Aydınlatılmış yatak odası'],
+  ])('uses the stored description as alt text in %s and leaves a photo without one decorative', async (locale, alt) => {
+    const { container } = render(await ServicesPage(props(locale)));
+    expect([...container.querySelectorAll('img')].map((img) => img.getAttribute('alt'))).toEqual([alt, '']);
   });
 
   it('fetches only the first photo at once and ahead of the rest', async () => {

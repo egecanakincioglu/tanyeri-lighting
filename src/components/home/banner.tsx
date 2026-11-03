@@ -38,7 +38,14 @@ export function Banner({ banner, locale }: { banner: HomeBanner; locale: Locale 
     >
       {banner.imageUrl !== '' && (
         <div className="absolute inset-0 [&_img]:object-[50%_85%]">
-          <SiteImage src={banner.imageUrl} alt="" fill loading="eager" fetchPriority="high" sizes="100vw" />
+          <SiteImage
+            src={banner.imageUrl}
+            alt={banner.imageAlt[locale]}
+            fill
+            loading="eager"
+            fetchPriority="high"
+            sizes="100vw"
+          />
         </div>
       )}
       <div aria-hidden="true" className={`absolute inset-0 z-[1] ${scrim}`} />

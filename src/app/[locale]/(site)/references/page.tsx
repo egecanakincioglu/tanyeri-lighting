@@ -55,7 +55,13 @@ export default async function ReferencesPage({ params }: PageProps<'/[locale]/re
                 <div className={CARD_FRAME}>
                   <Card>
                     <div className="relative aspect-4/3 flex-none overflow-hidden motion-safe:[&_img]:transition-transform motion-safe:[&_img]:duration-400 motion-safe:group-hover:[&_img]:scale-[1.08]">
-                      <SiteImage src={reference.imageUrl} alt="" fill sizes={sizes} {...eagerWhen(index === 0)} />
+                      <SiteImage
+                        src={reference.imageUrl}
+                        alt={reference.imageAlt[locale]}
+                        fill
+                        sizes={sizes}
+                        {...eagerWhen(index === 0)}
+                      />
                     </div>
                     <div className="flex-1 px-4.5 pt-4 pb-5 wrap-break-word">
                       <h2 className="text-lg leading-tight font-bold text-ink transition-colors duration-300 group-hover:text-accent-text">

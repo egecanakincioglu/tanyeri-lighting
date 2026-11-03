@@ -30,7 +30,7 @@ export function WorkAreas({ title, areas, locale }: { title: string; areas: Appl
               <div className={CARD_FRAME}>
                 <Card>
                   <div className="relative aspect-video flex-none overflow-hidden motion-safe:[&_img]:transition-transform motion-safe:[&_img]:duration-400 motion-safe:group-hover:[&_img]:scale-[1.08]">
-                    <SiteImage src={area.imageUrl} alt="" fill sizes={sizes} />
+                    <SiteImage src={area.imageUrl} alt={area.imageAlt[locale]} fill sizes={sizes} />
                   </div>
                   <div className="flex-1 px-4.5 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6">
                     <h3 className="mb-1.5 text-xl leading-tight text-ink">

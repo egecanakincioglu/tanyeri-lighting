@@ -63,7 +63,7 @@ export default async function ServicesPage({ params }: PageProps<'/[locale]/serv
                         <div className="relative aspect-video overflow-hidden bg-page motion-safe:[&_img]:transition-transform motion-safe:[&_img]:duration-400 motion-safe:group-hover:[&_img]:scale-[1.08]">
                           <SiteImage
                             src={service.imageUrl}
-                            alt=""
+                            alt={service.imageAlt[locale]}
                             fill
                             sizes={IMAGE_SIZES}
                             {...eagerWhen(index === 0)}

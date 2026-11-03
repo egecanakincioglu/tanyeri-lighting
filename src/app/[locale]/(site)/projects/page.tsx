@@ -14,10 +14,8 @@ import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listProjects } from '../../../../server/content/projects.ts';
 
-// One column up to 900 px, capped at 30 rem so the 1000 px demo photos stay sharp on 2x screens; then two columns.
-// The page width is fixed from 1440 px.
-const sizes =
-  '(min-width: 150rem) 786px, (min-width: 120rem) 706px, (min-width: 90rem) 642px, (min-width: 81.5rem) 586px, (min-width: 56.25rem) calc(46vw - 0.875rem), (min-width: 32.625rem) 30rem, (min-width: 25rem) 92vw, calc(100vw - 2rem)';
+// One project per row, at most 56 rem wide; below that the gutters are 4 vw (1 rem under 25 rem).
+const sizes = '(min-width: 61rem) 56rem, (min-width: 25rem) 92vw, calc(100vw - 2rem)';
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/projects'>): Promise<Metadata> {
   const { locale } = await params;
@@ -52,26 +50,24 @@ export default async function ProjectsPage({ params }: PageProps<'/[locale]/proj
       {projects.length > 0 && (
         <Container>
           <p className="mx-auto mb-10 max-w-2xl text-center text-muted">{t('intro')}</p>
-          <ul className="grid grid-cols-1 gap-x-7 gap-y-14 wide:grid-cols-2">
+          <ul className="flex flex-col gap-14">
             {projects.map((project, index) => (
-              <li key={project.id} className="mx-auto w-full max-w-[30rem] wide:max-w-none">
+              <li key={project.id} className="mx-auto w-full max-w-4xl">
                 <article className="flex flex-col gap-4">
                   <h2 className="text-xl leading-tight font-bold text-ink">{project.title[locale]}</h2>
-                  <div className="order-2 space-y-3 text-muted wide:order-3">
+                  <BeforeAfter
+                    beforeUrl={project.beforeImageUrl}
+                    afterUrl={project.afterImageUrl}
+                    beforeLabel={t('before')}
+                    afterLabel={t('after')}
+                    label={t('compare')}
+                    valueText={t.raw('valueText')}
+                    name={project.title[locale]}
+                    sizes={sizes}
+                    eager={index === 0}
+                  />
+                  <div className="space-y-3 text-muted">
                     <MarkdownContent>{project.description[locale]}</MarkdownContent>
-                  </div>
-                  <div className="order-3 wide:order-2">
-                    <BeforeAfter
-                      beforeUrl={project.beforeImageUrl}
-                      afterUrl={project.afterImageUrl}
-                      beforeLabel={t('before')}
-                      afterLabel={t('after')}
-                      label={t('compare')}
-                      valueText={t.raw('valueText')}
-                      name={project.title[locale]}
-                      sizes={sizes}
-                      eager={index === 0}
-                    />
                   </div>
                 </article>
               </li>

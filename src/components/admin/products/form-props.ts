@@ -33,6 +33,11 @@ export async function productFormProps(locale: 'tr' | 'en', categories: Category
       material: t('fieldMaterial'),
       power: t('fieldPower'),
       dimensions: t('fieldDimensions'),
+      description: t('fieldDescription'),
+      luminousFlux: t('fieldLuminousFlux'),
+      colorTemperature: t('fieldColorTemperature'),
+      cri: t('fieldCri'),
+      ip: t('fieldIp'),
       cancel: form('cancel'),
     },
     mediaTexts: {
