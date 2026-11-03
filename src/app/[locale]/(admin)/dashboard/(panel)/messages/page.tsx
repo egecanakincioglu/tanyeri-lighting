@@ -59,7 +59,6 @@ export default async function MessagesAdminPage({ params, searchParams }: PagePr
               <Link
                 prefetch={false}
                 href={{ pathname: '/dashboard/messages/[id]', params: { id: message.id } }}
-                aria-label={`${t('open')}: ${message.subject}`}
                 className="flex min-h-touch flex-col gap-1 p-4 hover:bg-page sm:p-5"
               >
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">

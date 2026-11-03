@@ -76,9 +76,11 @@ describe('message screens', () => {
       inIntl('en', await MessagesAdminPage(listProps('en')));
       expect(mocks.guardPage).toHaveBeenCalledWith('en');
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Messages');
-      expect(screen.getByRole('link', { name: 'Open: Offer & prices' }).getAttribute('href')).toBe(
-        '/en/admin/messages/m1',
-      );
+      const link = screen.getByRole('link', { name: /Offer & prices/ });
+      expect(link.getAttribute('href')).toBe('/en/admin/messages/m1');
+      // The accessible name is the visible text, so a voice-control user can say what they read.
+      expect(link.hasAttribute('aria-label')).toBe(false);
+      expect(screen.getByRole('link', { name: /Ayşe Yılmaz.*Offer & prices.*Please send a price list/ })).toBe(link);
       expect(screen.getAllByText('Hello, Please send a price list.')).toHaveLength(2);
       expect(screen.getAllByText('New')).toHaveLength(1);
       expect(mocks.listMessages).toHaveBeenCalledWith({ limit: 50 });
