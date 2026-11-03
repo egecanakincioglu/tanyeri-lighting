@@ -102,12 +102,12 @@ export default async function PanelPage({ params }: PageProps<'/[locale]/dashboa
   const openRows = missingRows.filter((row) => row.value > 0);
 
   const shown = stats.countries.slice(0, TOP_COUNTRIES).map((row) => ({
-    key: row.country ?? 'unknown',
+    id: row.country ?? 'unknown',
     label: row.country ? (regions.of(row.country) ?? row.country) : t('countries.unknown'),
     views: row.views,
   }));
   const otherViews = stats.countries.slice(TOP_COUNTRIES).reduce((sum, row) => sum + row.views, 0);
-  if (otherViews > 0) shown.push({ key: 'other', label: t('countries.other'), views: otherViews });
+  if (otherViews > 0) shown.push({ id: 'other', label: t('countries.other'), views: otherViews });
 
   return (
     <>
@@ -232,7 +232,7 @@ export default async function PanelPage({ params }: PageProps<'/[locale]/dashboa
           ) : (
             <ul className="grid gap-3">
               {shown.map((row) => (
-                <li key={row.key}>
+                <li key={row.id}>
                   <div className="flex items-baseline justify-between gap-3 text-sm">
                     <span className="min-w-0 wrap-break-word">{row.label}</span>
                     <span className="flex-none tabular-nums text-muted">
@@ -241,7 +241,7 @@ export default async function PanelPage({ params }: PageProps<'/[locale]/dashboa
                   </div>
                   <div aria-hidden="true" className="mt-1 h-2 overflow-hidden rounded-full bg-accent-tint">
                     <div
-                      className={`h-full rounded-full ${row.key === 'other' ? 'bg-muted' : 'bg-accent'}`}
+                      className={`h-full rounded-full ${row.id === 'other' ? 'bg-muted' : 'bg-accent'}`}
                       style={{ width: `${Math.round((row.views / stats.totals.views) * 100)}%` }}
                     />
                   </div>
