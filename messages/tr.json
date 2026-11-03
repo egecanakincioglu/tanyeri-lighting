@@ -579,7 +579,12 @@
     "fieldColor": "Renk",
     "fieldMaterial": "Malzeme",
     "fieldPower": "Güç",
-    "fieldDimensions": "Ölçüler"
+    "fieldDimensions": "Ölçüler",
+    "fieldDescription": "Açıklama (2-3 cümle, isteğe bağlı)",
+    "fieldLuminousFlux": "Işık akısı (örn. 1050 lm)",
+    "fieldColorTemperature": "Renk sıcaklığı (örn. 3000 K)",
+    "fieldCri": "CRI (örn. Ra 90)",
+    "fieldIp": "Koruma sınıfı (örn. IP20)"
   },
   "AdminCatalogs": {
     "title": "Kataloglar",
