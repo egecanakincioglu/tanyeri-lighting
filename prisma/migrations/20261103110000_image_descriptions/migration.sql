@@ -1,0 +1,23 @@
+-- AlterTable
+ALTER TABLE "reference" ADD COLUMN "imageAltEn" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "imageAltTr" TEXT NOT NULL DEFAULT '';
+
+-- AlterTable
+ALTER TABLE "catalog" ADD COLUMN "imageAltEn" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "imageAltTr" TEXT NOT NULL DEFAULT '';
+
+-- AlterTable
+ALTER TABLE "homeBanner" ADD COLUMN "imageAltEn" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "imageAltTr" TEXT NOT NULL DEFAULT '';
+
+-- AlterTable
+ALTER TABLE "promoBoard" ADD COLUMN "imageAltEn" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "imageAltTr" TEXT NOT NULL DEFAULT '';
+
+-- AlterTable
+ALTER TABLE "applicationArea" ADD COLUMN "imageAltEn" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "imageAltTr" TEXT NOT NULL DEFAULT '';
+
+-- AlterTable
+ALTER TABLE "service" ADD COLUMN "imageAltEn" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "imageAltTr" TEXT NOT NULL DEFAULT '';

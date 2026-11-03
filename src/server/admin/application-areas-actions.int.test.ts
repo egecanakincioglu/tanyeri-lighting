@@ -70,6 +70,16 @@ describe('application area actions on a real database', () => {
     expect(await titles()).toEqual(['Homes', 'Offices']);
   });
 
+  it('stores the image description from the form and reports a half-filled one', async () => {
+    await expect(
+      createApplicationAreaAction(null, form(valid('Alpha', { 'imageAlt.tr': 'Bir oda', 'imageAlt.en': 'A room' }))),
+    ).rejects.toThrow('redirect:');
+    expect((await listApplicationAreas())[0]!.imageAlt).toEqual({ tr: 'Bir oda', en: 'A room' });
+    const half = await createApplicationAreaAction(null, form(valid('Beta', { 'imageAlt.tr': 'Yalnız Türkçe' })));
+    expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    expect(await listApplicationAreas()).toHaveLength(1);
+  });
+
   it('reports the invalid fields and writes nothing', async () => {
     const result = await createApplicationAreaAction(null, form(valid('', { 'description.en': 'x'.repeat(301) })));
     expect(result).toEqual({

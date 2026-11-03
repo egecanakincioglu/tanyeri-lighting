@@ -26,6 +26,7 @@ const texts = {
 };
 const initial = {
   imageUrl: '/demo/banner.webp',
+  imageAlt: { tr: 'Gece evi', en: 'A house at night' },
   title: { tr: 'Başlık', en: 'Title text' },
   description: { tr: 'Açıklama', en: 'Description text' },
   primaryAction: { label: { tr: 'Ürünler', en: 'Products' }, target: 'products' as const },
@@ -77,6 +78,8 @@ describe('BannerForm', () => {
     await submit();
     expect(Object.fromEntries(action.mock.calls[0]![1].entries())).toEqual({
       imageUrl: '/demo/banner.webp',
+      'imageAlt.tr': 'Gece evi',
+      'imageAlt.en': 'A house at night',
       'title.tr': 'Başlık',
       'title.en': 'Title text',
       'description.tr': 'Açıklama',

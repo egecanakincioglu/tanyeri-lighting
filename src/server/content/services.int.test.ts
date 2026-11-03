@@ -9,6 +9,7 @@ const pair = (tr: string, en: string) => ({ tr, en });
 function service(name: string, note = pair('Keşif ücretsizdir.', 'The site visit is free.')) {
   return {
     imageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
+    imageAlt: pair(`${name} picture TR`, `${name} picture EN`),
     title: pair(`${name} TR`, `${name} EN`),
     description: pair(`## ${name}\n\nAçıklama.`, `## ${name}\n\nDescription.`),
     note,
@@ -70,6 +71,16 @@ describe('services on a real database', () => {
     const without = await updateService(created.id, service('Design', pair(' ', '')));
     expect(without.note).toEqual(pair('', ''));
     expect(await getDb().service.findFirstOrThrow()).toMatchObject({ noteTr: '', noteEn: '' });
+  });
+
+  it('stores a picture without a description, and refuses a description in one language only', async () => {
+    const created = await createService({ ...service('Design'), imageAlt: pair('', '') });
+    expect(created.imageAlt).toEqual(pair('', ''));
+    await expect(
+      updateService(created.id, { ...service('Design'), imageAlt: pair('Yalnız Türkçe', '') }),
+    ).rejects.toThrow();
+    await expect(createService({ ...service('Supply'), imageAlt: pair('', 'English only') })).rejects.toThrow();
+    expect(await listServices()).toEqual([created]);
   });
 
   it('rejects a note in one language only and stores nothing', async () => {

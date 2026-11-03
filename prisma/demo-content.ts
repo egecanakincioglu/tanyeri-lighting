@@ -27,6 +27,79 @@ import {
 
 const pair = (tr: string, en: string) => ({ tr, en });
 const img = (file: string) => `/demo/${file}`;
+
+// What each demo picture shows, written from the picture itself. A picture used on more than one page has one
+// description. The wording differs from the card titles on purpose, so a screen reader does not read the same words twice.
+const hall = pair(
+  'Mavi çelik çatı kafesi ve tavandan sarkan armatürleriyle boş bir üretim salonu.',
+  'An empty hall with a blue steel roof frame and luminaires hanging from the ceiling.',
+);
+const imageDescriptions: Record<string, ReturnType<typeof pair>> = {
+  'area-konut.webp': pair(
+    'Akşam ışığında, tavana ve rafın arkasına gizlenmiş şeritlerle aydınlatılmış bir oturma odası.',
+    'A living room in the evening, lit by strips hidden in the ceiling and behind a shelf.',
+  ),
+  'area-ofis.webp': pair(
+    'Geniş bir atriyumun tavanında altıgen biçimli, beyaz ışık veren büyük armatürler.',
+    'Large hexagon-shaped luminaires giving white light on the ceiling of a wide atrium.',
+  ),
+  'area-endustriyel.webp': hall,
+  'service-uygulama.webp': hall,
+  'area-otel.webp': pair(
+    'Ahşap çıtalı kavisli bir duvarın önünde karşılama bankosu olan geniş ve aydınlık bir lobi.',
+    'A wide, bright lobby with a reception desk in front of a curved wall of wooden slats.',
+  ),
+  'area-peyzaj.webp': pair(
+    'Geceleyin taş bir bahçe yolunu ve ağaçları aydınlatan alçak lambalar.',
+    'Low lamps lighting a stone garden path and the trees around it at night.',
+  ),
+  'area-cephe.webp': pair(
+    'Çam ağaçlarının arasında, pencereleri ve duvar lambalarıyla geceleyin ışıldayan beyaz bir ev.',
+    'A white house among pine trees at night, glowing from its windows and wall lamps.',
+  ),
+  'service-tasarim.webp': pair(
+    'Siyah ve altın tonlarında, ışık şeritleriyle aydınlatılmış bir yatak odası ve giyinme odası.',
+    'A bedroom and walk-in wardrobe in black and gold, lit by light strips.',
+  ),
+  'service-yenileme.webp': pair(
+    'Sarı kapılı ve ahşap garaj kapılı, duvar lambalarıyla aydınlatılmış beyaz bir ev; gökyüzü gece mavisi.',
+    'A white house with a yellow door and wooden garage doors, lit by wall lamps under a night-blue sky.',
+  ),
+  'banner.webp': pair(
+    'Koyu mavi gece gökyüzünün altında, duvar lambalarıyla aydınlatılmış büyük bir ev ve garaj.',
+    'A large house and garage lit by wall lamps under a deep blue night sky.',
+  ),
+  'promo-dekoratif.webp': pair(
+    'Karanlıkta asılı duran, sıcak ışık veren çok sayıda ampul.',
+    'Many bulbs hanging in the dark, giving off warm light.',
+  ),
+  'promo-yasam.webp': pair(
+    'Mavi ve pembe ışıkla aydınlanmış, televizyonlu ve rafları kitap dolu bir oturma odası.',
+    'A living room with a television and full bookshelves, lit in blue and pink.',
+  ),
+  'promo-dis-mekan.webp': pair(
+    'Geceleyin bahçe yolu, çim ve terası küçük lambalarla aydınlatılmış modern bir ev.',
+    'A modern house at night, with its garden path, lawn and terrace lit by small lamps.',
+  ),
+  'catalog-2026-cover.webp': pair(
+    'Üstte şirket logosu, altta geceleyin aydınlatılmış bir evin fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of a lit house at night.',
+  ),
+  'catalog-dekoratif-cover.webp': pair(
+    'Üstte şirket logosu, altta parlayan sarkıt ampullerin fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of glowing hanging bulbs.',
+  ),
+  'catalog-dis-mekan-cover.webp': pair(
+    'Üstte şirket logosu, altta geceleyin aydınlatılmış bir bahçe ve terasın fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of a lit garden and terrace at night.',
+  ),
+};
+function describeImage(file: string) {
+  const description = imageDescriptions[file];
+  if (!description) throw new Error(`No description for ${file}`);
+  return description;
+}
+
 const pdfSize = (file: string) => statSync(new URL(`../public/demo/${file}`, import.meta.url)).size;
 
 const settings = siteSettingsSchema.parse({
@@ -890,6 +963,7 @@ const promoBoards = [
 
 const homeBanner = homeBannerSchema.parse({
   imageUrl: img('banner.webp'),
+  imageAlt: describeImage('banner.webp'),
   title: pair('Her mekâna doğru LED aydınlatma', 'The right LED light for every space'),
   description: pair(
     'Konuttan endüstriyel tesise, enerji verimli ve estetik aydınlatma çözümleri tasarlıyor, üretiyor ve uyguluyoruz.',
@@ -954,6 +1028,7 @@ const areas = [
 const services = [
   {
     imageUrl: img('service-tasarim.webp'),
+    imageAlt: describeImage('service-tasarim.webp'),
     title: pair('Aydınlatma Tasarımı', 'Lighting Design'),
     description: pair(
       'Mekânı ve kullanımı inceleyip **ışık planını** çiziyoruz.\n\n- Aydınlık düzeyi hesabı\n- [Armatür](/tr/urunler) seçimi ve yerleşimi\n- Kontrol ve dimleme önerisi',
@@ -963,6 +1038,7 @@ const services = [
   },
   {
     imageUrl: img('service-uygulama.webp'),
+    imageAlt: describeImage('service-uygulama.webp'),
     title: pair('Proje ve Uygulama', 'Installation'),
     description: pair(
       'Onaylanan planı **anahtar teslim** uyguluyoruz; tamamlanan işler [projeler](/tr/projeler) sayfasında.\n\n- Montaj ve kablolama\n- Devreye alma ve ayar\n- Teslim sonrası ölçüm',
@@ -972,6 +1048,7 @@ const services = [
   },
   {
     imageUrl: img('service-yenileme.webp'),
+    imageAlt: describeImage('service-yenileme.webp'),
     title: pair('Yenileme ve Verimlilik', 'Retrofit and Efficiency'),
     description: pair(
       'Eski armatürleri **LED** ile değiştirerek enerji tüketimini düşürüyoruz.\n\n- Mevcut durum analizi\n- Tasarruf tahmini\n- Aşamalı geçiş planı',
@@ -981,6 +1058,7 @@ const services = [
   },
   {
     imageUrl: img('area-ofis.webp'),
+    imageAlt: describeImage('area-ofis.webp'),
     title: pair('Danışmanlık ve Bakım', 'Consulting and Maintenance'),
     description: pair(
       'Tamamlanan işler için **bakım ve teknik destek** veriyoruz.\n\n- Periyodik kontrol\n- Yedek parça ve sürücü değişimi\n- Telefonla destek ([iletişim](/tr/iletisim))',
@@ -1046,6 +1124,7 @@ const projects = [
 const references = [
   {
     imageUrl: img('area-otel.webp'),
+    imageAlt: describeImage('area-otel.webp'),
     name: 'Örnek Otel İşletmeleri',
     title: pair('Otel aydınlatması', 'Hotel lighting'),
     description: pair(
@@ -1055,6 +1134,7 @@ const references = [
   },
   {
     imageUrl: img('area-konut.webp'),
+    imageAlt: describeImage('area-konut.webp'),
     name: 'Demo Konut Yapı',
     title: pair('Konut projesi', 'Housing project'),
     description: pair(
@@ -1064,6 +1144,7 @@ const references = [
   },
   {
     imageUrl: img('area-ofis.webp'),
+    imageAlt: describeImage('area-ofis.webp'),
     name: 'Lorem Plaza',
     title: pair('Ofis binası', 'Office building'),
     description: pair(
@@ -1073,6 +1154,7 @@ const references = [
   },
   {
     imageUrl: img('area-endustriyel.webp'),
+    imageAlt: describeImage('area-endustriyel.webp'),
     name: 'Example Lojistik',
     title: pair('Depo ve lojistik', 'Warehouse and logistics'),
     description: pair(
@@ -1082,6 +1164,7 @@ const references = [
   },
   {
     imageUrl: img('area-peyzaj.webp'),
+    imageAlt: describeImage('area-peyzaj.webp'),
     name: 'Demo Peyzaj Parkı',
     title: pair('Peyzaj aydınlatması', 'Landscape lighting'),
     description: pair(
@@ -1125,12 +1208,14 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       name: catalog.name,
       pdfUrl: img(`${catalog.file}.pdf`),
       coverImageUrl: img(`${catalog.file}-cover.webp`),
+      imageAlt: describeImage(`${catalog.file}-cover.webp`),
       sizeBytes: pdfSize(`${catalog.file}.pdf`),
     }),
   );
   const areaRows = areas.map(([file, tr, en, descriptionTr, descriptionEn, categoryKey]) => ({
     ...applicationAreaSchema.parse({
       imageUrl: img(file),
+      imageAlt: describeImage(file),
       title: pair(tr, en),
       description: pair(descriptionTr, descriptionEn),
       categoryId: null,
@@ -1273,6 +1358,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
             ...toColumns('name', catalog.name),
             pdfUrl: catalog.pdfUrl,
             coverImageUrl: catalog.coverImageUrl,
+            ...toColumns('imageAlt', catalog.imageAlt),
             sizeBytes: catalog.sizeBytes,
             sortOrder,
           },
@@ -1285,6 +1371,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         if (!catalogId) throw new Error('A promo board needs a catalog');
         const parsed = promoBoardSchema.parse({
           imageUrl: img(board.image),
+          imageAlt: describeImage(board.image),
           title: board.title,
           subtitle: board.subtitle,
           catalogId,
@@ -1292,6 +1379,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         await tx.promoBoard.create({
           data: {
             imageUrl: parsed.imageUrl,
+            ...toColumns('imageAlt', parsed.imageAlt),
             ...toColumns('title', parsed.title),
             ...toColumns('subtitle', parsed.subtitle),
             catalogId,
@@ -1302,6 +1390,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
 
       const bannerData = {
         imageUrl: homeBanner.imageUrl,
+        ...toColumns('imageAlt', homeBanner.imageAlt),
         ...toColumns('title', homeBanner.title),
         ...toColumns('description', homeBanner.description),
         ...toColumns('primaryLabel', homeBanner.primaryAction.label),
@@ -1314,6 +1403,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.applicationArea.createMany({
         data: areaRows.map((area, sortOrder) => ({
           imageUrl: area.imageUrl,
+          ...toColumns('imageAlt', area.imageAlt),
           ...toColumns('title', area.title),
           ...toColumns('description', area.description),
           categoryId: area.categoryKey ? (categoryIds.get(area.categoryKey) ?? null) : null,
@@ -1324,6 +1414,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.service.createMany({
         data: services.map((service, sortOrder) => ({
           imageUrl: service.imageUrl,
+          ...toColumns('imageAlt', service.imageAlt),
           ...toColumns('title', service.title),
           ...toColumns('description', service.description),
           ...toColumns('note', service.note),
@@ -1347,6 +1438,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.reference.createMany({
         data: references.map((reference, sortOrder) => ({
           imageUrl: reference.imageUrl,
+          ...toColumns('imageAlt', reference.imageAlt),
           name: reference.name,
           ...toColumns('title', reference.title),
           ...toColumns('description', reference.description),

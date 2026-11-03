@@ -28,14 +28,23 @@ const catalogs: Catalog[] = [
     name: { tr: 'Katalog 2026', en: 'Catalog 2026' },
     pdfUrl: '/demo/catalog-2026.pdf',
     coverImageUrl: '/demo/catalog-2026-cover.webp',
+    imageAlt: { tr: 'Gece ışıklı bir ev', en: 'A lit house at night' },
     sizeBytes: 2_400_000,
   },
-  { id: 'catalog-2', name: { tr: 'Küçük', en: 'Small' }, pdfUrl: '/demo/small.pdf', coverImageUrl: '', sizeBytes: 623 },
+  {
+    id: 'catalog-2',
+    name: { tr: 'Küçük', en: 'Small' },
+    pdfUrl: '/demo/small.pdf',
+    coverImageUrl: '',
+    imageAlt: { tr: '', en: '' },
+    sizeBytes: 623,
+  },
   {
     id: 'catalog-3',
     name: { tr: 'Orta', en: 'Medium' },
     pdfUrl: '/demo/medium.pdf',
     coverImageUrl: '/demo/medium-cover.webp',
+    imageAlt: { tr: '', en: '' },
     sizeBytes: 576_134,
   },
 ];
@@ -68,19 +77,19 @@ describe('CatalogsPage', () => {
     expect(download.hasAttribute('download')).toBe(true);
   });
 
-  it('shows the cover in an empty-alt image and a plain tint with the name when there is none', async () => {
+  it('shows the cover with its description as the alt text (empty when none) and a plain tint with the name when there is none', async () => {
     const { container } = render(await CatalogsPage(props('en')));
     const items = container.querySelectorAll('li');
     expect(items).toHaveLength(3);
     const cover = items[0]?.querySelector('img');
-    expect(cover?.getAttribute('alt')).toBe('');
+    expect(cover?.getAttribute('alt')).toBe('A lit house at night');
     expect(decodeURIComponent(cover?.getAttribute('src') ?? '')).toContain('/demo/catalog-2026-cover.webp');
     expect(cover?.getAttribute('sizes')).toContain('min-width: 900px');
     expect(items[1]?.querySelector('img')).toBeNull();
     const coverLink = items[1]?.querySelector('a[aria-hidden="true"]');
     expect(coverLink?.textContent).toBe('Small');
     expect(coverLink?.getAttribute('tabindex')).toBe('-1');
-    expect(items[2]?.querySelector('img')).toBeTruthy();
+    expect(items[2]?.querySelector('img')?.getAttribute('alt')).toBe('');
   });
 
   it('links the cover, the view button and the download button to the PDF, and only two of them take focus', async () => {

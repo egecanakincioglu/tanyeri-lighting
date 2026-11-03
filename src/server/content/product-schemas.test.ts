@@ -241,6 +241,7 @@ describe('catalogSchema', () => {
     name: pair('Genel katalog', 'General catalog'),
     pdfUrl: 'https://store.public.blob.vercel-storage.com/catalog.pdf',
     coverImageUrl: 'https://store.public.blob.vercel-storage.com/cover.webp',
+    imageAlt: pair('Bir kapak', 'A cover'),
     sizeBytes: 2_500_000,
   };
 

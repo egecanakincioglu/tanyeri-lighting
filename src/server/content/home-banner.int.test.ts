@@ -7,6 +7,7 @@ const pair = (tr: string, en: string) => ({ tr, en });
 
 const banner = {
   imageUrl: 'https://store.public.blob.vercel-storage.com/banner.webp',
+  imageAlt: pair('Gece evi', 'A house at night'),
   title: pair('Işığın doğru yeri', 'Light in the right place'),
   description: pair('Evler ve iş yerleri için aydınlatma.', 'Lighting for homes and workplaces.'),
   primaryAction: { label: pair('Ürünler', 'Products'), target: 'products' as const },
@@ -73,6 +74,17 @@ describe('home banner on a real database', () => {
     const bad = { ...banner, secondaryAction: { label: pair('Yönetim', 'Admin'), target: 'admin' } };
     await expect(updateHomeBanner(bad)).rejects.toThrow();
     expect(await getHomeBanner()).toEqual(banner);
+  });
+
+  it('stores a banner without an image description, and refuses a description in one language only', async () => {
+    await updateHomeBanner({ ...banner, imageAlt: pair('', '') });
+    expect((await getHomeBanner()).imageAlt).toEqual(pair('', ''));
+    await expect(updateHomeBanner({ ...banner, imageAlt: pair('Yalnız Türkçe', '') })).rejects.toThrow();
+    expect((await getHomeBanner()).imageAlt).toEqual(pair('', ''));
+  });
+
+  it('reads an empty description before the first save', async () => {
+    expect((await getHomeBanner()).imageAlt).toEqual(pair('', ''));
   });
 
   it('rejects a missing language and a non-https image, and stores nothing', async () => {

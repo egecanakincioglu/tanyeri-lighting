@@ -16,6 +16,7 @@ function fromRow(row: PromoBoardRow): PromoBoard {
   return {
     id: row.id,
     imageUrl: row.imageUrl,
+    imageAlt: fromColumns('imageAlt', row),
     title: fromColumns('title', row),
     subtitle: fromColumns('subtitle', row),
     catalogId: row.catalogId,
@@ -27,6 +28,7 @@ function fromRow(row: PromoBoardRow): PromoBoard {
 function toColumnsOf(board: PromoBoardInput) {
   return {
     imageUrl: board.imageUrl,
+    ...toColumns('imageAlt', board.imageAlt),
     ...toColumns('title', board.title),
     ...toColumns('subtitle', board.subtitle),
     catalogId: board.catalogId,

@@ -5,6 +5,7 @@ import type { FormState } from '../../../server/admin/form.ts';
 import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { BilingualMarkdownField } from '../bilingual-markdown-field.tsx';
+import { ImageAltField } from '../image-alt-field.tsx';
 import { FormStatus } from '../form-status.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
@@ -29,7 +30,7 @@ type Props = {
   upload: Action;
   locale: string;
   /** Set when editing. */
-  initial?: { id: string; imageUrl: string; title: Pair; description: Pair; note: Pair };
+  initial?: { id: string; imageUrl: string; imageAlt: Pair; title: Pair; description: Pair; note: Pair };
   texts: ServiceFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
@@ -86,6 +87,7 @@ export function ServiceForm({
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />
+        <ImageAltField texts={formTexts} defaultValue={initial?.imageAlt} errors={errors} />
         <BilingualField
           name="title"
           label={texts.title}

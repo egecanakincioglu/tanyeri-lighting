@@ -324,6 +324,7 @@ describe('projectSchema', () => {
 describe('referenceSchema', () => {
   const valid = {
     imageUrl: 'https://store.public.blob.vercel-storage.com/logo.webp',
+    imageAlt: pair('Bir lobi', 'A lobby'),
     name: 'Example Hotel',
     title: pair('Otel aydınlatması', 'Hotel lighting'),
     description: pair('Lobi ve odalar.', 'Lobby and rooms.'),

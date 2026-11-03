@@ -106,8 +106,12 @@ export type Project = ProjectInput & { id: string };
 export const projectIdSchema = z.string().min(1).max(64);
 export const projectOrderSchema = z.array(projectIdSchema);
 
+// What a picture shows, in one short sentence; empty in both languages for a decorative picture.
+const imageAlt = optionalBilingual(200);
+
 export const referenceSchema = z.object({
   imageUrl: mediaUrl,
+  imageAlt,
   // A proper name, the same in both languages.
   name: z.string().trim().min(1).max(100),
   // What kind of work it was.
@@ -178,6 +182,7 @@ export const catalogSchema = z.object({
   pdfUrl: mediaUrl,
   // The picture shown on the catalogs page; empty when the catalog has none.
   coverImageUrl: mediaUrl.or(z.literal('')),
+  imageAlt,
   // Bytes; the upper bound is the largest value the column holds.
   sizeBytes: z.int().min(1).max(2_147_483_647),
 });
@@ -193,6 +198,7 @@ const bannerActionSchema = z.strictObject({
 
 export const homeBannerSchema = z.strictObject({
   imageUrl: mediaUrl,
+  imageAlt,
   title: bilingual(120),
   description: bilingual(400),
   primaryAction: bannerActionSchema,
@@ -213,6 +219,7 @@ export const featuredProductIdsSchema = idListSchema
 
 export const promoBoardSchema = z.strictObject({
   imageUrl: mediaUrl,
+  imageAlt,
   title: bilingual(100),
   // One short line under the title; empty in both languages when the board has none.
   subtitle: optionalBilingual(120),
@@ -226,6 +233,7 @@ export type PromoBoard = PromoBoardInput & { id: string; catalogName: Bilingual;
 
 export const applicationAreaSchema = z.strictObject({
   imageUrl: mediaUrl,
+  imageAlt,
   title: bilingual(100),
   // Short plain text.
   description: bilingual(300),
@@ -239,6 +247,7 @@ export type ApplicationArea = ApplicationAreaInput & { id: string; categoryKey: 
 
 export const serviceSchema = z.strictObject({
   imageUrl: mediaUrl,
+  imageAlt,
   title: bilingual(100),
   // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   description: bilingual(5000),

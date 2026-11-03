@@ -28,6 +28,7 @@ async function catalogInput(formData: FormData, currentId?: string) {
     name: formPair(formData, 'name'),
     pdfUrl,
     coverImageUrl: formText(formData, 'coverImageUrl'),
+    imageAlt: formPair(formData, 'imageAlt'),
     sizeBytes,
   };
 }

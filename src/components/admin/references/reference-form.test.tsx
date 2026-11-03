@@ -28,6 +28,7 @@ const texts = {
 const initial = {
   id: 'r1',
   imageUrl: '/demo/area-otel.webp',
+  imageAlt: { tr: 'Otel lobisi', en: 'A hotel lobby' },
   name: 'Alpha Hotel',
   title: { tr: 'Otel', en: 'Hotel' },
   description: { tr: 'Açıklama', en: 'Description text' },
@@ -84,6 +85,8 @@ describe('ReferenceForm', () => {
       locale: 'en',
       id: 'r1',
       imageUrl: '/demo/area-otel.webp',
+      'imageAlt.tr': 'Otel lobisi',
+      'imageAlt.en': 'A hotel lobby',
       name: 'Alpha Hotel',
       'title.tr': 'Otel',
       'title.en': 'Hotel',

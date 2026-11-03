@@ -17,6 +17,7 @@ const BAD_URLS = ['http://example.com/a.webp', 'javascript:alert(1)', 'ftp://exa
 describe('homeBannerSchema', () => {
   const valid = {
     imageUrl: IMAGE,
+    imageAlt: pair('Bir görsel', 'A picture'),
     title: pair('Işığın doğru yeri', 'Light in the right place'),
     description: pair('Evler ve iş yerleri için aydınlatma.', 'Lighting for homes and workplaces.'),
     primaryAction: { label: pair('Ürünler', 'Products'), target: 'products' },
@@ -115,6 +116,7 @@ describe('featuredProductIdsSchema', () => {
 describe('promoBoardSchema', () => {
   const valid = {
     imageUrl: IMAGE,
+    imageAlt: pair('Bir görsel', 'A picture'),
     title: pair('Yeni katalog', 'New catalog'),
     subtitle: pair('Kısa satır', 'Short line'),
     catalogId: 'catalog-1',
@@ -159,6 +161,7 @@ describe('promoBoardSchema', () => {
 describe('applicationAreaSchema', () => {
   const valid = {
     imageUrl: IMAGE,
+    imageAlt: pair('Bir görsel', 'A picture'),
     title: pair('Oteller', 'Hotels'),
     description: pair('Lobiler ve odalar.', 'Lobbies and rooms.'),
   };
@@ -204,6 +207,7 @@ describe('applicationAreaSchema', () => {
 describe('serviceSchema', () => {
   const valid = {
     imageUrl: IMAGE,
+    imageAlt: pair('Bir görsel', 'A picture'),
     title: pair('Proje çizimi', 'Lighting design'),
     description: pair('## Süreç\n\nÖlçü alır, çizeriz.', '## Process\n\nWe measure and draw.'),
     note: pair('Keşif ücretsizdir.', 'The site visit is free.'),

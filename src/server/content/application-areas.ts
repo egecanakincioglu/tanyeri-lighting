@@ -18,6 +18,7 @@ function fromRow(row: Prisma.ApplicationAreaGetPayload<{ include: typeof withCat
   return {
     id: row.id,
     imageUrl: row.imageUrl,
+    imageAlt: fromColumns('imageAlt', row),
     title: fromColumns('title', row),
     description: fromColumns('description', row),
     categoryId: row.categoryId,
@@ -28,6 +29,7 @@ function fromRow(row: Prisma.ApplicationAreaGetPayload<{ include: typeof withCat
 function toColumnsOf(area: ApplicationAreaInput) {
   return {
     imageUrl: area.imageUrl,
+    ...toColumns('imageAlt', area.imageAlt),
     ...toColumns('title', area.title),
     ...toColumns('description', area.description),
     categoryId: area.categoryId,
