@@ -233,7 +233,50 @@
   },
   "AdminHome": {
     "title": "Panel",
-    "description": "Sitedeki içeriğin özeti. Bir kutuya tıklayarak ilgili bölüme geçin.",
+    "greeting": "Merhaba",
+    "unreadNone": "Okunmamış mesajın yok. Her şey yolunda.",
+    "unreadOne": "1 okunmamış mesajın var.",
+    "unreadMany": "{count} okunmamış mesajın var.",
+    "tiles": {
+      "visitors": "Ziyaretçi (30 gün)",
+      "views": "Sayfa görüntüleme (30 gün)",
+      "unread": "Okunmamış mesaj",
+      "drafts": "Taslak blog yazısı"
+    },
+    "chart": {
+      "title": "Son 30 günün ziyaretleri",
+      "more": "İstatistikler",
+      "empty": "Son 30 günde kayıtlı ziyaret yok.",
+      "day": "{date}: {views} sayfa görüntüleme, {visits} ziyaretçi",
+      "summary": "Son 30 günde günlük sayfa görüntüleme: toplam {views}, en yüksek gün {date} ile {peak}."
+    },
+    "messages": {
+      "title": "Son mesajlar",
+      "all": "Tümünü gör",
+      "empty": "Henüz mesaj yok.",
+      "unread": "Okunmamış"
+    },
+    "missing": {
+      "title": "Eksik içerik",
+      "none": "Eksik içerik yok. Her şey tamam.",
+      "rows": {
+        "productsNoDescription": "Açıklaması boş ürün",
+        "productsNoSpecs": "Teknik değeri eksik ürün",
+        "drafts": "Yayımlanmamış blog taslağı",
+        "imagesServices": "Görsel açıklaması eksik hizmet",
+        "imagesAreas": "Görsel açıklaması eksik çalışma alanı",
+        "imagesReferences": "Görsel açıklaması eksik referans",
+        "imagesBoards": "Görsel açıklaması eksik tanıtım panosu",
+        "imagesCatalogs": "Görsel açıklaması eksik katalog",
+        "imagesBanner": "Görsel açıklaması eksik ana sayfa bannerı"
+      }
+    },
+    "countries": {
+      "title": "Ülkeler",
+      "empty": "Henüz ülke verisi yok.",
+      "unknown": "Bilinmiyor",
+      "other": "Diğer"
+    },
     "cards": {
       "products": "Ürünler",
       "categories": "Kategoriler",
@@ -244,12 +287,12 @@
       "blogPosts": "Blog yazıları",
       "messages": "Mesajlar"
     },
-    "unread": "{count} okunmamış",
-    "quickTitle": "Hızlı bağlantılar",
+    "quickTitle": "Hızlı işlemler",
     "quick": {
-      "newReference": "Yeni referans",
-      "messages": "Mesajlara git",
-      "site": "Siteyi görüntüle"
+      "newProduct": "Yeni ürün",
+      "newPost": "Yeni blog yazısı",
+      "newProject": "Yeni proje",
+      "newReference": "Yeni referans"
     }
   },
   "AdminForm": {

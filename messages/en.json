@@ -233,7 +233,50 @@
   },
   "AdminHome": {
     "title": "Dashboard",
-    "description": "A summary of the content on the site. Select a card to open its section.",
+    "greeting": "Hello",
+    "unreadNone": "No unread messages. All caught up.",
+    "unreadOne": "You have 1 unread message.",
+    "unreadMany": "You have {count} unread messages.",
+    "tiles": {
+      "visitors": "Visitors (30 days)",
+      "views": "Page views (30 days)",
+      "unread": "Unread messages",
+      "drafts": "Draft blog posts"
+    },
+    "chart": {
+      "title": "Visits, last 30 days",
+      "more": "Statistics",
+      "empty": "No visits recorded in the last 30 days.",
+      "day": "{date}: {views} page views, {visits} visitors",
+      "summary": "Page views per day over the last 30 days: {views} in total, the busiest day was {date} with {peak}."
+    },
+    "messages": {
+      "title": "Latest messages",
+      "all": "See all",
+      "empty": "No messages yet.",
+      "unread": "Unread"
+    },
+    "missing": {
+      "title": "Missing content",
+      "none": "Nothing is missing. All done.",
+      "rows": {
+        "productsNoDescription": "Products without a description",
+        "productsNoSpecs": "Products missing a technical value",
+        "drafts": "Unpublished blog drafts",
+        "imagesServices": "Services without an image description",
+        "imagesAreas": "Work areas without an image description",
+        "imagesReferences": "References without an image description",
+        "imagesBoards": "Promo boards without an image description",
+        "imagesCatalogs": "Catalogs without an image description",
+        "imagesBanner": "Home banner without an image description"
+      }
+    },
+    "countries": {
+      "title": "Countries",
+      "empty": "No country data yet.",
+      "unknown": "Unknown",
+      "other": "Other"
+    },
     "cards": {
       "products": "Products",
       "categories": "Categories",
@@ -244,12 +287,12 @@
       "blogPosts": "Blog posts",
       "messages": "Messages"
     },
-    "unread": "{count} unread",
-    "quickTitle": "Quick links",
+    "quickTitle": "Quick actions",
     "quick": {
-      "newReference": "New reference",
-      "messages": "Go to messages",
-      "site": "View the site"
+      "newProduct": "New product",
+      "newPost": "New blog post",
+      "newProject": "New project",
+      "newReference": "New reference"
     }
   },
   "AdminForm": {
