@@ -42,6 +42,11 @@ function product(code: string, tr: string, en: string): Product {
     material: pair,
     power: '10 W',
     dimensions: '1 cm',
+    description: { tr: '', en: '' },
+    luminousFlux: '',
+    colorTemperature: '',
+    cri: '',
+    ip: '',
     imageUrl: '/demo/a.webp',
   };
 }

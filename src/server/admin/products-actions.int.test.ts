@@ -80,6 +80,32 @@ describe('product actions on a real database', () => {
     expect(await slugs()).toEqual(['alpha', 'beta']);
   });
 
+  it('saves the description and the technical values from the form', async () => {
+    const details = {
+      'description.tr': 'Kısa açıklama.',
+      'description.en': 'Short description.',
+      luminousFlux: '1050 lm',
+      colorTemperature: '3000 K',
+      cri: 'Ra 90',
+      ip: 'IP20',
+    };
+    await expect(createProductAction(null, form(valid('alpha', details)))).rejects.toThrow('redirect:');
+    expect((await listProducts())[0]).toMatchObject({
+      description: { tr: 'Kısa açıklama.', en: 'Short description.' },
+      luminousFlux: '1050 lm',
+      colorTemperature: '3000 K',
+      cri: 'Ra 90',
+      ip: 'IP20',
+    });
+  });
+
+  it('refuses a description in one language only', async () => {
+    expect(await createProductAction(null, form(valid('alpha', { 'description.tr': 'Yalnız Türkçe.' })))).toMatchObject(
+      { status: 'error' },
+    );
+    expect(await slugs()).toEqual([]);
+  });
+
   it('reports the invalid fields and writes nothing', async () => {
     const result = await createProductAction(null, form(valid('Not Kebab', { power: '', 'name.tr': 'x'.repeat(121) })));
     expect(result).toEqual({
