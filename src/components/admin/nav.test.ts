@@ -42,13 +42,18 @@ describe('buildNavGroups', () => {
     expect(groups[0]).toEqual({
       label: 'groups.general',
       items: [
-        { href: '/dashboard', label: 'items.panel' },
-        { href: '/dashboard/statistics', label: 'items.stats' },
+        { href: '/dashboard', icon: 'dashboard', label: 'items.panel' },
+        { href: '/dashboard/statistics', icon: 'chart', label: 'items.stats' },
       ],
     });
     const messages = groups.flatMap((group) => group.items).filter((item) => item.badge);
     expect(messages).toEqual([
-      { href: '/dashboard/messages', label: 'items.messages', badge: { count: 4, label: 'unread:{"count":4}' } },
+      {
+        href: '/dashboard/messages',
+        icon: 'mail',
+        label: 'items.messages',
+        badge: { count: 4, label: 'unread:{"count":4}' },
+      },
     ]);
   });
 });

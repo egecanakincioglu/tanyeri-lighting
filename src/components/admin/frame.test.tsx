@@ -84,15 +84,22 @@ describe('AdminFrame', () => {
     const { container } = await renderFrame('en');
     const current = menu().getAllByRole('link', { current: 'page', hidden: true });
     expect(current.map((link) => link.textContent)).toEqual(['References']);
-    expect(container.querySelector('header p')?.textContent).toBe('References');
+    expect(container.querySelector('header p')?.textContent).toBe('Company/References');
+    expect(container.querySelector('header p span.font-semibold')?.textContent).toBe('References');
+  });
+
+  it('shows the screen name alone when the group has the same name', async () => {
+    navigation.pathname = '/en/admin/products';
+    const { container } = await renderFrame('en');
+    expect(container.querySelector('header p')?.textContent).toBe('Products');
   });
 
   // jsdom has no layout, so this pins the rule that keeps the title and the content on one left edge: the top bar
   // adds the side padding to its width cap, the content box inside main does not.
   it('caps the top bar one gutter wider than the content', async () => {
     const { container } = await renderFrame('en');
-    expect(container.querySelector('header > div')?.className).toContain('max-w-[calc(64rem+2*var(--gutter))]');
-    expect(container.querySelector('main > div')?.className).toContain('max-w-5xl');
+    expect(container.querySelector('header > div')?.className).toContain('max-w-[calc(72rem+2*var(--gutter))]');
+    expect(container.querySelector('main > div')?.className).toContain('max-w-6xl');
   });
 
   it('shows the signed-in address, the link to the site and the screen', async () => {
@@ -120,12 +127,31 @@ describe('AdminFrame', () => {
     expect(screen.queryByText(/This is a demo/)).toBeNull();
   });
 
-  it('ends with a sign-out form that carries the language', async () => {
+  it('ends with a sign-out form that carries the language, outside the menu list', async () => {
     await renderFrame('tr');
-    const button = menu().getByRole('button', { name: 'Çıkış', hidden: true });
+    const button = screen.getByRole('button', { name: 'Çıkış', hidden: true });
     const form = button.closest('form')!;
     expect((form.querySelector('input[name="locale"]') as HTMLInputElement).value).toBe('tr');
     expect(button.getAttribute('type')).toBe('submit');
+    expect(button.closest('nav')).toBeNull();
+    expect(button.textContent).toBe('');
+  });
+
+  it('shows the account block with the initial and the address, and the site link outside the menu list', async () => {
+    await renderFrame('en');
+    expect(screen.getByText('A', { selector: 'span[aria-hidden="true"]' })).toBeTruthy();
+    expect(screen.getByText('admin@example.com').getAttribute('title')).toBe('admin@example.com');
+    expect(menu().queryByRole('link', { name: 'View the site', hidden: true })).toBeNull();
+  });
+
+  it('marks the active item with a marker, and no other item', async () => {
+    navigation.pathname = '/en/admin/services';
+    await renderFrame('en');
+    const active = menu().getByRole('link', { current: 'page', hidden: true });
+    expect(active.textContent).toBe('Services');
+    expect(active.querySelectorAll('span[aria-hidden="true"]').length).toBe(1);
+    const other = menu().getByRole('link', { name: 'Projects', hidden: true });
+    expect(other.querySelector('span[aria-hidden="true"]')).toBeNull();
   });
 
   describe('the slide-in menu', () => {
