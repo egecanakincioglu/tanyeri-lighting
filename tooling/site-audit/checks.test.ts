@@ -92,6 +92,8 @@ test('image size: exact fit and exactly double pass', () => {
 test('image size: too small and more than double fail', () => {
   assert.match(imageProblem(img({ naturalWidth: 799 }))!, /below/);
   assert.match(imageProblem(img({ naturalWidth: 1601 }))!, /twice/);
+  assert.equal(imageProblem(img({ src: '/brand/logo.svg?v=2', naturalWidth: 5000 })), null);
+  assert.match(imageProblem(img({ src: '/brand/logo.png', naturalWidth: 5000 }))!, /twice/);
 });
 
 test('image size: DPR counts at most 2', () => {
