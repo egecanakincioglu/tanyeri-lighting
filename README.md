@@ -38,7 +38,7 @@ The account is read-only and public on purpose. It works only while demo mode is
 
 | Area | Technology |
 |---|---|
-| Framework | Next.js 16.4.3 (App Router), React 19.3.1 |
+| Framework | Next.js 16.4.5 (App Router), React 19.3.1 |
 | Language | TypeScript 6.0.3 (strict) on Node 24 |
 | Database | PostgreSQL 18 (Neon in production), Prisma 7.10.1 with `@prisma/adapter-pg` |
 | Authentication | Better Auth 1.7.14 |
