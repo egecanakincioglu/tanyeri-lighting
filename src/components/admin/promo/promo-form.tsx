@@ -6,7 +6,7 @@ import type { FormState } from '../../../server/admin/form.ts';
 import { SelectField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -76,7 +76,7 @@ export function PromoForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="locale" value={locale} />
       {initial && <input type="hidden" name="id" value={initial.id} />}
-      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
         <ImageField
           id="imageUrl"
           name="imageUrl"
@@ -120,9 +120,7 @@ export function PromoForm({
           />
         )}
       </div>
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div className="flex flex-wrap gap-3">
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
@@ -136,7 +134,7 @@ export function PromoForm({
         >
           {texts.cancel}
         </Link>
-      </div>
+      </FormActions>
     </form>
   );
 }

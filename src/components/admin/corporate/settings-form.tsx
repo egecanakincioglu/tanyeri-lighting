@@ -4,7 +4,7 @@ import { useActionState, startTransition, type FormEvent } from 'react';
 import type { FormState } from '../../../server/admin/form.ts';
 import { TextField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -59,7 +59,7 @@ const LIMITS = {
   languages: 100,
 };
 
-const sectionClass = 'flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6';
+const sectionClass = 'flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8';
 
 export function SettingsForm({
   action,
@@ -172,16 +172,14 @@ export function SettingsForm({
           errors={pair('serviceArea')}
         />
       </section>
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div>
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
           pending={pending}
           disabled={Boolean(readOnlyReason)}
         />
-      </div>
+      </FormActions>
     </form>
   );
 }

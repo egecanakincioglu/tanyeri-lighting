@@ -5,7 +5,7 @@ import type { FormState } from '../../../server/admin/form.ts';
 import { Link } from '../../../i18n/navigation.ts';
 import { TextField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
@@ -56,7 +56,7 @@ export function CategoryForm({ action, locale, initial, texts, formTexts, readOn
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="locale" value={locale} />
       {initial && <input type="hidden" name="id" value={initial.id} />}
-      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
         <BilingualField
           name="name"
           label={texts.name}
@@ -83,7 +83,7 @@ export function CategoryForm({ action, locale, initial, texts, formTexts, readOn
           </p>
         </div>
       </div>
-      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
         <p className="text-sm text-muted">{texts.pageHint}</p>
         <BilingualField
           name="seoTitle"
@@ -128,9 +128,7 @@ export function CategoryForm({ action, locale, initial, texts, formTexts, readOn
           error={message('intro')}
         />
       </div>
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div className="flex flex-wrap gap-3">
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
@@ -144,7 +142,7 @@ export function CategoryForm({ action, locale, initial, texts, formTexts, readOn
         >
           {texts.cancel}
         </Link>
-      </div>
+      </FormActions>
     </form>
   );
 }

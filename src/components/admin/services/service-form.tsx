@@ -6,7 +6,7 @@ import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { BilingualMarkdownField } from '../bilingual-markdown-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -74,7 +74,7 @@ export function ServiceForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="locale" value={locale} />
       {initial && <input type="hidden" name="id" value={initial.id} />}
-      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
         <ImageField
           id="imageUrl"
           name="imageUrl"
@@ -119,9 +119,7 @@ export function ServiceForm({
           <p className="text-sm text-muted">{texts.noteHint}</p>
         </div>
       </div>
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div className="flex flex-wrap gap-3">
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
@@ -135,7 +133,7 @@ export function ServiceForm({
         >
           {texts.cancel}
         </Link>
-      </div>
+      </FormActions>
     </form>
   );
 }
