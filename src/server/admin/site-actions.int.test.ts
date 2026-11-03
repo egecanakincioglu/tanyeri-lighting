@@ -4,7 +4,7 @@ import { getDb } from '../db.ts';
 import { getLegalPage } from '../content/legal-pages.ts';
 import { getPageMetadata } from '../content/page-metadata.ts';
 import { saveLegalPageAction } from './legal-pages-actions.ts';
-import { deleteMessageAction } from './messages-actions.ts';
+import { deleteMessageAction, markMessageReadAction } from './messages-actions.ts';
 import { savePageMetadataAction } from './page-metadata-actions.ts';
 
 const mocks = vi.hoisted(() => ({ guardAction: vi.fn(), refresh: vi.fn() }));
@@ -91,6 +91,26 @@ describe('the messages, legal pages and page info actions on a real database', (
       vi.stubEnv('DEMO_MODE', 'true');
       expect(await deleteMessageAction(null, form({ id }))).toMatchObject({ status: 'error', code: 'demo' });
       expect(await getDb().contactMessage.count()).toBe(1);
+    });
+  });
+
+  describe('markMessageReadAction', () => {
+    it('marks the message read and refreshes the panel', async () => {
+      const id = await newMessage();
+      await markMessageReadAction(id);
+      expect((await getDb().contactMessage.findUniqueOrThrow({ where: { id } })).readAt).toBeInstanceOf(Date);
+      expect(mocks.refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses without a session and in demo mode, and leaves the message unread', async () => {
+      const id = await newMessage();
+      mocks.guardAction.mockRejectedValue(new UnauthorizedError());
+      await markMessageReadAction(id);
+      mocks.guardAction.mockResolvedValue({ user: { email: 'admin@example.com' } });
+      vi.stubEnv('DEMO_MODE', 'true');
+      await markMessageReadAction(id);
+      expect((await getDb().contactMessage.findUniqueOrThrow({ where: { id } })).readAt).toBeNull();
+      expect(mocks.refresh).not.toHaveBeenCalled();
     });
   });
 

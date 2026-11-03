@@ -79,6 +79,28 @@ describe('FeaturedEditor', () => {
     expect(screen.getByRole('status').textContent).toBe('saved');
   });
 
+  it('moves the focus to the next remove button, else the previous, else the search field', async () => {
+    setup({ initial: [item(1), item(2), item(3)], limit: 4 });
+    await press('Remove: Lamp 2');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove: Lamp 3' }));
+    await press('Remove: Lamp 3');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove: Lamp 1' }));
+    await press('Remove: Lamp 1');
+    expect(document.activeElement).toBe(screen.getByLabelText('Search'));
+  });
+
+  it('moves the focus to the search field after adding a product', async () => {
+    setup({ limit: 4 });
+    await press('Add a product: Lamp 3');
+    expect(document.activeElement).toBe(screen.getByLabelText('Search'));
+  });
+
+  it('moves the focus to the remove button of the new row when adding fills the list', async () => {
+    setup({ limit: 3 });
+    await press('Add a product: Lamp 3');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove: Lamp 3' }));
+  });
+
   it('does not move the first up or the last down', async () => {
     setup();
     await press('Move up: Lamp 1');

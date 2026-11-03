@@ -26,6 +26,8 @@ export type FormTexts = {
   save: string;
   saving: string;
   saved: string;
+  /** Said after a row was deleted from a list. */
+  deleted: string;
   /** Why save, delete, reorder and upload are off in the demo. */
   demoNote: string;
   languages: { tr: string; en: string };
@@ -40,6 +42,7 @@ export function buildFormTexts(t: Translate): FormTexts {
     save: t('save'),
     saving: t('saving'),
     saved: t('saved'),
+    deleted: t('deleted'),
     demoNote: t('demoNote'),
     languages: { tr: t('languageTr'), en: t('languageEn') },
     errors: Object.fromEntries(ERROR_CODES.map((code) => [code, t(`errors.${code}`)])) as Record<ErrorCode, string>,

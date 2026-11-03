@@ -10,16 +10,18 @@ const mocks = vi.hoisted(() => ({
   guardPage: vi.fn(),
   listMessages: vi.fn(),
   getMessage: vi.fn(),
-  markMessageRead: vi.fn(),
+  markMessageReadAction: vi.fn(),
 }));
 
 vi.mock('../../../../../../server/auth/guard.ts', () => ({ guardPage: mocks.guardPage }));
 vi.mock('../../../../../../server/contact/service.ts', () => ({
   listMessages: mocks.listMessages,
   getMessage: mocks.getMessage,
-  markMessageRead: mocks.markMessageRead,
 }));
-vi.mock('../../../../../../server/admin/messages-actions.ts', () => ({ deleteMessageAction: vi.fn() }));
+vi.mock('../../../../../../server/admin/messages-actions.ts', () => ({
+  deleteMessageAction: vi.fn(),
+  markMessageReadAction: mocks.markMessageReadAction,
+}));
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   notFound: () => {
@@ -140,18 +142,19 @@ describe('message screens', () => {
       expect(screen.getByRole('link', { name: 'Reply by e-mail' }).getAttribute('href')).toBe(
         'mailto:ayse@example.com?subject=Re%3A%20Offer%20%26%20prices',
       );
-      expect(mocks.markMessageRead).toHaveBeenCalledWith('m1');
+      expect(mocks.markMessageReadAction).toHaveBeenCalledWith('m1');
       expect(screen.getByRole('button', { name: 'Delete: Offer & prices' })).toBeTruthy();
     });
 
     it('does not mark a message that was read again, and writes nothing in the demo', async () => {
       mocks.getMessage.mockResolvedValue({ ...message, readAt: new Date() });
-      await MessagePage(detailProps('en', 'm1'));
-      expect(mocks.markMessageRead).not.toHaveBeenCalled();
+      expect(mocks.markMessageReadAction).not.toHaveBeenCalled();
+      cleanup();
+      expect(mocks.markMessageReadAction).not.toHaveBeenCalled();
       mocks.getMessage.mockResolvedValue({ ...message });
       vi.stubEnv('DEMO_MODE', 'true');
       inIntl('en', await MessagePage(detailProps('en', 'm1')));
-      expect(mocks.markMessageRead).not.toHaveBeenCalled();
+      expect(mocks.markMessageReadAction).not.toHaveBeenCalled();
       expect((screen.getByRole('button', { name: 'Delete: Offer & prices' }) as HTMLButtonElement).disabled).toBe(true);
     });
 
