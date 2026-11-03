@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-11-03
+
+### Fixes
+- update next to the 16.4.5 security release (d1859cb)
+- keep focus in the featured products picker (95efb96)
+- announce a deleted row and keep focus in lists (3a02642)
+- mark a message read after the page shows (423edd7)
+
+### Other
+- docs: raise the next version floor to 16.4.5 (a84bda0)
+- docs(admin): describe read marks and list focus (d55d8f2)
+
 ## [0.7.0] - 2026-11-03
 
 ### Features
