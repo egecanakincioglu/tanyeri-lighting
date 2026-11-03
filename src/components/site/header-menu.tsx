@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { Suspense, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { CONTAINER } from './container.ts';
 import { rememberLocale, switchHref, type SwitchRoute } from './language-switch.ts';
 
@@ -51,8 +51,48 @@ const linkClass =
 const labelClass =
   'inline-flex flex-col items-center select-none after:invisible after:block after:h-0 after:overflow-hidden after:font-semibold after:content-[attr(data-t)]';
 
+type LanguageProps = {
+  pathname: string;
+  locale: string;
+  routes: SwitchRoute[];
+  languages: Props['languages'];
+  label: string;
+};
+
+function LanguageLinks({ pathname, locale, routes, languages, label, search }: LanguageProps & { search: string }) {
+  return (
+    <div role="group" aria-label={label} className="flex items-center">
+      {languages.map((language, index) => (
+        <Link
+          prefetch={false}
+          key={language.locale}
+          href={`${switchHref(pathname, locale, language.locale, routes)}${search}`}
+          onClick={() => {
+            if (language.locale !== locale) rememberLocale(language.locale);
+          }}
+          lang={language.locale}
+          hrefLang={language.locale}
+          aria-label={`${language.code}, ${language.name}`}
+          aria-current={language.locale === locale ? 'true' : undefined}
+          className={`relative flex min-h-touch min-w-10 items-center justify-center px-2 text-[0.8125rem] tracking-wide transition-colors duration-200 hover:text-ink motion-reduce:transition-none ${language.locale === locale ? 'font-bold text-ink' : 'font-medium text-muted'} ${index > 0 ? 'before:absolute before:top-1/2 before:left-0 before:-mt-1.5 before:h-3 before:w-px before:bg-hairline' : ''}`}
+        >
+          {language.code}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// The query string (a category or page of the product list) goes with the language switch, as the alternate address in
+// the page head does. It is read in the browser, so the server sends the links without it and pages stay static.
+function LanguageLinksWithQuery(props: LanguageProps) {
+  const query = useSearchParams().toString();
+  return <LanguageLinks {...props} search={query ? `?${query}` : ''} />;
+}
+
 export function HeaderMenu({ locale, home, routes, logo, items, contact, languages, labels }: Props) {
   const pathname = usePathname();
+  const languageProps = { pathname, locale, routes, languages, label: labels.language };
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [sideOpen, setSideOpen] = useState(false);
@@ -307,25 +347,9 @@ export function HeaderMenu({ locale, home, routes, logo, items, contact, languag
           {contact.label}
         </Link>
         <div className="ml-auto flex items-center gap-1 lg:ml-2">
-          <div role="group" aria-label={labels.language} className="flex items-center">
-            {languages.map((language, index) => (
-              <Link
-                prefetch={false}
-                key={language.locale}
-                href={switchHref(pathname, locale, language.locale, routes)}
-                onClick={() => {
-                  if (language.locale !== locale) rememberLocale(language.locale);
-                }}
-                lang={language.locale}
-                hrefLang={language.locale}
-                aria-label={`${language.code}, ${language.name}`}
-                aria-current={language.locale === locale ? 'true' : undefined}
-                className={`relative flex min-h-touch min-w-10 items-center justify-center px-2 text-[0.8125rem] tracking-wide transition-colors duration-200 hover:text-ink motion-reduce:transition-none ${language.locale === locale ? 'font-bold text-ink' : 'font-medium text-muted'} ${index > 0 ? 'before:absolute before:top-1/2 before:left-0 before:-mt-1.5 before:h-3 before:w-px before:bg-hairline' : ''}`}
-              >
-                {language.code}
-              </Link>
-            ))}
-          </div>
+          <Suspense fallback={<LanguageLinks {...languageProps} search="" />}>
+            <LanguageLinksWithQuery {...languageProps} />
+          </Suspense>
           <button
             ref={menuButtonRef}
             type="button"
