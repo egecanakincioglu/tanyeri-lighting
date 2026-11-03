@@ -75,7 +75,7 @@ export default async function StatisticsAdminPage({ params }: PageProps<'/[local
             <table className="mt-2 w-full">
               <caption className="sr-only">{t('daily')}</caption>
               <thead>
-                <tr className="border-b border-hairline">
+                <tr className="border-y border-hairline bg-page/60">
                   <th scope="col" className={head}>
                     {t('date')}
                   </th>
@@ -89,7 +89,7 @@ export default async function StatisticsAdminPage({ params }: PageProps<'/[local
               </thead>
               <tbody className="divide-y divide-hairline">
                 {days.map((day) => (
-                  <tr key={day.day}>
+                  <tr key={day.day} className="transition-colors hover:bg-page/60 motion-reduce:transition-none">
                     <th scope="row" className={`${cell} text-left font-normal whitespace-nowrap`}>
                       <time dateTime={day.day}>{date.format(new Date(`${day.day}T00:00:00Z`))}</time>
                     </th>
@@ -113,7 +113,7 @@ export default async function StatisticsAdminPage({ params }: PageProps<'/[local
             <table className="mt-2 w-full">
               <caption className="sr-only">{t('countries')}</caption>
               <thead>
-                <tr className="border-b border-hairline">
+                <tr className="border-y border-hairline bg-page/60">
                   <th scope="col" className={head}>
                     {t('country')}
                   </th>
@@ -127,7 +127,10 @@ export default async function StatisticsAdminPage({ params }: PageProps<'/[local
               </thead>
               <tbody className="divide-y divide-hairline">
                 {stats.countries.map((row) => (
-                  <tr key={row.country ?? 'unknown'}>
+                  <tr
+                    key={row.country ?? 'unknown'}
+                    className="transition-colors hover:bg-page/60 motion-reduce:transition-none"
+                  >
                     <th scope="row" className={`${cell} text-left font-normal wrap-break-word`}>
                       {row.country ? (regions.of(row.country) ?? row.country) : t('unknown')}
                     </th>
