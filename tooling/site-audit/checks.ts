@@ -37,11 +37,16 @@ export interface ImageFacts {
   hasSizes: boolean;
 }
 
+function isVector(src: string): boolean {
+  return /^data:image\/svg\+xml/i.test(src) || /\.svg([?#]|$)/i.test(src);
+}
+
 /**
  * ADR 0009 rule 5: the selected source is at least display width x min(DPR, 2) and at most twice that;
  * every srcset image has sizes. A full-bleed image (displayed at least as wide as the viewport) cannot have a source
  * for every wide screen, so its lower bound is capped at 1920 px; its upper bound stays twice the uncapped width.
- * Hidden images and images without a natural width (not decoded) skip the size check.
+ * An SVG source skips the upper bound. Hidden images and images without a natural width (not decoded) skip the
+ * size check.
  */
 export function imageProblem(img: ImageFacts): string | null {
   if (img.hasSrcset && !img.hasSizes) return `${img.src}: srcset without sizes`;
@@ -52,7 +57,8 @@ export function imageProblem(img: ImageFacts): string | null {
   if (img.naturalWidth < minimum) {
     return `${img.src}: ${img.naturalWidth}px source is below the ${Math.ceil(minimum)}px needed`;
   }
-  if (img.naturalWidth > needed * 2) {
+  // A vector scales without extra bytes, so its intrinsic size says nothing about the weight of the file.
+  if (img.naturalWidth > needed * 2 && !isVector(img.src)) {
     return `${img.src}: ${img.naturalWidth}px source is more than twice the ${Math.ceil(needed)}px needed`;
   }
   return null;
