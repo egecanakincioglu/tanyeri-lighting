@@ -74,6 +74,11 @@ const products = [1, 2].map((n) => ({
   material: pair('Aluminium'),
   power: '12W',
   dimensions: '10 x 10 cm',
+  description: { tr: '', en: '' },
+  luminousFlux: '',
+  colorTemperature: '',
+  cri: '',
+  ip: '',
   imageUrl: '/demo/product-gomme-spot.webp',
 })) satisfies Product[];
 // The first area links to a category; the second has none.

@@ -78,6 +78,10 @@
     "material": "Malzeme",
     "power": "Güç",
     "dimensions": "Ölçüler",
+    "luminousFlux": "Işık akısı",
+    "colorTemperature": "Renk sıcaklığı",
+    "cri": "CRI",
+    "ip": "Koruma sınıfı",
     "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
     "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün."
   },
