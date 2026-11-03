@@ -26,6 +26,11 @@ function productInput(formData: FormData) {
     material: formPair(formData, 'material'),
     power: formText(formData, 'power'),
     dimensions: formText(formData, 'dimensions'),
+    description: formPair(formData, 'description'),
+    luminousFlux: formText(formData, 'luminousFlux'),
+    colorTemperature: formText(formData, 'colorTemperature'),
+    cri: formText(formData, 'cri'),
+    ip: formText(formData, 'ip'),
     imageUrl: formText(formData, 'imageUrl'),
   };
 }

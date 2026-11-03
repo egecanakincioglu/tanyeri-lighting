@@ -39,6 +39,20 @@ describe('demo content seed on a real database', () => {
     await db.category.updateMany({ data: { nameEn: 'Edited in the panel' } });
     await expect(seedDemoContent(db)).rejects.toThrow('--replace');
     expect(await db.product.count()).toBe(30);
+    expect(
+      await db.product.count({
+        where: {
+          NOT: [
+            { descriptionTr: '' },
+            { descriptionEn: '' },
+            { luminousFlux: '' },
+            { colorTemperature: '' },
+            { cri: '' },
+            { ip: '' },
+          ],
+        },
+      }),
+    ).toBe(30);
     expect(await db.category.count({ where: { nameEn: 'Edited in the panel' } })).toBe(6);
   });
 

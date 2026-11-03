@@ -163,6 +163,13 @@ export const productSchema = z.strictObject({
   material: bilingual(100),
   power: z.string().trim().min(1).max(40),
   dimensions: z.string().trim().min(1).max(60),
+  // Two or three sentences; filled in both languages or in neither.
+  description: optionalBilingual(500).default({ tr: '', en: '' }),
+  // Language-independent values with their unit, such as "1050 lm"; empty leaves the row out.
+  luminousFlux: z.string().trim().max(20).default(''),
+  colorTemperature: z.string().trim().max(20).default(''),
+  cri: z.string().trim().max(20).default(''),
+  ip: z.string().trim().max(20).default(''),
   imageUrl: mediaUrl,
 });
 

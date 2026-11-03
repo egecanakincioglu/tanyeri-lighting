@@ -23,6 +23,11 @@ export function productFromRow(row: ProductRow): Product {
     material: fromColumns('material', row),
     power: row.power,
     dimensions: row.dimensions,
+    description: fromColumns('description', row),
+    luminousFlux: row.luminousFlux,
+    colorTemperature: row.colorTemperature,
+    cri: row.cri,
+    ip: row.ip,
     imageUrl: row.imageUrl,
   };
 }
@@ -37,6 +42,11 @@ function toColumnsOf(product: ProductInput) {
     ...toColumns('material', product.material),
     power: product.power,
     dimensions: product.dimensions,
+    ...toColumns('description', product.description),
+    luminousFlux: product.luminousFlux,
+    colorTemperature: product.colorTemperature,
+    cri: product.cri,
+    ip: product.ip,
     imageUrl: product.imageUrl,
   };
 }

@@ -78,6 +78,10 @@
     "material": "Material",
     "power": "Power",
     "dimensions": "Dimensions",
+    "luminousFlux": "Luminous flux",
+    "colorTemperature": "Colour temperature",
+    "cri": "CRI",
+    "ip": "IP rating",
     "description": "{name}: {specs}. Product code {code}; ask for technical details. Demo product.",
     "descriptionPlain": "{name}. Product code {code}; ask for technical details. Demo product."
   },
@@ -493,7 +497,7 @@
     "fieldBody": "Text",
     "fieldSlug": "Address",
     "slugHint": "Lowercase letters, digits and hyphens. It is the end of the article address and is the same in both languages.",
-    "slugEditHint": "Changing the address of a published article breaks the links that point to the old one.",
+    "slugRedirectHint": "If you change it, the old address keeps working and leads to the new one.",
     "fieldPublishedAt": "Publication date",
     "publishedAtHint": "Leave empty to keep the article as a draft. A date in the future publishes it on that day."
   },
@@ -584,7 +588,12 @@
     "fieldColor": "Colour",
     "fieldMaterial": "Material",
     "fieldPower": "Power",
-    "fieldDimensions": "Dimensions"
+    "fieldDimensions": "Dimensions",
+    "fieldDescription": "Description (2-3 sentences, optional)",
+    "fieldLuminousFlux": "Luminous flux (such as 1050 lm)",
+    "fieldColorTemperature": "Colour temperature (such as 3000 K)",
+    "fieldCri": "CRI (such as Ra 90)",
+    "fieldIp": "IP rating (such as IP20)"
   },
   "AdminCatalogs": {
     "title": "Catalogs",

@@ -78,6 +78,10 @@
     "material": "Malzeme",
     "power": "Güç",
     "dimensions": "Ölçüler",
+    "luminousFlux": "Işık akısı",
+    "colorTemperature": "Renk sıcaklığı",
+    "cri": "CRI",
+    "ip": "Koruma sınıfı",
     "description": "{name}: {specs}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün.",
     "descriptionPlain": "{name}. Ürün kodu {code}; teknik bilgi talep edin. Demo ürün."
   },
@@ -493,7 +497,7 @@
     "fieldBody": "Metin",
     "fieldSlug": "Adres",
     "slugHint": "Küçük harf, rakam ve tire. Yazı adresinin son parçasıdır ve iki dilde aynıdır.",
-    "slugEditHint": "Yayındaki bir yazının adresini değiştirmek, eski adrese verilen bağlantıları bozar.",
+    "slugRedirectHint": "Değiştirirseniz eski adres çalışmaya devam eder ve yenisine yönlendirir.",
     "fieldPublishedAt": "Yayın tarihi",
     "publishedAtHint": "Taslak olarak kalması için boş bırakın. İleri bir tarih, yazıyı o gün yayınlar."
   },
@@ -584,7 +588,12 @@
     "fieldColor": "Renk",
     "fieldMaterial": "Malzeme",
     "fieldPower": "Güç",
-    "fieldDimensions": "Ölçüler"
+    "fieldDimensions": "Ölçüler",
+    "fieldDescription": "Açıklama (2-3 cümle, isteğe bağlı)",
+    "fieldLuminousFlux": "Işık akısı (örn. 1050 lm)",
+    "fieldColorTemperature": "Renk sıcaklığı (örn. 3000 K)",
+    "fieldCri": "CRI (örn. Ra 90)",
+    "fieldIp": "Koruma sınıfı (örn. IP20)"
   },
   "AdminCatalogs": {
     "title": "Kataloglar",

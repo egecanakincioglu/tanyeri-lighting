@@ -251,25 +251,32 @@ model Category {
 // A product has no price. The slug is the language-independent address of its page; `sortOrder` counts within the
 // category. A category with products cannot be deleted.
 model Product {
-  id         String                @id @default(uuid(7))
-  categoryId String
-  category   Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  slug       String                @unique
-  code       String                @unique
-  nameTr     String
-  nameEn     String
-  colorTr    String
-  colorEn    String
-  materialTr String
-  materialEn String
-  power      String
-  dimensions String
-  imageUrl   String
-  sortOrder  Int
-  createdAt  DateTime              @default(now())
-  updatedAt  DateTime              @updatedAt
-  redirects  ProductSlugRedirect[]
-  featured   FeaturedProduct?
+  id               String                @id @default(uuid(7))
+  categoryId       String
+  category         Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  slug             String                @unique
+  code             String                @unique
+  nameTr           String
+  nameEn           String
+  colorTr          String
+  colorEn          String
+  materialTr       String
+  materialEn       String
+  power            String
+  dimensions       String
+  // Optional details; an empty value leaves the row or text out of the page.
+  descriptionTr    String                @default("")
+  descriptionEn    String                @default("")
+  luminousFlux     String                @default("")
+  colorTemperature String                @default("")
+  cri              String                @default("")
+  ip               String                @default("")
+  imageUrl         String
+  sortOrder        Int
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  redirects        ProductSlugRedirect[]
+  featured         FeaturedProduct?
 
   @@index([categoryId, sortOrder])
   @@map("product")
@@ -426,8 +433,8 @@ model AboutPage {
 // A blog article. Public only while publishedAt is set and not in the future; a row without it is a draft. The
 // body is limited Markdown stored as plain text. The slug is the language independent address.
 model BlogPost {
-  id            String    @id @default(uuid(7))
-  slug          String    @unique
+  id            String                 @id @default(uuid(7))
+  slug          String                 @unique
   titleTr       String
   titleEn       String
   descriptionTr String
@@ -440,9 +447,22 @@ model BlogPost {
   imageAltTr    String
   imageAltEn    String
   publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  redirects     BlogPostSlugRedirect[]
 
   @@index([publishedAt])
   @@map("blog_post")
+}
+
+// An earlier slug of a blog article, kept so the old address answers with a redirect to the current one.
+model BlogPostSlugRedirect {
+  id        String   @id @default(uuid(7))
+  oldSlug   String   @unique
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@map("blogPostSlugRedirect")
 }

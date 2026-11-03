@@ -103,9 +103,17 @@ describe('productSchema', () => {
     dimensions: 'Ø 120 × 85 mm',
     imageUrl: 'https://store.public.blob.vercel-storage.com/ring.webp',
   };
+  const withNoDetails = {
+    ...valid,
+    description: pair('', ''),
+    luminousFlux: '',
+    colorTemperature: '',
+    cri: '',
+    ip: '',
+  };
 
   it('accepts a product and trims the single values', () => {
-    expect(productSchema.parse(valid)).toEqual(valid);
+    expect(productSchema.parse(valid)).toEqual(withNoDetails);
     expect(
       productSchema.parse({
         ...valid,
@@ -114,7 +122,49 @@ describe('productSchema', () => {
         dimensions: ' Ø 120 × 85 mm ',
         slug: ' ring-pendant-120 ',
       }),
-    ).toEqual(valid);
+    ).toEqual(withNoDetails);
+  });
+
+  it('leaves the description and the technical values empty when they are not given', () => {
+    expect(productSchema.parse(valid)).toMatchObject({
+      description: pair('', ''),
+      luminousFlux: '',
+      colorTemperature: '',
+      cri: '',
+      ip: '',
+    });
+  });
+
+  it('accepts a description and the technical values, trimmed', () => {
+    const details = {
+      description: pair(' İki cümle. ', ' Two sentences. '),
+      luminousFlux: ' 1050 lm ',
+      colorTemperature: '3000 K',
+      cri: 'Ra 90',
+      ip: 'IP20',
+    };
+    expect(productSchema.parse({ ...valid, ...details })).toMatchObject({
+      ...details,
+      description: pair('İki cümle.', 'Two sentences.'),
+      luminousFlux: '1050 lm',
+    });
+  });
+
+  it('fills the description in both languages or in neither', () => {
+    expect(productSchema.safeParse({ ...valid, description: pair('Açıklama', '') }).success).toBe(false);
+    expect(productSchema.safeParse({ ...valid, description: pair('', 'Description') }).success).toBe(false);
+  });
+
+  it.each(['luminousFlux', 'colorTemperature', 'cri', 'ip'] as const)('limits %s to 20 characters', (field) => {
+    expect(productSchema.safeParse({ ...valid, [field]: 'a'.repeat(20) }).success).toBe(true);
+    expect(productSchema.safeParse({ ...valid, [field]: 'a'.repeat(21) }).success).toBe(false);
+  });
+
+  it('limits the description to 500 characters', () => {
+    expect(productSchema.safeParse({ ...valid, description: pair('a'.repeat(500), 'b'.repeat(500)) }).success).toBe(
+      true,
+    );
+    expect(productSchema.safeParse({ ...valid, description: pair('a'.repeat(501), 'b') }).success).toBe(false);
   });
 
   it.each(['name', 'color', 'material'] as const)('rejects %s with a missing language', (field) => {
