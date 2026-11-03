@@ -58,7 +58,9 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/products
   const specs = specsOf(found.product, locale);
   return {
     title: category ? `${name} | ${category}` : name,
-    description: t(specs ? 'description' : 'descriptionPlain', { name, specs, code: found.product.code }),
+    description:
+      found.product.description[locale] ||
+      t(specs ? 'description' : 'descriptionPlain', { name, specs, code: found.product.code }),
     ...pageSeo(locale, { pathname: '/products/[slug]', params: { slug: found.product.slug } }),
   };
 }
@@ -76,6 +78,7 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
   if (!loaded) notFound();
   const { product, category } = loaded;
   const name = product.name[locale];
+  const description = product.description[locale];
 
   const categoryLink = (
     <Link
@@ -93,6 +96,10 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
     [t('material'), product.material[locale]],
     [t('power'), product.power],
     [t('dimensions'), product.dimensions],
+    [t('luminousFlux'), product.luminousFlux],
+    [t('colorTemperature'), product.colorTemperature],
+    [t('cri'), product.cri],
+    [t('ip'), product.ip],
   ].filter(([, value]) => value !== '');
 
   return (
@@ -133,6 +140,7 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
                   product.code
                 )}
               </p>
+              {description && <p className="mt-3 text-pretty text-ink">{description}</p>}
             </div>
             <div className="md:col-start-1 md:row-span-3 md:row-start-1">
               <span className="relative mx-auto block aspect-square w-60 max-w-full overflow-hidden rounded-md">

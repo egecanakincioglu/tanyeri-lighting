@@ -183,6 +183,7 @@ describe('page metadata', () => {
       material: { tr: '', en: '' },
       power: '',
       dimensions: '',
+      description: { tr: '', en: '' },
     };
 
     it.each([

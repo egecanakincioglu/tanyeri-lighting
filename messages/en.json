@@ -78,6 +78,10 @@
     "material": "Material",
     "power": "Power",
     "dimensions": "Dimensions",
+    "luminousFlux": "Luminous flux",
+    "colorTemperature": "Colour temperature",
+    "cri": "CRI",
+    "ip": "IP rating",
     "description": "{name}: {specs}. Product code {code}; ask for technical details. Demo product.",
     "descriptionPlain": "{name}. Product code {code}; ask for technical details. Demo product."
   },
@@ -579,7 +583,12 @@
     "fieldColor": "Colour",
     "fieldMaterial": "Material",
     "fieldPower": "Power",
-    "fieldDimensions": "Dimensions"
+    "fieldDimensions": "Dimensions",
+    "fieldDescription": "Description (2-3 sentences, optional)",
+    "fieldLuminousFlux": "Luminous flux (such as 1050 lm)",
+    "fieldColorTemperature": "Colour temperature (such as 3000 K)",
+    "fieldCri": "CRI (such as Ra 90)",
+    "fieldIp": "IP rating (such as IP20)"
   },
   "AdminCatalogs": {
     "title": "Catalogs",
