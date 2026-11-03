@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getPathname } from '../../i18n/navigation.ts';
 import type { routing } from '../../i18n/routing.ts';
 import type { ApplicationArea } from '../../server/content/schemas.ts';
-import { Card } from '../card.tsx';
+import { Card, CARD_FRAME } from '../card.tsx';
 import { Container } from '../container.tsx';
 import { SectionTitle } from '../section-title.tsx';
 import { SiteImage } from '../site-image.tsx';
@@ -27,7 +27,7 @@ export function WorkAreas({ title, areas, locale }: { title: string; areas: Appl
         <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-7 wide:grid-cols-3">
           {areas.map((area) => (
             <li key={area.id} className="group relative h-full">
-              <div className="h-full rounded-lg duration-300 motion-safe:transition-shadow motion-safe:hover:shadow-[0_8px_16px_rgb(0_0_0/0.12)] motion-safe:hover:[&>article]:shadow-none">
+              <div className={CARD_FRAME}>
                 <Card>
                   <div className="relative aspect-video flex-none overflow-hidden motion-safe:[&_img]:transition-transform motion-safe:[&_img]:duration-400 motion-safe:group-hover:[&_img]:scale-[1.08]">
                     <SiteImage src={area.imageUrl} alt="" fill sizes={sizes} />

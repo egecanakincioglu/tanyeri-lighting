@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { ButtonLink } from '../button.tsx';
-import { Card } from '../card.tsx';
+import { Card, CARD_FRAME } from '../card.tsx';
 import type { ViewerLabels } from './viewer-labels.ts';
 import { CatalogViewer } from './catalog-viewer.tsx';
 
@@ -41,7 +41,7 @@ export function CatalogView({ href, name, detail, label, labels, cover, download
 
   return (
     <>
-      <div className="h-full rounded-lg duration-300 motion-safe:transition-shadow motion-safe:hover:shadow-[0_8px_16px_rgb(0_0_0/0.12)] motion-safe:hover:[&>article]:shadow-none">
+      <div className={CARD_FRAME}>
         <Card>
           {/* The view link below carries the name; this one is a pointer shortcut, so it is not a second tab stop. */}
           <Link
