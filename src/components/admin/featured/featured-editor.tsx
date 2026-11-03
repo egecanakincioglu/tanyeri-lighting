@@ -1,6 +1,6 @@
 'use client';
 
-import { startTransition, useActionState, useId, useState } from 'react';
+import { startTransition, useActionState, useEffect, useId, useRef, useState } from 'react';
 import type { FormState } from '../../../server/admin/form.ts';
 import { Button } from '../../button.tsx';
 import { SiteImage } from '../../site-image.tsx';
@@ -54,6 +54,10 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
   const [query, setQuery] = useState('');
   const [state, run, pending] = useActionState(async (_previous: FormState | null, ids: string[]) => save(ids), null);
   const searchId = useId();
+  const search = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLOListElement>(null);
+  // Where the focus goes once the pressed button is gone: a product id (its remove button) or the search field.
+  const focusNext = useRef<string | null>(null);
   const off = Boolean(disabledReason);
   const full = chosen.length >= limit;
 
@@ -63,6 +67,27 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
     (item) =>
       !taken.has(item.id) && (needle === '' || `${item.name} ${item.code}`.toLocaleLowerCase().includes(needle)),
   );
+
+  useEffect(() => {
+    const target = focusNext.current;
+    if (target === null) return;
+    focusNext.current = null;
+    const button = [...(list.current?.querySelectorAll<HTMLElement>('[data-remove]') ?? [])].find(
+      (candidate) => candidate.dataset.remove === target,
+    );
+    (button ?? search.current)?.focus();
+  }, [chosen]);
+
+  function remove(index: number) {
+    focusNext.current = (chosen[index + 1] ?? chosen[index - 1])?.id ?? '';
+    setChosen(chosen.filter((_, position) => position !== index));
+  }
+
+  function add(product: FeaturedItem) {
+    // A full list disables the search field, so the new row's remove button takes the focus.
+    focusNext.current = chosen.length + 1 >= limit ? product.id : '';
+    setChosen([...chosen, product]);
+  }
 
   function move(index: number, step: -1 | 1) {
     const target = index + step;
@@ -84,7 +109,10 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
         {chosen.length === 0 ? (
           <p className="rounded-lg border border-hairline bg-surface px-5 py-8 text-center text-muted">{texts.empty}</p>
         ) : (
-          <ol className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
+          <ol
+            ref={list}
+            className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface"
+          >
             {chosen.map((item, index) => (
               <li key={item.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:p-4">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -117,8 +145,9 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
                     type="button"
                     variant="outline"
                     aria-label={`${texts.remove}: ${item.name}`}
+                    data-remove={item.id}
                     disabled={off}
-                    onClick={() => setChosen(chosen.filter((other) => other.id !== item.id))}
+                    onClick={() => remove(index)}
                   >
                     {texts.remove}
                   </Button>
@@ -138,6 +167,7 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
             {texts.search}
           </label>
           <input
+            ref={search}
             id={searchId}
             type="search"
             value={query}
@@ -159,7 +189,7 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
                     type="button"
                     disabled={off}
                     aria-label={`${texts.add}: ${item.name}`}
-                    onClick={() => setChosen([...chosen, item])}
+                    onClick={() => add(item)}
                     className="flex min-h-touch w-full items-center gap-3 p-3 text-left hover:bg-page disabled:cursor-not-allowed disabled:text-muted"
                   >
                     <Thumb item={item} />
