@@ -2,6 +2,57 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-03
+
+### Features
+- group bilingual fields and restyle uploads (da45c63)
+- lighten list rows and empty states (faa54e6)
+- add sticky form action bar (60eca45)
+- rebuild the panel home as a daily overview (8316b27)
+- seed fictional contact messages (4af49eb)
+- count content that is still missing (99584f4)
+- redesign the panel menu, top bar and account block (7cd2d66)
+- add hover effects to service and reference cards (7c08f7e)
+- seed the two photographed projects (a0a5353)
+- show one project per row (e6879c2)
+- add real before and after photo pairs (db5725d)
+- write fuller about and vision demo text (4e834bb)
+- describe every demo picture in both languages (8d8a6f8)
+- use stored image descriptions as alt text (aef4d85)
+- add image description fields to picture forms (f6ab1b3)
+- add bilingual image descriptions to picture models (0d741c3)
+- date sitemap pages from the content they show (5438f38)
+- redirect an article's old slug to its new one (546209b)
+- add demo descriptions and technical values to products (710bfba)
+- show product details on the product page (390f83e)
+- edit product details in the product form (51627bc)
+- add description and technical details to products (75d80c8)
+
+### Fixes
+- add the vision label to the banner target list (c9e6345)
+- use the visible text as the message link name (85b3f5c)
+- rename the countries list field to id (31c5cb5)
+- skip the oversized-source check for svg images (0b6dc0a)
+- left-align the vision text (e141ede)
+- keep the query string in the language switch (5e7dd93)
+
+### Other
+- docs(admin): describe form actions, list rows and media fields (9d000b2)
+- style(admin): align the statistics table with the list style (52c7520)
+- docs(admin): describe the panel home overview (8d1664c)
+- docs(adr): note the svg exemption of the image size rule (06a71e4)
+- docs(admin): describe the redesigned panel shell (9680d74)
+- docs(projects): describe the demo photo pairs and the projects page (cc26d1b)
+- docs(demo): describe the long form about and vision text (e7d9e4f)
+- chore(demo): set pdf title and author on demo catalogs (a65be41)
+- test(content): add empty image descriptions to date fixtures (4363a2f)
+- style(admin): tighten the page header hierarchy (a3f0ebe)
+- refactor(ui): share the card hover frame class (2be6dd7)
+- docs(seo): describe image descriptions for pictures (af6e162)
+- docs(seo): describe blog redirects and sitemap dates (a04a225)
+- test(products): include the new detail fields in the featured list check (b65be4d)
+- docs(products): describe the description and technical rows (a1c0e2d)
+
 ## [0.6.0] - 2026-11-02
 
 ### Features
