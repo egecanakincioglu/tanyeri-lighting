@@ -18,6 +18,11 @@ function product(categoryId: string, slug: string) {
     material: pair('Alüminyum', 'Aluminium'),
     power: '12 W',
     dimensions: 'Ø 120 × 85 mm',
+    description: pair('', ''),
+    luminousFlux: '',
+    colorTemperature: '',
+    cri: '',
+    ip: '',
     imageUrl: `https://store.example.com/${slug}.webp`,
   };
 }
