@@ -56,7 +56,7 @@ describe('demo content seed on a real database', () => {
       featuredProducts: 6,
       applicationAreas: 6,
       services: 4,
-      projects: 3,
+      projects: 2,
       references: 5,
       socialLinks: 4,
       pageMetadata: PAGE_KEYS.length,
@@ -70,7 +70,7 @@ describe('demo content seed on a real database', () => {
     expect(await db.featuredProduct.count()).toBe(6);
     expect(await db.applicationArea.count()).toBe(6);
     expect(await db.service.count()).toBe(4);
-    expect(await db.project.count()).toBe(3);
+    expect(await db.project.count()).toBe(2);
     expect(await db.reference.count()).toBe(5);
     expect(await db.socialLink.count()).toBe(4);
     expect(await db.pageMetadata.count()).toBe(PAGE_KEYS.length);
