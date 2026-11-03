@@ -6,6 +6,7 @@ import { listPostChanges } from '../server/content/blog.ts';
 import { getLegalPage } from '../server/content/legal-pages.ts';
 import { getPageMetadata } from '../server/content/page-metadata.ts';
 import { listCategoryChanges } from '../server/content/categories.ts';
+import { listContentDates, newest } from '../server/content/content-dates.ts';
 import { listProductChanges } from '../server/content/products.ts';
 import { LEGAL_PAGE_KEYS, PAGE_KEYS, type LegalPageKey, type PageKey } from '../server/content/schemas.ts';
 
@@ -13,15 +14,13 @@ type Entry = { href: PageHref; modified?: Date };
 
 const isLegal = (key: PageKey): key is LegalPageKey => (LEGAL_PAGE_KEYS as readonly string[]).includes(key);
 
-const later = (a?: Date, b?: Date) => (a && b ? (a > b ? a : b) : (a ?? b));
-
-async function pageEntry(key: PageKey, newestPost?: Date): Promise<Entry | null> {
+async function pageEntry(key: PageKey, contentDate?: Date): Promise<Entry | null> {
   const [metadata, legal] = await Promise.all([getPageMetadata(key), isLegal(key) ? getLegalPage(key) : undefined]);
   // A legal page that was never saved answers 404, so it is not listed.
   if (legal === null) return null;
   return {
     href: key === 'home' ? '/' : `/${key}`,
-    modified: later(later(metadata?.updatedAt, legal?.updatedAt), key === 'blog' ? newestPost : undefined),
+    modified: newest(metadata?.updatedAt, legal?.updatedAt, contentDate),
   };
 }
 
@@ -29,14 +28,22 @@ async function pageEntry(key: PageKey, newestPost?: Date): Promise<Entry | null>
 // error propagates and the answer is a server error, never a list with pages missing.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await connection();
-  const [products, categories, posts] = await Promise.all([
+  const [products, categories, posts, contentDates] = await Promise.all([
     listProductChanges(),
     listCategoryChanges(),
     listPostChanges(),
+    listContentDates(),
   ]);
-  // The list changes when any article does, so its last change is the newest one.
-  const newestPost = posts.reduce<Date | undefined>((newest, post) => later(newest, post.updatedAt), undefined);
-  const pages = await Promise.all(PAGE_KEYS.map((key) => pageEntry(key, newestPost)));
+  // A list changes when any of its items does, so its last change is the newest one.
+  const pageDates: Partial<Record<PageKey, Date>> = {
+    ...contentDates,
+    products: newest(
+      ...products.map((product) => product.updatedAt),
+      ...categories.map((category) => category.updatedAt),
+    ),
+    blog: newest(...posts.map((post) => post.updatedAt)),
+  };
+  const pages = await Promise.all(PAGE_KEYS.map((key) => pageEntry(key, pageDates[key])));
   const entries: Entry[] = [
     ...pages.filter((page) => page !== null),
     // Each category view is its own indexable address of the product list.

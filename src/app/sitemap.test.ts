@@ -8,12 +8,17 @@ const content = vi.hoisted(() => ({
   products: vi.fn(),
   categories: vi.fn(),
   posts: vi.fn(),
+  dates: vi.fn(),
 }));
 
 vi.mock('../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 vi.mock('../server/content/legal-pages.ts', () => ({ getLegalPage: content.legal }));
 vi.mock('../server/content/blog.ts', () => ({ listPostChanges: content.posts }));
 vi.mock('../server/content/products.ts', () => ({ listProductChanges: content.products }));
+vi.mock('../server/content/content-dates.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../server/content/content-dates.ts')>()),
+  listContentDates: content.dates,
+}));
 vi.mock('../server/content/categories.ts', () => ({ listCategoryChanges: content.categories }));
 // connection() only works inside a request; opting into dynamic rendering is its whole effect.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
@@ -32,6 +37,7 @@ describe('sitemap', () => {
     content.products.mockResolvedValue([{ slug: 'spot-12w', updatedAt: productDate }]);
     content.posts.mockResolvedValue([{ slug: 'linear-lighting', updatedAt: postDate }]);
     content.categories.mockResolvedValue([{ key: 'ray-spot', updatedAt: categoryDate }]);
+    content.dates.mockResolvedValue({});
   });
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -40,6 +46,7 @@ describe('sitemap', () => {
     content.products.mockReset();
     content.posts.mockReset();
     content.categories.mockReset();
+    content.dates.mockReset();
   });
 
   it('lists every public page, category view and product in both languages with absolute addresses', async () => {
@@ -88,6 +95,38 @@ describe('sitemap', () => {
     );
   });
 
+  it('dates a page by the content it shows, and by its page info when that is newer', async () => {
+    const homeDate = new Date('2026-07-01T10:00:00Z');
+    const servicesDate = new Date('2026-02-01T10:00:00Z');
+    content.dates.mockResolvedValue({ home: homeDate, services: servicesDate, catalogs: servicesDate });
+    content.metadata.mockImplementation((key: string) =>
+      Promise.resolve(
+        key === 'services'
+          ? { updatedAt: metaDate }
+          : key === 'catalogs'
+            ? { updatedAt: new Date('2026-01-01') }
+            : null,
+      ),
+    );
+    const entries = await sitemap();
+    const byUrl = (url: string) => entries.find((entry) => entry.url === url);
+    expect(byUrl('https://example.test/tr')?.lastModified).toEqual(homeDate);
+    expect(byUrl('https://example.test/en/services')?.lastModified).toEqual(metaDate);
+    expect(byUrl('https://example.test/en/catalogs')?.lastModified).toEqual(servicesDate);
+    expect(byUrl('https://example.test/en/projects')).not.toHaveProperty('lastModified');
+  });
+
+  it('dates the product list by the newest product or category', async () => {
+    const entries = await sitemap();
+    const list = (url: string) => entries.find((entry) => entry.url === url)?.lastModified;
+    expect(list('https://example.test/en/products')).toEqual(categoryDate);
+    content.categories.mockResolvedValue([]);
+    content.products.mockResolvedValue([]);
+    expect((await sitemap()).find((entry) => entry.url === 'https://example.test/en/products')).not.toHaveProperty(
+      'lastModified',
+    );
+  });
+
   it('uses the later of a legal page and its page info', async () => {
     content.metadata.mockImplementation((key: string) =>
       Promise.resolve(key === 'terms' ? { updatedAt: new Date('2027-01-01T00:00:00Z') } : null),
@@ -119,6 +158,9 @@ describe('sitemap', () => {
     content.categories.mockRejectedValue(new Error('category read failed'));
     await expect(sitemap()).rejects.toThrow('category read failed');
     content.categories.mockResolvedValue([]);
+    content.dates.mockRejectedValue(new Error('dates failed'));
+    await expect(sitemap()).rejects.toThrow('dates failed');
+    content.dates.mockResolvedValue({});
     content.metadata.mockRejectedValue(new Error('timeout'));
     await expect(sitemap()).rejects.toThrow('timeout');
   });
