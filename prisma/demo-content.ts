@@ -1190,7 +1190,60 @@ const references = [
   },
 ].map((reference) => referenceSchema.parse(reference));
 
+// A few made-up contact messages so the panel home and the message list have something to show: the demo stores no
+// messages of its own. The ids are fixed, so a second run replaces these rows and never touches other messages.
+const HOUR = 60 * 60 * 1000;
+const demoMessages = [
+  {
+    id: 'demo-message-1',
+    name: 'Deniz Örnek',
+    email: 'deniz.ornek@example.com',
+    subject: 'Otel lobisi için aydınlatma teklifi',
+    message:
+      'Merhaba, 40 odalı bir otelin lobisi ve koridorları için aydınlatma düşünüyoruz. Keşif ve teklif için ne zaman uygun olursunuz?',
+    hoursAgo: 3,
+    read: false,
+  },
+  {
+    id: 'demo-message-2',
+    name: 'Selin Deneme',
+    email: 'selin.kaya@example.com',
+    subject: 'IP65 dış mekan armatürleri',
+    message: 'Bahçe yolu için IP65 korumalı direk armatürlerinin stok durumunu ve teslim süresini öğrenebilir miyim?',
+    hoursAgo: 20,
+    read: false,
+  },
+  {
+    id: 'demo-message-3',
+    name: 'Mert Deneme',
+    email: 'mert.deneme@example.com',
+    subject: 'Katalog isteği',
+    message: 'Güncel ürün kataloğunuzu e-posta ile gönderebilir misiniz? İç mimarlık ofisimiz için inceleyeceğiz.',
+    hoursAgo: 52,
+    read: true,
+  },
+  {
+    id: 'demo-message-4',
+    name: 'Ayşe Örnekoğlu',
+    email: 'ayse.ornekoglu@example.com',
+    subject: 'Mağaza aydınlatması hakkında',
+    message: 'Yeni açacağımız mağazanın vitrini için sıcak beyaz ray spot önerileriniz var mı? Metrekare yaklaşık 120.',
+    hoursAgo: 96,
+    read: true,
+  },
+  {
+    id: 'demo-message-5',
+    name: 'Kerem Örnek',
+    email: 'kerem.ornek@example.com',
+    subject: 'Montaj hizmeti',
+    message: 'Satın aldığımız armatürlerin montajını da siz yapıyor musunuz? Fiyat bilgisi almak istiyoruz.',
+    hoursAgo: 170,
+    read: true,
+  },
+];
+
 export interface SeedCounts {
+  messages: number;
   categories: number;
   products: number;
   catalogs: number;
@@ -1476,7 +1529,17 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         })),
       });
 
+      const now = Date.now();
+      await tx.contactMessage.deleteMany({ where: { id: { in: demoMessages.map((message) => message.id) } } });
+      await tx.contactMessage.createMany({
+        data: demoMessages.map(({ hoursAgo, read, ...message }) => {
+          const createdAt = new Date(now - hoursAgo * HOUR);
+          return { ...message, locale: 'tr', createdAt, readAt: read ? new Date(createdAt.getTime() + HOUR) : null };
+        }),
+      });
+
       return {
+        messages: demoMessages.length,
         categories: categories.length,
         products: productCount,
         catalogs: catalogRows.length,

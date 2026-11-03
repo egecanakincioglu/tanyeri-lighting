@@ -119,6 +119,22 @@ describe('demo content seed on a real database', () => {
     expect(await db.user.count()).toBe(1);
   });
 
+  it('adds fictional Turkish messages, some unread, once, and keeps other messages', async () => {
+    await db.contactMessage.deleteMany({ where: { email: 'real@visitor.test' } });
+    await db.contactMessage.create({
+      data: { name: 'Real', email: 'real@visitor.test', subject: 's', message: 'm', locale: 'en' },
+    });
+    expect(await seedDemoContent(db, { replace: true })).toEqual(first);
+    const demo = await db.contactMessage.findMany({ where: { email: { endsWith: '@example.com' } } });
+    expect(first.messages).toBe(5);
+    expect(demo).toHaveLength(5);
+    expect(demo.every((message) => message.locale === 'tr')).toBe(true);
+    expect(demo.filter((message) => message.readAt === null).length).toBeGreaterThan(0);
+    expect(demo.filter((message) => message.readAt !== null).length).toBeGreaterThan(0);
+    expect(await db.contactMessage.count({ where: { email: 'real@visitor.test' } })).toBe(1);
+    await db.contactMessage.deleteMany();
+  });
+
   it('has both languages on every kind of record', async () => {
     const site = await db.siteSettings.findUniqueOrThrow({ where: { id: 'site' } });
     expect(isTranslated(site.addressTr, site.addressEn)).toBe(true);
