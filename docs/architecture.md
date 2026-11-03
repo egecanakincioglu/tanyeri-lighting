@@ -250,7 +250,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - `SIGN_IN_PAGES` holds the public sign-in pages. The audit signs in once through the real form before visiting `ADMIN_PAGES`.
 - The catalogs page is a grid of cover cards (1 column, 2 from 540 px, 3 from 900 px): each shows a portrait cover, the name, the size, a view link and a download link. A catalog without a cover shows a placeholder.
 - "View" is a real PDF link. With JavaScript it opens a full-screen page-flip viewer that loads only when a catalog is opened: pages turn by dragging a corner, swiping, previous and next buttons, or the arrow keys, one page on narrow screens and a spread with the cover alone on wide ones. Reduced motion turns pages without the animation. The Content Security Policy adds `worker-src 'self'` for the PDF worker.
-- The projects page compares before and after photos with a native range input, which works by keyboard and without dragging.
+- The projects page compares before and after photos with a native range input, which works by keyboard and without dragging. The projects page shows one project per row, at most 56 rem wide, with a 2:1 slider. Demo projects are two photo pairs (`project-orman-evi-*`, `project-garajli-ev-*`), 1920 px wide with matched framing. Optimized images are cached by address, so a replaced photo needs a new file name.
 - The references grid uses 1, 2, 3 and 5 columns.
 - Each demo catalog has its own PDF and cover, and the seed stores the real size.
 
