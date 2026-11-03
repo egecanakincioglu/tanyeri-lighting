@@ -276,6 +276,11 @@
       "categoryNotEmpty": "This category still has products. Move or delete them first.",
       "catalogInUse": "A promo board still uses this catalog. Change or delete the board first."
     },
+    "imageAlt": {
+      "label": "Image description",
+      "hint": "Say what the picture shows, in one short sentence. Leave both empty for a purely decorative picture.",
+      "both": "Fill in the description in both languages, or leave both empty."
+    },
     "fieldErrors": {
       "required": "This field is required.",
       "tooLong": "At most {max} characters.",

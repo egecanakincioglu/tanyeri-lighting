@@ -42,6 +42,7 @@ const none = { tr: '', en: '' };
 
 const banner: HomeBanner = {
   imageUrl: '/demo/banner.webp',
+  imageAlt: pair('Banner picture'),
   title: pair('Banner title'),
   description: pair('Banner text'),
   primaryAction: { label: pair('Products'), target: 'products' },
@@ -49,6 +50,7 @@ const banner: HomeBanner = {
 };
 const emptyBanner: HomeBanner = {
   imageUrl: '',
+  imageAlt: none,
   title: none,
   description: none,
   primaryAction: { label: none, target: 'products' },
@@ -57,6 +59,7 @@ const emptyBanner: HomeBanner = {
 const boards: PromoBoard[] = [1, 2, 3].map((n) => ({
   id: `board-${n}`,
   imageUrl: '/demo/promo-dekoratif.webp',
+  imageAlt: n === 1 ? pair('Board picture') : none,
   title: pair(`Board ${n}`),
   subtitle: n === 1 ? pair('Line 1') : { tr: '', en: '' },
   catalogId: 'catalog-1',
@@ -85,6 +88,7 @@ const products = [1, 2].map((n) => ({
 const areas: ApplicationArea[] = [1, 2].map((n) => ({
   id: `area-${n}`,
   imageUrl: '/demo/area-konut.webp',
+  imageAlt: n === 1 ? pair('Area picture') : none,
   title: pair(`Area ${n}`),
   description: pair(`Area text ${n}`),
   categoryId: n === 1 ? 'category-1' : null,
@@ -203,6 +207,23 @@ describe('HomePage', () => {
       'Lighting Applications',
     ]);
     expect(screen.queryByRole('link', { name: /^Explore now/ })).toBeNull();
+  });
+
+  it.each([
+    ['en', 'Banner picture EN', 'Board picture EN', 'Area picture EN'],
+    ['tr', 'Banner picture TR', 'Board picture TR', 'Area picture TR'],
+  ])('uses the stored descriptions as alt text in %s', async (locale, bannerAlt, boardAlt, areaAlt) => {
+    const { container } = await renderPage(locale);
+    const alts = [...container.querySelectorAll('img')].map((img) => img.getAttribute('alt'));
+    expect(alts).toContain(bannerAlt);
+    expect(alts).toContain(boardAlt);
+    expect(alts).toContain(areaAlt);
+  });
+
+  it('leaves a picture without a description decorative', async () => {
+    content.banner.mockResolvedValue({ ...banner, imageAlt: none });
+    const { container } = await renderPage('en');
+    expect(container.querySelector('section[aria-labelledby="home-title"] img')?.getAttribute('alt')).toBe('');
   });
 
   it('draws the banner without a photo when none is set', async () => {

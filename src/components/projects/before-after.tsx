@@ -42,7 +42,7 @@ export function BeforeAfter({
       <label htmlFor={id} className="mb-2 block text-sm text-muted">
         {label}
       </label>
-      <div className="relative aspect-3/2 overflow-hidden rounded-lg border border-hairline bg-surface has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent-text">
+      <div className="relative aspect-2/1 overflow-hidden rounded-lg border border-hairline bg-surface has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent-text">
         <SiteImage src={afterUrl} alt={`${name}, ${afterLabel}`} fill sizes={sizes} {...eagerWhen(eager)} />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - value}% 0 0)` }}>
           <SiteImage src={beforeUrl} alt={`${name}, ${beforeLabel}`} fill sizes={sizes} {...eagerWhen(eager)} />

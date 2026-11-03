@@ -5,6 +5,7 @@ import { Link } from '../../../i18n/navigation.ts';
 import type { FormState } from '../../../server/admin/form.ts';
 import { SelectField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
+import { ImageAltField } from '../image-alt-field.tsx';
 import { FormStatus } from '../form-status.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
@@ -30,6 +31,7 @@ type Props = {
   initial?: {
     id: string;
     imageUrl: string;
+    imageAlt: { tr: string; en: string };
     title: { tr: string; en: string };
     subtitle: { tr: string; en: string };
     catalogId: string;
@@ -87,6 +89,7 @@ export function PromoForm({
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />
+        <ImageAltField texts={formTexts} defaultValue={initial?.imageAlt} errors={errors} />
         <BilingualField
           name="title"
           label={texts.title}

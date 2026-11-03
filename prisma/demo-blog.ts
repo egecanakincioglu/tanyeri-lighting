@@ -627,7 +627,7 @@ You can see the [outdoor range](/en/products?category=dis-mekan) in the demo sho
   {
     slug: 'led-donusumu-enerji-tasarrufu',
     publishedAt: new Date('2026-10-20T00:00:00.000Z'),
-    imageUrl: '/demo/project-fabrika-after.webp',
+    imageUrl: '/demo/area-endustriyel.webp',
     title: {
       tr: 'LED dönüşümü ile ne kadar tasarruf edilir? Hesap örneği',
       en: 'How much does an LED upgrade save? A worked example',

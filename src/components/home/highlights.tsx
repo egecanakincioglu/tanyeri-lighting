@@ -29,7 +29,7 @@ function Board({ board, label, locale }: { board: PromoBoard; label: string; loc
   const subtitle = board.subtitle[locale];
   return (
     <article className="relative col-span-2 flex min-h-36 items-end overflow-hidden rounded-lg bg-ink duration-300 mid:min-h-48 lg:aspect-[562/269] lg:min-h-0 hover:shadow-lg motion-safe:transition-[scale,rotate,opacity,box-shadow] motion-safe:hover:scale-105 motion-safe:hover:-rotate-3 motion-safe:hover:opacity-90">
-      <SiteImage src={board.imageUrl} alt="" fill sizes={boardSizes} />
+      <SiteImage src={board.imageUrl} alt={board.imageAlt[locale]} fill sizes={boardSizes} />
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-[linear-gradient(0deg,rgb(0_0_0/0.82),rgb(0_0_0/0.6)_45%,rgb(0_0_0/0.2))]"

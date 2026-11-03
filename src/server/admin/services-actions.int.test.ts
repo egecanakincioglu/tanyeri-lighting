@@ -77,6 +77,16 @@ describe('service actions on a real database', () => {
     expect((await listServices())[0]!.note).toEqual({ tr: 'Not', en: 'Note' });
   });
 
+  it('stores the image description from the form and reports a half-filled one', async () => {
+    await expect(
+      createServiceAction(null, form(valid('Alpha', { 'imageAlt.tr': 'Bir oda', 'imageAlt.en': 'A room' }))),
+    ).rejects.toThrow('redirect:');
+    expect((await listServices())[0]!.imageAlt).toEqual({ tr: 'Bir oda', en: 'A room' });
+    const half = await createServiceAction(null, form(valid('Beta', { 'imageAlt.tr': 'Yalnız Türkçe' })));
+    expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    expect(await listServices()).toHaveLength(1);
+  });
+
   it('reports a note in one language only, and other invalid fields, and writes nothing', async () => {
     const half = await createServiceAction(null, form(valid('Alpha', { 'note.tr': 'Not' })));
     expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { note: { code: 'invalid' } } });

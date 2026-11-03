@@ -70,7 +70,7 @@ describe('demo content seed on a real database', () => {
       featuredProducts: 6,
       applicationAreas: 6,
       services: 4,
-      projects: 3,
+      projects: 2,
       references: 5,
       socialLinks: 4,
       pageMetadata: PAGE_KEYS.length,
@@ -84,7 +84,7 @@ describe('demo content seed on a real database', () => {
     expect(await db.featuredProduct.count()).toBe(6);
     expect(await db.applicationArea.count()).toBe(6);
     expect(await db.service.count()).toBe(4);
-    expect(await db.project.count()).toBe(3);
+    expect(await db.project.count()).toBe(2);
     expect(await db.reference.count()).toBe(5);
     expect(await db.socialLink.count()).toBe(4);
     expect(await db.pageMetadata.count()).toBe(PAGE_KEYS.length);
@@ -233,6 +233,31 @@ describe('demo content seed on a real database', () => {
     expect(boards.every((b) => b.catalog.pdfUrl.startsWith('/demo/'))).toBe(true);
     const perCategory = await db.category.findMany({ include: { _count: { select: { products: true } } } });
     expect(perCategory.every((c) => c._count.products >= 4)).toBe(true);
+  });
+
+  it('describes every picture in both languages, in a short sentence that is not the card title', async () => {
+    const banner = await db.homeBanner.findUniqueOrThrow({ where: { id: 'home' } });
+    const rows = [
+      ...(await db.promoBoard.findMany()),
+      ...(await db.applicationArea.findMany()),
+      ...(await db.service.findMany()),
+      ...(await db.reference.findMany()),
+      ...(await db.catalog.findMany()),
+      banner,
+    ];
+    expect(rows.length).toBe(3 + 6 + 4 + 5 + 3 + 1);
+    for (const row of rows) {
+      expect(isTranslated(row.imageAltTr, row.imageAltEn), row.imageAltEn).toBe(true);
+      expect(row.imageAltTr.length).toBeLessThanOrEqual(200);
+      expect(row.imageAltEn.length).toBeLessThanOrEqual(200);
+    }
+    for (const row of [
+      ...(await db.promoBoard.findMany()),
+      ...(await db.applicationArea.findMany()),
+      ...(await db.service.findMany()),
+    ]) {
+      expect(row.imageAltEn.toLowerCase()).not.toBe(row.titleEn.toLowerCase());
+    }
   });
 
   it('points every picture and file at an existing file under public/demo', async () => {

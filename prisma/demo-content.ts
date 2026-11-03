@@ -27,6 +27,79 @@ import {
 
 const pair = (tr: string, en: string) => ({ tr, en });
 const img = (file: string) => `/demo/${file}`;
+
+// What each demo picture shows, written from the picture itself. A picture used on more than one page has one
+// description. The wording differs from the card titles on purpose, so a screen reader does not read the same words twice.
+const hall = pair(
+  'Mavi çelik çatı kafesi ve tavandan sarkan armatürleriyle boş bir üretim salonu.',
+  'An empty hall with a blue steel roof frame and luminaires hanging from the ceiling.',
+);
+const imageDescriptions: Record<string, ReturnType<typeof pair>> = {
+  'area-konut.webp': pair(
+    'Akşam ışığında, tavana ve rafın arkasına gizlenmiş şeritlerle aydınlatılmış bir oturma odası.',
+    'A living room in the evening, lit by strips hidden in the ceiling and behind a shelf.',
+  ),
+  'area-ofis.webp': pair(
+    'Geniş bir atriyumun tavanında altıgen biçimli, beyaz ışık veren büyük armatürler.',
+    'Large hexagon-shaped luminaires giving white light on the ceiling of a wide atrium.',
+  ),
+  'area-endustriyel.webp': hall,
+  'service-uygulama.webp': hall,
+  'area-otel.webp': pair(
+    'Ahşap çıtalı kavisli bir duvarın önünde karşılama bankosu olan geniş ve aydınlık bir lobi.',
+    'A wide, bright lobby with a reception desk in front of a curved wall of wooden slats.',
+  ),
+  'area-peyzaj.webp': pair(
+    'Geceleyin taş bir bahçe yolunu ve ağaçları aydınlatan alçak lambalar.',
+    'Low lamps lighting a stone garden path and the trees around it at night.',
+  ),
+  'area-cephe.webp': pair(
+    'Çam ağaçlarının arasında, pencereleri ve duvar lambalarıyla geceleyin ışıldayan beyaz bir ev.',
+    'A white house among pine trees at night, glowing from its windows and wall lamps.',
+  ),
+  'service-tasarim.webp': pair(
+    'Siyah ve altın tonlarında, ışık şeritleriyle aydınlatılmış bir yatak odası ve giyinme odası.',
+    'A bedroom and walk-in wardrobe in black and gold, lit by light strips.',
+  ),
+  'service-yenileme.webp': pair(
+    'Sarı kapılı ve ahşap garaj kapılı, duvar lambalarıyla aydınlatılmış beyaz bir ev; gökyüzü gece mavisi.',
+    'A white house with a yellow door and wooden garage doors, lit by wall lamps under a night-blue sky.',
+  ),
+  'banner.webp': pair(
+    'Koyu mavi gece gökyüzünün altında, duvar lambalarıyla aydınlatılmış büyük bir ev ve garaj.',
+    'A large house and garage lit by wall lamps under a deep blue night sky.',
+  ),
+  'promo-dekoratif.webp': pair(
+    'Karanlıkta asılı duran, sıcak ışık veren çok sayıda ampul.',
+    'Many bulbs hanging in the dark, giving off warm light.',
+  ),
+  'promo-yasam.webp': pair(
+    'Mavi ve pembe ışıkla aydınlanmış, televizyonlu ve rafları kitap dolu bir oturma odası.',
+    'A living room with a television and full bookshelves, lit in blue and pink.',
+  ),
+  'promo-dis-mekan.webp': pair(
+    'Geceleyin bahçe yolu, çim ve terası küçük lambalarla aydınlatılmış modern bir ev.',
+    'A modern house at night, with its garden path, lawn and terrace lit by small lamps.',
+  ),
+  'catalog-2026-cover.webp': pair(
+    'Üstte şirket logosu, altta geceleyin aydınlatılmış bir evin fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of a lit house at night.',
+  ),
+  'catalog-dekoratif-cover.webp': pair(
+    'Üstte şirket logosu, altta parlayan sarkıt ampullerin fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of glowing hanging bulbs.',
+  ),
+  'catalog-dis-mekan-cover.webp': pair(
+    'Üstte şirket logosu, altta geceleyin aydınlatılmış bir bahçe ve terasın fotoğrafı olan kapak.',
+    'A cover with the company logo above a photo of a lit garden and terrace at night.',
+  ),
+};
+function describeImage(file: string) {
+  const description = imageDescriptions[file];
+  if (!description) throw new Error(`No description for ${file}`);
+  return description;
+}
+
 const pdfSize = (file: string) => statSync(new URL(`../public/demo/${file}`, import.meta.url)).size;
 
 const settings = siteSettingsSchema.parse({
@@ -87,8 +160,8 @@ const pageMetadata: Record<PageKey, ReturnType<typeof pair>[]> = {
   projects: [
     pair('Aydınlatma Projeleri: Önce ve Sonra', 'Lighting Projects: Before and After'),
     pair(
-      'Otel lobisi, üretim salonu ve müstakil ev dış aydınlatması: önce ve sonra görselleriyle yapılan işler ve sonuçlar. Örnek projeler, kurgusal marka.',
-      'A hotel lobby, a production hall and a detached house exterior: what changed, shown with before and after photos. Sample projects, fictional brand.',
+      'İki müstakil evin dış aydınlatması: önce ve sonra görselleriyle yapılan işler. Örnek projeler, kurgusal marka.',
+      'The exterior lighting of two detached houses: what changed, shown with before and after photos. Sample projects, fictional brand.',
     ),
   ],
   blog: [
@@ -890,6 +963,7 @@ const promoBoards = [
 
 const homeBanner = homeBannerSchema.parse({
   imageUrl: img('banner.webp'),
+  imageAlt: describeImage('banner.webp'),
   title: pair('Her mekâna doğru LED aydınlatma', 'The right LED light for every space'),
   description: pair(
     'Konuttan endüstriyel tesise, enerji verimli ve estetik aydınlatma çözümleri tasarlıyor, üretiyor ve uyguluyoruz.',
@@ -954,6 +1028,7 @@ const areas = [
 const services = [
   {
     imageUrl: img('service-tasarim.webp'),
+    imageAlt: describeImage('service-tasarim.webp'),
     title: pair('Aydınlatma Tasarımı', 'Lighting Design'),
     description: pair(
       'Mekânı ve kullanımı inceleyip **ışık planını** çiziyoruz.\n\n- Aydınlık düzeyi hesabı\n- [Armatür](/tr/urunler) seçimi ve yerleşimi\n- Kontrol ve dimleme önerisi',
@@ -963,6 +1038,7 @@ const services = [
   },
   {
     imageUrl: img('service-uygulama.webp'),
+    imageAlt: describeImage('service-uygulama.webp'),
     title: pair('Proje ve Uygulama', 'Installation'),
     description: pair(
       'Onaylanan planı **anahtar teslim** uyguluyoruz; tamamlanan işler [projeler](/tr/projeler) sayfasında.\n\n- Montaj ve kablolama\n- Devreye alma ve ayar\n- Teslim sonrası ölçüm',
@@ -972,6 +1048,7 @@ const services = [
   },
   {
     imageUrl: img('service-yenileme.webp'),
+    imageAlt: describeImage('service-yenileme.webp'),
     title: pair('Yenileme ve Verimlilik', 'Retrofit and Efficiency'),
     description: pair(
       'Eski armatürleri **LED** ile değiştirerek enerji tüketimini düşürüyoruz.\n\n- Mevcut durum analizi\n- Tasarruf tahmini\n- Aşamalı geçiş planı',
@@ -981,6 +1058,7 @@ const services = [
   },
   {
     imageUrl: img('area-ofis.webp'),
+    imageAlt: describeImage('area-ofis.webp'),
     title: pair('Danışmanlık ve Bakım', 'Consulting and Maintenance'),
     description: pair(
       'Tamamlanan işler için **bakım ve teknik destek** veriyoruz.\n\n- Periyodik kontrol\n- Yedek parça ve sürücü değişimi\n- Telefonla destek ([iletişim](/tr/iletisim))',
@@ -993,25 +1071,41 @@ const services = [
 const aboutPage = aboutPageSchema.parse({
   body: pair(
     [
-      'Tanyeri Lighting, **kurgusal bir demo şirketidir.** Bu metin sitenin hakkımızda sayfasını göstermek için yazılmıştır.',
-      'Konut, ofis, otel, fabrika ve açık alanlar için aydınlatma ürünleri geliştirir ve projelendirir. Her işe mekânı ve kullanımı anlayarak başlar, ürünü o ihtiyaca göre seçeriz.',
-      '## Yaklaşımımız\n\n- Önce ihtiyaç, sonra ürün.\n- Enerji verimli ve uzun ömürlü armatürler.\n- Tasarımdan bakıma kadar tek muhatap.',
+      'Tanyeri Lighting, **kurgusal bir demo markadır.**',
+      'Konut, ofis, otel, mağaza, peyzaj, cephe ve endüstriyel tesisler için aydınlatma ürünleri geliştirir ve aydınlatma projeleri hazırlarız. Amacımız, her mekânda ışığın görevini doğru yapmasıdır: çalışmaya yetecek kadar aydınlık, dinlenmeye yetecek kadar yumuşak, gözü yormayan ve gereksiz enerji harcamayan. Bunun için ürün seçmeden önce mekânı, kullanım saatlerini ve orada çalışan ya da yaşayan insanları dinleriz. Aynı armatür bir mağazada doğru, bir yatak odasında yanlış olabilir; bu yüzden her işe kendi koşullarıyla bakarız.',
+      '## Hangi alanlarda çalışırız\n\n- **Konutlar:** salon, mutfak ve dış alan için gömme spot, sarkıt ve lineer aydınlatma.\n- **Ofisler:** gün boyu masa başında çalışanların gözünü yormayan, düzgün dağılımlı genel aydınlatma; panel ve lineer armatürlerle.\n- **Oteller ve mağazalar:** ürünü ve mekânı öne çıkaran ray spot ve vurgu aydınlatması.\n- **Peyzaj ve cepheler:** bahçe yolları, ağaçlar ve bina yüzeyleri için dış mekan armatürleri.\n- **Endüstriyel tesisler:** depo ve üretim alanları için dayanıklı, bakımı kolay armatürler.',
+      '## Nasıl çalışırız\n\nİşe mekânı görerek başlarız. **Keşif ziyaretinde** ölçüleri alır, mevcut aydınlatmayı ve mekânın nasıl kullanıldığını inceleriz. Ardından **aydınlatma tasarımını** yapar, aydınlık düzeyini hesaplar ve armatür yerleşimini çizeriz. Sonra [ürün listemizden](/tr/urunler) ihtiyaca uygun modelleri seçeriz. **Uygulamayı** planlı bir takvimle yürütür, işi bitirirken ışığı yerinde kontrol ederiz. Her adımda neyi neden önerdiğimizi açıkça yazarız; böylece karar vermek kolaylaşır. Teslimden sonra bakım ve teknik destek sürer: periyodik kontrol yapar, gerektiğinde sürücü ve modül değişimine yardımcı oluruz. Kapsamın ayrıntısı [hizmetler](/tr/hizmetler) sayfasında, yapılmış işler [projeler](/tr/projeler) sayfasındadır.',
+      '## Nelere dikkat ederiz\n\n- **Göz kamaşması:** armatürü ve yerini, ışık gözü rahatsız etmeyecek şekilde seçeriz. Gömme spotlarda [doğru seçimin nasıl yapıldığını](/tr/blog/gomme-spot-nasil-secilir) blogda anlattık.\n- **Renk geriverimi:** yüzeylerin ve cildin doğal görünmesi için renk geriverim indeksi (Ra) yüksek LED kullanırız.\n- **Enerji kullanımı:** verimli LED ve gereken yerde dimleme ile tüketimi düşürürüz. [LED dönüşümü](/tr/blog/led-donusumu-enerji-tasarrufu) yazısı bu konuyu işler.\n- **Bakım:** sürücü ve LED modülünün kolay değiştirilebildiği armatürleri tercih ederiz.\n- **Dış mekan koşulları:** dış alanlarda toz ve suya karşı koruma sınıfına bakarız; ayrıntıyı [IP sınıfı yazısında](/tr/blog/dis-mekan-aydinlatma-ip-sinifi) bulabilirsiniz.',
+      'Küçük bir yenileme de büyük bir tesis de aynı özenle ele alınır: önce ölçer, sonra öneririz. Bilgi almak ya da projenizi anlatmak isterseniz [iletişim](/tr/iletisim) sayfasındaki formu kullanabilirsiniz. Bu site bir demodur; adresler, kişiler ve işler kurgusaldır.',
     ].join('\n\n'),
     [
-      'Tanyeri Lighting is a **fictional demo company.** This text exists to show the about page of the site.',
-      'It develops and plans lighting products for homes, offices, hotels, factories and open spaces. Each job starts by understanding the space and how it is used, and the product follows that need.',
-      '## Our approach\n\n- The need first, then the product.\n- Energy-efficient, long-lasting luminaires.\n- One contact from design to maintenance.',
+      'Tanyeri Lighting is a **fictional demo brand.**',
+      'We develop lighting products and prepare lighting projects for homes, offices, hotels, shops, landscapes, facades and industrial sites. Our aim is simple: in every space, the light should do its job. It should be bright enough to work in and soft enough to rest in. It should not tire the eyes or waste energy. Before we choose a product, we listen: to how the space is used, at what hours, and by whom. The same luminaire can be right in a shop and wrong in a bedroom, so we look at each job on its own terms.',
+      '## Where we work\n\n- **Homes:** recessed, pendant and linear lighting for living rooms, kitchens and outdoor areas.\n- **Offices:** even general lighting that does not tire the eyes.\n- **Hotels and shops:** track spots and accent lighting that bring out the product and the space.\n- **Landscape and facades:** outdoor luminaires for garden paths, trees and building surfaces.\n- **Industrial sites:** durable luminaires that are easy to maintain, for warehouses and production areas.',
+      '## How we work\n\nWe start by seeing the space. On the **site visit** we take measurements and look at the current lighting and how the space is used. Then we do the **lighting design**: we calculate the illuminance and draw the luminaire layout. Next we choose suitable models from the [product list](/en/products). We carry out the **installation** to a clear schedule and check the light on site when the work is done. At each step we write down what we suggest and why, so the decision is easier. Maintenance and technical support continue after handover: we run periodic checks and help with driver and module replacement when needed. The [services](/en/services) page describes the scope, and the [projects](/en/projects) page shows finished work.',
+      '## What we pay attention to\n\n- **Glare:** we choose the luminaire and its position so that the light does not bother the eye. The blog explains [how to choose a recessed spot](/en/blog/gomme-spot-nasil-secilir).\n- **Colour rendering:** we use LEDs with a high colour rendering index (Ra) so that surfaces and skin look natural.\n- **Energy use:** efficient LEDs and dimming, where needed, lower consumption. The article on [LED conversion](/en/blog/led-donusumu-enerji-tasarrufu) covers this.\n- **Maintenance:** we prefer luminaires where the driver and the LED module are easy to replace.\n- **Outdoor conditions:** outdoors we check the protection class against dust and water. The post on [IP ratings](/en/blog/dis-mekan-aydinlatma-ip-sinifi) explains it.',
+      'If you want information or want to describe your project, use the form on the [contact](/en/contact) page. This site is a demo. The addresses, people and projects are fictional.',
     ].join('\n\n'),
   ),
   vision: pair(
-    'İnsanların yaşadığı ve çalıştığı her yerde **doğru, verimli ve estetik ışık** sunmak; aydınlatmayı enerji tasarrufunun bir parçası olarak görmek.',
-    'To offer **the right, efficient and well-designed light** wherever people live and work, and to treat lighting as part of saving energy.',
+    [
+      'Vizyonumuz, insanların yaşadığı ve çalıştığı her yerde **doğru, verimli ve estetik ışık** sunmak ve bunu daha az enerji harcayarak yapmaktır. Tanyeri Lighting kurgusal bir demo markadır; bu sayfa markanın ilkelerini anlatır. Aydınlatma çoğu zaman fark edilmez; ama iyi yapıldığında insanın günlük yorgunluğunu azaltır, kötü yapıldığında her gün rahatsız eder. Hedefimiz, doğru tasarım ve doğru ürünle bu rahatsızlığı ortadan kaldırmaktır.',
+      '## Gitmek istediğimiz yer\n\n**Enerji verimli aydınlatma.** Aynı ışığı daha az enerjiyle vermek mümkündür. Verimli LED, doğru armatür seçimi ve ihtiyaca göre dimleme tüketimi düşürür. Eski sistemleri yenilemenin ne kazandırabileceğini [blogda](/tr/blog/led-donusumu-enerji-tasarrufu) anlattık.\n\n**Günlük mekânlarda ışık kalitesi.** İyi ışık yalnızca parlak ışık değildir. Göz kamaşmasını azaltır, renkleri doğru gösterir ve mekânın amacına uyar. Ofisteki ışık düzeyi için [ofis aydınlatması yazımıza](/tr/blog/ofis-aydinlatmasi-kac-lux) bakabilirsiniz.\n\n**Dayanıklılık ve onarılabilirlik.** Uzun ömürlü bir armatür, atılan armatürden daha az kaynak harcar. Sürücüsü ve LED modülü değiştirilebilen ürünler tasarlamak ve yedek parça desteği vermek istiyoruz.\n\n**Dış mekanda daha az ışık kirliliği.** Işığın yalnızca gerektiği yere düşmesi, gece gökyüzünü ve çevreyi korur. Dış alanlarda yönlendirilmiş, korumalı ve gerektiğinde kısılabilen armatürleri tercih ediyoruz. Cephe ve peyzaj için seçeneklere [ürünler](/tr/urunler) sayfasından bakabilirsiniz.',
+      '## Değerlerimiz\n\n- Önce ihtiyaç, sonra ürün.\n- Açık ve dürüst bilgi.\n- Uzun ömür ve kolay bakım.\n- Mekâna ve çevreye saygı.\n- Söylediğimizi yapmak, yapamayacağımızı söylemek.',
+      '## Misyonumuz\n\nHer mekân için ihtiyaca uygun, verimli ve uzun ömürlü aydınlatma tasarlamak; bunu açık anlatmak ve kurulumdan bakıma kadar sorumluluğu üstlenmek. Bir ürünü yalnızca satmak için değil, yıllarca sorunsuz çalışması için öneririz. Bu yüzden her projede enerji tüketimini, bakım kolaylığını ve kullanıcının rahatını birlikte düşünürüz. Çalışma biçimimizi [hakkımızda](/tr/hakkimizda) sayfasında bulabilirsiniz.',
+    ].join('\n\n'),
+    [
+      'Our vision is to offer **the right, efficient and well-designed light** wherever people live and work, and to do it with less energy. Tanyeri Lighting is a fictional demo brand, and this page describes its principles. Lighting is often unnoticed. Done well, it reduces everyday tiredness. Done badly, it bothers people every day. Our goal is to remove that discomfort with sound design and the right products.',
+      '## Where we want to go\n\n**Energy-efficient lighting.** It is possible to give the same light with less energy. Efficient LEDs, the right luminaire choice and dimming where needed all lower consumption. We wrote about what renewing old systems can bring [on the blog](/en/blog/led-donusumu-enerji-tasarrufu).\n\n**Light quality in everyday spaces.** Good light is not only bright light. It reduces glare, shows colours correctly and suits the purpose of the space. For office light levels, see our [article on office lighting](/en/blog/ofis-aydinlatmasi-kac-lux).\n\n**Durability and repairability.** A long-lasting luminaire uses fewer resources than one that is thrown away. We want to design products with a replaceable driver and LED module, and to offer spare parts.\n\n**Less light pollution outdoors.** When light falls only where it is needed, it protects the night sky and the surroundings. Outdoors we prefer luminaires that are aimed, shielded and dimmable. You can see the options for facades and landscape on the [products](/en/products) page.',
+      '## Our values\n\n- The need first, then the product.\n- Clear and honest information.\n- Long life and easy maintenance.\n- Respect for the space and the environment.\n- Doing what we say, and saying what we cannot do.',
+      '## Our mission\n\nTo design efficient, long-lasting lighting that fits each space, to explain it clearly, and to take responsibility from installation to maintenance. We recommend a product so that it works well for years, not only to sell it. So in every project we think about energy use, ease of maintenance and the comfort of the people who use the space. You can read how we work on the [about](/en/about) page.',
+    ].join('\n\n'),
   ),
 });
 
 const projects = [
   {
-    files: 'project-konut',
+    files: 'project-orman-evi',
     title: pair('Orman Evi Dış Aydınlatma', 'Forest House Exterior Lighting'),
     description: pair(
       'Müstakil bir evin cephesi, girişi ve bahçe yolu yeniden aydınlatıldı.\n\n- **Cephe:** sıcak beyaz duvar yıkama\n- **Yol:** düşük seviyeli [bollard armatürler](/tr/urunler?category=dis-mekan)',
@@ -1019,19 +1113,11 @@ const projects = [
     ),
   },
   {
-    files: 'project-otel',
-    title: pair('Otel Lobisi Yenileme', 'Hotel Lobby Refit'),
+    files: 'project-garajli-ev',
+    title: pair('Garajlı Ev Dış Aydınlatma', 'House with Garage Doors Exterior Lighting'),
     description: pair(
-      'Lobi tavanındaki eski armatürler **LED** ile değiştirildi ve tavan hattına gizli [lineer](/tr/urunler?category=lineer) ışık eklendi.\n\n- Enerji tüketimi yarıya indi (örnek değer)\n- Daha sıcak ve dengeli ışık',
-      'The old ceiling luminaires of the lobby were replaced with **LED** and a hidden [linear](/en/products?category=lineer) light line was added.\n\n- Energy use fell by half (sample figure)\n- Warmer, more even light',
-    ),
-  },
-  {
-    files: 'project-fabrika',
-    title: pair('Üretim Salonu Aydınlatması', 'Production Hall Lighting'),
-    description: pair(
-      'Yüksek tavanlı üretim salonuna **yüksek verimli** [armatürler](/tr/urunler) yerleştirildi.\n\n- Çalışma düzleminde eşit aydınlık\n- Daha az bakım gerektiren sürücüler',
-      'Highly efficient [luminaires](/en/products) were fitted in a high-ceiling production hall.\n\n- Even light on the work plane\n- Drivers that need less maintenance',
+      'Garaj cephesi, kapılar ve giriş yeniden aydınlatıldı.\n\n- **Cephe:** duvara yakın [duvar yıkama](/tr/urunler?category=dis-mekan) ışığı\n- **Giriş:** kapının üstüne sıcak beyaz aplikler\n- **Çatı altı:** saçak hattında lineer ışık',
+      'The garage facade, the doors and the entrance were relit.\n\n- **Facade:** close-to-wall [wall washing](/en/products?category=dis-mekan)\n- **Entrance:** warm white wall lights above the door\n- **Eaves:** a linear light along the roof edge',
     ),
   },
 ].map(({ files, title, description }) =>
@@ -1046,6 +1132,7 @@ const projects = [
 const references = [
   {
     imageUrl: img('area-otel.webp'),
+    imageAlt: describeImage('area-otel.webp'),
     name: 'Örnek Otel İşletmeleri',
     title: pair('Otel aydınlatması', 'Hotel lighting'),
     description: pair(
@@ -1055,6 +1142,7 @@ const references = [
   },
   {
     imageUrl: img('area-konut.webp'),
+    imageAlt: describeImage('area-konut.webp'),
     name: 'Demo Konut Yapı',
     title: pair('Konut projesi', 'Housing project'),
     description: pair(
@@ -1064,6 +1152,7 @@ const references = [
   },
   {
     imageUrl: img('area-ofis.webp'),
+    imageAlt: describeImage('area-ofis.webp'),
     name: 'Lorem Plaza',
     title: pair('Ofis binası', 'Office building'),
     description: pair(
@@ -1073,6 +1162,7 @@ const references = [
   },
   {
     imageUrl: img('area-endustriyel.webp'),
+    imageAlt: describeImage('area-endustriyel.webp'),
     name: 'Example Lojistik',
     title: pair('Depo ve lojistik', 'Warehouse and logistics'),
     description: pair(
@@ -1082,6 +1172,7 @@ const references = [
   },
   {
     imageUrl: img('area-peyzaj.webp'),
+    imageAlt: describeImage('area-peyzaj.webp'),
     name: 'Demo Peyzaj Parkı',
     title: pair('Peyzaj aydınlatması', 'Landscape lighting'),
     description: pair(
@@ -1125,12 +1216,14 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       name: catalog.name,
       pdfUrl: img(`${catalog.file}.pdf`),
       coverImageUrl: img(`${catalog.file}-cover.webp`),
+      imageAlt: describeImage(`${catalog.file}-cover.webp`),
       sizeBytes: pdfSize(`${catalog.file}.pdf`),
     }),
   );
   const areaRows = areas.map(([file, tr, en, descriptionTr, descriptionEn, categoryKey]) => ({
     ...applicationAreaSchema.parse({
       imageUrl: img(file),
+      imageAlt: describeImage(file),
       title: pair(tr, en),
       description: pair(descriptionTr, descriptionEn),
       categoryId: null,
@@ -1273,6 +1366,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
             ...toColumns('name', catalog.name),
             pdfUrl: catalog.pdfUrl,
             coverImageUrl: catalog.coverImageUrl,
+            ...toColumns('imageAlt', catalog.imageAlt),
             sizeBytes: catalog.sizeBytes,
             sortOrder,
           },
@@ -1285,6 +1379,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         if (!catalogId) throw new Error('A promo board needs a catalog');
         const parsed = promoBoardSchema.parse({
           imageUrl: img(board.image),
+          imageAlt: describeImage(board.image),
           title: board.title,
           subtitle: board.subtitle,
           catalogId,
@@ -1292,6 +1387,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
         await tx.promoBoard.create({
           data: {
             imageUrl: parsed.imageUrl,
+            ...toColumns('imageAlt', parsed.imageAlt),
             ...toColumns('title', parsed.title),
             ...toColumns('subtitle', parsed.subtitle),
             catalogId,
@@ -1302,6 +1398,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
 
       const bannerData = {
         imageUrl: homeBanner.imageUrl,
+        ...toColumns('imageAlt', homeBanner.imageAlt),
         ...toColumns('title', homeBanner.title),
         ...toColumns('description', homeBanner.description),
         ...toColumns('primaryLabel', homeBanner.primaryAction.label),
@@ -1314,6 +1411,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.applicationArea.createMany({
         data: areaRows.map((area, sortOrder) => ({
           imageUrl: area.imageUrl,
+          ...toColumns('imageAlt', area.imageAlt),
           ...toColumns('title', area.title),
           ...toColumns('description', area.description),
           categoryId: area.categoryKey ? (categoryIds.get(area.categoryKey) ?? null) : null,
@@ -1324,6 +1422,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.service.createMany({
         data: services.map((service, sortOrder) => ({
           imageUrl: service.imageUrl,
+          ...toColumns('imageAlt', service.imageAlt),
           ...toColumns('title', service.title),
           ...toColumns('description', service.description),
           ...toColumns('note', service.note),
@@ -1347,6 +1446,7 @@ export async function seedDemoContent(db: PrismaClient, options: { replace?: boo
       await tx.reference.createMany({
         data: references.map((reference, sortOrder) => ({
           imageUrl: reference.imageUrl,
+          ...toColumns('imageAlt', reference.imageAlt),
           name: reference.name,
           ...toColumns('title', reference.title),
           ...toColumns('description', reference.description),

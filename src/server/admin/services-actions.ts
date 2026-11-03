@@ -19,6 +19,7 @@ async function findService(id: string) {
 function serviceInput(formData: FormData) {
   return {
     imageUrl: formText(formData, 'imageUrl'),
+    imageAlt: formPair(formData, 'imageAlt'),
     title: formPair(formData, 'title'),
     description: formPair(formData, 'description'),
     note: formPair(formData, 'note'),

@@ -4,6 +4,7 @@ import { useActionState, startTransition, type FormEvent } from 'react';
 import type { FormState } from '../../../server/admin/form.ts';
 import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
+import { ImageAltField } from '../image-alt-field.tsx';
 import { FormStatus } from '../form-status.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
@@ -22,6 +23,7 @@ type Props = {
   initial?: {
     id: string;
     imageUrl: string;
+    imageAlt: { tr: string; en: string };
     name: string;
     title: { tr: string; en: string };
     description: { tr: string; en: string };
@@ -78,6 +80,7 @@ export function ReferenceForm({
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />
+        <ImageAltField texts={formTexts} defaultValue={initial?.imageAlt} errors={errors} />
         <TextField
           id="name"
           name="name"

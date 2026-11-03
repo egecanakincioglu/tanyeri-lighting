@@ -10,6 +10,7 @@ function fromRow(row: ServiceRow): Service {
   return {
     id: row.id,
     imageUrl: row.imageUrl,
+    imageAlt: fromColumns('imageAlt', row),
     title: fromColumns('title', row),
     description: fromColumns('description', row),
     note: fromColumns('note', row),
@@ -19,6 +20,7 @@ function fromRow(row: ServiceRow): Service {
 function toColumnsOf(service: ServiceInput) {
   return {
     imageUrl: service.imageUrl,
+    ...toColumns('imageAlt', service.imageAlt),
     ...toColumns('title', service.title),
     ...toColumns('description', service.description),
     ...toColumns('note', service.note),

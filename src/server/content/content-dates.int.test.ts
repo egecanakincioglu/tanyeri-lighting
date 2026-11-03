@@ -50,12 +50,14 @@ describe('content dates on a real database', () => {
     const db = getDb();
     await createService({
       imageUrl: 'https://store.example.com/s.webp',
+      imageAlt: { tr: '', en: '' },
       title: pair('Hizmet', 'Service'),
       description: pair('Açıklama', 'Description'),
       note: pair('Not', 'Note'),
     });
     await createService({
       imageUrl: 'https://store.example.com/s2.webp',
+      imageAlt: { tr: '', en: '' },
       title: pair('Hizmet 2', 'Service 2'),
       description: pair('Açıklama', 'Description'),
       note: pair('Not', 'Note'),
@@ -68,6 +70,7 @@ describe('content dates on a real database', () => {
     });
     await createReference({
       imageUrl: 'https://store.example.com/r.webp',
+      imageAlt: { tr: '', en: '' },
       name: 'Acme',
       title: pair('İş', 'Work'),
       description: pair('Açıklama', 'Description'),
@@ -76,6 +79,7 @@ describe('content dates on a real database', () => {
       name: pair('Genel', 'General'),
       pdfUrl: 'https://store.example.com/g.pdf',
       coverImageUrl: '',
+      imageAlt: { tr: '', en: '' },
       sizeBytes: 1000,
     });
     await db.service.updateMany({ data: { updatedAt: day('2026-01-01') } });
@@ -94,6 +98,7 @@ describe('content dates on a real database', () => {
 
     await createPromoBoard({
       imageUrl: 'https://store.example.com/p.webp',
+      imageAlt: { tr: '', en: '' },
       title: pair('Pano', 'Board'),
       subtitle: pair('Alt', 'Sub'),
       catalogId: catalog.id,
@@ -136,6 +141,7 @@ describe('content dates on a real database', () => {
 
     await createApplicationArea({
       imageUrl: 'https://store.example.com/a.webp',
+      imageAlt: { tr: '', en: '' },
       title: pair('Alan', 'Area'),
       description: pair('Açıklama', 'Description'),
       categoryId: null,
@@ -145,6 +151,7 @@ describe('content dates on a real database', () => {
 
     await updateHomeBanner({
       imageUrl: 'https://store.example.com/banner.webp',
+      imageAlt: { tr: '', en: '' },
       title: pair('Işık', 'Light'),
       description: pair('Açıklama', 'Description'),
       primaryAction: { label: pair('Ürünler', 'Products'), target: 'products' },

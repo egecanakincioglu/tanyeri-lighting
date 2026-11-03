@@ -96,6 +96,7 @@ const families: Family[] = [
           name: { tr: 'Genel', en: 'General' },
           pdfUrl: (await uploadFile(new Blob([PDF]))).url,
           coverImageUrl: '',
+          imageAlt: { tr: '', en: '' },
           sizeBytes: 1,
         })
       ).id;
