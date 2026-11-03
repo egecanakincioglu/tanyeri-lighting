@@ -5,8 +5,8 @@ import { imageLoading } from '../../test/image-loading.ts';
 import { BeforeAfter } from './before-after.tsx';
 
 const props = {
-  beforeUrl: '/demo/project-konut-before.webp',
-  afterUrl: '/demo/project-konut-after.webp',
+  beforeUrl: '/demo/project-orman-evi-before.webp',
+  afterUrl: '/demo/project-orman-evi-after.webp',
   beforeLabel: 'Before',
   afterLabel: 'After',
   label: 'Compare before and after',

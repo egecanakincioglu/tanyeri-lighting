@@ -25,6 +25,7 @@ async function findPromoBoard(id: string) {
 function boardInput(formData: FormData) {
   return {
     imageUrl: formText(formData, 'imageUrl'),
+    imageAlt: formPair(formData, 'imageAlt'),
     title: formPair(formData, 'title'),
     subtitle: formPair(formData, 'subtitle'),
     catalogId: formText(formData, 'catalogId'),

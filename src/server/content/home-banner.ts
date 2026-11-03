@@ -10,6 +10,7 @@ const ROW_ID = 'home';
 function fromRow(row: HomeBannerRow): HomeBanner {
   return {
     imageUrl: row.imageUrl,
+    imageAlt: fromColumns('imageAlt', row),
     title: fromColumns('title', row),
     description: fromColumns('description', row),
     primaryAction: { label: fromColumns('primaryLabel', row), target: pageKeySchema.parse(row.primaryTarget) },
@@ -20,6 +21,7 @@ function fromRow(row: HomeBannerRow): HomeBanner {
 function toColumnsOf(banner: HomeBanner) {
   return {
     imageUrl: banner.imageUrl,
+    ...toColumns('imageAlt', banner.imageAlt),
     ...toColumns('title', banner.title),
     ...toColumns('description', banner.description),
     ...toColumns('primaryLabel', banner.primaryAction.label),
@@ -36,6 +38,7 @@ function emptyBanner(): HomeBanner {
   const empty = () => ({ tr: '', en: '' });
   return {
     imageUrl: '',
+    imageAlt: empty(),
     title: empty(),
     description: empty(),
     primaryAction: { label: empty(), target: 'products' },

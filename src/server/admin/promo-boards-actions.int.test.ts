@@ -53,6 +53,7 @@ describe('promo board actions on a real database', () => {
         name: { tr: 'Genel', en: 'General' },
         pdfUrl: 'https://store.example.com/general.pdf',
         coverImageUrl: '',
+        imageAlt: { tr: '', en: '' },
         sizeBytes: 1000,
       })
     ).id;
@@ -78,6 +79,16 @@ describe('promo board actions on a real database', () => {
     ).rejects.toThrow('redirect:/tr/yonetim/tanitim-panolari');
     expect(await titles()).toEqual(['Alpha', 'Beta']);
     expect((await listPromoBoards())[1]?.subtitle).toEqual({ tr: '', en: '' });
+  });
+
+  it('stores the image description from the form and reports a half-filled one', async () => {
+    await expect(
+      createPromoBoardAction(null, form(valid('Alpha', { 'imageAlt.tr': 'Bir oda', 'imageAlt.en': 'A room' }))),
+    ).rejects.toThrow('redirect:');
+    expect((await listPromoBoards())[0]!.imageAlt).toEqual({ tr: 'Bir oda', en: 'A room' });
+    const half = await createPromoBoardAction(null, form(valid('Beta', { 'imageAlt.tr': 'Yalnız Türkçe' })));
+    expect(half).toMatchObject({ status: 'error', code: 'invalid', fieldErrors: { imageAlt: { code: 'invalid' } } });
+    expect(await listPromoBoards()).toHaveLength(1);
   });
 
   it('reports the invalid fields and writes nothing', async () => {

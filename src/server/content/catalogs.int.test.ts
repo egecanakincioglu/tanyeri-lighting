@@ -11,6 +11,7 @@ function catalog(name: string) {
     name: pair(`${name} TR`, `${name} EN`),
     pdfUrl: `https://store.example.com/${name.toLowerCase()}.pdf`,
     coverImageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
+    imageAlt: pair(`${name} cover TR`, `${name} cover EN`),
     sizeBytes: 1_000_000,
   };
 }
@@ -74,6 +75,7 @@ describe('catalogs on a real database', () => {
       name: pair('Yeni', 'New'),
       pdfUrl: 'https://store.example.com/new.pdf',
       coverImageUrl: '',
+      imageAlt: { tr: '', en: '' },
       sizeBytes: 42,
     };
     expect(await updateCatalog(second.id, next)).toEqual({ id: second.id, ...next });
@@ -114,6 +116,16 @@ describe('catalogs on a real database', () => {
     const c = await createCatalog(catalog('Office'));
     await expect(reorderCatalogs(build([a.id, b.id, c.id]))).rejects.toThrow(InvalidOrderError);
     expect(await urls()).toEqual(['general.pdf', 'outdoor.pdf', 'office.pdf']);
+  });
+
+  it('stores a picture without a description, and refuses a description in one language only', async () => {
+    const created = await createCatalog({ ...catalog('General'), imageAlt: pair('', '') });
+    expect(created.imageAlt).toEqual(pair('', ''));
+    await expect(
+      updateCatalog(created.id, { ...catalog('General'), imageAlt: pair('Yalnız Türkçe', '') }),
+    ).rejects.toThrow();
+    await expect(createCatalog({ ...catalog('Outdoor'), imageAlt: pair('', 'English only') })).rejects.toThrow();
+    expect(await listCatalogs()).toEqual([created]);
   });
 
   it('rejects invalid input and stores nothing', async () => {

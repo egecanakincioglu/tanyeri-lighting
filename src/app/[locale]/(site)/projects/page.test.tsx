@@ -26,8 +26,8 @@ const projects: Project[] = [1, 2].map((n) => ({
   id: `project-${n}`,
   title: { tr: `Proje ${n}`, en: `Project ${n}` },
   description: { tr: `Metin ${n}`, en: `Text ${n}` },
-  beforeImageUrl: '/demo/project-konut-before.webp',
-  afterImageUrl: '/demo/project-konut-after.webp',
+  beforeImageUrl: '/demo/project-orman-evi-before.webp',
+  afterImageUrl: '/demo/project-orman-evi-after.webp',
 }));
 
 const props = (locale: string) => ({ params: Promise.resolve({ locale }) }) as PageProps<'/[locale]/projects'>;
@@ -48,15 +48,16 @@ describe('ProjectsPage', () => {
     expect(container.querySelector('main')).toBeNull();
   });
 
-  it('puts the text before the comparison on small screens and the comparison first from 900 px', async () => {
+  it('lists one project per row with the text under the comparison', async () => {
     const { container } = render(await ProjectsPage(props('en')));
+    const list = container.querySelector('ul');
+    expect(list?.className).toContain('flex-col');
+    expect(list?.className).not.toContain('grid');
     const article = container.querySelector('article');
-    const [title, text, comparison] = [...(article?.children ?? [])] as HTMLElement[];
+    const [title, comparison, text] = [...(article?.children ?? [])] as HTMLElement[];
     expect(title?.tagName).toBe('H2');
-    expect(text?.className).toContain('order-2');
-    expect(text?.className).toContain('wide:order-3');
-    expect(comparison?.className).toContain('order-3');
-    expect(comparison?.className).toContain('wide:order-2');
+    expect(comparison?.querySelector('input[type="range"]')).toBeTruthy();
+    expect(text?.textContent).toContain('Text 1');
   });
 
   it('writes the texts in Turkish', async () => {

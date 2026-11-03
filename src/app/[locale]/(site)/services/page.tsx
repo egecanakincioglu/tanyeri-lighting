@@ -60,7 +60,13 @@ export default async function ServicesPage({ params }: PageProps<'/[locale]/serv
                   <li key={service.id}>
                     <Card>
                       <div className="relative aspect-video overflow-hidden bg-page motion-safe:hover:[&_img]:scale-[1.08] [&_img]:transition-transform [&_img]:duration-[400ms]">
-                        <SiteImage src={service.imageUrl} alt="" fill sizes={IMAGE_SIZES} {...eagerWhen(index === 0)} />
+                        <SiteImage
+                          src={service.imageUrl}
+                          alt={service.imageAlt[locale]}
+                          fill
+                          sizes={IMAGE_SIZES}
+                          {...eagerWhen(index === 0)}
+                        />
                       </div>
                       <div className="flex grow flex-col gap-4 p-6">
                         <h2 className="text-2xl leading-tight font-bold text-ink">{service.title[locale]}</h2>

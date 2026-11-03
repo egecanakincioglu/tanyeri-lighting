@@ -21,6 +21,7 @@ vi.mock('next-intl/server', () => ({
 const references: Reference[] = [1, 2].map((n) => ({
   id: `reference-${n}`,
   imageUrl: '/demo/area-otel.webp',
+  imageAlt: n === 1 ? { tr: 'Otel lobisi', en: 'A hotel lobby' } : { tr: '', en: '' },
   name: `Example Company ${n}`,
   title: { tr: `İş ${n}`, en: `Work ${n}` },
   description: { tr: `Açıklama ${n}`, en: `Description ${n}` },
@@ -48,6 +49,14 @@ describe('ReferencesPage', () => {
     expect(screen.getByText(description)).toBeTruthy();
     expect(container.querySelectorAll('img')).toHaveLength(2);
     expect(container.querySelector('main')).toBeNull();
+  });
+
+  it.each([
+    ['en', 'A hotel lobby'],
+    ['tr', 'Otel lobisi'],
+  ])('uses the stored description as alt text in %s and leaves a photo without one decorative', async (locale, alt) => {
+    const { container } = render(await ReferencesPage(props(locale)));
+    expect([...container.querySelectorAll('img')].map((img) => img.getAttribute('alt'))).toEqual([alt, '']);
   });
 
   it('renders only the title without references', async () => {

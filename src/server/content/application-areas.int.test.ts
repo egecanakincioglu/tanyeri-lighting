@@ -16,6 +16,7 @@ const pair = (tr: string, en: string) => ({ tr, en });
 function area(name: string) {
   return {
     imageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
+    imageAlt: pair(`${name} picture TR`, `${name} picture EN`),
     title: pair(`${name} TR`, `${name} EN`),
     description: pair('Kısa açıklama.', 'Short description.'),
     categoryId: null,
@@ -89,8 +90,8 @@ describe('application areas on a real database', () => {
   });
 
   it('leaves out the link when the field is omitted', async () => {
-    const { imageUrl, title, description } = area('Hotel');
-    expect(await createApplicationArea({ imageUrl, title, description })).toMatchObject({
+    const { imageUrl, imageAlt, title, description } = area('Hotel');
+    expect(await createApplicationArea({ imageUrl, imageAlt, title, description })).toMatchObject({
       categoryId: null,
       categoryKey: null,
     });
@@ -148,6 +149,16 @@ describe('application areas on a real database', () => {
     const c = await createApplicationArea(area('Shop'));
     await expect(reorderApplicationAreas(build([a.id, b.id, c.id]))).rejects.toThrow(InvalidOrderError);
     expect(await titles()).toEqual(['Hotel EN', 'Office EN', 'Shop EN']);
+  });
+
+  it('stores a picture without a description, and refuses a description in one language only', async () => {
+    const created = await createApplicationArea({ ...area('Hotel'), imageAlt: pair('', '') });
+    expect(created.imageAlt).toEqual(pair('', ''));
+    await expect(
+      updateApplicationArea(created.id, { ...area('Hotel'), imageAlt: pair('Yalnız Türkçe', '') }),
+    ).rejects.toThrow();
+    await expect(createApplicationArea({ ...area('Office'), imageAlt: pair('', 'English only') })).rejects.toThrow();
+    expect(await listApplicationAreas()).toEqual([created]);
   });
 
   it('rejects invalid input and stores nothing', async () => {

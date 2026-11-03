@@ -9,6 +9,7 @@ const pair = (tr: string, en: string) => ({ tr, en });
 function reference(name: string) {
   return {
     imageUrl: `https://store.example.com/${name.toLowerCase()}.webp`,
+    imageAlt: pair(`${name} picture TR`, `${name} picture EN`),
     name,
     title: pair(`${name} işi`, `${name} work`),
     description: pair('Kısa açıklama.', 'Short description.'),
@@ -106,6 +107,18 @@ describe('references on a real database', () => {
 
   it('accepts an empty order for an empty list', async () => {
     await expect(reorderReferences([])).resolves.toBeUndefined();
+  });
+
+  it('stores a picture without a description, and refuses a description in one language only', async () => {
+    const created = await createReference({ ...reference('Alpha Hotel'), imageAlt: pair('', '') });
+    expect(created.imageAlt).toEqual(pair('', ''));
+    await expect(
+      updateReference(created.id, { ...reference('Alpha Hotel'), imageAlt: pair('Yalnız Türkçe', '') }),
+    ).rejects.toThrow();
+    await expect(
+      createReference({ ...reference('Beta Studio'), imageAlt: pair('', 'English only') }),
+    ).rejects.toThrow();
+    expect(await listReferences()).toEqual([created]);
   });
 
   it('rejects a missing language, a non-https address and bad ids, and stores nothing', async () => {

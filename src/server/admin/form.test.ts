@@ -33,6 +33,7 @@ describe('runAction', () => {
     const result = await runAction(async () => {
       referenceSchema.parse({
         imageUrl: 'https://store.example.com/a.webp',
+        imageAlt: { tr: '', en: '' },
         name: '',
         title: { tr: 'a'.repeat(101), en: 'ok' },
         description: { tr: 'ok', en: 'ok' },
@@ -49,6 +50,7 @@ describe('runAction', () => {
     const result = await runAction(async () => {
       referenceSchema.parse({
         imageUrl: 'not an address',
+        imageAlt: { tr: '', en: '' },
         name: 'A',
         title: { tr: 'a', en: 'a' },
         description: { tr: 'a', en: 'a' },
