@@ -14,21 +14,22 @@ type Props = {
 /** Limited Markdown in Turkish and English, one editor with a preview per language. */
 export function BilingualMarkdownField({ name, label, languages, defaultValue, maxLength, errors, texts }: Props) {
   return (
-    <fieldset className="min-w-0">
-      <legend className="mb-2 text-base font-bold">{label}</legend>
-      <div className="grid gap-6 lg:grid-cols-2">
+    <fieldset className="min-w-0 rounded-md border border-hairline px-4 pt-1 pb-5 sm:px-5">
+      <legend className="px-2 text-base font-bold">{label}</legend>
+      <div className="mt-2 grid gap-6 lg:grid-cols-2">
         {(['tr', 'en'] as const).map((language) => (
-          <MarkdownField
-            key={language}
-            id={`${name}-${language}`}
-            name={`${name}.${language}`}
-            label={languages[language]}
-            lang={language}
-            defaultValue={defaultValue?.[language] ?? ''}
-            maxLength={maxLength}
-            error={errors?.[language]}
-            texts={texts}
-          />
+          <div key={language} className="min-w-0">
+            <MarkdownField
+              id={`${name}-${language}`}
+              name={`${name}.${language}`}
+              label={languages[language]}
+              lang={language}
+              defaultValue={defaultValue?.[language] ?? ''}
+              maxLength={maxLength}
+              error={errors?.[language]}
+              texts={texts}
+            />
+          </div>
         ))}
       </div>
     </fieldset>

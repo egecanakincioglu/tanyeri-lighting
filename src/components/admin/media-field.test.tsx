@@ -76,11 +76,11 @@ describe('ImageField', () => {
       />,
     );
     expect(container.querySelector('img')!.parentElement!.className).toContain('aspect-[210/297]');
-    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('144px');
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('112px');
     cleanup();
     const landscape = setup(ImageField, { defaultValue: '/demo/area-otel.webp' });
     expect(landscape.container.querySelector('img')!.parentElement!.className).toContain('aspect-4/3');
-    expect(landscape.container.querySelector('img')!.getAttribute('sizes')).toBe('192px');
+    expect(landscape.container.querySelector('img')!.getAttribute('sizes')).toBe('160px');
   });
 
   it('says that nothing is chosen yet', () => {
