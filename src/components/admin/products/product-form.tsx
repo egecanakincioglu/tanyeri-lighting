@@ -27,6 +27,11 @@ type ProductFormTexts = {
   material: string;
   power: string;
   dimensions: string;
+  description: string;
+  luminousFlux: string;
+  colorTemperature: string;
+  cri: string;
+  ip: string;
   cancel: string;
 };
 
@@ -48,6 +53,11 @@ type Props = {
     material: Pair;
     power: string;
     dimensions: string;
+    description: Pair;
+    luminousFlux: string;
+    colorTemperature: string;
+    cri: string;
+    ip: string;
     imageUrl: string;
   };
   texts: ProductFormTexts;
@@ -60,7 +70,17 @@ type Props = {
 };
 
 // The limits of productSchema in src/server/content/schemas.ts, which stays the authority.
-const LIMITS = { slug: 80, code: 60, name: 120, color: 60, material: 100, power: 40, dimensions: 60 };
+const LIMITS = {
+  slug: 80,
+  code: 60,
+  name: 120,
+  color: 60,
+  material: 100,
+  power: 40,
+  dimensions: 60,
+  description: 500,
+  detail: 20,
+};
 
 export function ProductForm({
   action,
@@ -197,6 +217,37 @@ export function ProductForm({
             error={message('dimensions')}
           />
         </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {(
+            [
+              ['luminousFlux', texts.luminousFlux, initial?.luminousFlux],
+              ['colorTemperature', texts.colorTemperature, initial?.colorTemperature],
+              ['cri', texts.cri, initial?.cri],
+              ['ip', texts.ip, initial?.ip],
+            ] as const
+          ).map(([name, label, value]) => (
+            <TextField
+              key={name}
+              id={name}
+              name={name}
+              label={label}
+              defaultValue={value ?? ''}
+              maxLength={LIMITS.detail}
+              error={message(name)}
+            />
+          ))}
+        </div>
+        <BilingualField
+          name="description"
+          label={texts.description}
+          languages={formTexts.languages}
+          defaultValue={initial?.description}
+          multiline
+          optional
+          maxLength={LIMITS.description}
+          errors={{ tr: message('description.tr'), en: message('description.en') }}
+          error={message('description')}
+        />
       </div>
       <FormStatus state={state} texts={formTexts} />
       {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}

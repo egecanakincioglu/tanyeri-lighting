@@ -29,6 +29,11 @@ const texts = {
   material: 'Material',
   power: 'Power',
   dimensions: 'Dimensions',
+  description: 'Description',
+  luminousFlux: 'Luminous flux',
+  colorTemperature: 'Colour temperature',
+  cri: 'CRI',
+  ip: 'IP rating',
   cancel: 'Cancel',
 };
 
@@ -57,6 +62,26 @@ describe('ProductForm', () => {
     action.mockClear();
   });
   afterEach(cleanup);
+
+  it('sends the description and the technical values, which may stay empty', async () => {
+    action.mockResolvedValue({ status: 'success' });
+    setup();
+    expect((screen.getByLabelText('Luminous flux') as HTMLInputElement).required).toBe(false);
+    expect((screen.getByLabelText('IP rating') as HTMLInputElement).required).toBe(false);
+    fireEvent.change(screen.getByLabelText('Luminous flux'), { target: { value: '1050 lm' } });
+    fireEvent.change(screen.getByLabelText('Colour temperature'), { target: { value: '3000 K' } });
+    fireEvent.change(screen.getByLabelText('CRI'), { target: { value: 'Ra 90' } });
+    await act(async () => {
+      fireEvent.submit(screen.getByRole('button', { name: 'Save' }).closest('form')!);
+    });
+    const data = action.mock.calls[0]![1];
+    expect(data.get('luminousFlux')).toBe('1050 lm');
+    expect(data.get('colorTemperature')).toBe('3000 K');
+    expect(data.get('cri')).toBe('Ra 90');
+    expect(data.get('ip')).toBe('');
+    expect(data.get('description.tr')).toBe('');
+    expect(data.get('description.en')).toBe('');
+  });
 
   it('shows a taken address and a taken code next to their fields and keeps what was typed', async () => {
     action.mockResolvedValue({

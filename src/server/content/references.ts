@@ -15,6 +15,7 @@ function fromRow(row: ReferenceRow): Reference {
   return {
     id: row.id,
     imageUrl: row.imageUrl,
+    imageAlt: fromColumns('imageAlt', row),
     name: row.name,
     title: fromColumns('title', row),
     description: fromColumns('description', row),
@@ -24,6 +25,7 @@ function fromRow(row: ReferenceRow): Reference {
 function toColumnsOf(reference: ReferenceInput) {
   return {
     imageUrl: reference.imageUrl,
+    ...toColumns('imageAlt', reference.imageAlt),
     name: reference.name,
     ...toColumns('title', reference.title),
     ...toColumns('description', reference.description),

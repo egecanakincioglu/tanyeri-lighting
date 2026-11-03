@@ -39,6 +39,11 @@ const product: Product = {
   material: pair('Aluminium'),
   power: '12W',
   dimensions: '10 x 10 cm',
+  description: { tr: '', en: '' },
+  luminousFlux: '',
+  colorTemperature: '',
+  cri: '',
+  ip: '',
   imageUrl: '/demo/product-gomme-spot.webp',
 };
 
@@ -140,6 +145,47 @@ describe('ProductPage', () => {
       'Material',
       'Dimensions',
     ]);
+  });
+
+  it.each([
+    ['tr', ['Işık akısı', 'Renk sıcaklığı', 'CRI', 'Koruma sınıfı']],
+    ['en', ['Luminous flux', 'Colour temperature', 'CRI', 'IP rating']],
+  ])('shows the description and the technical rows in %s, after the other rows', async (locale, labels) => {
+    content.product.mockResolvedValue({
+      product: {
+        ...product,
+        description: { tr: 'Kısa açıklama.', en: 'Short description.' },
+        luminousFlux: '1050 lm',
+        colorTemperature: '3000 K',
+        cri: 'Ra 90',
+        ip: 'IP20',
+      },
+    });
+    const { container } = render(await ProductPage(props(locale)));
+    expect(container.querySelector('h1 + p + p')?.textContent).toBe(
+      locale === 'tr' ? 'Kısa açıklama.' : 'Short description.',
+    );
+    expect([...container.querySelectorAll('dt')].map((dt) => dt.textContent).slice(-4)).toEqual(labels);
+    expect([...container.querySelectorAll('dd')].map((dd) => dd.textContent).slice(-4)).toEqual([
+      '1050 lm',
+      '3000 K',
+      'Ra 90',
+      'IP20',
+    ]);
+  });
+
+  it('adds no description paragraph and no technical rows when they are empty', async () => {
+    const { container } = render(await ProductPage(props('en')));
+    expect(container.querySelector('h1 + p + p')).toBeNull();
+    expect(container.querySelectorAll('dt')).toHaveLength(6);
+  });
+
+  it('uses the description as the page description when there is one', async () => {
+    content.product.mockResolvedValue({
+      product: { ...product, description: { tr: 'Kısa açıklama.', en: 'Short description.' } },
+    });
+    expect((await generateMetadata(props('tr'))).description).toBe('Kısa açıklama.');
+    expect((await generateMetadata(props('en'))).description).toBe('Short description.');
   });
 
   it('fetches the product photo at once and ahead of everything else', async () => {

@@ -25,6 +25,11 @@ function product(categoryId: string, slug: string, code = slug.toUpperCase()) {
     material: pair('Alüminyum', 'Aluminium'),
     power: '12 W',
     dimensions: 'Ø 120 × 85 mm',
+    description: pair('', ''),
+    luminousFlux: '',
+    colorTemperature: '',
+    cri: '',
+    ip: '',
     imageUrl: `https://store.example.com/${slug}.webp`,
   };
 }
@@ -66,6 +71,26 @@ describe('products on a real database', () => {
       });
       expect(Object.keys(created)).not.toContain('price');
       expect(await getDb().product.count()).toBe(1);
+    });
+
+    it('stores and updates the description and the technical values', async () => {
+      const details = {
+        description: pair('Kısa açıklama.', 'Short description.'),
+        luminousFlux: '1050 lm',
+        colorTemperature: '3000 K',
+        cri: 'Ra 90',
+        ip: 'IP20',
+      };
+      const created = await createProduct({ ...product(indoor, 'ring-pendant'), ...details });
+      expect(created).toMatchObject(details);
+      const updated = await updateProduct(created.id, {
+        ...product(indoor, 'ring-pendant'),
+        ...details,
+        ip: 'IP65',
+        description: pair('', ''),
+      });
+      expect(updated).toMatchObject({ ip: 'IP65', description: pair('', ''), luminousFlux: '1050 lm' });
+      expect((await listProducts())[0]).toMatchObject({ ip: 'IP65', cri: 'Ra 90' });
     });
 
     it('lists every product with its address and change time in display order', async () => {

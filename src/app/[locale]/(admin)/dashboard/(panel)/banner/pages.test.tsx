@@ -22,6 +22,7 @@ vi.mock('next-intl/server', async () => ({
 
 const banner = {
   imageUrl: '/demo/banner.webp',
+  imageAlt: { tr: 'Gece evi', en: 'A house at night' },
   title: { tr: 'Başlık', en: 'Banner title' },
   description: { tr: 'Açıklama', en: 'Banner text' },
   primaryAction: { label: { tr: 'Ürünler', en: 'Products' }, target: 'products' },
@@ -54,6 +55,7 @@ describe('banner screen', () => {
     expect(mocks.guardPage).toHaveBeenCalledWith('en');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Banner');
     expect((screen.getByLabelText('Turkish', { selector: '#title-tr' }) as HTMLInputElement).value).toBe('Başlık');
+    expect((screen.getByLabelText('Turkish', { selector: '#imageAlt-tr' }) as HTMLInputElement).value).toBe('Gece evi');
     const first = screen.getByLabelText('First button opens') as HTMLSelectElement;
     expect(first.value).toBe('products');
     expect([...first.options].map((option) => option.text)).toContain('Privacy Policy');

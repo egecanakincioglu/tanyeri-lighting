@@ -29,7 +29,7 @@ export async function blogFormProps(locale: 'tr' | 'en') {
       body: t('fieldBody'),
       slug: t('fieldSlug'),
       slugHint: t('slugHint'),
-      slugEditHint: t('slugEditHint'),
+      slugRedirectHint: t('slugRedirectHint'),
       publishedAt: t('fieldPublishedAt'),
       publishedAtHint: t('publishedAtHint'),
       cancel: form('cancel'),

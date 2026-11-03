@@ -94,7 +94,7 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
                       catalog.coverImageUrl ? (
                         <SiteImage
                           src={catalog.coverImageUrl}
-                          alt=""
+                          alt={catalog.imageAlt[locale]}
                           fill
                           sizes={COVER_SIZES}
                           {...eagerWhen(index === 0)}

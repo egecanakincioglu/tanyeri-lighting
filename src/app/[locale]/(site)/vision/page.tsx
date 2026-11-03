@@ -46,7 +46,7 @@ export default async function VisionPage({ params }: PageProps<'/[locale]/vision
           <Container>
             <div className="mx-auto max-w-3xl">
               <Card>
-                <div className={`p-6 text-center sm:p-12 ${PROSE}`}>
+                <div className={`p-6 sm:p-12 ${PROSE}`}>
                   <MarkdownContent>{vision}</MarkdownContent>
                 </div>
               </Card>
