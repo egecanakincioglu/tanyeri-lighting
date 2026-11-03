@@ -2,7 +2,7 @@
 
 import { useActionState, startTransition, type ComponentProps, type FormEvent } from 'react';
 import type { FormState } from '../../../server/admin/form.ts';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { MarkdownField } from '../markdown-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -60,16 +60,14 @@ export function AboutForm({ action, initial, texts, formTexts, readOnlyReason }:
           ))}
         </fieldset>
       ))}
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div>
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
           pending={pending}
           disabled={Boolean(readOnlyReason)}
         />
-      </div>
+      </FormActions>
     </form>
   );
 }

@@ -4,6 +4,8 @@ import { useRef, useState, useTransition } from 'react';
 import type { FormState } from '../../server/admin/form.ts';
 import { Button } from '../button.tsx';
 import { SiteImage } from '../site-image.tsx';
+import { ActionIcon } from './action-icons.tsx';
+import { AdminIcon } from './icons.tsx';
 import type { FormTexts } from './texts.ts';
 
 export type MediaTexts = {
@@ -91,54 +93,76 @@ function MediaField({ kind, ...props }: Props & { kind: Kind }) {
   const message = problem ?? error;
   const disabled = Boolean(disabledReason) || pending;
 
+  const previewBox = portrait ? 'aspect-[210/297] w-28' : 'aspect-4/3 w-40';
+
   return (
     <div className="flex flex-col gap-2">
       <span id={`${id}-label`} className="text-sm font-semibold">
         {label}
       </span>
       <input type="hidden" name={name} value={url} />
-      {kind === 'image' && url && (
-        <div
-          className={`relative overflow-hidden rounded-md border border-hairline bg-page ${portrait ? 'aspect-[210/297] w-36' : 'aspect-4/3 w-48'}`}
-        >
-          <SiteImage src={url} alt="" fill sizes={portrait ? '144px' : '192px'} />
-        </div>
-      )}
-      {kind === 'file' && (
-        <p className="text-sm break-all">
-          {url ? (
-            <a href={url} target="_blank" rel="noopener" className="font-medium text-accent-text underline">
-              {texts.open}
-            </a>
-          ) : (
-            <span className="text-muted">{texts.none}</span>
-          )}
-        </p>
-      )}
-      {kind === 'image' && !url && <p className="text-sm text-muted">{texts.none}</p>}
-      <input
-        ref={input}
-        id={id}
-        type="file"
-        accept={ACCEPT[kind]}
-        tabIndex={-1}
-        aria-labelledby={`${id}-label`}
-        aria-describedby={messageId}
-        className="sr-only"
-        disabled={disabled}
-        onChange={(event) => onChoose(event.target.files?.[0])}
-      />
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" disabled={disabled} onClick={() => input.current?.click()}>
-          {pending ? texts.uploading : url ? texts.replace : texts.choose}
-        </Button>
-        {url && (
-          <Button type="button" variant="outline" disabled={disabled} onClick={() => setUrl('')}>
-            {texts.clear}
-          </Button>
+      <div className="flex flex-wrap items-center gap-4 rounded-lg border-2 border-dashed border-hairline bg-page/60 p-4">
+        {kind === 'image' ? (
+          <div
+            className={`relative grid flex-none place-items-center overflow-hidden rounded-md border border-hairline bg-surface text-muted ${previewBox}`}
+          >
+            {url ? (
+              <SiteImage src={url} alt="" fill sizes={portrait ? '112px' : '160px'} />
+            ) : (
+              <AdminIcon name="image" className="size-8" />
+            )}
+          </div>
+        ) : (
+          <div className="grid size-16 flex-none place-items-center rounded-md border border-hairline bg-surface text-muted">
+            <AdminIcon name="doc" className="size-8" />
+          </div>
         )}
+        <div className="flex min-w-0 flex-1 basis-56 flex-col gap-3">
+          {kind === 'file' ? (
+            <p className="text-sm break-all">
+              {url ? (
+                <a href={url} target="_blank" rel="noopener" className="font-medium text-accent-text underline">
+                  {texts.open}
+                </a>
+              ) : (
+                <span className="text-muted">{texts.none}</span>
+              )}
+            </p>
+          ) : (
+            !url && <p className="text-sm text-muted">{texts.none}</p>
+          )}
+          <input
+            ref={input}
+            id={id}
+            type="file"
+            accept={ACCEPT[kind]}
+            tabIndex={-1}
+            aria-labelledby={`${id}-label`}
+            aria-describedby={messageId}
+            className="sr-only"
+            disabled={disabled}
+            onChange={(event) => onChoose(event.target.files?.[0])}
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" disabled={disabled} onClick={() => input.current?.click()}>
+              <ActionIcon name="upload" className="size-4" />
+              {pending ? texts.uploading : url ? texts.replace : texts.choose}
+            </Button>
+            {url && (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setUrl('')}
+                className="inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-md border border-transparent px-4 text-[0.9375rem] font-semibold text-muted transition-colors duration-200 hover:bg-error/10 hover:text-error focus-visible:bg-error/10 focus-visible:text-error disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-transparent motion-reduce:transition-none"
+              >
+                <ActionIcon name="trash" className="size-4" />
+                {texts.clear}
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-muted">{disabledReason ?? texts.hint}</p>
+        </div>
       </div>
-      <p className="text-sm text-muted">{disabledReason ?? texts.hint}</p>
       <p id={messageId} role="alert" className="text-sm font-medium text-error">
         {message}
       </p>

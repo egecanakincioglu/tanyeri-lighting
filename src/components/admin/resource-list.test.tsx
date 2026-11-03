@@ -75,6 +75,37 @@ describe('ResourceList', () => {
     expect(screen.getByRole('button', { name: 'Delete: Beta' })).toBeTruthy();
   });
 
+  it('opens the edit page from the title link, which is named after the row', () => {
+    setup();
+    const link = screen.getByRole('link', { name: 'Beta' });
+    expect(link.getAttribute('href')).toBe('/en/admin/references/id-1');
+    expect(screen.getByRole('link', { name: 'Edit: Beta' }).getAttribute('href')).toBe(link.getAttribute('href'));
+  });
+
+  it('names the delete button after its row, as an icon without a visible label', () => {
+    setup();
+    const button = screen.getByRole('button', { name: 'Delete: Gamma' });
+    expect(button.textContent).toBe('');
+    expect(button.getAttribute('title')).toBe('Delete');
+  });
+
+  it('offers the create action in the empty state', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={{}}>
+        <ResourceList
+          rows={[]}
+          locale="en"
+          texts={texts}
+          formTexts={formTexts}
+          deleteAction={deleteAction}
+          createAction={<button type="button">Add one</button>}
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(screen.getByText('There are no items yet.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add one' })).toBeTruthy();
+  });
+
   it('has no arrows when the list has no reorder action', () => {
     render(
       <NextIntlClientProvider locale="en" messages={{}}>

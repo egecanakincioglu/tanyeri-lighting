@@ -39,18 +39,17 @@ export default async function CatalogsAdminPage({ params }: PageProps<'/[locale]
     return titles.length === 0 ? undefined : t('deleteBodyInUse', { name: '{name}', boards: titles.join(', ') });
   }
 
+  const create = (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/catalogs/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          <ButtonLink href={getPathname({ locale, href: '/dashboard/catalogs/new' })} prefetch={false}>
-            {t('create')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       <ResourceList
+        createAction={create}
         locale={locale}
         portraitImages
         rows={catalogs.map((catalog) => ({

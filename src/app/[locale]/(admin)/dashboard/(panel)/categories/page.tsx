@@ -32,25 +32,22 @@ export default async function CategoriesAdminPage({ params }: PageProps<'/[local
   const formTexts = buildFormTexts(form);
   const full = categories.length >= MAX_CATEGORIES;
 
+  const create = full ? undefined : (
+    <ButtonLink href={getPathname({ locale, href: '/dashboard/categories/new' })} prefetch={false}>
+      {t('create')}
+    </ButtonLink>
+  );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description', { max: MAX_CATEGORIES })}
-        action={
-          full ? undefined : (
-            <ButtonLink href={getPathname({ locale, href: '/dashboard/categories/new' })} prefetch={false}>
-              {t('create')}
-            </ButtonLink>
-          )
-        }
-      />
+      <PageHeader title={t('title')} description={t('description', { max: MAX_CATEGORIES })} action={create} />
       <p className={`mb-4 text-sm font-medium ${full ? 'text-error' : 'text-muted'}`}>
         {full
           ? t('limitReached', { max: MAX_CATEGORIES })
           : t('usage', { count: categories.length, max: MAX_CATEGORIES })}
       </p>
       <ResourceList
+        createAction={create}
         locale={locale}
         rows={categories.map((category) => ({
           id: category.id,

@@ -52,19 +52,16 @@ export default async function ProductsAdminPage({ params, searchParams }: PagePr
   const reorderable = selected !== undefined && query.q === '';
   const shown = reorderable ? { items: matches, page: 1, pages: 1 } : paginate(matches, query.page);
 
+  const create =
+    categories.length === 0 ? undefined : (
+      <ButtonLink href={getPathname({ locale, href: '/dashboard/products/new' })} prefetch={false}>
+        {t('create')}
+      </ButtonLink>
+    );
+
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        action={
-          categories.length === 0 ? undefined : (
-            <ButtonLink href={getPathname({ locale, href: '/dashboard/products/new' })} prefetch={false}>
-              {t('create')}
-            </ButtonLink>
-          )
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} action={create} />
       {categories.length === 0 ? (
         <p className="rounded-lg border border-hairline bg-surface px-5 py-10 text-center text-muted">
           {t('noCategories')}
@@ -86,6 +83,7 @@ export default async function ProductsAdminPage({ params, searchParams }: PagePr
           />
           {!reorderable && products.length > 1 && <p className="mb-4 text-sm text-muted">{t('reorderHint')}</p>}
           <ResourceList
+            createAction={create}
             locale={locale}
             rows={shown.items.map((product) => ({
               id: product.id,

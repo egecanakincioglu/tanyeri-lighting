@@ -4,7 +4,7 @@ import { useActionState, startTransition, type FormEvent } from 'react';
 import type { FormState } from '../../../server/admin/form.ts';
 import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { MarkdownField } from '../markdown-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -40,7 +40,7 @@ export function LegalForm({ action, pageKey, initial, texts, markdownTexts, form
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="pageKey" value={pageKey} />
-      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
         <BilingualField
           name="title"
           label={texts.title}
@@ -69,9 +69,7 @@ export function LegalForm({ action, pageKey, initial, texts, markdownTexts, form
         ))}
       </div>
       <p className="text-sm text-muted">{texts.hideNote}</p>
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div className="flex flex-wrap gap-3">
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
@@ -85,7 +83,7 @@ export function LegalForm({ action, pageKey, initial, texts, markdownTexts, form
         >
           {texts.cancel}
         </Link>
-      </div>
+      </FormActions>
     </form>
   );
 }

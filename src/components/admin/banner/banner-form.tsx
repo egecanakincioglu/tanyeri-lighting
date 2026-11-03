@@ -6,7 +6,7 @@ import type { HomeBanner } from '../../../server/content/schemas.ts';
 import { SelectField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
-import { FormStatus } from '../form-status.tsx';
+import { FormActions } from '../form-actions.tsx';
 import { ImageField, type MediaTexts } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -70,7 +70,7 @@ export function BannerForm({
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
-      <div className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
         <ImageField
           id="imageUrl"
           name="imageUrl"
@@ -103,7 +103,7 @@ export function BannerForm({
         />
       </div>
       {buttons.map((button) => (
-        <div key={button.name} className="flex flex-col gap-6 rounded-lg border border-hairline bg-surface p-5 sm:p-6">
+        <div key={button.name} className="flex flex-col gap-8 rounded-lg border border-hairline bg-surface p-5 sm:p-8">
           <BilingualField
             name={`${button.name}Label`}
             label={button.label}
@@ -125,16 +125,14 @@ export function BannerForm({
           />
         </div>
       ))}
-      <FormStatus state={state} texts={formTexts} />
-      {readOnlyReason && <p className="text-sm text-muted">{readOnlyReason}</p>}
-      <div>
+      <FormActions state={state} texts={formTexts} note={readOnlyReason}>
         <SubmitButton
           label={formTexts.save}
           pendingLabel={formTexts.saving}
           pending={pending}
           disabled={Boolean(readOnlyReason)}
         />
-      </div>
+      </FormActions>
     </form>
   );
 }

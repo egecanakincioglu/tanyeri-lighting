@@ -1,11 +1,13 @@
 'use client';
 
-import { useActionState, useOptimistic, useTransition, type ComponentProps } from 'react';
+import { useActionState, useOptimistic, useTransition, type ComponentProps, type ReactNode } from 'react';
 import type { FormState } from '../../server/admin/form.ts';
 import { Link } from '../../i18n/navigation.ts';
 import { SiteImage } from '../site-image.tsx';
+import { ActionIcon } from './action-icons.tsx';
 import { ConfirmDelete, type ConfirmDeleteTexts } from './confirm-delete.tsx';
 import { FormStatus } from './form-status.tsx';
+import { AdminIcon } from './icons.tsx';
 import type { FormTexts } from './texts.ts';
 
 export type ResourceRow = {
@@ -40,10 +42,12 @@ type Props = {
   deleteAction: (previous: FormState | null, formData: FormData) => Promise<FormState>;
   /** Set in the demo: the reason the reorder and delete controls are off. */
   disabledReason?: string | undefined;
+  /** The create action (a link), shown in the empty state. */
+  createAction?: ReactNode;
 };
 
 export const iconButton =
-  'grid size-touch place-items-center rounded-md border border-hairline bg-surface text-ink hover:border-accent hover:text-accent-text aria-disabled:cursor-not-allowed aria-disabled:text-muted aria-disabled:hover:border-hairline aria-disabled:hover:text-muted';
+  'grid size-touch place-items-center rounded-md text-muted transition-colors duration-200 hover:bg-hairline/50 hover:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted motion-reduce:transition-none';
 
 export function Arrow({ up }: { up: boolean }) {
   return (
@@ -69,6 +73,7 @@ export function ResourceList({
   portraitImages,
   deleteAction,
   disabledReason,
+  createAction,
 }: Props) {
   const [shown, setShown] = useOptimistic(rows);
   // An action state, so the answer of the server arrives together with the end of the optimistic order.
@@ -80,7 +85,13 @@ export function ResourceList({
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-lg border border-hairline bg-surface px-5 py-10 text-center text-muted">{texts.empty}</p>
+      <div className="flex flex-col items-center gap-4 rounded-lg border-2 border-dashed border-hairline bg-surface px-5 py-12 text-center">
+        <span className="grid size-12 place-items-center rounded-full bg-accent-tint text-accent-text">
+          <AdminIcon name="layers" className="size-6" />
+        </span>
+        <p className="max-w-md text-muted">{texts.empty}</p>
+        {createAction}
+      </div>
     );
   }
 
@@ -99,7 +110,10 @@ export function ResourceList({
     <div className="flex flex-col gap-3">
       <ul className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
         {shown.map((row, index) => (
-          <li key={row.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:p-4">
+          <li
+            key={row.id}
+            className="relative flex flex-col gap-3 p-3 transition-colors duration-150 hover:bg-page/60 sm:flex-row sm:items-center sm:px-5 sm:py-4 motion-reduce:transition-none"
+          >
             <div className="flex min-w-0 flex-1 items-center gap-3">
               {row.imageUrl && (
                 <div
@@ -109,11 +123,19 @@ export function ResourceList({
                 </div>
               )}
               <div className="min-w-0">
-                <p className="font-semibold wrap-break-word">{row.title}</p>
+                <p className="font-semibold wrap-break-word">
+                  <Link
+                    prefetch={false}
+                    href={row.edit}
+                    className="after:absolute after:inset-0 after:content-[''] hover:text-accent-text"
+                  >
+                    {row.title}
+                  </Link>
+                </p>
                 {row.subtitle && <p className="text-sm wrap-break-word text-muted">{row.subtitle}</p>}
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="relative z-10 flex flex-wrap items-center gap-1 sm:flex-nowrap">
               {reorder && (
                 <>
                   <button
@@ -140,8 +162,9 @@ export function ResourceList({
                 prefetch={false}
                 href={row.edit}
                 aria-label={`${texts.edit}: ${row.title}`}
-                className="inline-flex min-h-touch items-center justify-center rounded-md border border-hairline bg-surface px-5 text-[0.9375rem] font-semibold hover:border-accent hover:text-accent-text"
+                className="mr-1 inline-flex min-h-touch items-center justify-center gap-2 rounded-md bg-accent-tint px-4 text-[0.9375rem] font-semibold text-accent-text transition-colors duration-200 hover:bg-accent hover:text-on-accent motion-reduce:transition-none"
               >
+                <ActionIcon name="edit" className="size-4" />
                 {texts.edit}
               </Link>
               <ConfirmDelete
@@ -151,6 +174,7 @@ export function ResourceList({
                 texts={row.deleteBody ? { ...texts.delete, body: row.deleteBody } : texts.delete}
                 formTexts={formTexts}
                 disabledReason={disabledReason}
+                compact
               />
             </div>
           </li>
