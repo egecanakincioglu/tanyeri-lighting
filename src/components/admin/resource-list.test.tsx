@@ -20,7 +20,7 @@ const texts: ResourceListTexts = {
     cancel: 'Cancel',
   },
 };
-const formTexts = { saved: 'Saved.', errors: { invalidOrder: 'The list changed.' } } as never;
+const formTexts = { saved: 'Saved.', deleted: 'Deleted.', errors: { invalidOrder: 'The list changed.' } } as never;
 
 const rows: ResourceRow[] = ['Alpha', 'Beta', 'Gamma'].map((title, index) => ({
   id: `id-${index}`,
@@ -158,6 +158,66 @@ describe('ResourceList', () => {
     });
     expect(reorder).toHaveBeenCalledWith(['id-1', 'id-0', 'id-2']);
     expect(screen.getByRole('status').textContent).toBe('Order saved.');
+  });
+
+  it('says a row was deleted instead of the order, and moves the focus to the page body', async () => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    deleteAction.mockResolvedValue({ status: 'success' });
+    const main = document.createElement('main');
+    main.id = 'main';
+    main.tabIndex = -1;
+    document.body.append(main);
+    setup();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move up: Beta' }));
+    });
+    expect(screen.getByRole('status').textContent).toBe('Order saved.');
+    const dialog = screen.getAllByRole('dialog', { hidden: true })[0]!;
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Yes', hidden: true }));
+    });
+    expect(screen.getByRole('status').textContent).toBe('Deleted.');
+    expect(document.activeElement).toBe(main);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move down: Alpha' }));
+    });
+    expect(screen.getByRole('status').textContent).toBe('Order saved.');
+    main.remove();
+  });
+
+  it('still says the row was deleted when it was the last one', async () => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    deleteAction.mockResolvedValue({ status: 'success' });
+    const main = document.createElement('main');
+    main.id = 'main';
+    main.tabIndex = -1;
+    document.body.append(main);
+    const view = setup([rows[0]!]);
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getAllByRole('dialog', { hidden: true })[0]!).getByRole('button', { name: 'Yes', hidden: true }),
+      );
+    });
+    view.rerender(
+      <NextIntlClientProvider locale="en" messages={{}}>
+        <ResourceList rows={[]} locale="en" texts={texts} formTexts={formTexts} deleteAction={deleteAction} />
+      </NextIntlClientProvider>,
+    );
+    expect(screen.getByText('There are no items yet.')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('Deleted.');
+    expect(document.activeElement).toBe(main);
+    main.remove();
+  });
+
+  it('keeps the focus and the status line when the delete fails', async () => {
+    deleteAction.mockResolvedValue({ status: 'error', code: 'invalidOrder', fieldErrors: {} });
+    setup();
+    const dialog = screen.getAllByRole('dialog', { hidden: true })[0]!;
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Yes', hidden: true }));
+    });
+    expect(screen.queryByText('Deleted.')).toBeNull();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('moves a row down', async () => {

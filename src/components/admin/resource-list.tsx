@@ -1,6 +1,14 @@
 'use client';
 
-import { useActionState, useOptimistic, useTransition, type ComponentProps, type ReactNode } from 'react';
+import {
+  useActionState,
+  useEffect,
+  useOptimistic,
+  useState,
+  useTransition,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
 import type { FormState } from '../../server/admin/form.ts';
 import { Link } from '../../i18n/navigation.ts';
 import { SiteImage } from '../site-image.tsx';
@@ -34,7 +42,7 @@ type Props = {
   rows: ResourceRow[];
   locale: string;
   texts: ResourceListTexts;
-  formTexts: Pick<FormTexts, 'saved' | 'errors'>;
+  formTexts: Pick<FormTexts, 'saved' | 'deleted' | 'errors'>;
   /** Receives the complete list of ids in the new order. Without it the rows have no arrows. */
   reorder?: ((ids: string[]) => Promise<FormState>) | undefined;
   /** Cover pictures are portrait pages; the default thumbnail is landscape. */
@@ -82,6 +90,20 @@ export function ResourceList({
     null,
   );
   const [, startTransition] = useTransition();
+  const [deleted, setDeleted] = useState(false);
+  const count = rows.length;
+
+  // The deleted row takes the focus with it, so the page body gets it. While the dialog is still open the page is
+  // inert and the first try does nothing; the run after the row is gone lands.
+  useEffect(() => {
+    if (deleted) document.getElementById('main')?.focus();
+  }, [deleted, count]);
+
+  async function deleteRow(previous: FormState | null, formData: FormData) {
+    const outcome = await deleteAction(previous, formData);
+    if (outcome.status === 'success') setDeleted(true);
+    return outcome;
+  }
 
   if (rows.length === 0) {
     return (
@@ -91,6 +113,7 @@ export function ResourceList({
         </span>
         <p className="max-w-md text-muted">{texts.empty}</p>
         {createAction}
+        {deleted && <FormStatus state={{ status: 'success' }} texts={formTexts} successText={formTexts.deleted} />}
       </div>
     );
   }
@@ -98,6 +121,7 @@ export function ResourceList({
   function move(index: number, step: -1 | 1) {
     const target = index + step;
     if (!reorder || disabledReason || target < 0 || target >= shown.length) return;
+    setDeleted(false);
     const next = [...shown];
     [next[index], next[target]] = [next[target]!, next[index]!];
     startTransition(() => {
@@ -170,7 +194,7 @@ export function ResourceList({
               <ConfirmDelete
                 name={row.title}
                 fields={{ id: row.id, locale }}
-                action={deleteAction}
+                action={deleteRow}
                 texts={row.deleteBody ? { ...texts.delete, body: row.deleteBody } : texts.delete}
                 formTexts={formTexts}
                 disabledReason={disabledReason}
@@ -181,7 +205,11 @@ export function ResourceList({
         ))}
       </ul>
       {disabledReason && <p className="text-sm text-muted">{disabledReason}</p>}
-      <FormStatus state={result} texts={formTexts} successText={texts.reordered} />
+      <FormStatus
+        state={deleted ? { status: 'success' } : result}
+        texts={formTexts}
+        successText={deleted ? formTexts.deleted : texts.reordered}
+      />
     </div>
   );
 }

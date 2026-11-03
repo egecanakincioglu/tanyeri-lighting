@@ -6,6 +6,7 @@ describe('buildFormTexts', () => {
   it.each(['en', 'tr'])('keeps the {max} placeholder of the too-long text for the browser in %s', async (locale) => {
     const texts = buildFormTexts(await getTranslations({ locale, namespace: 'AdminForm' }));
     expect(texts.fieldErrors.tooLong).toContain('{max}');
+    expect(texts.deleted).toMatch(/^(Deleted|Silindi).$/);
     const shown = fieldMessage(texts, { code: 'tooLong', max: 120 });
     expect(shown).toContain('120');
     expect(shown).not.toContain('{');
