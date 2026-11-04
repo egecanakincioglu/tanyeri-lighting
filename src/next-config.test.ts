@@ -12,7 +12,13 @@ describe('next.config headers', () => {
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
       'Cross-Origin-Opener-Policy': 'same-origin',
+      'X-Frame-Options': 'DENY',
     });
+  });
+
+  it('does not announce the framework and keeps the default Server Action body limit', () => {
+    expect(nextConfig.poweredByHeader).toBe(false);
+    expect(nextConfig.experimental?.serverActions).toBeUndefined();
   });
 
   it('caches the static file folders for a day without marking them immutable', async () => {

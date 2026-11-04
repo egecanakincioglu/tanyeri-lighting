@@ -8,6 +8,8 @@ const securityHeaders: Record<string, string> = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Cross-Origin-Opener-Policy': 'same-origin',
+  // The CSP of the proxy has frame-ancestors for pages; this covers the paths the proxy skips, such as 404s of files.
+  'X-Frame-Options': 'DENY',
 };
 
 // Static files keep their address when replaced, so no 'immutable': a day fresh, then a week of quiet revalidation.
@@ -36,8 +38,7 @@ const nextConfig: NextConfig = {
     // origin, so the CSP img-src 'self' already covers them.
     remotePatterns: blobHost ? [{ protocol: 'https', hostname: blobHost, search: '' }] : [],
   },
-  // The panel uploads files of up to 4 MB (MAX_UPLOAD_BYTES) through a Server Action; the default limit is 1 MB.
-  experimental: { serverActions: { bodySizeLimit: '5mb' } },
+  poweredByHeader: false,
   headers: async () => [
     { source: '/:path*', headers: toEntries(securityHeaders) },
     ...['/brand', '/icons', '/demo'].map((dir) => ({
