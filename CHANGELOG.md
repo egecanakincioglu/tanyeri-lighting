@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-11-04
+
+### Features
+- upload files from the browser to the store (18619ac)
+- add the token route for direct store uploads (9dd71b4)
+- finalize browser uploads from the temporary folder (496e3f0)
+
+### Fixes
+- use the vercel address as the demo contact email (f4b7511)
+
+### Other
+- docs(storage): describe the direct upload flow and its limits (b547323)
+- refactor(storage): move the upload limits into a shared module (ee0ab8b)
+
 ## [0.7.1] - 2026-11-03
 
 ### Fixes
