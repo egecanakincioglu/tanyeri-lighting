@@ -4,7 +4,7 @@ The project is developed in phases. The architecture is described in [architectu
 
 ## Status
 
-- **Current phase:** phase 8, hardening.
+- **Current phase:** all planned phases are done; the project is released as 1.0.0.
 - **Released:** see the [changelog](../CHANGELOG.md) and the [releases page](https://github.com/egecanakincioglu/tanyeri-lighting/releases).
 - **Live demo:** https://tanyeri-lighting.vercel.app. It is open to search engines; preview deployments stay `noindex`.
 
@@ -18,8 +18,8 @@ The project is developed in phases. The architecture is described in [architectu
 | 5 | Brand and design system | Done (v0.3.0) |
 | 6 | Public site (bilingual) | Done |
 | 7 | Admin panel | Done |
-| 8 | Hardening | In progress |
-| 9 | Launch (1.0.0) | Planned |
+| 8 | Hardening | Done |
+| 9 | Launch (1.0.0) | Done |
 
 ## Phase 4: server foundation
 
@@ -59,10 +59,10 @@ Done:
 - Done: the statistics screen (visits, page views and countries).
 - Done: content management screens for every content type, contact messages, legal pages, page information for search, the account screen and password reset by email or by command.
 
-## Later phases
+## Phase 8 and 9
 
-- **Phase 8:** security review, accessibility review, performance work, a pixel-perfect pass on all widths and a final review of the whole site.
-- **Phase 9:** production environment and the 1.0.0 release.
+- **Phase 8 (done):** security review, accessibility review, performance work, a pixel-perfect pass on all widths and a final review of the whole site.
+- **Phase 9 (done):** production environment and the 1.0.0 release.
 
 ## Manual steps
 
