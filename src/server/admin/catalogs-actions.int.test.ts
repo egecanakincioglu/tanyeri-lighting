@@ -3,7 +3,7 @@ import { startFakeBlobServer } from '../../test/blob-server.ts';
 import type { FakeBlobServer } from '../../test/blob-server.ts';
 import { listCatalogs } from '../content/catalogs.ts';
 import { getDb } from '../db.ts';
-import { uploadFile } from '../storage/index.ts';
+import { storeFile } from '../../test/blob-store.ts';
 import {
   createCatalogAction,
   deleteCatalogAction,
@@ -62,7 +62,7 @@ describe('catalog actions on a real database', () => {
   beforeEach(async () => {
     vi.stubEnv('VERCEL_BLOB_API_URL', server.url);
     vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_teststore_secretpart');
-    pdfUrl = (await uploadFile(new Blob([PDF]))).url;
+    pdfUrl = await storeFile(PDF);
     server.requests.length = 0;
     await getDb().promoBoard.deleteMany();
     await getDb().catalog.deleteMany();
@@ -129,7 +129,7 @@ describe('catalog actions on a real database', () => {
     await expect(createCatalogAction(null, form(valid('Alpha')))).rejects.toThrow('redirect:');
     const [item] = await listCatalogs();
     const bigger = new TextEncoder().encode(`%PDF-1.4\n${'x'.repeat(500)}\n%%EOF`);
-    const replaced = (await uploadFile(new Blob([bigger]))).url;
+    const replaced = await storeFile(bigger);
     expect(await updateCatalogAction(null, form(valid('Alpha', { id: item!.id, pdfUrl: replaced })))).toEqual({
       status: 'success',
     });

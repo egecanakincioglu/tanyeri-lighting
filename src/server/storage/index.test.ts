@@ -1,124 +1,221 @@
 // @vitest-environment node
 import sharp from 'sharp';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { startFakeBlobServer } from '../../test/blob-server.ts';
-import type { FakeBlobServer } from '../../test/blob-server.ts';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   deleteFile,
+  finalizeUpload,
   isStorageEnabled,
-  MAX_UPLOAD_BYTES,
   StorageDisabledError,
   StorageRequestError,
   storedFileSize,
   UploadRejectedError,
-  uploadFile,
 } from './index.ts';
 
+const blob = vi.hoisted(() => ({ copy: vi.fn(), del: vi.fn(), head: vi.fn(), put: vi.fn() }));
+vi.mock('@vercel/blob', () => blob);
+
 const TOKEN = 'vercel_blob_rw_teststore_secretpart';
+const HOST = 'https://teststore.public.blob.vercel-storage.com';
+const TEMPORARY = `${HOST}/tmp/upload-abc123`;
 
-let server: FakeBlobServer;
-
-beforeAll(async () => {
-  server = await startFakeBlobServer();
-});
-
-afterAll(async () => {
-  await server.close();
-});
-
-beforeEach(() => {
-  vi.stubEnv('VERCEL_BLOB_API_URL', server.url);
-  vi.stubEnv('BLOB_READ_WRITE_TOKEN', TOKEN);
-});
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-  server.requests.length = 0;
-});
-
+const PDF = new TextEncoder().encode('%PDF-1.4\nbody\n%%EOF');
 const png = () =>
   sharp({ create: { width: 16, height: 16, channels: 3, background: '#336699' } })
     .png()
     .toBuffer();
 
-describe('with a token', () => {
+const fetchMock = vi.fn<typeof fetch>();
+
+// The store answers a range request with the leading bytes and a plain request with the whole file.
+function storeHolds(bytes: Uint8Array) {
+  fetchMock.mockImplementation((_input, init) => {
+    const range = new Headers(init?.headers).get('range');
+    const body = range ? bytes.subarray(0, 16) : bytes;
+    return Promise.resolve(new Response(Buffer.from(body), { status: range ? 206 : 200 }));
+  });
+  blob.head.mockResolvedValue({ size: bytes.byteLength });
+}
+
+beforeEach(() => {
+  vi.stubEnv('BLOB_READ_WRITE_TOKEN', TOKEN);
+  vi.stubGlobal('fetch', fetchMock);
+  for (const fn of [fetchMock, blob.copy, blob.del, blob.head, blob.put]) fn.mockClear();
+  blob.del.mockResolvedValue(undefined);
+  blob.copy.mockResolvedValue({ url: `${HOST}/final.pdf` });
+  blob.put.mockResolvedValue({ url: `${HOST}/final.webp` });
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
+
+async function rejection(promise: Promise<unknown>): Promise<unknown> {
+  return promise.then(
+    () => null,
+    (caught: unknown) => caught,
+  );
+}
+
+describe('finalizeUpload with a token', () => {
   it('reports storage as enabled', () => {
     expect(isStorageEnabled()).toBe(true);
   });
 
-  it('writes a re-encoded public image under a generated name', async () => {
-    const stored = await uploadFile(new File([await png()], 'my holiday photo.png', { type: 'image/png' }));
+  it('re-encodes a picture into WebP, stores it under a generated name and removes the temporary file', async () => {
+    storeHolds(await png());
+    const stored = await finalizeUpload(TEMPORARY, 'image');
 
-    expect(server.requests).toHaveLength(1);
-    const [request] = server.requests;
-    expect(request?.method).toBe('PUT');
-    expect(request?.headers.authorization).toBe(`Bearer ${TOKEN}`);
-    expect(request?.headers['x-vercel-blob-access']).toBe('public');
-    expect(request?.headers['x-content-type']).toBe('image/webp');
-    const pathname = new URL(request?.url ?? '', 'http://fake').searchParams.get('pathname');
+    const [pathname, bytes, options] = blob.put.mock.calls[0] as [string, Buffer, Record<string, unknown>];
     expect(pathname).toMatch(/^[0-9a-f-]{36}\.webp$/);
-    expect((await sharp(request?.body).metadata()).format).toBe('webp');
-    expect(stored).toMatchObject({ contentType: 'image/webp', size: request?.body.byteLength });
-    expect(stored.url).toBe(`https://store.public.blob.vercel-storage.com/${pathname}`);
+    expect((await sharp(bytes).metadata()).format).toBe('webp');
+    expect(options).toMatchObject({ access: 'public', contentType: 'image/webp' });
+    expect(stored).toEqual({ url: `${HOST}/final.webp`, contentType: 'image/webp', size: bytes.byteLength });
+    expect(blob.del).toHaveBeenCalledWith(TEMPORARY, expect.anything());
   });
 
-  it('stores a PDF byte for byte', async () => {
-    const pdf = new TextEncoder().encode('%PDF-1.4\nbody\n%%EOF');
-    const stored = await uploadFile(new Blob([pdf]));
-    expect(server.requests[0]?.body.equals(Buffer.from(pdf))).toBe(true);
-    expect(server.requests[0]?.headers['x-content-type']).toBe('application/pdf');
-    expect(stored.contentType).toBe('application/pdf');
+  it('copies a PDF inside the store and never downloads more than its first bytes', async () => {
+    storeHolds(PDF);
+    const stored = await finalizeUpload(TEMPORARY, 'file');
+
+    const [from, to, options] = blob.copy.mock.calls[0] as [string, string, Record<string, unknown>];
+    expect(from).toBe(TEMPORARY);
+    expect(to).toMatch(/^[0-9a-f-]{36}\.pdf$/);
+    expect(options).toMatchObject({ access: 'public', contentType: 'application/pdf' });
+    expect(stored).toEqual({ url: `${HOST}/final.pdf`, contentType: 'application/pdf', size: PDF.byteLength });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(new Headers(fetchMock.mock.calls[0]?.[1]?.headers).get('range')).toBe('bytes=0-15');
+    expect(blob.put).not.toHaveBeenCalled();
+    expect(blob.del).toHaveBeenCalledWith(TEMPORARY, expect.anything());
   });
 
-  it('never calls the store for a rejected file', async () => {
-    await expect(uploadFile(new Blob([new Uint8Array(MAX_UPLOAD_BYTES + 1)]))).rejects.toBeInstanceOf(
-      UploadRejectedError,
-    );
-    await expect(uploadFile(new Blob(['<svg/>'], { type: 'image/svg+xml' }))).rejects.toBeInstanceOf(
-      UploadRejectedError,
-    );
-    await expect(uploadFile(new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0x00])]))).rejects.toBeInstanceOf(
-      UploadRejectedError,
-    );
-    expect(server.requests).toHaveLength(0);
+  it('refuses an address that is not a temporary file of this store without fetching or deleting anything', async () => {
+    const bad = [
+      `http://teststore.public.blob.vercel-storage.com/tmp/a`,
+      'https://other.public.blob.vercel-storage.com/tmp/a',
+      'https://teststore.public.blob.vercel-storage.com.evil.example/tmp/a',
+      'https://user@teststore.public.blob.vercel-storage.com/tmp/a',
+      'https://teststore.public.blob.vercel-storage.com:8443/tmp/a',
+      `${HOST}/final.pdf`,
+      `${HOST}/tmpfile/a`,
+      `${HOST}/tmp/../final.pdf`,
+      `${TEMPORARY}?x=1`,
+      'https://example.com/tmp/a',
+      'tmp/a',
+      '',
+    ];
+    for (const address of bad) {
+      const error = await rejection(finalizeUpload(address, 'file'));
+      expect(error, address).toBeInstanceOf(UploadRejectedError);
+      expect((error as UploadRejectedError).reason).toBe('invalid-address');
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(blob.head).not.toHaveBeenCalled();
+    expect(blob.del).not.toHaveBeenCalled();
   });
 
-  it('wraps a store failure without leaking the vendor error type', async () => {
-    server.failNextWith('forbidden', 403);
-    const error = await uploadFile(new Blob(['%PDF-1.4'])).catch((caught: unknown) => caught);
+  it('refuses a picture over 20 MB and a PDF over 50 MB by the size the store reports, then cleans up', async () => {
+    blob.head.mockResolvedValue({ size: 20 * 1024 * 1024 + 1 });
+    expect(((await rejection(finalizeUpload(TEMPORARY, 'image'))) as UploadRejectedError).reason).toBe('too-large');
+    blob.head.mockResolvedValue({ size: 50 * 1024 * 1024 + 1 });
+    expect(((await rejection(finalizeUpload(TEMPORARY, 'file'))) as UploadRejectedError).reason).toBe('too-large');
+    storeHolds(PDF);
+    blob.head.mockResolvedValue({ size: 30 * 1024 * 1024 });
+    await expect(finalizeUpload(TEMPORARY, 'file')).resolves.toMatchObject({ contentType: 'application/pdf' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(blob.del).toHaveBeenCalledTimes(3);
+  });
+
+  it('judges the type by the first bytes, not by what was claimed', async () => {
+    storeHolds(new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"/>'));
+    const error = await rejection(finalizeUpload(TEMPORARY, 'image'));
+    expect((error as UploadRejectedError).reason).toBe('unsupported-type');
+    expect(blob.put).not.toHaveBeenCalled();
+    expect(blob.copy).not.toHaveBeenCalled();
+  });
+
+  it('refuses a PDF in a picture field and a picture in a file field', async () => {
+    storeHolds(PDF);
+    expect(((await rejection(finalizeUpload(TEMPORARY, 'image'))) as UploadRejectedError).reason).toBe(
+      'unsupported-type',
+    );
+    storeHolds(await png());
+    expect(((await rejection(finalizeUpload(TEMPORARY, 'file'))) as UploadRejectedError).reason).toBe(
+      'unsupported-type',
+    );
+    expect(blob.put).not.toHaveBeenCalled();
+    expect(blob.copy).not.toHaveBeenCalled();
+  });
+
+  it('removes the temporary file when the file is rejected, the copy fails or the picture is unreadable', async () => {
+    storeHolds(new Uint8Array([1, 2, 3, 4]));
+    await rejection(finalizeUpload(TEMPORARY, 'file'));
+    expect(blob.del).toHaveBeenCalledTimes(1);
+
+    storeHolds(PDF);
+    blob.copy.mockRejectedValue(new Error('store down'));
+    const error = await rejection(finalizeUpload(TEMPORARY, 'file'));
     expect(error).toBeInstanceOf(StorageRequestError);
-    expect((error as Error).message).toBe('File storage upload failed');
-    expect((error as Error).cause).toBeInstanceOf(Error);
+    expect(blob.del).toHaveBeenCalledTimes(2);
+
+    storeHolds((await png()).subarray(0, 40));
+    const unreadable = await rejection(finalizeUpload(TEMPORARY, 'image'));
+    expect((unreadable as UploadRejectedError).reason).toBe('unreadable-image');
+    expect(blob.del).toHaveBeenCalledTimes(3);
   });
 
-  it('reports the size the store holds for an uploaded file', async () => {
-    const pdf = new TextEncoder().encode('%PDF-1.4\nbody\n%%EOF');
-    const stored = await uploadFile(new Blob([pdf]));
-    expect(await storedFileSize(stored.url)).toBe(pdf.byteLength);
+  it('wraps a failed size lookup and a failed write, and still removes the temporary file', async () => {
+    blob.head.mockRejectedValue(new Error('missing'));
+    expect(await rejection(finalizeUpload(TEMPORARY, 'file'))).toBeInstanceOf(StorageRequestError);
+    expect(blob.del).toHaveBeenCalledTimes(1);
+
+    storeHolds(await png());
+    blob.put.mockRejectedValue(new Error('forbidden'));
+    expect(await rejection(finalizeUpload(TEMPORARY, 'image'))).toBeInstanceOf(StorageRequestError);
+    expect(blob.del).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails with a typed error when the temporary file can not be read', async () => {
+    blob.head.mockResolvedValue({ size: 10 });
+    fetchMock.mockResolvedValue(new Response('no', { status: 404 }));
+    expect(await rejection(finalizeUpload(TEMPORARY, 'file'))).toBeInstanceOf(StorageRequestError);
+    expect(blob.del).toHaveBeenCalledTimes(1);
+
+    const leading = new Uint8Array(await png());
+    blob.head.mockResolvedValue({ size: leading.byteLength });
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        new Headers(init?.headers).get('range')
+          ? new Response(Buffer.from(leading.subarray(0, 16)), { status: 206 })
+          : new Response('no', { status: 500 }),
+      ),
+    );
+    expect(await rejection(finalizeUpload(TEMPORARY, 'image'))).toBeInstanceOf(StorageRequestError);
+  });
+
+  it('does not hide the outcome when removing the temporary file fails', async () => {
+    storeHolds(PDF);
+    blob.del.mockRejectedValue(new Error('gone'));
+    await expect(finalizeUpload(TEMPORARY, 'file')).resolves.toMatchObject({ contentType: 'application/pdf' });
+  });
+});
+
+describe('with a token', () => {
+  it('reports the size the store holds for a stored file', async () => {
+    blob.head.mockResolvedValue({ size: 19 });
+    expect(await storedFileSize(`${HOST}/a.pdf`)).toBe(19);
   });
 
   it('wraps a failed size lookup', async () => {
-    const error = await storedFileSize('https://store.public.blob.vercel-storage.com/none.pdf').catch(
-      (caught: unknown) => caught,
-    );
-    expect(error).toBeInstanceOf(StorageRequestError);
+    blob.head.mockRejectedValue(new Error('missing'));
+    expect(await rejection(storedFileSize(`${HOST}/none.pdf`))).toBeInstanceOf(StorageRequestError);
   });
 
-  it('deletes by URL', async () => {
-    const url = 'https://store.public.blob.vercel-storage.com/a.webp';
-    await deleteFile(url);
-    const [request] = server.requests;
-    expect(request?.method).toBe('POST');
-    expect(request?.url).toBe('/delete');
-    expect(request?.headers.authorization).toBe(`Bearer ${TOKEN}`);
-    expect(JSON.parse(request?.body.toString() ?? '')).toEqual({ urls: [url] });
-  });
-
-  it('wraps a delete failure', async () => {
-    server.failNextWith('forbidden', 403);
-    await expect(deleteFile('https://store.public.blob.vercel-storage.com/a.webp')).rejects.toBeInstanceOf(
-      StorageRequestError,
-    );
+  it('deletes by URL and wraps a delete failure', async () => {
+    await deleteFile(`${HOST}/a.webp`);
+    expect(blob.del).toHaveBeenCalledWith(`${HOST}/a.webp`, expect.anything());
+    blob.del.mockRejectedValue(new Error('forbidden'));
+    expect(await rejection(deleteFile(`${HOST}/a.webp`))).toBeInstanceOf(StorageRequestError);
   });
 });
 
@@ -131,22 +228,16 @@ describe('without a token', () => {
     expect(isStorageEnabled()).toBe(false);
   });
 
-  it('refuses to upload with a typed error and sends nothing', async () => {
-    await expect(uploadFile(new Blob(['%PDF-1.4']))).rejects.toBeInstanceOf(StorageDisabledError);
-    expect(server.requests).toHaveLength(0);
-  });
-
-  it('refuses to look up a size with a typed error and sends nothing', async () => {
-    await expect(storedFileSize('https://store.public.blob.vercel-storage.com/a.pdf')).rejects.toBeInstanceOf(
-      StorageDisabledError,
-    );
-    expect(server.requests).toHaveLength(0);
-  });
-
-  it('refuses to delete with a typed error and sends nothing', async () => {
-    await expect(deleteFile('https://store.public.blob.vercel-storage.com/a.webp')).rejects.toBeInstanceOf(
-      StorageDisabledError,
-    );
-    expect(server.requests).toHaveLength(0);
+  it('refuses every operation with a typed error and sends nothing', async () => {
+    for (const operation of [
+      () => finalizeUpload(TEMPORARY, 'file'),
+      () => storedFileSize(`${HOST}/a.pdf`),
+      () => deleteFile(`${HOST}/a.webp`),
+    ]) {
+      expect(await rejection(operation())).toBeInstanceOf(StorageDisabledError);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(blob.head).not.toHaveBeenCalled();
+    expect(blob.del).not.toHaveBeenCalled();
   });
 });

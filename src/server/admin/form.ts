@@ -58,6 +58,7 @@ const REJECTIONS = {
   'too-large': 'tooLarge',
   'unsupported-type': 'unsupportedType',
   'unreadable-image': 'unreadableImage',
+  'invalid-address': 'invalid',
 } as const;
 
 function mapError(error: unknown): FormState {

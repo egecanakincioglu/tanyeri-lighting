@@ -13,7 +13,7 @@ import { listReferences } from '../content/references.ts';
 import { listServices } from '../content/services.ts';
 import { getSiteSettings } from '../content/site-settings.ts';
 import { getDb } from '../db.ts';
-import { uploadFile } from '../storage/index.ts';
+import { storeFile } from '../../test/blob-store.ts';
 import {
   createApplicationAreaAction,
   deleteApplicationAreaAction,
@@ -94,7 +94,7 @@ const families: Family[] = [
       catalogId = (
         await createCatalog({
           name: { tr: 'Genel', en: 'General' },
-          pdfUrl: (await uploadFile(new Blob([PDF]))).url,
+          pdfUrl: await storeFile(PDF),
           coverImageUrl: '',
           imageAlt: { tr: '', en: '' },
           sizeBytes: 1,
@@ -241,7 +241,7 @@ let counter = 0;
 
 // A new address in the file store for a field; a PDF is really uploaded because the catalog asks the store for its size.
 async function stored(field: string): Promise<string> {
-  if (field === 'pdfUrl') return (await uploadFile(new Blob([PDF]))).url;
+  if (field === 'pdfUrl') return storeFile(PDF);
   counter += 1;
   return `https://store.public.blob.vercel-storage.com/${field}-${counter}.webp`;
 }
