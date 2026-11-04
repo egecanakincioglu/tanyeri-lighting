@@ -58,6 +58,40 @@ describe('the sign-in and sign-out actions on a real database', () => {
       expect(request.cookieSet.mock.calls.map(([name]) => String(name))).toContain('better-auth.session_token');
     });
 
+    it('removes expired sessions after a good sign-in and keeps the live ones', async () => {
+      const db = getDb();
+      const expired = { token: 'old-token', userId: 'user-1', expiresAt: new Date(Date.now() - 1000) };
+      const live = { token: 'live-token', userId: 'user-1', expiresAt: new Date(Date.now() + 3_600_000) };
+      await db.session.createMany({
+        data: [
+          { id: 'session-old', ...expired },
+          { id: 'session-live', ...live },
+        ],
+      });
+      await redirectTarget(signInAction(null, form({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD, locale: 'en' })));
+      const ids = (await db.session.findMany()).map((row) => row.id);
+      expect(ids).toContain('session-live');
+      expect(ids).not.toContain('session-old');
+    });
+
+    it('does not sweep after a refused sign-in', async () => {
+      await getDb().session.create({
+        data: { id: 'session-old', token: 'old-token', userId: 'user-1', expiresAt: new Date(Date.now() - 1000) },
+      });
+      await signInAction(null, form({ email: ADMIN_EMAIL, password: OTHER_PASSWORD }));
+      expect(await getDb().session.count()).toBe(1);
+    });
+
+    it('still signs in when the sweep fails', async () => {
+      const sweep = vi.spyOn(getDb().session, 'deleteMany').mockRejectedValueOnce(new Error('sweep failed'));
+      const target = await redirectTarget(
+        signInAction(null, form({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD, locale: 'en' })),
+      );
+      expect(target).toBe('/en/admin');
+      expect(sweep).toHaveBeenCalledTimes(1);
+      sweep.mockRestore();
+    });
+
     it('goes to the Turkish panel for Turkish and for an unknown language value', async () => {
       expect(await redirectTarget(signInAction(null, form({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })))).toBe(
         '/tr/yonetim',
