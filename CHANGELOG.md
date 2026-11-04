@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-11-04
+
+### Fixes
+- send frame header, drop powered-by and body limit (91d4c95)
+- trust geolocation headers only on vercel (466e999)
+- refuse .env.example placeholders on vercel (db6ecbc)
+- validate the message id before marking it read (bdc8a5d)
+- skip the rate limits in demo mode (a8b48ae)
+- hash reset tokens and sweep expired sessions (cc22106)
+- tell the user when other sessions could not be revoked (daf9427)
+- require the current password to change the e-mail (c566217)
+
+### Other
+- docs(runbooks): tighten the rollback notes (9c9f81a)
+- docs(security): record the 2026 security review (e3f44a2)
+- docs(readme): add screenshots of the site and panel (1f5ef3a)
+- docs(adr): remove the dropped integration from adr 0007 (898fa3f)
+- docs(roadmap): mark the blog as done (eeaf912)
+- docs(runbooks): add the release and rollback runbook (f68cd96)
+- build(deps): override glob and minimatch to patched releases (8ae6873)
+
 ## [0.8.2] - 2026-11-04
 
 ### Fixes
