@@ -206,7 +206,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 
 ## SEO and structured data
 
-- The site sends `noindex, nofollow` until 1.0.0. `SITE_INDEXING=on` turns indexing on. Every page has a localized document title.
+- The site sends `noindex, nofollow` unless `SITE_INDEXING=on`. Production sets it to `on` (since 2026-11-04); previews and local runs keep the default `off`. Every page has a localized document title.
 - `SITE_URL` sets the site address. Without it, the production host is used on Vercel and `http://localhost:3000` in a local run. One helper in `src/lib/seo.ts` builds the canonical address and the language alternates (`tr`, `en` and `x-default`) of each page.
 - `src/app/sitemap.ts` and `src/app/robots.ts` are dynamic and read the settings per request. `robots.ts` gives the same rule to all crawlers and closes the whole site unless indexing is on. The sitemap has no `hreflang` entries; the language alternates are in the page head ([ADR 0009](adr/0009-quality-targets.md)).
 - The sitemap lists one entry per category and language, for categories that have products. The `lastmod` of a category is the later of its own change and its newest product's. Sitemap `lastmod` per page is the latest of its `PageMetadata.updatedAt` and the content it shows, using one max-date query per table. The product list is dated from products and categories, the blog list from posts, and category and post entries keep their own dates.
@@ -272,7 +272,7 @@ The proxy does only two things: locale routing and security headers. It is not t
 - Automatic Git deployments are turned off (`git.deploymentEnabled: false`). Deployments start only from the GitHub workflows, through the Vercel REST API.
 - Releases are tag-based ([ADR 0011](adr/0011-versioning-and-releases.md)). A preview of the release branch is rehearsed with `release-rehearsal.yml`. Pushing a `vX.Y.Z` tag runs the `release` workflow, which deploys the tagged commit to production and creates the GitHub release.
 - The Vercel build command (`tooling/scripts/vercel-build.ts`) generates the Prisma client, applies migrations with `prisma migrate deploy` in preview and production, and then runs `next build`.
-- The live demo stays `noindex` until 1.0.0.
+- The live demo is open to search engines: `SITE_INDEXING=on` is set for the Production environment only. Preview deployments stay `noindex`.
 
 ## Repository layout
 
