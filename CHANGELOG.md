@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-11-04
+
+### Other
+- docs(roadmap): mark phases 8 and 9 done (ce8027a)
+
 ## [0.8.3] - 2026-11-04
 
 ### Fixes
