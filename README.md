@@ -6,7 +6,7 @@ This is a from-scratch rewrite of an older client site. The old code and its his
 
 ## Status
 
-The latest version is the newest [GitHub release](https://github.com/egecanakincioglu/tanyeri-lighting/releases/latest). The [changelog](CHANGELOG.md) lists what each release changed, and the [roadmap](docs/roadmap.md) lists what is left before 1.0.0.
+The latest version is the newest [GitHub release](https://github.com/egecanakincioglu/tanyeri-lighting/releases/latest). The [changelog](CHANGELOG.md) lists what each release changed, and the [roadmap](docs/roadmap.md) lists the project phases.
 
 ## Live demo
 
