@@ -23,7 +23,7 @@ How a release reaches production, and how to undo a bad one. The full release st
 5. On `main`, tag the merge commit and push exactly that tag: `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`.
 6. The `release` workflow checks that the tag is on `main` and equals the `package.json` version, deploys the tagged commit to production through `tooling/scripts/vercel-deploy.ts`, and creates the GitHub release. Watch it with `gh run list --workflow release.yml` and `gh run view <id>`.
 
-The deploy script exits with 1 if the deployment ends as `ERROR` or `CANCELED`, or is not ready after 15 minutes. A failed deployment does not replace the current production deployment in Vercel. A failed workflow after the deploy step (the GitHub release) leaves production live; the release can be created again by the project.
+The deploy script exits with 1 if the deployment ends as `ERROR` or `CANCELED`, or is not ready after 15 minutes. A failed deployment does not replace the current production deployment in Vercel. If the workflow fails after the deploy step, production stays live on the new version and only the GitHub release is missing; rerun the failed job.
 
 ## Checks after a release
 
@@ -42,7 +42,6 @@ Pick one.
 
 Do not delete or move a tag, and do not create or edit a GitHub release by hand.
 
-
 ## A release with a migration
 
 Migrations only move forward. The project has no down migrations and no command to undo one. Promoting the previous deployment restores the old application code, but the production database keeps the schema change.
@@ -51,7 +50,3 @@ Migrations only move forward. The project has no down migrations and no command 
 - If the new schema causes a problem, the fix is a new migration in a patch release. Do not edit or remove a migration that already ran in production.
 - The rehearsal applies migrations to the shared preview database only. It tests the migration, but it cannot show how it behaves on production data.
 - Restoring a database from a backup is not described in the project documents. The data host (Neon) offers its own restore tools; check them before a risky migration.
-
-## Not verified in the documents
-
-- The exact Vercel menu names and what happens to a promoted deployment when the next tag deploys are not documented here. Follow the Vercel dashboard.

@@ -66,6 +66,5 @@ Done:
 
 ## Manual steps
 
-- Set the production environment variables and create the production Blob store at launch.
 - Register the site in Search Console and Bing Webmaster Tools at launch.
 - Set the repository topics, description and website link at launch.
