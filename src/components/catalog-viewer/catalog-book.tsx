@@ -75,6 +75,8 @@ const PdfPage = forwardRef<HTMLDivElement, PageProps>(function PdfPage(
     let task: RenderTask | undefined;
     (async () => {
       const page = await pdf.getPage(number);
+      // A cleanup that ran during the wait must stop this pass, or two renders would share the canvas.
+      if (cancelled) return;
       const ratio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
       const base = page.getViewport({ scale: 1 });
       const viewport = page.getViewport({ scale: (width * ratio) / base.width });
