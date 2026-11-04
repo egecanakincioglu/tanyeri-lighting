@@ -25,4 +25,6 @@ The product, reference and contact data in this repository is fictional. Tanyeri
 
 ## Response
 
+For past findings and fixes, see the [2026 security review](docs/security/review-2026-11.md).
+
 Every report is read and answered as soon as possible. There is no fixed response time.
