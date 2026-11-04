@@ -7,7 +7,7 @@ import { slugify } from '../../../lib/slugify.ts';
 import { TextField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SelectField } from '../select-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -39,7 +39,7 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   locale: string;
   categories: readonly { value: string; label: string }[];
   /** Set when editing. */
@@ -63,7 +63,6 @@ type Props = {
   texts: ProductFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  maxBytes: number;
   /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
@@ -91,7 +90,6 @@ export function ProductForm({
   texts,
   formTexts,
   mediaTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -129,7 +127,6 @@ export function ProductForm({
           upload={upload}
           texts={mediaTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />

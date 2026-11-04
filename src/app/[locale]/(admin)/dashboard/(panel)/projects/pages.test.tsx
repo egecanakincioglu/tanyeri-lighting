@@ -20,7 +20,7 @@ vi.mock('../../../../../../server/admin/projects-actions.ts', () => ({
   deleteProjectAction: vi.fn(),
   reorderProjectsAction: vi.fn(),
 }));
-vi.mock('../../../../../../server/admin/upload-actions.ts', () => ({ uploadMediaAction: vi.fn() }));
+vi.mock('../../../../../../server/admin/upload-actions.ts', () => ({ finalizeMediaAction: vi.fn() }));
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   notFound: () => {

@@ -64,10 +64,15 @@ describe('proxy', () => {
       expect(csp).not.toContain('upgrade-insecure-requests');
     });
 
+    it('lets the panel send an upload to the store API on its own pages too', async () => {
+      const csp = (await get('/tr/dashboard/products')).headers.get('content-security-policy') ?? '';
+      expect(csp).toContain('https://vercel.com/api/blob/');
+    });
+
     it('lets the catalog reader fetch from the public file store and nowhere else', async () => {
       const csp = (await get('/tr')).headers.get('content-security-policy') ?? '';
       const connect = csp.split('; ').find((directive) => directive.startsWith('connect-src ')) ?? '';
-      expect(connect).toBe("connect-src 'self' https://*.public.blob.vercel-storage.com");
+      expect(connect).toBe("connect-src 'self' https://*.public.blob.vercel-storage.com https://vercel.com/api/blob/");
     });
 
     it('uses a fresh nonce for every request', async () => {

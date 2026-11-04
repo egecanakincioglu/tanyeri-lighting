@@ -6,7 +6,7 @@ import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 import { TextField } from '../../field.tsx';
@@ -17,7 +17,7 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   locale: string;
   /** Set when editing. */
   initial?: {
@@ -31,7 +31,6 @@ type Props = {
   texts: ReferenceFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  maxBytes: number;
   /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
@@ -48,7 +47,6 @@ export function ReferenceForm({
   texts,
   formTexts,
   mediaTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -76,7 +74,6 @@ export function ReferenceForm({
           upload={upload}
           texts={mediaTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />

@@ -312,7 +312,7 @@
       "invalidOrder": "The list changed while you were looking at it. Reload the page and try again.",
       "taken": "This value is used by another item.",
       "storageOff": "File upload is off on this site.",
-      "tooLarge": "The file can not be larger than 4 MB.",
+      "tooLarge": "Pictures can be up to 20 MB and PDF files up to 50 MB.",
       "unsupportedType": "Only JPEG, PNG, WebP or PDF files can be uploaded.",
       "unreadableImage": "The image could not be opened. Try another file.",
       "generic": "Something went wrong. Try again in a moment.",
@@ -338,8 +338,8 @@
     "clear": "Remove",
     "uploading": "Uploading…",
     "none": "No file chosen yet.",
-    "imageHint": "JPEG, PNG or WebP, up to 4 MB.",
-    "fileHint": "PDF, up to 4 MB.",
+    "imageHint": "JPEG, PNG or WebP, up to 20 MB.",
+    "fileHint": "PDF, up to 50 MB.",
     "open": "Open the file",
     "storageOff": "File upload is off on this site (no file store is connected). The current file is kept."
   },
@@ -660,7 +660,7 @@
     "fieldName": "Name",
     "fieldPdf": "PDF file",
     "fieldCover": "Cover image",
-    "coverHint": "JPEG, PNG or WebP, up to 4 MB. It is shown in A4 portrait."
+    "coverHint": "JPEG, PNG or WebP, up to 20 MB. It is shown in A4 portrait."
   },
   "AdminStats": {
     "title": "Statistics",

@@ -4,6 +4,9 @@ import type { FormState } from '../../server/admin/form.ts';
 import { axeViolations } from '../../test/axe.ts';
 import { getTranslations } from '../../test/translations.ts';
 import { FileField, ImageField, type MediaTexts } from './media-field.tsx';
+
+const store = vi.hoisted(() => ({ upload: vi.fn() }));
+vi.mock('@vercel/blob/client', () => store);
 import { buildFormTexts } from './texts.ts';
 
 const form = buildFormTexts(await getTranslations({ locale: 'en', namespace: 'AdminForm' }));
@@ -13,28 +16,19 @@ const texts: MediaTexts = {
   clear: 'Remove',
   uploading: 'Uploading…',
   none: 'No file chosen yet.',
-  hint: 'JPEG, PNG or WebP, up to 4 MB.',
+  hint: 'JPEG, PNG or WebP, up to 20 MB.',
   open: 'Open the file',
 };
 
-const upload = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
+const upload = vi.fn<(address: string, kind: 'image' | 'file') => Promise<FormState>>();
 
 function setup(
   Field: typeof ImageField,
-  props: { defaultValue?: string; disabledReason?: string; error?: string; maxBytes?: number } = {},
+  props: { defaultValue?: string; disabledReason?: string; error?: string } = {},
 ) {
   return render(
     <form>
-      <Field
-        id="pic"
-        name="imageUrl"
-        label="Image"
-        upload={upload}
-        texts={texts}
-        errors={form.errors}
-        maxBytes={100}
-        {...props}
-      />
+      <Field id="pic" name="imageUrl" label="Image" upload={upload} texts={texts} errors={form.errors} {...props} />
     </form>,
   );
 }
@@ -49,6 +43,8 @@ function choose(container: HTMLElement, file: File) {
 describe('ImageField', () => {
   beforeEach(() => {
     upload.mockClear();
+    store.upload.mockClear();
+    store.upload.mockResolvedValue({ url: 'https://store.example.com/tmp/upload-1' });
   });
   afterEach(cleanup);
 
@@ -58,7 +54,7 @@ describe('ImageField', () => {
     expect(hidden(container).value).toBe('/demo/area-otel.webp');
     expect(container.querySelector('img')).not.toBeNull();
     expect(screen.getByRole('button', { name: 'Replace' })).toBeTruthy();
-    expect(screen.getByText('JPEG, PNG or WebP, up to 4 MB.')).toBeTruthy();
+    expect(screen.getByText('JPEG, PNG or WebP, up to 20 MB.')).toBeTruthy();
   });
 
   it('shows the picture in an A4 portrait box when asked, and in a landscape box otherwise', () => {
@@ -71,7 +67,6 @@ describe('ImageField', () => {
         upload={upload}
         texts={texts}
         errors={form.errors}
-        maxBytes={100}
         portrait
       />,
     );
@@ -95,17 +90,24 @@ describe('ImageField', () => {
     const { container } = setup(ImageField);
     choose(container, new File(['x'], 'photo.png', { type: 'image/png' }));
     await waitFor(() => expect(hidden(container).value).toBe('https://store.example.com/new.webp'));
-    const sent = upload.mock.calls[0]![1];
-    expect(sent.get('file')).toBeInstanceOf(Blob);
+    expect(store.upload).toHaveBeenCalledWith('tmp/upload', expect.any(File), {
+      access: 'public',
+      handleUploadUrl: '/api/admin/upload',
+      contentType: 'image/png',
+    });
+    expect(upload).toHaveBeenCalledWith('https://store.example.com/tmp/upload-1', 'image');
     expect(screen.getByRole('alert').textContent).toBe('');
   });
 
   it('refuses a file over the limit or of another type without asking the server', () => {
     const { container } = setup(ImageField);
-    choose(container, new File(['x'.repeat(101)], 'big.png', { type: 'image/png' }));
-    expect(screen.getByRole('alert').textContent).toBe('The file can not be larger than 4 MB.');
+    const big = new File(['x'], 'big.png', { type: 'image/png' });
+    Object.defineProperty(big, 'size', { value: 20 * 1024 * 1024 + 1 });
+    choose(container, big);
+    expect(screen.getByRole('alert').textContent).toBe('Pictures can be up to 20 MB and PDF files up to 50 MB.');
     choose(container, new File(['x'], 'doc.txt', { type: 'text/plain' }));
     expect(screen.getByRole('alert').textContent).toBe('Only JPEG, PNG, WebP or PDF files can be uploaded.');
+    expect(store.upload).not.toHaveBeenCalled();
     expect(upload).not.toHaveBeenCalled();
   });
 
@@ -116,6 +118,15 @@ describe('ImageField', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toBe('The image could not be opened. Try another file.'),
     );
+    expect(hidden(container).value).toBe('/demo/area-otel.webp');
+  });
+
+  it('says something went wrong when the browser can not reach the store', async () => {
+    store.upload.mockRejectedValue(new Error('network'));
+    const { container } = setup(ImageField, { defaultValue: '/demo/area-otel.webp' });
+    choose(container, new File(['x'], 'a.png', { type: 'image/png' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe(form.errors.generic));
+    expect(upload).not.toHaveBeenCalled();
     expect(hidden(container).value).toBe('/demo/area-otel.webp');
   });
 
@@ -149,7 +160,27 @@ describe('ImageField', () => {
 });
 
 describe('FileField', () => {
+  beforeEach(() => {
+    upload.mockClear();
+    store.upload.mockClear();
+    store.upload.mockResolvedValue({ url: 'https://store.example.com/tmp/upload-2' });
+  });
   afterEach(cleanup);
+
+  it('allows a PDF up to 50 MB, which is more than a picture may be', async () => {
+    upload.mockResolvedValue({ status: 'success', url: 'https://store.example.com/c.pdf' });
+    const { container } = setup(FileField);
+    const pdf = new File(['x'], 'c.pdf', { type: 'application/pdf' });
+    Object.defineProperty(pdf, 'size', { value: 30 * 1024 * 1024 });
+    choose(container, pdf);
+    await waitFor(() => expect(hidden(container).value).toBe('https://store.example.com/c.pdf'));
+    expect(upload).toHaveBeenCalledWith('https://store.example.com/tmp/upload-2', 'file');
+    expect(screen.getByRole('alert').textContent).toBe('');
+    const huge = new File(['x'], 'd.pdf', { type: 'application/pdf' });
+    Object.defineProperty(huge, 'size', { value: 50 * 1024 * 1024 + 1 });
+    choose(container, huge);
+    expect(screen.getByRole('alert').textContent).toBe('Pictures can be up to 20 MB and PDF files up to 50 MB.');
+  });
 
   it('links to the stored file instead of showing a picture', () => {
     const { container } = setup(FileField, { defaultValue: 'https://store.example.com/catalog.pdf' });

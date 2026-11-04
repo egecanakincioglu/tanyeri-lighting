@@ -6,7 +6,7 @@ import type { FormState } from '../../../server/admin/form.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SelectField } from '../select-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
@@ -24,7 +24,7 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   locale: string;
   /** Set when editing. */
   initial?: {
@@ -39,7 +39,6 @@ type Props = {
   texts: AreaFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  maxBytes: number;
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
@@ -56,7 +55,6 @@ export function AreaForm({
   texts,
   formTexts,
   mediaTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -84,7 +82,6 @@ export function AreaForm({
           upload={upload}
           texts={mediaTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />

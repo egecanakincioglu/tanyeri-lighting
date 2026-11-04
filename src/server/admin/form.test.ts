@@ -71,6 +71,7 @@ describe('runAction', () => {
     [new UploadRejectedError('too-large', 'x'), 'tooLarge'],
     [new UploadRejectedError('unsupported-type', 'x'), 'unsupportedType'],
     [new UploadRejectedError('unreadable-image', 'x'), 'unreadableImage'],
+    [new UploadRejectedError('invalid-address', 'x'), 'invalid'],
   ])('maps %s to the code %s', async (error, code) => {
     expect(await runAction(() => Promise.reject(error))).toEqual({ status: 'error', code, fieldErrors: {} });
   });

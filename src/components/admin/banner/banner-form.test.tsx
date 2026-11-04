@@ -39,7 +39,7 @@ const targets = [
 ];
 
 const action = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
-const upload = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
+const upload = vi.fn<(address: string, kind: 'image' | 'file') => Promise<FormState>>();
 
 function setup(readOnlyReason?: string) {
   return render(
@@ -52,7 +52,6 @@ function setup(readOnlyReason?: string) {
         texts={texts}
         formTexts={formTexts}
         mediaTexts={mediaTexts}
-        maxBytes={1024}
         readOnlyReason={readOnlyReason}
       />
     </NextIntlClientProvider>,

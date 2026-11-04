@@ -1,6 +1,8 @@
 'use client';
 
+import { upload as uploadToStore } from '@vercel/blob/client';
 import { useRef, useState, useTransition } from 'react';
+import { maxBytesOf, TMP_PREFIX, type MediaKind } from '../../lib/upload-limits.ts';
 import type { FormState } from '../../server/admin/form.ts';
 import { Button } from '../button.tsx';
 import { SiteImage } from '../site-image.tsx';
@@ -21,7 +23,8 @@ export type MediaTexts = {
   open: string;
 };
 
-type UploadAction = (previous: FormState | null, formData: FormData) => Promise<FormState>;
+/** Step two of an upload: checks the temporary file the browser sent to the store and returns the final address. */
+export type UploadAction = (address: string, kind: MediaKind) => Promise<FormState>;
 
 type Props = {
   id: string;
@@ -32,7 +35,6 @@ type Props = {
   upload: UploadAction;
   texts: MediaTexts;
   errors: FormTexts['errors'];
-  maxBytes: number;
   /** Set when uploads are off (no file store, or the demo): the reason, shown instead of the choose button's action. */
   disabledReason?: string | undefined;
   /** Shows the picture as an A4 portrait page instead of a landscape photo. */
@@ -41,28 +43,14 @@ type Props = {
   error?: string | undefined;
 };
 
-type Kind = 'image' | 'file';
-
-const ACCEPT: Record<Kind, string> = {
+const ACCEPT: Record<MediaKind, string> = {
   image: 'image/jpeg,image/png,image/webp',
   file: 'application/pdf',
 };
 
 // The server checks size and real type again; this only spares the visitor a round trip.
-function MediaField({ kind, ...props }: Props & { kind: Kind }) {
-  const {
-    id,
-    name,
-    label,
-    defaultValue = '',
-    upload,
-    texts,
-    errors,
-    maxBytes,
-    disabledReason,
-    error,
-    portrait,
-  } = props;
+function MediaField({ kind, ...props }: Props & { kind: MediaKind }) {
+  const { id, name, label, defaultValue = '', upload, texts, errors, disabledReason, error, portrait } = props;
   const [url, setUrl] = useState(defaultValue);
   const [problem, setProblem] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
@@ -71,7 +59,7 @@ function MediaField({ kind, ...props }: Props & { kind: Kind }) {
   function onChoose(file: File | undefined) {
     if (!file) return;
     setProblem(undefined);
-    if (file.size > maxBytes) {
+    if (file.size > maxBytesOf(kind)) {
       setProblem(errors.tooLarge);
       return;
     }
@@ -79,12 +67,19 @@ function MediaField({ kind, ...props }: Props & { kind: Kind }) {
       setProblem(errors.unsupportedType);
       return;
     }
-    const data = new FormData();
-    data.set('file', file);
     startTransition(async () => {
-      const result = await upload(null, data);
-      if (result.status === 'success' && result.url) setUrl(result.url);
-      else if (result.status === 'error') setProblem(errors[result.code]);
+      try {
+        const temporary = await uploadToStore(`${TMP_PREFIX}upload`, file, {
+          access: 'public',
+          handleUploadUrl: '/api/admin/upload',
+          contentType: file.type,
+        });
+        const result = await upload(temporary.url, kind);
+        if (result.status === 'success' && result.url) setUrl(result.url);
+        else if (result.status === 'error') setProblem(errors[result.code]);
+      } catch {
+        setProblem(errors.generic);
+      }
       if (input.current) input.current.value = '';
     });
   }

@@ -5,7 +5,7 @@ import type { FormState } from '../../../server/admin/form.ts';
 import { TextField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
@@ -28,7 +28,7 @@ type Pair = { tr: string; en: string };
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   initial: {
     siteName: Pair;
     logoUrl: string | null;
@@ -42,7 +42,6 @@ type Props = {
   texts: SettingsFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  maxBytes: number;
   /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
@@ -68,7 +67,6 @@ export function SettingsForm({
   texts,
   formTexts,
   mediaTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -98,7 +96,6 @@ export function SettingsForm({
           upload={upload}
           texts={mediaTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('logoUrl')}
         />

@@ -35,7 +35,7 @@ const initial = {
 };
 
 const action = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
-const upload = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
+const upload = vi.fn<(address: string, kind: 'image' | 'file') => Promise<FormState>>();
 
 function setup(props: { initial?: typeof initial; readOnlyReason?: string } = {}) {
   return render(
@@ -48,7 +48,6 @@ function setup(props: { initial?: typeof initial; readOnlyReason?: string } = {}
         formTexts={formTexts}
         mediaTexts={mediaTexts}
         markdownTexts={markdownTexts}
-        maxBytes={4 * 1024 * 1024}
         {...props}
       />
     </NextIntlClientProvider>,

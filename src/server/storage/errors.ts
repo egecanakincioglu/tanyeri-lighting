@@ -5,7 +5,7 @@ export class StorageDisabledError extends Error {
   }
 }
 
-export type UploadRejection = 'too-large' | 'unsupported-type' | 'unreadable-image';
+export type UploadRejection = 'too-large' | 'unsupported-type' | 'unreadable-image' | 'invalid-address';
 
 // The message names the rule, never the file: names and bytes come from the visitor.
 export class UploadRejectedError extends Error {

@@ -6,7 +6,7 @@ import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { FileField, ImageField, type MediaTexts } from '../media-field.tsx';
+import { FileField, ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
@@ -16,7 +16,7 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   locale: string;
   /** Set when editing. */
   initial?: {
@@ -31,7 +31,6 @@ type Props = {
   /** The hint of the picture field differs from the file field's, so each has its own texts. */
   imageTexts: MediaTexts;
   fileTexts: MediaTexts;
-  maxBytes: number;
   /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
@@ -49,7 +48,6 @@ export function CatalogForm({
   formTexts,
   imageTexts,
   fileTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -86,7 +84,6 @@ export function CatalogForm({
           upload={upload}
           texts={fileTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={disabledReason}
           error={message('pdfUrl') ?? message('sizeBytes')}
         />
@@ -98,7 +95,6 @@ export function CatalogForm({
           upload={upload}
           texts={imageTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           portrait
           disabledReason={disabledReason}
           error={message('coverImageUrl')}

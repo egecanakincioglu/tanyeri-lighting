@@ -312,7 +312,7 @@
       "invalidOrder": "Liste siz bakarken değişti. Sayfayı yenileyip tekrar deneyin.",
       "taken": "Bu değer başka bir kayıtta kullanılıyor.",
       "storageOff": "Dosya yükleme bu sitede kapalı.",
-      "tooLarge": "Dosya 4 MB'tan büyük olamaz.",
+      "tooLarge": "Görseller en fazla 20 MB, PDF dosyaları en fazla 50 MB olabilir.",
       "unsupportedType": "Yalnızca JPEG, PNG, WebP veya PDF yükleyebilirsiniz.",
       "unreadableImage": "Görsel açılamadı. Başka bir dosya deneyin.",
       "generic": "Bir sorun oluştu. Biraz sonra tekrar deneyin.",
@@ -338,8 +338,8 @@
     "clear": "Kaldır",
     "uploading": "Yükleniyor…",
     "none": "Henüz dosya seçilmedi.",
-    "imageHint": "JPEG, PNG veya WebP; en fazla 4 MB.",
-    "fileHint": "PDF; en fazla 4 MB.",
+    "imageHint": "JPEG, PNG veya WebP; en fazla 20 MB.",
+    "fileHint": "PDF; en fazla 50 MB.",
     "open": "Dosyayı aç",
     "storageOff": "Dosya yükleme bu sitede kapalı (dosya deposu bağlı değil). Var olan dosya korunur."
   },
@@ -660,7 +660,7 @@
     "fieldName": "Ad",
     "fieldPdf": "PDF dosyası",
     "fieldCover": "Kapak görseli",
-    "coverHint": "JPEG, PNG veya WebP, en fazla 4 MB. A4 dikey gösterilir."
+    "coverHint": "JPEG, PNG veya WebP, en fazla 20 MB. A4 dikey gösterilir."
   },
   "AdminStats": {
     "title": "İstatistikler",
