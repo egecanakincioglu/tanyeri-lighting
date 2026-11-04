@@ -39,8 +39,9 @@ const SMTP = {
   SMTP_FROM: 'Tanyeri <no-reply@example.com>',
 };
 
-function fill(label: string, value: string) {
-  fireEvent.change(screen.getByLabelText(label), { target: { value } });
+// Both forms ask for the current password; the password form comes first.
+function fill(label: string, value: string, index = 0) {
+  fireEvent.change(screen.getAllByLabelText(label)[index]!, { target: { value } });
 }
 
 describe('account screen', () => {
@@ -61,7 +62,9 @@ describe('account screen', () => {
     expect(mocks.guardPage).toHaveBeenCalledWith('en');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('My Account');
     expect(screen.getByText(/Signed in as admin@example.com/)).toBeTruthy();
-    expect(screen.getByLabelText('Current password').getAttribute('autocomplete')).toBe('current-password');
+    const current = screen.getAllByLabelText('Current password');
+    expect(current).toHaveLength(2);
+    for (const field of current) expect(field.getAttribute('autocomplete')).toBe('current-password');
     expect(screen.getByLabelText('New password').getAttribute('autocomplete')).toBe('new-password');
     expect(screen.getByLabelText('New password again').getAttribute('autocomplete')).toBe('new-password');
     expect(screen.getByLabelText('New e-mail address').getAttribute('autocomplete')).toBe('username');
@@ -78,7 +81,7 @@ describe('account screen', () => {
     const sent = Object.fromEntries((mocks.changePassword.mock.calls[0]![1] as FormData).entries());
     expect(sent).toEqual({ currentPassword: 'old one', newPassword: 'a brand new one', confirm: 'a brand new one' });
     expect(screen.getByText(/Every other device was signed out/)).toBeTruthy();
-    expect((screen.getByLabelText('Current password') as HTMLInputElement).value).toBe('');
+    expect((screen.getAllByLabelText('Current password')[0] as HTMLInputElement).value).toBe('');
   });
 
   it('shows the error under each field and keeps what was typed', async () => {
@@ -95,7 +98,7 @@ describe('account screen', () => {
     expect(document.getElementById('currentPassword-error')!.textContent).toBe('The current password is not right.');
     expect(document.getElementById('confirm-error')!.textContent).toBe('The two passwords are not the same.');
     expect(screen.getByText('Some fields need to be corrected.')).toBeTruthy();
-    expect((screen.getByLabelText('Current password') as HTMLInputElement).value).toBe('typed');
+    expect((screen.getAllByLabelText('Current password')[0] as HTMLInputElement).value).toBe('typed');
   });
 
   it('says when too many attempts were made', async () => {
@@ -111,11 +114,12 @@ describe('account screen', () => {
   it('sends the new address with the language, and tells that a link was sent', async () => {
     inIntl('tr', await AccountPage(props('tr')));
     fill('Yeni e-posta adresi', 'new@example.com');
+    fill('Mevcut parola', 'typed', 1);
     await act(async () => {
       fireEvent.submit(screen.getByRole('button', { name: 'Onay bağlantısını gönder' }).closest('form')!);
     });
     const sent = Object.fromEntries((mocks.changeEmail.mock.calls[0]![1] as FormData).entries());
-    expect(sent).toEqual({ locale: 'tr', email: 'new@example.com' });
+    expect(sent).toEqual({ locale: 'tr', email: 'new@example.com', currentPassword: 'typed' });
     expect(screen.getByText(/bağlantı gönderildi/)).toBeTruthy();
   });
 
@@ -125,7 +129,8 @@ describe('account screen', () => {
     for (const name of ['Change the password', 'Send the confirmation link']) {
       expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true);
     }
-    expect((screen.getByLabelText('Current password') as HTMLInputElement).disabled).toBe(true);
+    for (const field of screen.getAllByLabelText('Current password'))
+      expect((field as HTMLInputElement).disabled).toBe(true);
     expect(screen.getAllByText(/In the demo/)).toHaveLength(2);
   });
 

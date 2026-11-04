@@ -65,6 +65,34 @@ describe('parseEnv', () => {
   });
 });
 
+describe('the placeholder from .env.example', () => {
+  const placeholder = 'replace-me-with-at-least-32-random-characters';
+
+  it('is accepted off Vercel, for a local run and for CI', () => {
+    expect(parseEnv({ ...valid, BETTER_AUTH_SECRET: placeholder }).BETTER_AUTH_SECRET).toBe(placeholder);
+    const admin = { ADMIN_EMAIL: 'admin@example.com', ADMIN_PASSWORD: 'replace-me-with-a-long-password' };
+    expect(getAdminCredentials(admin).password).toBe(admin.ADMIN_PASSWORD);
+  });
+
+  it('is refused on Vercel for the secret and the admin password, without printing the value', () => {
+    expect(() => parseEnv({ ...valid, VERCEL: '1', BETTER_AUTH_SECRET: placeholder })).toThrow(
+      /BETTER_AUTH_SECRET: is still the placeholder/,
+    );
+    const admin = { VERCEL: '1', ADMIN_EMAIL: 'admin@example.com', ADMIN_PASSWORD: 'replace-me-with-a-long-password' };
+    expect(() => getAdminCredentials(admin)).toThrow(/ADMIN_PASSWORD: is still the placeholder/);
+    expect(() => getAdminCredentials(admin)).toThrow(
+      expect.objectContaining({ message: expect.not.stringContaining('long-password') }),
+    );
+  });
+
+  it('lets a real value through on Vercel', () => {
+    expect(parseEnv({ ...valid, VERCEL: '1' })).toEqual(valid);
+    expect(
+      getAdminCredentials({ VERCEL: '1', ADMIN_EMAIL: 'admin@example.com', ADMIN_PASSWORD: 'x'.repeat(12) }),
+    ).toEqual({ email: 'admin@example.com', password: 'x'.repeat(12) });
+  });
+});
+
 describe('getEnv', () => {
   afterEach(() => {
     vi.unstubAllEnvs();

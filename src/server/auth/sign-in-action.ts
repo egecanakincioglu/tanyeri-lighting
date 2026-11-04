@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { getDb } from '../db.ts';
 import { callAuth } from './call.ts';
 import { panelPath, safeLocale } from './paths.ts';
 
@@ -23,6 +24,14 @@ export async function signInAction(_previous: SignInState | null, formData: Form
   const response = await callAuth('/sign-in/email', { email, password });
   if (response.status === 429) return { status: 'rate-limited', email };
   if (!response.ok) return { status: 'error', email };
+
+  // Expired rows are never removed by the library; clearing them here keeps the table small. A failure must not
+  // turn a good sign-in into an error, and the next sign-in sweeps again.
+  try {
+    await getDb().session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+  } catch {
+    // Left for the next sign-in.
+  }
 
   redirect(panelPath(safeLocale(formData.get('locale'))));
 }

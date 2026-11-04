@@ -31,6 +31,7 @@ export default async function AccountPage({ params }: PageProps<'/[locale]/dashb
       unauthorized: t('errors.unauthorized'),
       rateLimited: t('errors.rateLimited'),
       emailOff: t('errors.emailOff'),
+      othersOpen: t('errors.othersOpen'),
       generic: t('errors.generic'),
     },
     issues: {
@@ -74,6 +75,7 @@ export default async function AccountPage({ params }: PageProps<'/[locale]/dashb
           done={t('emailDone')}
           disabledReason={emailReason}
           label={t('emailLabel')}
+          currentLabel={t('currentLabel')}
           hint={t('emailHint')}
         />
       </div>

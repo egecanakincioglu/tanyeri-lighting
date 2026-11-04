@@ -8,6 +8,7 @@ import {
   sessionOf,
   signIn,
 } from '../../test/auth-http.ts';
+import { getAuth } from '../auth/auth.ts';
 import { getDb } from '../db.ts';
 import { changeEmailAction, changePasswordAction } from './account-actions.ts';
 
@@ -64,6 +65,22 @@ describe('the account actions on a real database', () => {
       expect(await sessionOf(other)).toBeNull();
       visitor();
       expect((await signIn(ADMIN_PASSWORD)).status).toBe(401);
+      expect((await signIn(OTHER_PASSWORD)).status).toBe(200);
+    });
+
+    it('says that other devices may stay signed in when only revoking them fails', async () => {
+      const handler = getAuth().handler;
+      const spy = vi
+        .spyOn(getAuth(), 'handler')
+        .mockImplementation((incoming: Request) =>
+          incoming.url.endsWith('/revoke-other-sessions')
+            ? Promise.resolve(new Response(null, { status: 500 }))
+            : handler(incoming),
+        );
+      const result = await changePasswordAction(null, change());
+      spy.mockRestore();
+      expect(result).toEqual({ status: 'error', code: 'othersOpen', fields: {} });
+      visitor();
       expect((await signIn(OTHER_PASSWORD)).status).toBe(200);
     });
 

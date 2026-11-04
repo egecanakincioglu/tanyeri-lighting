@@ -133,9 +133,9 @@ describe('the contact form action on a real database', () => {
       });
     });
 
-    it('still applies the rate limit', async () => {
-      for (let i = 0; i < 5; i++) expect(await submit()).toMatchObject({ status: 'demo' });
-      expect(await submit()).toMatchObject({ status: 'rate-limited' });
+    it('never touches the rate limits, so it can not use up the ceiling of the real site', async () => {
+      for (let i = 0; i < 6; i++) expect(await submit()).toMatchObject({ status: 'demo' });
+      expect(await getDb().rateLimitCounter.count()).toBe(0);
     });
   });
 });

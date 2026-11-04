@@ -16,11 +16,24 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+// The sample values in .env.example start with this. They are fine for a local run and for CI, so only a Vercel
+// deployment refuses them.
+const PLACEHOLDER_PREFIX = 'replace-me';
+
+function placeholderProblems(source: Record<string, string | undefined>, names: string[]): string[] {
+  if (!isVercel(source)) return [];
+  return names
+    .filter((name) => source[name]?.startsWith(PLACEHOLDER_PREFIX))
+    .map((name) => `${name}: is still the placeholder from .env.example`);
+}
+
 // Messages name the variable and the rule, never the value: values can be secrets.
 export function parseEnv(source: Record<string, string | undefined>): Env {
   const result = envSchema.safeParse(source);
-  if (result.success) return result.data;
-  const problems = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+  const problems = result.success
+    ? placeholderProblems(source, ['BETTER_AUTH_SECRET'])
+    : result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+  if (result.success && problems.length === 0) return result.data;
   throw new Error(`Invalid environment variables:\n${problems.join('\n')}`);
 }
 
@@ -76,8 +89,10 @@ export type AdminCredentials = { email: string; password: string };
 // Messages name the variable and the rule, never the value.
 export function getAdminCredentials(source: Record<string, string | undefined> = process.env): AdminCredentials {
   const result = adminSchema.safeParse(source);
-  if (!result.success) {
-    const problems = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+  const problems = result.success
+    ? placeholderProblems(source, ['ADMIN_PASSWORD'])
+    : result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+  if (!result.success || problems.length > 0) {
     throw new Error(`Invalid environment variables:\n${problems.join('\n')}`);
   }
   return { email: result.data.ADMIN_EMAIL, password: result.data.ADMIN_PASSWORD };

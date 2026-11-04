@@ -763,6 +763,7 @@
       "unauthorized": "Oturumunuz sona erdi. Yeniden giriş yapın.",
       "rateLimited": "Çok fazla deneme. Bir dakika bekleyip tekrar deneyin.",
       "emailOff": "Bu sitede giden e-posta kurulu değil.",
+      "othersOpen": "Parolanız değiştirildi ancak diğer cihazların oturumu hâlâ açık olabilir. Diğer cihazlardan çıkış yapın ya da parolayı yeniden değiştirin.",
       "generic": "Bir sorun oluştu. Biraz sonra tekrar deneyin."
     },
     "issues": {

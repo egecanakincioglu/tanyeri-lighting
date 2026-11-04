@@ -29,6 +29,18 @@ describe('buildAuthOptions', () => {
     expect(options.session).toEqual({ cookieCache: { enabled: false } });
   });
 
+  it('keeps reset tokens as hashes', () => {
+    expect(buildAuthOptions(settings).verification).toEqual({ storeIdentifier: 'hashed' });
+  });
+
+  it('shortens the session to one hour in the demo only', () => {
+    expect(buildAuthOptions({ ...settings, demo: true }).session).toEqual({
+      cookieCache: { enabled: false },
+      expiresIn: 3600,
+    });
+    expect(buildAuthOptions({ ...settings, demo: false }).session).not.toHaveProperty('expiresIn');
+  });
+
   it('fixes the limits of the sign-in and password reset endpoints (ADR 0004 rule 1)', () => {
     expect(buildAuthOptions(settings).rateLimit.customRules).toEqual({
       '/sign-in/email': { window: 10, max: 3 },
