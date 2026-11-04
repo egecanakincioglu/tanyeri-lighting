@@ -46,11 +46,9 @@ Rules:
    - A change that lowers a threshold is rejected by the CI `policy` job ("only goes up"). `autoUpdate` is not used. A threshold is raised by hand in a separate commit.
 4. No transition period: the coverage threshold applies to `src/server/` and `src/lib/` from day one.
 5. Untested-code gate: the CI `policy` job looks at the commits in the PR and the changed paths. Every commit that adds or changes TypeScript under `src/`, whatever its type, requires the PR to add or change at least one test file. Commits of type `style` (formatting only) and changes that only delete code are exempt. Test files, `*.d.ts` files and files under `__tests__/` are outside the gate. Merge commits do not count. The rule itself is tested with `node --test`.
-6. Mocking boundary: the database and Prisma are not mocked. Only outside HTTP services (the Google Ads API, SMTP) are mocked.
+6. Mocking boundary: the database and Prisma are not mocked. Only outside HTTP services (SMTP) are mocked.
 7. Visual check: every PR that touches the UI gets a browser check at desktop (1440) and mobile (390) widths, and the visual check section of the PR template is filled in.
 8. `pnpm test` locally and the `test` job in CI run the same commands: the same Postgres major version and the same migrations.
-
-Note (2026-11-02): Google Ads integration was dropped from the project on 2026-11-02.
 
 ## Consequences
 

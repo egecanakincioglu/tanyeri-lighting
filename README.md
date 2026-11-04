@@ -22,6 +22,12 @@ Demo sign-in:
 
 The account is read-only and public on purpose. It works only while demo mode is on. In demo mode, saves are refused and contact messages are not stored.
 
+### Screenshots
+
+![Home page of the public site](docs/images/site-home.webp)
+
+![Product list in the admin panel](docs/images/admin-products.webp)
+
 ## Features
 
 - **Public pages** in Turkish and English, with a language prefix on every address (`/tr`, `/en`): home, about, vision, services, products (categories, tabs, pagination, product page), catalogs with a page-flip viewer, projects with a before and after slider, references, blog, contact form, privacy, terms and a not-found page.
