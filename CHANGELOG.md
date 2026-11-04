@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-11-04
+
+### Fixes
+- stop a second canvas render in development (74db1b5)
+
+### Other
+- docs(seo): record that the live site is open to indexing (757d913)
+
 ## [0.8.0] - 2026-11-04
 
 ### Features
