@@ -763,6 +763,7 @@
       "unauthorized": "Your session has ended. Sign in again.",
       "rateLimited": "Too many attempts. Wait a minute and try again.",
       "emailOff": "Outgoing e-mail is not set up on this site.",
+      "othersOpen": "Your password was changed, but other devices may still be signed in. Sign out of them from each device, or change the password again.",
       "generic": "Something went wrong. Try again in a moment."
     },
     "issues": {

@@ -2,7 +2,7 @@ import { createTransport } from 'nodemailer';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
 import { GET } from '../../app/api/auth/[...all]/route.ts';
-import { ADMIN_EMAIL, cookieOf, loginCookie, resetAdmin, sessionOf } from '../../test/auth-http.ts';
+import { ADMIN_EMAIL, ADMIN_PASSWORD, cookieOf, loginCookie, resetAdmin, sessionOf } from '../../test/auth-http.ts';
 import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { setEmailScheduler, setEmailTransport } from '../email/index.ts';
@@ -72,7 +72,10 @@ describe('changeEmailAction with email on', () => {
   }
 
   it('asks the current address first, then the new one; the address changes at the last link only', async () => {
-    const result = await changeEmailAction(null, form({ email: 'New@Example.com', locale: 'en' }));
+    const result = await changeEmailAction(
+      null,
+      form({ currentPassword: ADMIN_PASSWORD, email: 'New@Example.com', locale: 'en' }),
+    );
     expect(result).toEqual({ status: 'success' });
     expect((await getDb().user.findFirstOrThrow()).email).toBe(ADMIN_EMAIL);
 
@@ -101,7 +104,7 @@ describe('changeEmailAction with email on', () => {
   });
 
   it('does not change the address when only the new address link is used without the approval', async () => {
-    await changeEmailAction(null, form({ email: 'new@example.com', locale: 'en' }));
+    await changeEmailAction(null, form({ currentPassword: ADMIN_PASSWORD, email: 'new@example.com', locale: 'en' }));
     await vi.waitFor(() => expect(sendMail).toHaveBeenCalledTimes(1));
     const approval = linkOf(sendMail.mock.calls[0]![0]);
     const forged = new URL(approval);
@@ -116,7 +119,7 @@ describe('changeEmailAction with email on', () => {
 
   it('gives a field error for an empty, malformed or unchanged address, and sends nothing', async () => {
     const fields = async (email: string) => {
-      const result = await changeEmailAction(null, form({ email }));
+      const result = await changeEmailAction(null, form({ currentPassword: ADMIN_PASSWORD, email }));
       return result.status === 'error' ? result.fields : result;
     };
     expect(await fields('')).toEqual({ email: 'required' });
@@ -125,12 +128,45 @@ describe('changeEmailAction with email on', () => {
     expect(sendMail).not.toHaveBeenCalled();
   });
 
+  it('asks for the current password and sends nothing without the right one', async () => {
+    const result = (password: string) =>
+      changeEmailAction(null, form({ currentPassword: password, email: 'new@example.com', locale: 'en' }));
+    expect(await result('')).toEqual({ status: 'error', code: 'invalid', fields: { currentPassword: 'required' } });
+    expect(await result('not the password')).toEqual({
+      status: 'error',
+      code: 'invalid',
+      fields: { currentPassword: 'wrongCurrent' },
+    });
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(await result(ADMIN_PASSWORD)).toEqual({ status: 'success' });
+  });
+
+  it('counts the password guesses per account, whatever the address', async () => {
+    const guess = () =>
+      changeEmailAction(null, form({ currentPassword: 'not the password', email: 'new@example.com' }));
+    const codes = [];
+    for (let i = 0; i < 6; i++) {
+      visitor(cookie);
+      const result = await guess();
+      codes.push(result.status === 'error' ? result.code : result.status);
+    }
+    expect(codes.slice(0, 5)).toEqual(Array(5).fill('invalid'));
+    expect(codes[5]).toBe('rateLimited');
+    visitor(cookie);
+    const right = await changeEmailAction(null, form({ currentPassword: ADMIN_PASSWORD, email: 'new@example.com' }));
+    expect(right).toMatchObject({ status: 'error', code: 'rateLimited' });
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
   it('applies the limit of the auth layer to repeated requests from one address', async () => {
     const address = '203.0.113.250';
     const codes = [];
     for (let i = 0; i < 5; i++) {
       request.headers = new Headers({ 'x-forwarded-for': address, cookie });
-      const result = await changeEmailAction(null, form({ email: `other${i}@example.com` }));
+      const result = await changeEmailAction(
+        null,
+        form({ currentPassword: ADMIN_PASSWORD, email: `other${i}@example.com` }),
+      );
       codes.push(result.status === 'error' ? result.code : result.status);
     }
     expect(codes).toContain('rateLimited');

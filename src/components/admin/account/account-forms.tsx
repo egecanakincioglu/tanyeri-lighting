@@ -8,7 +8,7 @@ import { TextField } from '../../field.tsx';
 type Action = (previous: AccountState | null, formData: FormData) => Promise<AccountState>;
 
 export type AccountTexts = {
-  errors: Record<'invalid' | 'demo' | 'unauthorized' | 'rateLimited' | 'emailOff' | 'generic', string>;
+  errors: Record<'invalid' | 'demo' | 'unauthorized' | 'rateLimited' | 'emailOff' | 'othersOpen' | 'generic', string>;
   issues: Record<'required' | 'wrongCurrent' | 'tooShort' | 'tooLong' | 'mismatch' | 'invalid' | 'same', string>;
 };
 
@@ -129,8 +129,9 @@ export function EmailForm({
   done,
   disabledReason,
   label,
+  currentLabel,
   hint,
-}: Common & { locale: string; label: string; hint: string }) {
+}: Common & { locale: string; label: string; currentLabel: string; hint: string }) {
   const { state, pending, form, onSubmit, issues } = useAccountForm(action);
   const off = Boolean(disabledReason);
 
@@ -153,6 +154,16 @@ export function EmailForm({
         />
         <p className="text-sm text-muted">{hint}</p>
       </div>
+      <TextField
+        id="emailCurrentPassword"
+        name="currentPassword"
+        type="password"
+        label={currentLabel}
+        autoComplete="current-password"
+        required
+        disabled={off}
+        error={issues.currentPassword ? texts.issues[issues.currentPassword] : undefined}
+      />
       <Status state={state} texts={texts} done={done} />
       {disabledReason && <p className="text-sm text-muted">{disabledReason}</p>}
       <div>
