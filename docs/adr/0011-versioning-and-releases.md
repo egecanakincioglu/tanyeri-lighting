@@ -43,7 +43,7 @@ Rules:
    5. Tag workflow: it checks that the tag points to a commit on `main` and matches the `package.json` version; deploys to production with the Vercel REST API; opens a GitHub Release with the section from `CHANGELOG.md`.
 4. Vercel's Git integration does not deploy. `git.deploymentEnabled: false` in `vercel.json`; all deployments are made from GitHub Actions with the Vercel REST API. The build runs on Vercel with the environment's own variables.
 5. Migrations. The build script (`tooling/scripts/vercel-build.ts`) runs `prisma migrate deploy` in preview and production, then `next build`. Production builds now come only from a release tag, so the production migration is applied with the release, and it has been rehearsed on the preview database. The shared preview database from ADR 0002, rule 7, is used only for the release rehearsal.
-6. Indexing. The live site is closed to search engines (`noindex`) until 1.0.0. It is turned on and off with a single environment variable and is turned on in the 1.0.0 release. The rule "production is indexed" in ADR 0009 applies from 1.0.0.
+6. Indexing. The live site was closed to search engines (`noindex`) until 1.0.0, and indexing was to be turned on in the 1.0.0 release. (Changed on 2026-11-04; the sentences before this note are the earlier rule.) The live site is now open to search engines: `SITE_INDEXING=on` is set for the Production environment only, and the rule "production is indexed" in ADR 0009 applies. Preview deployments stay `noindex`. The default in `.env.example` stays `off`. The single environment variable still turns indexing on and off.
 7. Rollback. If a problem appears in production, the project goes back to the previous production deployment in Vercel; the fix comes in a new PATCH release. Migrations only go forward; a migration that deletes data ships in its own release and is verified in the rehearsal.
 8. Checks.
    - `policy`: a PR that changes `version` also changes `CHANGELOG.md`, and the version only increases.
@@ -58,7 +58,7 @@ Rules:
 - Positive: migrations and platform-specific problems show up in the preview environment before production.
 - Negative: UI PRs cannot be seen in a real Vercel environment before merge; they are checked locally and in `site-audit`, and the real environment is seen in the rehearsal.
 - Negative: the Vercel token is a new secret; it lives as a repository secret and is renewed when it expires.
-- Changed places: the status lines of ADR 0002 (rule 7, use of the preview database) and ADR 0009 (indexing from 1.0.0); the roadmap deployment item and the phase 9 items; `vercel.json`.
+- Changed places: the status lines of ADR 0002 (rule 7, use of the preview database) and ADR 0009 (indexing; changed on 2026-11-04 to apply now); the roadmap deployment item and the phase 9 items; `vercel.json`.
 
 ## Sources
 

@@ -51,7 +51,7 @@ Copy `.env.example` to `.env` and adjust it. Never commit `.env`. The applicatio
 | `DATABASE_URL_UNPOOLED` | yes | Direct connection used by migrations and the CLI. |
 | `BETTER_AUTH_SECRET` | yes | Signs and encrypts authentication data; at least 32 characters. |
 | `BETTER_AUTH_URL` | yes | The site's own address (scheme and host); the only origin the auth routes trust. |
-| `SITE_INDEXING` | no | `off` (default) sends `noindex`; `on` lets crawlers index the site. It stays `off` until 1.0.0. |
+| `SITE_INDEXING` | no | `off` (default) sends `noindex`; `on` lets crawlers index the site. The default stays `off`, so local runs and fresh installs stay closed. Production sets it to `on`. |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | no, all or none | Email through SMTP. With all five set, the password reset link is sent by email. With none set, email is off and recovery is `pnpm admin:reset-password`. A partly set group is an error. Port 465 uses TLS from the start. `SMTP_FROM` is an address or `Name <address>`. |
 | `SITE_URL` | no | Public address (scheme and host) for canonical links, the sitemap and structured data. On Vercel the production host is used when it is empty; a local run uses `http://localhost:3000`. |
 | `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | no, both or neither | A read-only demo account, created by `pnpm db:seed:demo` and shown on the sign-in page while `DEMO_MODE` is `true`. The password has at least 12 characters and is public by design. |

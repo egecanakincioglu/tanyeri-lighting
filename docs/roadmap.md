@@ -6,7 +6,7 @@ The project is developed in phases. The architecture is described in [architectu
 
 - **Current phase:** phase 8, hardening, plus the blog.
 - **Released:** see the [changelog](../CHANGELOG.md) and the [releases page](https://github.com/egecanakincioglu/tanyeri-lighting/releases).
-- **Live demo:** https://tanyeri-lighting.vercel.app. It stays out of search indexes until 1.0.0.
+- **Live demo:** https://tanyeri-lighting.vercel.app. It is open to search engines; preview deployments stay `noindex`.
 
 ## Phases
 
@@ -63,7 +63,7 @@ Done:
 
 - **Phase 8:** security review, accessibility review, performance work, a pixel-perfect pass on all widths and a final review of the whole site.
 - **Blog:** a blog comes in its own pull request.
-- **Phase 9:** production environment, the 1.0.0 release with indexing turned on, and a release and rollback runbook.
+- **Phase 9:** production environment, the 1.0.0 release, and a release and rollback runbook.
 
 ## Manual steps
 

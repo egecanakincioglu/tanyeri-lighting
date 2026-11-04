@@ -101,7 +101,7 @@ The project decides when to release; merging into `main` does not deploy by itse
 4. Merge the pull request with `--auto`. Then create a signed tag on the merge commit on `main` and push it: `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`. Push exactly one full `vX.Y.Z` tag to `origin`. Do not delete or force tags, do not push tags in bulk, and do not create the GitHub release by hand: the workflow creates it.
 5. The `release` workflow checks that the tag is on `main` and equals the `package.json` version. It then deploys the tagged commit to production through the Vercel REST API (the Vercel CLI is not used) and creates the GitHub release. The release title comes from the first line of the note. The body is the note, followed by a collapsed "Commit list" taken from `CHANGELOG.md`. The workflow runs the code of the tagged commit with the deploy token. Write access to the repository and the tag rule protect it.
 6. Check the live site. If something is wrong, roll back to the previous production deployment in Vercel. The fix ships as a new PATCH release.
-7. The live site stays `noindex` until 1.0.0. With 1.0.0, set `SITE_INDEXING=on` in production.
+7. The live site is open to search engines. `SITE_INDEXING=on` is set for the Production environment only; previews stay `noindex`. Do not change this value as part of a release.
 
 ## Parallel pull requests
 
