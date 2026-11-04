@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({ guardPage: vi.fn(), getHomeBanner: vi.fn() }))
 vi.mock('../../../../../../server/auth/guard.ts', () => ({ guardPage: mocks.guardPage }));
 vi.mock('../../../../../../server/content/home-banner.ts', () => ({ getHomeBanner: mocks.getHomeBanner }));
 vi.mock('../../../../../../server/admin/banner-actions.ts', () => ({ updateBannerAction: vi.fn() }));
-vi.mock('../../../../../../server/admin/upload-actions.ts', () => ({ uploadMediaAction: vi.fn() }));
+vi.mock('../../../../../../server/admin/upload-actions.ts', () => ({ finalizeMediaAction: vi.fn() }));
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   notFound: () => {

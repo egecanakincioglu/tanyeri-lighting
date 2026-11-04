@@ -38,7 +38,7 @@ const texts = {
 };
 
 const action = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
-const upload = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
+const upload = vi.fn<(address: string, kind: 'image' | 'file') => Promise<FormState>>();
 
 function setup() {
   return render(
@@ -51,7 +51,6 @@ function setup() {
         texts={texts}
         formTexts={formTexts}
         mediaTexts={mediaTexts}
-        maxBytes={4 * 1024 * 1024}
       />
     </NextIntlClientProvider>,
   );

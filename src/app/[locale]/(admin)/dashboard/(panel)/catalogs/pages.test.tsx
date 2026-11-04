@@ -18,7 +18,7 @@ vi.mock('../../../../../../server/admin/catalogs-actions.ts', () => ({
   deleteCatalogAction: vi.fn(),
   reorderCatalogsAction: vi.fn(),
 }));
-vi.mock('../../../../../../server/admin/upload-actions.ts', () => ({ uploadMediaAction: vi.fn() }));
+vi.mock('../../../../../../server/admin/upload-actions.ts', () => ({ finalizeMediaAction: vi.fn() }));
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   notFound: () => {
@@ -134,7 +134,7 @@ describe('catalog screens', () => {
       vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'x'.repeat(24));
       inIntl('en', await NewCatalogPage(newProps('en')));
       expect((screen.getAllByRole('button', { name: 'Choose a file' })[0] as HTMLButtonElement).disabled).toBe(false);
-      expect(screen.getByText('PDF, up to 4 MB.')).toBeTruthy();
+      expect(screen.getByText('PDF, up to 50 MB.')).toBeTruthy();
       cleanup();
       vi.stubEnv('DEMO_MODE', 'true');
       inIntl('en', await NewCatalogPage(newProps('en')));

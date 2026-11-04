@@ -6,7 +6,7 @@ import { Link } from '../../../i18n/navigation.ts';
 import { BilingualField } from '../bilingual-field.tsx';
 import { BilingualMarkdownField } from '../bilingual-markdown-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
@@ -18,7 +18,7 @@ type Pair = { tr: string; en: string };
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   locale: string;
   /** Set when editing. */
   initial?: { id: string; title: Pair; description: Pair; beforeImageUrl: string; afterImageUrl: string };
@@ -26,7 +26,6 @@ type Props = {
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
   markdownTexts: { hint: string; edit: string; preview: string; loading: string };
-  maxBytes: number;
   /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
@@ -44,7 +43,6 @@ export function ProjectForm({
   formTexts,
   mediaTexts,
   markdownTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -63,7 +61,6 @@ export function ProjectForm({
     upload,
     texts: mediaTexts,
     errors: formTexts.errors,
-    maxBytes,
     disabledReason: readOnlyReason ?? uploadDisabledReason,
   };
 

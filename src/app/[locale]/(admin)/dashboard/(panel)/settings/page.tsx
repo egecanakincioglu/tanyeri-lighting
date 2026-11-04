@@ -14,12 +14,12 @@ import {
   updateSiteSettingsAction,
   updateSocialLinkAction,
 } from '../../../../../../server/admin/corporate-actions.ts';
-import { uploadMediaAction } from '../../../../../../server/admin/upload-actions.ts';
+import { finalizeMediaAction } from '../../../../../../server/admin/upload-actions.ts';
 import { guardPage } from '../../../../../../server/auth/guard.ts';
 import { getSiteSettings } from '../../../../../../server/content/site-settings.ts';
 import { listSocialLinks } from '../../../../../../server/content/social-links.ts';
 import { isDemoMode } from '../../../../../../server/env.ts';
-import { isStorageEnabled, MAX_UPLOAD_BYTES } from '../../../../../../server/storage/index.ts';
+import { isStorageEnabled } from '../../../../../../server/storage/index.ts';
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/dashboard/settings'>): Promise<Metadata> {
   const { locale } = await params;
@@ -47,10 +47,9 @@ export default async function SettingsAdminPage({ params }: PageProps<'/[locale]
       <div className="flex flex-col gap-10">
         <SettingsForm
           action={updateSiteSettingsAction}
-          upload={uploadMediaAction}
+          upload={finalizeMediaAction}
           initial={settings}
           formTexts={formTexts}
-          maxBytes={MAX_UPLOAD_BYTES}
           readOnlyReason={readOnlyReason}
           uploadDisabledReason={isStorageEnabled() ? undefined : media('storageOff')}
           texts={{

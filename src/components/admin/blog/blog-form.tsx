@@ -8,7 +8,7 @@ import { TextField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
 import { BilingualMarkdownField } from '../bilingual-markdown-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
@@ -34,7 +34,7 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   locale: string;
   /** Set when editing. `publishedAt` is the day as YYYY-MM-DD, or empty for a draft. */
   initial?: {
@@ -52,7 +52,6 @@ type Props = {
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
   markdownTexts: { hint: string; edit: string; preview: string; loading: string };
-  maxBytes: number;
   /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
@@ -70,7 +69,6 @@ export function BlogForm({
   formTexts,
   mediaTexts,
   markdownTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -106,7 +104,6 @@ export function BlogForm({
           upload={upload}
           texts={mediaTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />

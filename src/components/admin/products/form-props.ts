@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server';
-import { uploadMediaAction } from '../../../server/admin/upload-actions.ts';
+import { finalizeMediaAction } from '../../../server/admin/upload-actions.ts';
 import type { Category } from '../../../server/content/schemas.ts';
 import { isDemoMode } from '../../../server/env.ts';
-import { isStorageEnabled, MAX_UPLOAD_BYTES } from '../../../server/storage/index.ts';
+import { isStorageEnabled } from '../../../server/storage/index.ts';
 import { buildFormTexts } from '../texts.ts';
 
 /** What both product pages (create and edit) pass to the form besides the action and the stored values. */
@@ -15,8 +15,7 @@ export async function productFormProps(locale: 'tr' | 'en', categories: Category
   const formTexts = buildFormTexts(form);
   return {
     locale,
-    upload: uploadMediaAction,
-    maxBytes: MAX_UPLOAD_BYTES,
+    upload: finalizeMediaAction,
     formTexts,
     categories: categories.map((category) => ({ value: category.id, label: category.name[locale] })),
     readOnlyReason: isDemoMode() ? formTexts.demoNote : undefined,

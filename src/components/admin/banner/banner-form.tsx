@@ -7,7 +7,7 @@ import { SelectField } from '../../field.tsx';
 import { BilingualField } from '../bilingual-field.tsx';
 import { ImageAltField } from '../image-alt-field.tsx';
 import { FormActions } from '../form-actions.tsx';
-import { ImageField, type MediaTexts } from '../media-field.tsx';
+import { ImageField, type MediaTexts, type UploadAction } from '../media-field.tsx';
 import { SubmitButton } from '../submit-button.tsx';
 import { fieldMessage, type FormTexts } from '../texts.ts';
 
@@ -25,14 +25,13 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 
 type Props = {
   action: Action;
-  upload: Action;
+  upload: UploadAction;
   initial: HomeBanner;
   /** The public pages a button can open, with their names in the language of the panel. */
   targets: { value: string; label: string }[];
   texts: BannerFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  maxBytes: number;
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
@@ -48,7 +47,6 @@ export function BannerForm({
   texts,
   formTexts,
   mediaTexts,
-  maxBytes,
   readOnlyReason,
   uploadDisabledReason,
 }: Props) {
@@ -79,7 +77,6 @@ export function BannerForm({
           upload={upload}
           texts={mediaTexts}
           errors={formTexts.errors}
-          maxBytes={maxBytes}
           disabledReason={readOnlyReason ?? uploadDisabledReason}
           error={message('imageUrl')}
         />
