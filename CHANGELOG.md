@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-11-04
+
+### Fixes
+- keep page metadata in the head for every client (17c245b)
+
+### Other
+- docs(seo): note that metadata always waits for the head (fd6a211)
+
 ## [0.8.1] - 2026-11-04
 
 ### Fixes
