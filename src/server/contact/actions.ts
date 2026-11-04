@@ -18,6 +18,12 @@ export async function submitContactMessage(_previous: ContactState | null, formD
   const parsed = parseContactForm(formData);
   if (!parsed.success) return { status: 'invalid', fieldErrors: parsed.fieldErrors, values: submittedValues(formData) };
 
+  // Nothing is stored in the demo, so it must not spend the limits of the real site either.
+  if (isDemoMode()) {
+    const { name, email, subject, message } = parsed.data;
+    return { status: 'demo', summary: { name, email, subject, message } };
+  }
+
   const requestHeaders = await headers();
   const limit = await checkRateLimit({ ...RATE_LIMIT, headers: requestHeaders });
   if (!limit.ok)
@@ -30,9 +36,6 @@ export async function submitContactMessage(_previous: ContactState | null, formD
       retryAfterSeconds: siteLimit.retryAfterSeconds,
       values: submittedValues(formData),
     };
-
-  const { name, email, subject, message } = parsed.data;
-  if (isDemoMode()) return { status: 'demo', summary: { name, email, subject, message } };
 
   await createContactMessage(parsed.data);
   return { status: 'ok' };
