@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { getPathname } from '../../i18n/navigation.ts';
 import { guardAction } from '../auth/guard.ts';
 import { safeLocale } from '../auth/paths.ts';
+import { idSchema } from '../content/schemas.ts';
 import { deleteMessage, markMessageRead } from '../contact/service.ts';
 import { formText, runAction, type FormState } from './form.ts';
 
@@ -25,7 +26,7 @@ export async function deleteMessageAction(_previous: FormState | null, formData:
 export async function markMessageReadAction(id: string): Promise<void> {
   await runAction(async () => {
     await guardAction();
-    await markMessageRead(id);
+    await markMessageRead(idSchema.parse(id));
     refresh();
   });
 }
