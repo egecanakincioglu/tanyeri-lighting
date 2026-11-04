@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { StrictMode, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../test/axe.ts';
 import { CatalogView } from './catalog-view.tsx';
@@ -88,9 +89,11 @@ function mockReducedMotion(reduce: boolean) {
   );
 }
 
-function renderView() {
+const Plain = ({ children }: { children?: ReactNode }): ReactNode => children;
+
+function renderView(Root: (props: { children?: ReactNode }) => ReactNode = Plain) {
   return render(
-    <>
+    <Root>
       <main>
         <h1>Catalogs</h1>
         <CatalogView
@@ -109,7 +112,7 @@ function renderView() {
           View
         </CatalogView>
       </main>
-    </>,
+    </Root>,
   );
 }
 
@@ -396,6 +399,27 @@ describe('CatalogView', () => {
     renderView();
     fireEvent.click(viewLink());
     expect((await screen.findByRole('alert')).textContent).toBe('This catalog cannot be shown here.');
+  });
+
+  it('never draws two passes onto one canvas, as happens when effects run twice in development', async () => {
+    const busy = new Set<HTMLCanvasElement>();
+    lib.render.mockImplementation(({ canvas }: { canvas: HTMLCanvasElement }) => {
+      if (busy.has(canvas)) throw new Error('Cannot use the same canvas during multiple render() operations.');
+      busy.add(canvas);
+      const promise = new Promise<void>((resolve) =>
+        setTimeout(() => {
+          busy.delete(canvas);
+          resolve();
+        }, 0),
+      );
+      return { promise, cancel: lib.cancel };
+    });
+    renderView(StrictMode);
+    fireEvent.click(viewLink());
+    await screen.findByText('Page 1 / 8');
+    await waitFor(() => expect(lib.render).toHaveBeenCalled());
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('destroys the document and the worker when the dialog closes', async () => {
