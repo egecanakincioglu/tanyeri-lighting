@@ -26,6 +26,16 @@ describe('next.config headers', () => {
   });
 });
 
+describe('next.config metadata', () => {
+  it('blocks the page on its metadata for every client so the tags stay in the head', () => {
+    const matcher = nextConfig.htmlLimitedBots;
+    expect(matcher).toBeInstanceOf(RegExp);
+    for (const client of ['Mozilla/5.0 Chrome/130.0.0.0 Safari/537.36', 'GPTBot/1.2', 'Googlebot/2.1', 'curl/8.0']) {
+      expect(matcher?.test(client)).toBe(true);
+    }
+  });
+});
+
 describe('next.config images', () => {
   it('keeps optimized pictures for 31 days', () => {
     expect(nextConfig.images?.minimumCacheTTL).toBe(31 * 24 * 60 * 60);

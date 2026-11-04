@@ -22,6 +22,9 @@ const toEntries = (headers: Record<string, string>) => Object.entries(headers).m
 const blobHost = blobHostname(process.env.BLOB_READ_WRITE_TOKEN);
 
 const nextConfig: NextConfig = {
+  // Streamed metadata lands in <body> when a page renders slowly (cold start), where crawlers and the Lighthouse
+  // meta-description audit do not look. Matching every client makes the head wait for the metadata instead.
+  htmlLimitedBots: /.*/,
   images: {
     imageSizes: [32, 48, 64, 96, 128, 192, 256, 384, 512],
     deviceSizes: [640, 680, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
