@@ -4,7 +4,7 @@ The project is developed in phases. The architecture is described in [architectu
 
 ## Status
 
-- **Current phase:** phase 8, hardening, plus the blog.
+- **Current phase:** phase 8, hardening.
 - **Released:** see the [changelog](../CHANGELOG.md) and the [releases page](https://github.com/egecanakincioglu/tanyeri-lighting/releases).
 - **Live demo:** https://tanyeri-lighting.vercel.app. It is open to search engines; preview deployments stay `noindex`.
 
@@ -16,7 +16,7 @@ The project is developed in phases. The architecture is described in [architectu
 | 3 | Application skeleton and quality gates | Done (v0.1.0) |
 | 4 | Server foundation | Done |
 | 5 | Brand and design system | Done (v0.3.0) |
-| 6 | Public site (bilingual) | Done, except the blog |
+| 6 | Public site (bilingual) | Done |
 | 7 | Admin panel | Done |
 | 8 | Hardening | In progress |
 | 9 | Launch (1.0.0) | Planned |
@@ -62,12 +62,10 @@ Done:
 ## Later phases
 
 - **Phase 8:** security review, accessibility review, performance work, a pixel-perfect pass on all widths and a final review of the whole site.
-- **Blog:** a blog comes in its own pull request.
-- **Phase 9:** production environment, the 1.0.0 release, and a release and rollback runbook.
+- **Phase 9:** production environment and the 1.0.0 release.
 
 ## Manual steps
 
 - Set the production environment variables and create the production Blob store at launch.
 - Register the site in Search Console and Bing Webmaster Tools at launch.
 - Set the repository topics, description and website link at launch.
-- Write the runbook for rotating secrets before launch.
