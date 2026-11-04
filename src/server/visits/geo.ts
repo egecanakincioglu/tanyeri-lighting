@@ -1,10 +1,14 @@
+import { isVercel } from '../env.ts';
+
 export type VisitorPlace = { country: string | null; city: string | null };
 
 const MAX_CITY_LENGTH = 100;
 
 // The host's request headers are the only source of the place (no lookup library). Vercel sends the country as an
 // ISO 3166 code and the city URL-encoded; a missing or odd value is stored as null and shown as "unknown".
+// Off Vercel anyone can send these headers, so they are ignored there.
 export function readVisitorPlace(headers: Headers): VisitorPlace {
+  if (!isVercel()) return { country: null, city: null };
   const country = headers.get('x-vercel-ip-country')?.trim().toUpperCase() ?? '';
   const rawCity = headers.get('x-vercel-ip-city');
   let city = '';

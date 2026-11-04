@@ -1,7 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readVisitorPlace } from './geo.ts';
 
 describe('readVisitorPlace', () => {
+  beforeEach(() => {
+    vi.stubEnv('VERCEL', '1');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('ignores the headers off Vercel, where anyone can send them', () => {
+    vi.stubEnv('VERCEL', '');
+    const headers = new Headers({ 'x-vercel-ip-country': 'TR', 'x-vercel-ip-city': 'Istanbul' });
+    expect(readVisitorPlace(headers)).toEqual({ country: null, city: null });
+  });
+
   it('reads the country code and the URL-decoded city', () => {
     const headers = new Headers({ 'x-vercel-ip-country': 'tr', 'x-vercel-ip-city': 'Istanbul%20Kadikoy' });
     expect(readVisitorPlace(headers)).toEqual({ country: 'TR', city: 'Istanbul Kadikoy' });
