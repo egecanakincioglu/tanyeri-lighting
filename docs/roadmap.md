@@ -28,7 +28,7 @@ Done:
 - Environment validation per module.
 - Security headers and a nonce-based Content Security Policy.
 - Better Auth core: email and password, sessions in the database, rate limits in Postgres.
-- File storage with an upload pipeline on Vercel Blob (4 MB limit, file type check, image re-encoding).
+- File storage with an upload pipeline on Vercel Blob (images up to 20 MB, PDFs up to 50 MB, direct browser upload, file type check, image re-encoding).
 - Authorization guard on every admin page, action and route handler, enforced by a static check.
 - Seed and first admin user (`pnpm db:seed`), and password recovery without email (`pnpm admin:reset-password`).
 - Optional SMTP email: the `sendEmail` module and the password reset link by email.

@@ -35,7 +35,7 @@ Facts checked before the decision:
 | Files | Vercel Blob | Integrated with Vercel; free quota; CDN | Vercel-specific API; 30 days of downtime if the Hobby quota is exceeded |
 | Files | S3-compatible external storage | Portable | Extra service and account; out of scope |
 | Upload path | From the server (route handler / Server Action), 4 MB limit | Validation, re-encoding and metadata stripping happen in one server request | No large files because of the 4.5 MB body limit |
-| Upload path | Directly from the client to Blob | Large files | The file enters the store before it is validated; later processing needs an extra step |
+| Upload path | Directly from the client to Blob, then validated on the server (chosen) | Large files | The file enters the store before it is validated; it needs an extra finalize step and leaves a temporary file if the browser closes early |
 
 ## Decision
 
@@ -55,15 +55,20 @@ Rules:
 7. **Preview database:** all PR previews use one shared Neon preview database, separate from production.
    - No Neon branch is created per preview; the preview-branch feature of the integration stays off.
    - The `DATABASE_URL` of the preview environment is defined only for the Preview environment. Preview deployments never connect to the production database and never apply migrations to it.
-8. **File upload: from the server only, at most 4 MB.**
-   - The upload arrives through a route handler or Server Action; the endpoint is written in phase 7 with authorization. The size limit is applied first.
+8. **File upload: directly from the browser to Blob, then validated on the server.** Images are at most 20 MB and PDFs at most 50 MB. The limits live in `src/lib/upload-limits.ts`. (Changed on 2026-11-04; the earlier rule was a server-only upload of at most 4 MB.)
+   - A Vercel Function body is limited to 4.5 MB, so the file goes from the browser straight to the store. The flow has three steps:
+     1. The browser asks `POST /api/admin/upload` for a short-lived client token. The route runs the admin guard. It answers 401 when signed out, 403 in demo mode and 503 when no store is configured. It accepts only pathnames under `tmp/`, allows JPEG, PNG, WebP and PDF, sets a 50 MB maximum and a validity of 5 minutes.
+     2. The browser sends the file to `tmp/` in the store.
+     3. The Server Action `finalizeMediaAction` calls `finalizeUpload`. It accepts only an address on the project's own store host under `tmp/`, reads the real size and refuses it against the limit for that kind. It detects the type from the first bytes and refuses a mismatch.
    - The content type is determined from magic bytes, not from the file name or `Content-Type`. The allow list is JPEG, PNG, WebP and PDF; there is no SVG. A type that is not on the list is rejected.
-   - Images are re-encoded to WebP (quality 82): the long edge is at most 2048 px and the input is at most 50 megapixels (protection against images that blow up memory when decoded). EXIF, GPS and ICC data are stripped; the orientation is applied to the pixels. These steps happen before writing to Blob.
-   - PDFs are not re-encoded; they only pass the size and magic byte checks.
+   - Images are re-encoded to WebP (quality 82): the long edge is at most 2048 px and the input is at most 50 megapixels (protection against images that blow up memory when decoded). EXIF, GPS and ICC data are stripped; the orientation is applied to the pixels. The result is stored under a random name.
+   - PDFs are not re-encoded; they pass the size and magic byte checks and are copied to a random name.
+   - The temporary file is deleted after success and after failure.
    - The file name is generated (`<uuid>.<extension>`); the name given by the visitor is never used.
+   - The file enters the store before validation, but only under `tmp/`. No public page points to a `tmp/` address.
+   - The Content Security Policy `connect-src` also allows `https://*.public.blob.vercel-storage.com` and `https://vercel.com/api/blob/`.
    - The Blob access type is `public`. All files on the site are public anyway; `private` would route every file through a server function and use up the Hobby quota.
    - If `BLOB_READ_WRITE_TOKEN` is missing, storage is disabled; `isStorageEnabled()` reports this and uploads stay off.
-   - There is no direct upload from the client to Blob.
    - Blob access sits behind the `src/server/storage` interface ([ADR 0001](0001-architecture-nextjs-16-app-router.md), anti-lock-in rule). Demo images are uploaded from the seed folder.
    - In tests, the real SDK is pointed at a local fake HTTP server with `VERCEL_BLOB_API_URL`; tests never send requests to the real Blob.
 9. Tests run on a real Postgres: Docker Compose locally and a service container in CI. The database is not mocked ([ADR 0007](0007-testing-strategy.md)).
@@ -72,9 +77,11 @@ Rules:
 
 - Positive: There is one Postgres database and versioned migrations. Plain-text secret and password files disappear.
 - Positive: Neon is standard Postgres. With Prisma and `adapter-pg`, moving to another Postgres only means changing the connection URL.
-- Positive: All files are validated and re-encoded on the server before they are written to the store, so malicious content and metadata such as EXIF do not reach the store.
+- Positive: Every file is validated and re-encoded on the server before it gets its final name, so malicious content and metadata such as EXIF do not reach a public address.
 - Negative: Vercel Blob is Vercel-specific. Because of the `src/server/storage` interface, moving to another storage means writing one adapter.
-- Negative: Because of the 4 MB limit, large catalog PDFs cannot be uploaded. The demo catalog is kept short and small.
+- Negative: Images are limited to 20 MB and PDFs to 50 MB. A file larger than that is refused in the browser and on the server.
+- Negative: If the browser closes between the upload to `tmp/` and the finalize step, the file stays in `tmp/`. There is no automatic cleanup.
+- Negative: The public PDF viewer downloads the whole file. A 50 MB catalog costs about 50 MB of transfer per view against the 10 GB Hobby transfer quota, so catalogs are kept small where possible.
 - Note: Prisma 7 requires ESM, so `package.json` is set up with `"type": "module"` from the start and `tsconfig` with `moduleResolution: "bundler"` (phase 3).
 - Risk: In the shared preview database, migrations of different PRs can conflict. If they do, the preview database is reset and seeded again; production is not affected.
 - Risk: If the Hobby quota is exceeded, Blob stops for 30 days and Neon compute stops until the end of the period. The demo can tolerate this, but it is noted in the README. Seed images are kept small (WebP, reasonable resolution).
@@ -98,5 +105,6 @@ Rules:
 - https://neon.com/docs/guides/vercel-managed-integration
 - https://vercel.com/docs/vercel-blob/usage-and-pricing
 - https://vercel.com/docs/vercel-blob/server-upload
+- https://vercel.com/docs/vercel-blob/client-upload
 - https://neon.com/docs/changelog/2026-05-01
 - https://neon.com/docs/changelog/2026-06-05
