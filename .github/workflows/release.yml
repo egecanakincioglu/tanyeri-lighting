@@ -1,7 +1,6 @@
 name: release
 
-# Production is deployed only from a vX.Y.Z tag. The tag must point at a commit on main whose package.json
-# version matches it. Vercel builds the tagged commit from GitHub.
+# Production deploys only from a vX.Y.Z tag on a main commit whose package.json version matches.
 on:
   push:
     tags: ['v*.*.*']
@@ -28,7 +27,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          # A job that publishes a release never restores caches: a poisoned cache could reach what it publishes.
+          # No cache restore in a publishing job: a poisoned cache could reach the release.
           package-manager-cache: false
       - name: The tag is on main and matches package.json
         env:

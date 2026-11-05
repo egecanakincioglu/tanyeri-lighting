@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
-    # New versions wait 7 days; security updates ignore the cooldown.
+    # Security updates ignore the cooldown.
     cooldown:
       default-days: 7
     groups:
@@ -17,7 +17,6 @@ updates:
           - 'patch'
     commit-message:
       prefix: 'ci'
-  # Keeps the image digests in the CI image manifest fresh.
   - package-ecosystem: 'docker'
     directory: '/tooling/ci-images'
     schedule:
@@ -33,7 +32,7 @@ updates:
           - 'minor'
           - 'patch'
     ignore:
-      # The PostgreSQL major version is a deliberate PR; local data volumes only stay compatible within one major.
+      # Local data volumes only stay compatible within one PostgreSQL major.
       - dependency-name: 'postgres'
         update-types:
           - 'version-update:semver-major'
@@ -54,18 +53,18 @@ updates:
           - 'minor'
           - 'patch'
     ignore:
-      # The next TypeScript major waits until typescript-eslint and Next.js support it; major moves are deliberate PRs.
+      # Wait until typescript-eslint and Next.js support the next TypeScript major.
       - dependency-name: 'typescript'
         update-types:
           - 'version-update:semver-major'
-      # Prisma is pinned to 7.x on purpose: npm latest is an 8.x release candidate and the auth library supports up to 7.
+      # Stay on Prisma 7: the auth library supports up to 7.
       - dependency-name: 'prisma'
         update-types:
           - 'version-update:semver-major'
       - dependency-name: '@prisma/*'
         update-types:
           - 'version-update:semver-major'
-      # @types/node follows the Node runtime major (24, see .node-version); the major moves together with the runtime in a deliberate PR.
+      # @types/node follows the Node runtime major (see .node-version).
       - dependency-name: '@types/node'
         update-types:
           - 'version-update:semver-major'

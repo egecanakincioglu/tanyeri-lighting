@@ -1,6 +1,5 @@
 name: ci
 
-# Pull request title/description checks live in pr-text.yml (they also run on `edited`).
 on:
   pull_request:
     branches: [main]
@@ -14,9 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # All merge-rule checks in one job. Every step runs even when an earlier one failed, so a single run reports
-  # every violation. Dependabot commits can not follow our branch/message conventions, so those steps are
-  # skipped for it; the rest runs for everyone.
+  # Every step runs even when an earlier one failed.
+  # The branch-name and commit-message steps are skipped for Dependabot.
   policy:
     name: policy
     runs-on: ubuntu-latest
@@ -50,8 +48,7 @@ jobs:
             fi
           done
           exit $status
-      # A stolen device or token can not forge the owner's commits. Runs for everyone, including Dependabot
-      # (GitHub signs those commits itself).
+      # Signed commits: a stolen device or token cannot forge them. Dependabot commits are signed by GitHub.
       - name: Every commit in the pull request is verified by GitHub
         if: ${{ !cancelled() }}
         env:
@@ -93,7 +90,6 @@ jobs:
       - name: packageManager is pinned to an exact version with a hash
         if: ${{ !cancelled() }}
         run: node tooling/scripts/check-package-manager.ts
-      # The check parses the sources with the TypeScript compiler, so it needs the installed dependencies.
       - name: Install dependencies
         if: ${{ !cancelled() }}
         run: |
@@ -129,7 +125,6 @@ jobs:
         run: |
           corepack enable
           pnpm install --frozen-lockfile
-      # Every step runs even when an earlier one failed, so one run reports every violation.
       - name: Type check
         run: pnpm typecheck
       - name: Format check
@@ -158,9 +153,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm knip
 
-  # The community rulesets of the Semgrep registry. The tool is pinned by digest, the rules are not: the registry
-  # serves its current version at run time, so a new rule can turn this job red without a change in the repository.
-  # Kept apart from `quality` so that such a failure is easy to tell from a failure of our own checks.
+  # Registry rules are not pinned, so a new rule can turn this job red without a change in the repository.
   semgrep-registry:
     name: semgrep-registry
     runs-on: ubuntu-latest
@@ -177,8 +170,7 @@ jobs:
           image="$(node tooling/scripts/ci-image.ts semgrep)"
           docker run --rm -v "$PWD:/src" -w /src "$image" semgrep scan --config p/typescript --config p/react --config p/nodejs --config p/owasp-top-ten --config p/security-audit --exclude tooling/semgrep --exclude src/generated --error --metrics=off
 
-  # Audits the workflow files and the Dependabot config for security problems. Medium severity and above fail.
-  # The online audits (impostor commits, known vulnerable actions) call the GitHub API with the job's read-only token.
+  # Online audits call the GitHub API with the job's read-only token.
   zizmor:
     name: zizmor
     runs-on: ubuntu-latest
@@ -244,12 +236,12 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: 1
       DEMO_MODE: 'true'
-      # The pages read the database, so the audit runs against the demo content. These values protect nothing.
+      # Demo content and throwaway values.
       DATABASE_URL: postgresql://postgres@localhost:5432/tanyeri
       DATABASE_URL_UNPOOLED: postgresql://postgres@localhost:5432/tanyeri
       BETTER_AUTH_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       BETTER_AUTH_URL: http://localhost:3000
-      # The demo seed creates this admin and the audit signs in with it to visit the panel screens. Also protects nothing.
+      # The audit signs in with this demo admin.
       DEMO_ADMIN_EMAIL: demo@example.com
       DEMO_ADMIN_PASSWORD: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     strategy:
@@ -295,14 +287,12 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-      # The admin guard check parses sources with the TypeScript compiler.
       - name: Install dependencies
         run: |
           corepack enable
           pnpm install --frozen-lockfile
       - name: Unit tests of the tooling
         run: node --test "tooling/**/*.test.ts"
-      # Syntax check of every shell script and of the extensionless git hooks.
       - name: Shell syntax
         run: |
           set -euo pipefail
@@ -321,7 +311,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-      # Git Bash on the runner, the same shell the tooling targets on a developer's Windows machine.
+      # Git Bash, the shell the tooling targets on Windows.
       - name: Install dependencies
         shell: bash
         run: |
