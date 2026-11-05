@@ -1,25 +1,20 @@
 import { TextAreaField, TextField } from '../field.tsx';
 
 type Props = {
-  /** The base name: the inputs are `<name>.tr` and `<name>.en`, the keys the Server Actions read. */
+  /** Inputs are `<name>.tr` and `<name>.en`; the Server Actions read these keys. */
   name: string;
   label: string;
   languages: { tr: string; en: string };
   defaultValue?: { tr: string; en: string };
   multiline?: boolean;
-  /** The field may be left empty in both languages. */
   optional?: boolean;
-  /** The limit of the schema, applied to both inputs. */
   maxLength?: number;
-  /** Replaces the base name in the input ids when the same field appears more than once on a page. */
+  /** Replaces the base name in input ids when a field appears more than once on a page. */
   idPrefix?: string;
-  /** Already translated, one per language. */
   errors?: { tr?: string | undefined; en?: string | undefined };
-  /** Already translated message about the pair as a whole, shown under both inputs. */
   error?: string | undefined;
 };
 
-/** Turkish and English side by side on wide screens, stacked on phones. Both are required by the schemas. */
 export function BilingualField({
   name,
   label,

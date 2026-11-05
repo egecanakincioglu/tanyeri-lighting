@@ -94,8 +94,7 @@ describe('AdminFrame', () => {
     expect(container.querySelector('header p')?.textContent).toBe('Products');
   });
 
-  // jsdom has no layout, so this pins the rule that keeps the title and the content on one left edge: the top bar
-  // adds the side padding to its width cap, the content box inside main does not.
+  // jsdom has no layout, so this pins the rule that keeps the title and content on one left edge.
   it('caps the top bar one gutter wider than the content', async () => {
     const { container } = await renderFrame('en');
     expect(container.querySelector('header > div')?.className).toContain('max-w-[calc(72rem+2*var(--gutter))]');

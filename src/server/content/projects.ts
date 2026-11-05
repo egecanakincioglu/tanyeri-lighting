@@ -29,13 +29,12 @@ export async function listProjects(): Promise<Project[]> {
   return rows.map(fromRow);
 }
 
-// An unknown id is a missing project, not an error: the public page answers it with "not found".
+// An unknown id is a missing project, not an error.
 export async function getProject(id: unknown): Promise<Project | null> {
   const row = await getDb().project.findUnique({ where: { id: projectIdSchema.parse(id) } });
   return row ? fromRow(row) : null;
 }
 
-// The new project goes to the end of the list.
 export async function createProject(input: unknown): Promise<Project> {
   assertWritable();
   const columns = toColumnsOf(projectSchema.parse(input));
@@ -64,7 +63,7 @@ export async function deleteProject(id: unknown): Promise<void> {
   if (result.count === 0) throw new ContentNotFoundError('Project');
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderProjects(ids: unknown): Promise<void> {
   assertWritable();
   const order = projectOrderSchema.parse(ids);

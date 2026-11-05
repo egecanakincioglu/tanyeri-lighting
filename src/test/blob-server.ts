@@ -11,14 +11,13 @@ interface RecordedRequest {
 export interface FakeBlobServer {
   url: string;
   requests: RecordedRequest[];
-  // The addresses of the files deleted so far.
   deleted: string[];
-  // The next response is a Vercel Blob API error with this code (and HTTP status) instead of success.
+  // The next response is a Blob API error with this code.
   failNextWith(code: string, status: number): void;
   close(): Promise<void>;
 }
 
-// Stands in for the Vercel Blob HTTP API: the real SDK (and its HTTP client) runs against it, only the network ends here.
+// Fake Vercel Blob HTTP API; the real SDK runs against it.
 export async function startFakeBlobServer(): Promise<FakeBlobServer> {
   const requests: RecordedRequest[] = [];
   let failure: { code: string; status: number } | null = null;

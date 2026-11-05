@@ -27,7 +27,6 @@ type Props = {
   action: Action;
   upload: UploadAction;
   initial: HomeBanner;
-  /** The public pages a button can open, with their names in the language of the panel. */
   targets: { value: string; label: string }[];
   texts: BannerFormTexts;
   formTexts: FormTexts;
@@ -36,7 +35,7 @@ type Props = {
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of homeBannerSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with homeBannerSchema in src/server/content/schemas.ts.
 const LIMITS = { title: 120, description: 400, label: 40 };
 
 export function BannerForm({
@@ -54,7 +53,7 @@ export function BannerForm({
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

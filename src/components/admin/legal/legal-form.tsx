@@ -18,11 +18,10 @@ type Props = {
   texts: { title: string; body: string; hideNote: string; cancel: string };
   markdownTexts: { hint: string; edit: string; preview: string; loading: string };
   formTexts: FormTexts;
-  /** The demo's reason for a read-only form. */
   readOnlyReason?: string | undefined;
 };
 
-// The limits of legalPageSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with legalPageSchema in src/server/content/schemas.ts.
 const LIMITS = { title: 150, body: 50_000 };
 
 export function LegalForm({ action, pageKey, initial, texts, markdownTexts, formTexts, readOnlyReason }: Props) {
@@ -30,7 +29,7 @@ export function LegalForm({ action, pageKey, initial, texts, markdownTexts, form
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

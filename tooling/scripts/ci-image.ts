@@ -1,10 +1,6 @@
 #!/usr/bin/env node
-// Resolves a CI container image from the manifest tooling/ci-images/Dockerfile (the single source of truth).
-//
-//   node tooling/scripts/ci-image.ts <stage>              -> name:tag@sha256:<digest>
-//   node tooling/scripts/ci-image.ts --version <stage>    -> the tag's version only (no leading "v")
-//
-// Exit codes: 0 ok, 1 usage error, unknown stage or a stage without a sha256 digest. Dependency-free (Node only).
+// Prints the digest-pinned CI container image of a stage from tooling/ci-images/Dockerfile.
+//   node tooling/scripts/ci-image.ts [--version] <stage>
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 const MANIFEST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'ci-images', 'Dockerfile');
 const DIGESTED = /^\S+:\S+@sha256:[0-9a-f]{64}$/;
 
-/** Map of stage name -> image reference from the `FROM <ref> AS <stage>` lines. */
 export function parseManifest(text: unknown): Map<string, string> {
   const stages = new Map<string, string>();
   for (const line of String(text).split(/\r?\n/)) {
@@ -22,18 +17,15 @@ export function parseManifest(text: unknown): Map<string, string> {
   return stages;
 }
 
-/** The manifest text, for callers that resolve an image themselves. */
 export function readManifest(): string {
   return readFileSync(MANIFEST, 'utf8');
 }
 
-/** The digest-pinned reference of a stage, or null when the stage is missing or has no sha256 digest. */
 export function resolveImage(text: unknown, stage: string): string | null {
   const ref = parseManifest(text).get(stage);
   return ref && DIGESTED.test(ref) ? ref : null;
 }
 
-/** The tag of a stage's image without a leading "v" (digest stripped), or null. */
 export function imageVersion(text: unknown, stage: string): string | null {
   const ref = resolveImage(text, stage);
   if (!ref) return null;

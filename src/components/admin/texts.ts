@@ -1,7 +1,7 @@
 import type { ErrorCode, FieldError } from '../../server/admin/form.ts';
 
-// The texts the panel's client components share. Server pages build them from messages/*.json (the AdminForm
-// namespace) and pass them down, because the browser never receives the message files.
+// Server pages build these from messages/*.json (AdminForm namespace) and pass them down;
+// the browser never gets the message files.
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -26,13 +26,10 @@ export type FormTexts = {
   save: string;
   saving: string;
   saved: string;
-  /** Said after a row was deleted from a list. */
   deleted: string;
-  /** Why save, delete, reorder and upload are off in the demo. */
   demoNote: string;
   languages: { tr: string; en: string };
   errors: Record<ErrorCode, string>;
-  /** The optional description of a picture, shared by every form that has one. */
   imageAlt: { label: string; hint: string; both: string };
   fieldErrors: { required: string; /** Holds `{max}`. */ tooLong: string; invalid: string; taken: string };
 };

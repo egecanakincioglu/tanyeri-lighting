@@ -8,34 +8,30 @@ const securityHeaders: Record<string, string> = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Cross-Origin-Opener-Policy': 'same-origin',
-  // The CSP of the proxy has frame-ancestors for pages; this covers the paths the proxy skips, such as 404s of files.
+  // The proxy CSP covers pages; this covers paths the proxy skips, such as 404s of files.
   'X-Frame-Options': 'DENY',
 };
 
-// Static files keep their address when replaced, so no 'immutable': a day fresh, then a week of quiet revalidation.
+// Not 'immutable': static files keep their address when replaced.
 const staticFileHeaders: Record<string, string> = {
   'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
 };
 
 const toEntries = (headers: Record<string, string>) => Object.entries(headers).map(([key, value]) => ({ key, value }));
 
-// Only the store of this installation may be optimized; another store would spend its quota and serve foreign pictures
-// from our origin. Without a token there are no uploads, so there is no remote host either.
+// Only this installation's store may be optimized, or another store could use our quota. No token means no uploads.
 const blobHost = blobHostname(process.env.BLOB_READ_WRITE_TOKEN);
 
 const nextConfig: NextConfig = {
-  // Streamed metadata lands in <body> when a page renders slowly (cold start), where crawlers and the Lighthouse
-  // meta-description audit do not look. Matching every client makes the head wait for the metadata instead.
+  // Makes the head wait for streamed metadata, which crawlers and Lighthouse do not find in <body>.
   htmlLimitedBots: /.*/,
   images: {
     imageSizes: [32, 48, 64, 96, 128, 192, 256, 384, 512],
     deviceSizes: [640, 680, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
     qualities: [60],
-    // 31 days. Uploaded pictures get a new address when replaced; a replaced demo photo keeps its address, so it shows
-    // once the optimizer entry has expired.
+    // 31 days. A replaced demo photo keeps its address, so it shows after the cache entry expires.
     minimumCacheTTL: 2678400,
-    // Uploaded pictures live in the public Vercel Blob store. They are served through the image optimizer from our own
-    // origin, so the CSP img-src 'self' already covers them.
+    // Served through our own image optimizer, so CSP img-src 'self' already covers it.
     remotePatterns: blobHost ? [{ protocol: 'https', hostname: blobHost, search: '' }] : [],
   },
   poweredByHeader: false,

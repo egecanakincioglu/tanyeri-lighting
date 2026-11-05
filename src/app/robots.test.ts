@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import robots from './robots.ts';
 
-// connection() only works inside a request; opting into dynamic rendering is its whole effect.
+// connection() only works inside a request.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
 
 describe('robots', () => {

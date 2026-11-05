@@ -4,9 +4,7 @@ import type { PageKey } from './schemas.ts';
 export const newest = (...dates: (Date | null | undefined)[]): Date | undefined =>
   dates.reduce<Date | undefined>((latest, date) => (date && (!latest || date > latest) ? date : latest), undefined);
 
-// The last change of what each page shows, for the sitemap: one newest-date query per table. Only a page whose content
-// is kept in tables of its own is listed; a page without such rows has no entry. The product list is dated by the
-// caller, which already reads the products and categories.
+// Page dates for the sitemap. The product list is dated by the caller.
 export async function listContentDates(): Promise<Partial<Record<PageKey, Date>>> {
   const db = getDb();
   const [banner, boards, areas, featured, featuredProducts, services, projects, references, catalogs] =

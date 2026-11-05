@@ -12,7 +12,6 @@ type FilterTexts = {
 };
 
 type FiltersProps = {
-  /** The address of the list; the form sends its values to it as a query. */
   action: string;
   q: string;
   category: string;
@@ -20,7 +19,7 @@ type FiltersProps = {
   texts: FilterTexts;
 };
 
-/** A plain GET form: the search and the category are in the address, so a filtered list can be bookmarked. */
+/** A plain GET form, so a filtered list can be bookmarked. */
 export function ProductFilters({ action, q, category, categories, texts }: FiltersProps) {
   return (
     <form
@@ -66,7 +65,6 @@ const pagerLink =
 const pagerOff =
   'inline-flex min-h-touch items-center justify-center rounded-md border border-hairline bg-surface px-5 text-[0.9375rem] font-semibold text-muted';
 
-/** Previous and next links that keep the search and the category. Nothing when there is one page. */
 export function ProductPager({ page, pages, q, category, texts }: PagerProps) {
   if (pages <= 1) return null;
   const query = (target: number) => ({

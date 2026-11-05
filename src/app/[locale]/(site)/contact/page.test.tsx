@@ -12,7 +12,7 @@ vi.mock('../../../../server/content/site-settings.ts', () => ({ getSiteSettings:
 vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 vi.mock('../../../../server/contact/product-enquiry.ts', () => ({ findEnquiryProduct: content.enquiry }));
 vi.mock('../../../../server/contact/actions.ts', () => ({ submitContactMessage: async () => ({ status: 'ok' }) }));
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Header' }) =>
     Promise.resolve((key: string) => (({ tr, en })[locale][namespace] as Record<string, string>)[key]),

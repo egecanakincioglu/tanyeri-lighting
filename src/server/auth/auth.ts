@@ -12,13 +12,12 @@ import { RESET_TOKEN_LIFETIME_SECONDS, resetPasswordEmail, resetPasswordLink } f
 
 type AuthSettings = { secret: string; baseURL: string; production: boolean; emailEnabled: boolean; demo?: boolean };
 
-// The published demo login is open to scripts, so its sessions are short: they expire and get swept soon.
+// Demo sessions are short because the demo login is open to scripts.
 const DEMO_SESSION_SECONDS = 60 * 60;
 
-// Reset emails one account may receive.
 const RESET_MAIL_LIMIT = { scope: 'reset-mail', limit: 3, windowSeconds: 3600 } as const;
 
-// Every setting of ADR 0003 is written out, so a library default change can not loosen it silently.
+// Every setting is written out, so a library default change cannot loosen it silently.
 export function buildAuthOptions({ secret, baseURL, production, emailEnabled, demo = false }: AuthSettings) {
   return {
     secret,
@@ -30,12 +29,10 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled, de
       disableSignUp: true,
       revokeSessionsOnPasswordReset: true,
       resetPasswordTokenExpiresIn: RESET_TOKEN_LIFETIME_SECONDS,
-      // Without it the library answers every reset request with an error and sends nothing: recovery is then
-      // a command on the server.
+      // Without it the library rejects every reset request; recovery is then a server command.
       ...(emailEnabled && {
-        // Sent after the response: an existing and an unknown address must answer alike and in the same time.
-        // The endpoint limit counts per client address; this one counts per account, so many addresses can not
-        // flood one inbox. A refused mail is dropped without a sign: the answer stays the same.
+        // Sent after the response, so an existing and an unknown address answer alike and in the same time.
+        // This limit is per account, so many addresses cannot flood one inbox. A refused mail is dropped silently.
         sendResetPassword: async ({ user, token }: { user: { id: string; email: string }; token: string }) => {
           sendEmailAfterResponse(resetPasswordEmail(user.email, resetPasswordLink(baseURL, token)), async () => {
             const result = await checkRateLimit({ ...RESET_MAIL_LIMIT, subject: user.id });
@@ -44,13 +41,11 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled, de
         },
       }),
     },
-    // Reset tokens are kept as a hash, so a copy of the table can not be used to reset a password.
+    // Reset tokens are stored as a hash, so a copy of the table cannot reset a password.
     verification: { storeIdentifier: 'hashed' },
-    // The admin changes the sign-in address from the account screen, in two steps: the current address approves, then
-    // the new address gets a link and only that link applies the change. The form also asks for the current password,
-    // so neither a typo nor a stolen session can move the account. Without email there is no link: the change is off.
-    // `isDemo` marks the published demo account (see currentSession). `input: false` keeps every endpoint, including
-    // update-user, from setting it.
+    // Email change: the current address approves, then the new address confirms by link.
+    // The form needs the current password. Off without email.
+    // `input: false` keeps every endpoint, update-user included, from setting `isDemo`.
     user: {
       additionalFields: { isDemo: { type: 'boolean', required: false, defaultValue: false, input: false } },
       changeEmail: {
@@ -76,14 +71,13 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled, de
         sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
           sendEmailAfterResponse(changeEmailEmail(user.email, url));
         },
-        // The link signs its holder in, so once the address has changed every session ends, the holder's included.
+        // The link signs its holder in, so every session ends after the change, the holder's included.
         afterEmailVerification: async (user: { id: string }) => {
           await getDb().session.deleteMany({ where: { userId: user.id } });
         },
       },
     }),
-    // ADR 0004 rule 1: the limits of the sign-in and password reset endpoints are written out, not left to the
-    // library defaults. Each is per client address, with the window in seconds.
+    // Limits are written out, not left to library defaults. Each is per client address, window in seconds.
     rateLimit: {
       enabled: true,
       storage: 'database',
@@ -93,7 +87,7 @@ export function buildAuthOptions({ secret, baseURL, production, emailEnabled, de
         '/reset-password': { window: 60, max: 5 },
       },
     },
-    // A revoked session must stop working at once, so the session is never trusted from the cookie alone.
+    // Sessions are never trusted from the cookie alone, so a revoked one stops working at once.
     session: { cookieCache: { enabled: false }, ...(demo && { expiresIn: DEMO_SESSION_SECONDS }) },
     // The library skips the origin check in the test environment unless told otherwise; both stay on everywhere.
     advanced: { useSecureCookies: production, disableOriginCheck: false, disableCSRFCheck: false },

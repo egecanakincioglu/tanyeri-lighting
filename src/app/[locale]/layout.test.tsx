@@ -5,19 +5,19 @@ import en from '../../../messages/en.json' with { type: 'json' };
 import tr from '../../../messages/tr.json' with { type: 'json' };
 import RootLayout, { generateMetadata } from './layout.tsx';
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Metadata' }) =>
     Promise.resolve((key: 'title') => ({ tr, en })[locale][namespace][key]),
 }));
 
-// The font loader runs in the Next.js build; the fake keeps the CSS variable name the layout asks for.
+// The font loader only runs in the Next.js build.
 vi.mock('next/font/local', () => ({ default: ({ variable }: { variable: string }) => ({ variable }) }));
 
-// connection() only works inside a request; opting into dynamic rendering is its whole effect.
+// connection() only works inside a request.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
 
-// Typed with the generated route contract so the test fails to compile if it changes.
+// Typed with the generated route contract, so the test fails to compile if it changes.
 const layoutProps = (locale: string, children: ReactNode = null): LayoutProps<'/[locale]'> => ({
   children,
   params: Promise.resolve({ locale }),

@@ -37,7 +37,6 @@ type ContactViewProps = {
   action: (previous: ContactState | null, formData: FormData) => Promise<ContactState>;
   honeypotName: string;
   limits: { name: number; email: number; subject: number; message: number };
-  /** A product the visitor asks about: its name and code in the page language. */
   product?: { name: string; code: string };
 };
 

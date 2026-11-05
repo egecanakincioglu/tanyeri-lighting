@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
-# One-time per device and clone: sign every commit and tag with an SSH key.
-#
-#   - An existing user.signingkey (local or global) that points to a .pub file is kept as it is; only what is
-#     missing gets configured (gpg.format, commit.gpgsign, tag.gpgsign, the allowed signers entry).
-#   - Without one, a per-device ed25519 key ~/.ssh/tanyeri_signing_ed25519 is generated (empty passphrase).
-#
-# Idempotent and portable (Linux and Git Bash). Anything that is already correct is left untouched.
+# Sets up SSH signing of commits and tags for this device and clone; safe to run again.
+# Usage: bash tooling/scripts/setup-commit-signing.sh
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
@@ -20,7 +15,7 @@ fi
 # git wants a path it can open natively: on Windows (Git Bash) that is the C:/... form
 native() { cygpath -m "$1" 2>/dev/null || printf '%s' "$1"; }
 
-# Sets a local key only when the effective value (any scope) differs, so a correct global setup stays untouched.
+# Set a local key only when the effective value differs, so a correct global setup stays untouched.
 ensure() {
   if [ "$(git config --get "$1" || true)" != "$2" ]; then
     git config --local "$1" "$2"

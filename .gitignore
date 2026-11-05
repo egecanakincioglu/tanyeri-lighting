@@ -1,8 +1,6 @@
-# Dependencies
 node_modules/
 .pnpm-store/
 
-# Build outputs
 .next/
 out/
 build/
@@ -10,21 +8,19 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 
-# Caches
 .eslintcache
 .cache/
 .prettiercache
 
-# Tests and coverage
 coverage/
 .nyc_output/
 
-# Environment files (.env.example is the only tracked one)
+# .env.example is the only tracked env file
 .env
 .env.*
 !.env.example
 
-# Secrets, private keys and database dumps (mirrors tooling/scripts/check-forbidden-paths.sh)
+# Secrets and dumps (mirrors tooling/scripts/check-forbidden-paths.sh)
 *.pem
 *.key
 *.p12
@@ -35,15 +31,12 @@ id_ed25519*
 /server/uploads/
 *.dump
 
-# Vercel
 .vercel/
 
-# Logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
 
-# OS files
 .DS_Store
 ._*
 Thumbs.db
@@ -53,22 +46,18 @@ $RECYCLE.BIN/
 *~
 .directory
 
-# Editors and IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Local tool reports
 *.sarif
 semgrep-report*
 gitleaks-report*
 
-# Local read-only reference of the legacy site; never tracked
+# Local reference copy of the old site
 /docs/old-source-code/
 
-# Generated Prisma client
 src/generated/
 
-# Site audit output
 /site-audit-report/

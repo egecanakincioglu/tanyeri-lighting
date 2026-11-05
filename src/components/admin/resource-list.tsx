@@ -23,7 +23,7 @@ export type ResourceRow = {
   title: string;
   subtitle?: string;
   imageUrl?: string;
-  /** Replaces the delete dialog's text for this row, for what the deletion also takes with it. Holds `{name}`. */
+  /** Replaces the delete dialog text for this row. Contains `{name}`. */
   deleteBody?: string;
   edit: ComponentProps<typeof Link>['href'];
 };
@@ -33,7 +33,6 @@ export type ResourceListTexts = {
   moveUp: string;
   moveDown: string;
   empty: string;
-  /** Said after the order was saved. */
   reordered: string;
   delete: ConfirmDeleteTexts;
 };
@@ -43,14 +42,11 @@ type Props = {
   locale: string;
   texts: ResourceListTexts;
   formTexts: Pick<FormTexts, 'saved' | 'deleted' | 'errors'>;
-  /** Receives the complete list of ids in the new order. Without it the rows have no arrows. */
+  /** Without it the rows have no arrows. */
   reorder?: ((ids: string[]) => Promise<FormState>) | undefined;
-  /** Cover pictures are portrait pages; the default thumbnail is landscape. */
   portraitImages?: boolean;
   deleteAction: (previous: FormState | null, formData: FormData) => Promise<FormState>;
-  /** Set in the demo: the reason the reorder and delete controls are off. */
   disabledReason?: string | undefined;
-  /** The create action (a link), shown in the empty state. */
   createAction?: ReactNode;
 };
 
@@ -71,7 +67,6 @@ export function Arrow({ up }: { up: boolean }) {
   );
 }
 
-/** Rows with a thumbnail, edit and delete, and buttons that move a row up or down: no dragging needed. */
 export function ResourceList({
   rows,
   locale,
@@ -84,7 +79,7 @@ export function ResourceList({
   createAction,
 }: Props) {
   const [shown, setShown] = useOptimistic(rows);
-  // An action state, so the answer of the server arrives together with the end of the optimistic order.
+  // An action state, so the server's answer arrives together with the end of the optimistic order.
   const [result, runReorder] = useActionState(
     async (_previous: FormState | null, ids: string[]) => (reorder ? reorder(ids) : null),
     null,
@@ -93,8 +88,8 @@ export function ResourceList({
   const [deleted, setDeleted] = useState(false);
   const count = rows.length;
 
-  // The deleted row takes the focus with it, so the page body gets it. While the dialog is still open the page is
-  // inert and the first try does nothing; the run after the row is gone lands.
+  // The deleted row takes focus with it. The page is inert while the dialog is open,
+  // so the first try does nothing; the retry works.
   useEffect(() => {
     if (deleted) document.getElementById('main')?.focus();
   }, [deleted, count]);

@@ -11,8 +11,7 @@ import { formPair, formText, runAction, type FormState } from './form.ts';
 
 const FILE_FIELDS = ['imageUrl'] as const;
 
-// The date field holds a day (YYYY-MM-DD); empty means a draft. Anything else becomes an invalid date, which the
-// schema refuses on `publishedAt`.
+// Empty means a draft; any other text that is not a day becomes an invalid date, which the schema refuses.
 function publishedAt(formData: FormData): Date | null {
   const value = formText(formData, 'publishedAt').trim();
   if (value === '') return null;

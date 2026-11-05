@@ -44,7 +44,6 @@ export async function listApplicationAreas(): Promise<ApplicationArea[]> {
   return rows.map(fromRow);
 }
 
-// The new area goes to the end of the list.
 export async function createApplicationArea(input: unknown): Promise<ApplicationArea> {
   assertWritable();
   const columns = toColumnsOf(applicationAreaSchema.parse(input));
@@ -84,7 +83,7 @@ export async function deleteApplicationArea(id: unknown): Promise<void> {
   if (result.count === 0) throw new ContentNotFoundError('Application area');
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderApplicationAreas(ids: unknown): Promise<void> {
   assertWritable();
   const order = idListSchema.parse(ids);

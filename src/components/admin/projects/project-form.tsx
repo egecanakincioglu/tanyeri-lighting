@@ -20,18 +20,16 @@ type Props = {
   action: Action;
   upload: UploadAction;
   locale: string;
-  /** Set when editing. */
   initial?: { id: string; title: Pair; description: Pair; beforeImageUrl: string; afterImageUrl: string };
   texts: ProjectFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
   markdownTexts: { hint: string; edit: string; preview: string; loading: string };
-  /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of projectSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with projectSchema in src/server/content/schemas.ts.
 const LIMITS = { title: 150, description: 5000 };
 
 export function ProjectForm({
@@ -50,7 +48,7 @@ export function ProjectForm({
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

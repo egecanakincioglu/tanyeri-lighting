@@ -1,6 +1,5 @@
-// Finds the same page in another language from the address in the browser, without the routing code, so the menu's
-// client script stays small. A route lists the full address of one page in every language, with `[name]` for a
-// parameter; the server builds the list from the routing table.
+// Finds the same page in another language from the browser address without routing code,
+// so the client script stays small.
 export type SwitchRoute = Record<string, string>;
 
 export const LOCALE_COOKIE = 'NEXT_LOCALE';

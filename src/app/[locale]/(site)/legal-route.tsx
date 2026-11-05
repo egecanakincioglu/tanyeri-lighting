@@ -14,8 +14,7 @@ import type { LegalPageKey } from '../../../server/content/schemas.ts';
 
 const localeOf = (value: string) => (hasLocale(routing.locales, value) ? value : routing.defaultLocale);
 
-// Shared by the privacy and terms pages. A page whose text was never saved answers 404, like the footer, which
-// does not link to it.
+// Shared by privacy and terms. A page with no saved text answers 404, like the footer link.
 export async function renderLegalPage(key: LegalPageKey, rawLocale: string) {
   const locale = localeOf(rawLocale);
   const [page, header] = await Promise.all([getLegalPage(key), getTranslations({ locale, namespace: 'Header' })]);

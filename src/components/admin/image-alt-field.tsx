@@ -2,7 +2,7 @@ import type { FieldError } from '../../server/admin/form.ts';
 import { BilingualField } from './bilingual-field.tsx';
 import { fieldMessage, type FormTexts } from './texts.ts';
 
-// The limit of imageAlt in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with imageAlt in src/server/content/schemas.ts.
 const IMAGE_ALT_LIMIT = 200;
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
   errors: Record<string, FieldError | undefined>;
 };
 
-/** The description of a picture, in both languages or in neither. The schema reports a half-filled pair on `imageAlt`. */
+/** Both languages or neither; the schema reports a half-filled pair on `imageAlt`. */
 export function ImageAltField({ texts, defaultValue, errors }: Props) {
   return (
     <div className="flex flex-col gap-2">

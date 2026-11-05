@@ -4,7 +4,6 @@ import { assertWritable } from '../demo/guard.ts';
 import { fromColumns, toColumns } from './bilingual.ts';
 import { type HomeBanner, homeBannerSchema, pageKeySchema } from './schemas.ts';
 
-// The banner lives in one row with a fixed id.
 const ROW_ID = 'home';
 
 function fromRow(row: HomeBannerRow): HomeBanner {
@@ -31,9 +30,7 @@ function toColumnsOf(banner: HomeBanner) {
   };
 }
 
-// Before the first save there is no row: the texts and the image are empty, and the buttons point at the product list
-// and the contact page. The result is only a default for readers; it is not stored, and saving still requires every
-// field in both languages.
+// No row yet: texts and image are empty, and the buttons point at the product list and contact page. Not stored.
 function emptyBanner(): HomeBanner {
   const empty = () => ({ tr: '', en: '' });
   return {
@@ -51,7 +48,6 @@ export async function getHomeBanner(): Promise<HomeBanner> {
   return row ? fromRow(row) : emptyBanner();
 }
 
-// Replaces all fields at once; creates the row on the first save.
 export async function updateHomeBanner(input: unknown): Promise<HomeBanner> {
   assertWritable();
   const columns = toColumnsOf(homeBannerSchema.parse(input));

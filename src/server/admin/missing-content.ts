@@ -4,7 +4,6 @@ export type MissingContent = {
   productsWithoutDescription: number;
   productsWithoutTechnicalValue: number;
   draftPosts: number;
-  // Rows whose picture has no description in one of the two languages, per table.
   imagesWithoutDescription: {
     services: number;
     applicationAreas: number;
@@ -17,7 +16,6 @@ export type MissingContent = {
 
 const noAlt = { OR: [{ imageAltTr: '' }, { imageAltEn: '' }] };
 
-// Cheap counts for the panel home: what is still empty and worth filling in. Callers check the session first.
 export async function getMissingContent(): Promise<MissingContent> {
   const db = getDb();
   const [
@@ -38,7 +36,7 @@ export async function getMissingContent(): Promise<MissingContent> {
     db.applicationArea.count({ where: noAlt }),
     db.reference.count({ where: noAlt }),
     db.promoBoard.count({ where: noAlt }),
-    // A catalog without a cover picture has nothing to describe.
+    // A catalog without a cover has nothing to describe.
     db.catalog.count({ where: { AND: [noAlt, { NOT: { coverImageUrl: '' } }] } }),
     db.homeBanner.count({ where: noAlt }),
   ]);

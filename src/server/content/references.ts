@@ -37,7 +37,6 @@ export async function listReferences(): Promise<Reference[]> {
   return rows.map(fromRow);
 }
 
-// The new reference goes to the end of the list.
 export async function createReference(input: unknown): Promise<Reference> {
   assertWritable();
   const columns = toColumnsOf(referenceSchema.parse(input));
@@ -66,7 +65,7 @@ export async function deleteReference(id: unknown): Promise<void> {
   if (result.count === 0) throw new ContentNotFoundError('Reference');
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderReferences(ids: unknown): Promise<void> {
   assertWritable();
   const order = referenceOrderSchema.parse(ids);

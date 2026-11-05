@@ -5,7 +5,7 @@ import { guardAction } from '../auth/guard.ts';
 import { deleteLegalPage, upsertLegalPage } from '../content/legal-pages.ts';
 import { formPair, formText, runAction, type FormState } from './form.ts';
 
-// All four texts empty hides the page (and the footer link); otherwise the service needs both languages filled in.
+// All four texts empty hides the page; otherwise both languages are needed.
 export async function saveLegalPageAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();

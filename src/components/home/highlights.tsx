@@ -9,8 +9,7 @@ import { SiteImage } from '../site-image.tsx';
 
 type Locale = (typeof routing.locales)[number];
 
-// Image widths follow the grid: 2 columns on phones, 6 from 640 px (boards span 2 columns, products 2 then 1), and a
-// fixed page width from 1440 px. Product sizes are the cell widths minus the card padding.
+// Image widths follow the grid: 2 columns on phones, 6 from 640 px, a fixed page width from 1440 px.
 const boardSizes =
   '(min-width: 150rem) 520px, (min-width: 120rem) 467px, (min-width: 90rem) 424px, (min-width: 40rem) calc(30.7vw - 0.83rem), 92vw';
 const productSizes =
@@ -53,7 +52,7 @@ function Board({ board, label, locale }: { board: PromoBoard; label: string; loc
   );
 }
 
-/** One grid: the promo boards (3 wide cells), then the featured products. Renders nothing when both are empty. */
+/** Renders nothing when both lists are empty. */
 export function Highlights({ title, boardLabel, boards, products, locale }: HighlightsProps) {
   if (boards.length === 0 && products.length === 0) return null;
 

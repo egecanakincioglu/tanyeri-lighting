@@ -1,4 +1,3 @@
-// Tests for check-licenses.ts: SPDX evaluation and the @img/sharp-* LGPL exception (no pnpm call).
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { evaluate, isAllowed } from './check-licenses.ts';

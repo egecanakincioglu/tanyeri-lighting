@@ -9,7 +9,7 @@ import { idSchema } from '../content/schemas.ts';
 import { deleteMessage, markMessageRead } from '../contact/service.ts';
 import { formText, runAction, type FormState } from './form.ts';
 
-// Deletes one message and goes back to the list. Nothing of the message is logged: it holds personal data.
+// Nothing of the message is logged: it holds personal data.
 export async function deleteMessageAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   const result = await runAction(async () => {
     await guardAction();
@@ -22,7 +22,6 @@ export async function deleteMessageAction(_previous: FormState | null, formData:
   return result;
 }
 
-// Opening a message reads it. The refresh brings the unread count in the menu up to date. The demo refuses the write.
 export async function markMessageReadAction(id: string): Promise<void> {
   await runAction(async () => {
     await guardAction();

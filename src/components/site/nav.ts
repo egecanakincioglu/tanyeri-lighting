@@ -1,5 +1,5 @@
-// The public menu: message keys under `Header` and page addresses as keys of the routing table. The header, the side menu and the
-// footer are built from this one list. Pages that do not exist yet answer with the not-found page.
+// Message keys under `Header` and page addresses as keys of the routing table;
+// the header, side menu and footer use this one list.
 import type { StaticPath } from '../../i18n/routing.ts';
 
 export type NavEntry = {

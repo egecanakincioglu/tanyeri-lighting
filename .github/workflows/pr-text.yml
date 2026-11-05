@@ -1,7 +1,6 @@
 name: pr-text
 
-# Checks of the pull request title and description. Kept apart from the `ci` workflow so that editing the
-# description re-runs only these checks and not the whole pipeline.
+# Separate from `ci` so editing the description re-runs only these checks.
 on:
   pull_request:
     branches: [main]
@@ -27,7 +26,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-      # Dependabot titles are not ours to word (length, language); the forbidden-term scan below still applies.
+      # Dependabot titles are fixed; the forbidden-term scan below still applies.
       - name: Validate pull request title
         if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
         env:

@@ -1,4 +1,3 @@
-// Tests for release-check.ts: the pure helpers plus the CLI against real temporary git repositories.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

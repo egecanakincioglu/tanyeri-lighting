@@ -13,10 +13,9 @@ import { failure, formPair, formText, runAction, type FormState } from './form.t
 
 const FILE_FIELDS = ['pdfUrl', 'coverImageUrl'] as const;
 
-// The size is what the file store holds for the address, never a value of the form. A catalog whose PDF did not change
-// keeps the size it has, so saving the name does not need the store.
+// The size comes from the file store, never from the form.
 async function catalogInput(formData: FormData, currentId?: string) {
-  // Before the lookup, so the demo answers that it is read-only and not that the file store is off.
+  // Before the lookup, so the demo says read-only, not that the file store is off.
   assertWritable();
   const pdfUrl = formText(formData, 'pdfUrl');
   let sizeBytes = 0;

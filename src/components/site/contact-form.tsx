@@ -23,20 +23,18 @@ export type ContactFormTexts = {
 };
 
 type ContactFormProps = {
-  /** The Server Action; it also runs when the form is posted without JavaScript. */
+  /** Also runs when the form is posted without JavaScript. */
   action: (previous: ContactState | null, formData: FormData) => Promise<ContactState>;
   locale: string;
   honeypotName: string;
   limits: { name: number; email: number; subject: number; message: number };
   texts: ContactFormTexts;
-  /** Fills the form on first render, e.g. a subject for a product enquiry. */
   initialValues?: { subject?: string };
 };
 
 const resultClass = 'rounded-lg border border-hairline bg-surface p-6 shadow-sm';
 
-// Lowercase attributes that browsers with in-page tool support read; React renders unknown lowercase attributes as
-// they are, and the spread keeps them out of the typed props of the form element.
+// Lowercase attributes read by in-page tool support; the spread keeps them out of the form element's typed props.
 const WEBMCP_HINTS: Record<string, string> = {
   toolname: 'send_contact_message',
   tooldescription: 'Sends a message to the company through the contact form: name, email, subject and message.',
@@ -44,8 +42,7 @@ const WEBMCP_HINTS: Record<string, string> = {
 
 export function ContactForm({ action, locale, honeypotName, limits, texts, initialValues }: ContactFormProps) {
   const [state, formAction, pending] = useActionState(action, null);
-  // Controlled, so the visitor's words survive a refused submission. Without JavaScript the server sends them back
-  // with the refusal, and the page renders with that state from the start.
+  // Controlled, so the visitor's words survive a refusal; without JavaScript the server sends them back.
   const [values, setValues] = useState(() =>
     state && 'values' in state
       ? state.values

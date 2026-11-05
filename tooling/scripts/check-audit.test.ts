@@ -1,4 +1,3 @@
-// Tests for check-audit.ts: the pure evaluation (no network) and the missing-file exit code.
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import os from 'node:os';

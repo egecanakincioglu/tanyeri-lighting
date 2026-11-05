@@ -3,7 +3,6 @@ import type { FormTexts } from './texts.ts';
 
 type Props = { state: FormState | null; texts: Pick<FormTexts, 'saved' | 'errors'>; successText?: string };
 
-/** Success and failure of the last submit. Both regions stay in the page so a screen reader announces a change. */
 export function FormStatus({ state, texts, successText }: Props) {
   const failed = state?.status === 'error' ? state : null;
   return (

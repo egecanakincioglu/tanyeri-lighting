@@ -31,7 +31,7 @@ export default async function EditApplicationAreaPage({
     listApplicationAreas(),
   ]);
   const props = await areaFormProps(locale, categories);
-  // There are only a few areas and no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const area = areas.find((item) => item.id === id);
   if (!area) notFound();
 

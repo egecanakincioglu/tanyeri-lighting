@@ -31,7 +31,7 @@ vi.mock('../../../server/content/site-settings.ts', () => ({ getSiteSettings: co
 vi.mock('../../../server/content/social-links.ts', () => ({ listSocialLinks: content.links }));
 vi.mock('../../../server/content/application-areas.ts', () => ({ listApplicationAreas: content.areas }));
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Home' | 'DemoBand' | 'Footer' }) =>
     Promise.resolve((key: string) => (({ tr, en })[locale][namespace] as Record<string, string>)[key]),
@@ -84,7 +84,6 @@ const products = [1, 2].map((n) => ({
   ip: '',
   imageUrl: '/demo/product-gomme-spot.webp',
 })) satisfies Product[];
-// The first area links to a category; the second has none.
 const areas: ApplicationArea[] = [1, 2].map((n) => ({
   id: `area-${n}`,
   imageUrl: '/demo/area-konut.webp',
@@ -106,7 +105,7 @@ const settings: SiteSettings = {
   languages: pair('Languages'),
 };
 
-// Addresses are localized: the Turkish ones differ from the route keys.
+// Turkish addresses differ from the route keys.
 const PATHS = {
   tr: { products: '/tr/urunler', contact: '/tr/iletisim', catalogs: '/tr/kataloglar', product: '/tr/urunler/lamp-2' },
   en: { products: '/en/products', contact: '/en/contact', catalogs: '/en/catalogs', product: '/en/products/lamp-2' },

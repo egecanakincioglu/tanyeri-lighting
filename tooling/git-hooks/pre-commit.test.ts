@@ -1,6 +1,5 @@
-// End-to-end test of the pre-commit hook in a throwaway repo whose core.hooksPath points at the real hooks.
-// A stub gitleaks binary is put first on PATH so the test never needs docker; the real rules are tested in
-// gitleaks-rules.test.ts.
+// End-to-end test of the pre-commit hook in a throwaway repo. A stub gitleaks keeps docker out;
+// the real rules are in gitleaks-rules.test.ts.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import {
@@ -24,7 +23,6 @@ import { fakeGitleaks, installScannerStubs, PINNED_GITLEAKS as PINNED, stubBin }
 const tooling = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bash = resolveBash() as string; // null only without a usable bash, and then every suite is skipped
 
-// a repo on main with the check scripts committed (hooks off), switched to `branch`
 type Git = (...args: string[]) => SpawnSyncReturns<string>;
 
 const withRepo = (branch: string, fn: (repo: string, git: Git) => void): void => {
@@ -97,7 +95,7 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
     withRepo('feat/x', (repo, git) => {
       writeFileSync(path.join(repo, 'a.txt'), 'x\n');
       git('add', '-A');
-      // run directly: the commit-msg hook would additionally demand a message body
+      // Run directly: commit-msg would also demand a body.
       const r = spawnSync(bash, [path.join(tooling, 'git-hooks', 'pre-commit')], {
         cwd: repo,
         encoding: 'utf8',
@@ -120,7 +118,6 @@ describe('pre-commit hook', { skip: bash ? false : 'bash not found' }, () => {
     });
   });
 
-  // runs the hook directly with the stub dir first on PATH
   const runHook = (repo: string): SpawnSyncReturns<string> =>
     spawnSync(bash, [path.join(tooling, 'git-hooks', 'pre-commit')], {
       cwd: repo,

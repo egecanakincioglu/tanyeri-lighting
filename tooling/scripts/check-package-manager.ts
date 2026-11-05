@@ -1,9 +1,5 @@
-// The package manager is pinned exactly: package.json "packageManager" must be pnpm@<x.y.z>+sha512.<hex>, so Corepack
-// installs the same bytes everywhere and a range, tag or missing hash can not slip in.
-//
+// Fails when package.json "packageManager" is not pinned to pnpm@<x.y.z>+sha512.<hex>.
 //   node tooling/scripts/check-package-manager.ts
-//
-// Exit codes: 0 ok, 1 not pinned, 2 package.json unreadable. Reads package.json in the working directory.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

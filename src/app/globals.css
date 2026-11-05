@@ -1,13 +1,12 @@
 @import 'tailwindcss';
 
-/* Tanyeri brand tokens. The site has one light theme. */
 @theme {
   --color-*: initial;
   --color-page: #f5f5f5;
   --color-surface: #ffffff;
   --color-ink: #2b2b2b;
   --color-muted: #666666;
-  /* Accent fills carry dark label text; accent text is for links and labels on light grounds. */
+  /* Accent fills take dark text; accent text is for links on light grounds. */
   --color-accent: #e8730a;
   --color-accent-hover: #f28a1f;
   --color-on-accent: #1a1a1a;
@@ -16,7 +15,7 @@
   --color-hairline: #d9d9d9;
   --color-error: #b3261e;
   --color-success: #1b6b3a;
-  /* Pure white and black, for text on photos and for overlays such as the menu backdrop. */
+  /* For text on photos and overlays. */
   --color-white: #ffffff;
   --color-black: #000000;
 
@@ -42,7 +41,6 @@
   --tracking-tight: -0.015em;
 
   --spacing: 0.25rem;
-  /* Minimum size of a touch target. */
   --spacing-touch: 2.75rem;
 
   --radius-*: initial;
@@ -72,7 +70,7 @@
     }
   }
 
-  /* Content width; the base layer raises it on very wide screens. */
+  /* Content width; raised on very wide screens. */
   --container-page: 75rem;
 
   --breakpoint-*: initial;
@@ -88,7 +86,7 @@
   --breakpoint-4xl: 150rem;
 }
 
-/* Inline so the value follows the font variable set on <html>. */
+/* Inline so it follows the font variable on <html>. */
 @theme inline {
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 }
@@ -96,7 +94,7 @@
 @layer base {
   :root {
     --gutter: clamp(1rem, 4vw, 4rem);
-    /* Height of the sticky header bar; anchors and focused elements stop below it. */
+    /* Sticky header height; anchors and focus stop below it. */
     --header-h: 4rem;
   }
 

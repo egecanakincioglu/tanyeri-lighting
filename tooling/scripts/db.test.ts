@@ -1,4 +1,3 @@
-// Tests for db.ts: the pure parts and the flow against a fake docker; the real docker is never called.
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { main, parseInspect, runArgs, upAction } from './db.ts';

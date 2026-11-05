@@ -32,8 +32,6 @@ export async function listCatalogs(): Promise<Catalog[]> {
   return rows.map(fromRow);
 }
 
-// The file is uploaded by the storage module; this stores the address and size it returned. The new catalog goes to
-// the end of the list.
 export async function createCatalog(input: unknown): Promise<Catalog> {
   assertWritable();
   const columns = toColumnsOf(catalogSchema.parse(input));
@@ -56,8 +54,7 @@ export async function updateCatalog(id: unknown, input: unknown): Promise<Catalo
   }
 }
 
-// A catalog that a promo board links to is kept: the foreign key refuses the delete, so a board created at the same
-// moment cannot slip through a separate check.
+// The foreign key refuses to delete a catalog a board links to, so a new board cannot slip through.
 export async function deleteCatalog(id: unknown): Promise<void> {
   assertWritable();
   const catalogId = idSchema.parse(id);
@@ -70,7 +67,7 @@ export async function deleteCatalog(id: unknown): Promise<void> {
   }
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderCatalogs(ids: unknown): Promise<void> {
   assertWritable();
   const order = idListSchema.parse(ids);

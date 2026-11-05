@@ -4,8 +4,7 @@ import type { PrismaClient } from '../../generated/prisma/client.ts';
 import { adminEmailSchema, adminPasswordSchema } from '../env.ts';
 import type { AdminCredentials } from '../env.ts';
 
-// The rows are written the way Better Auth writes them for an email sign-in: one user and one `credential`
-// account whose accountId is the user id and whose password is the library's own hash (ADR 0003 rule 9).
+// Writes the rows Better Auth writes for an email sign-in: one user and one `credential` account.
 // Sign-up stays closed, so the public endpoint cannot be used for this.
 export async function createFirstAdmin(
   db: PrismaClient,
@@ -30,7 +29,7 @@ export async function createFirstAdmin(
 // The demo seed runs again on every deploy, so an existing demo admin gets the configured password back.
 export async function upsertDemoAdmin(db: PrismaClient, credentials: AdminCredentials): Promise<'created' | 'updated'> {
   const result = (await createFirstAdmin(db, credentials)) === 'created' ? 'created' : 'updated';
-  // Also marks an account that was seeded before the column existed.
+  // Also flags an account seeded before the column existed.
   await db.user.update({ where: { email: credentials.email }, data: { isDemo: true } });
   if (result === 'updated') {
     await db.account.updateMany({
@@ -52,7 +51,7 @@ export function parseResetInput(email: string | undefined, password: string): Ad
   return { email: parsedEmail.data, password: parsedPassword.data };
 }
 
-// Recovery without email: the new hash is stored and every session of that user ends in one transaction.
+// Ends every session of the user in the same transaction as the password change.
 export async function resetAdminPassword(
   db: PrismaClient,
   { email, password }: AdminCredentials,

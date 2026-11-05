@@ -11,7 +11,6 @@ import { failure, formPair, formText, runAction, type FormState } from './form.t
 
 const FILE_FIELDS = ['imageUrl'] as const;
 
-// The record as it is before a change, to know which files the change leaves behind.
 async function findProduct(id: string) {
   return (await listProducts()).find((item) => item.id === id);
 }
@@ -68,7 +67,6 @@ export async function deleteProductAction(_previous: FormState | null, formData:
   });
 }
 
-// The order of one category: the list page binds the category's id and offers the arrows only for a whole category.
 export async function reorderProductsAction(categoryId: string, ids: string[]): Promise<FormState> {
   return runAction(async () => {
     await guardAction();

@@ -11,7 +11,6 @@ import { failure, formPair, formText, runAction, type FormState } from './form.t
 
 const FILE_FIELDS = ['imageUrl'] as const;
 
-// The record as it is before a change, to know which files the change leaves behind.
 async function findService(id: string) {
   return (await listServices()).find((item) => item.id === id);
 }

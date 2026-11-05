@@ -12,7 +12,7 @@ const content = vi.hoisted(() => ({ categories: vi.fn(), product: vi.fn() }));
 vi.mock('../../../../../server/content/categories.ts', () => ({ listCategories: content.categories }));
 vi.mock('../../../../../server/content/products.ts', () => ({ getProductBySlug: content.product }));
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Product' | 'Header' }) =>
     Promise.resolve((key: string, values?: Record<string, string>) =>

@@ -42,15 +42,13 @@ type Props = {
   createAction: Action;
   updateAction: Action;
   deleteAction: Action;
-  /** Receives the complete list of ids in the new order. */
   reorder: (ids: string[]) => Promise<FormState>;
   texts: SocialLinksTexts;
   formTexts: FormTexts;
-  /** Set in the demo: the reason every control is off. */
   disabledReason?: string | undefined;
 };
 
-// The limits of socialLinkSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with socialLinkSchema in src/server/content/schemas.ts.
 const LIMITS = { platform: 40, label: 60, url: 2048 };
 
 const iconButton =
@@ -71,13 +69,11 @@ function Arrow({ up }: { up: boolean }) {
 }
 
 type LinkFormProps = {
-  /** Set when editing. */
   link?: Link;
   action: Action;
   texts: SocialLinksTexts;
   formTexts: FormTexts;
   disabledReason?: string | undefined;
-  /** Controls placed next to the save button, outside the form's own fields. */
   children?: ReactNode;
 };
 
@@ -88,12 +84,11 @@ function LinkForm({ link, action, texts, formTexts, disabledReason, children }: 
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
   const prefix = `link-${link?.id ?? 'new'}`;
 
-  // A saved new link empties the form for the next one.
   useEffect(() => {
     if (!link && state?.status === 'success') form.current?.reset();
   }, [link, state]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -150,7 +145,6 @@ function LinkForm({ link, action, texts, formTexts, disabledReason, children }: 
   );
 }
 
-/** The social links of the footer: each one is edited in place, the new one is added below the list. */
 export function SocialLinksEditor({
   links,
   locale,

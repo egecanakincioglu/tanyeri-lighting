@@ -12,8 +12,7 @@ import {
   type BlogPostSummary,
 } from './schemas.ts';
 
-// A draft has no publication date, and a date in the future is not public yet. Every public read goes through this
-// filter, so there is one rule for what a visitor can see.
+// Drafts and future dates are not public. Every public read uses this filter.
 const isPublic = () => ({ publishedAt: { not: null, lte: new Date() } });
 
 const newestFirst = [{ publishedAt: 'desc' as const }, { id: 'desc' as const }];
@@ -52,13 +51,11 @@ function toColumnsOf(post: BlogPostInput) {
 
 const noBody = { bodyTr: true, bodyEn: true } as const;
 
-// The published articles, newest first, without their bodies.
 export async function listPublishedPosts(): Promise<BlogPostSummary[]> {
   const rows = await getDb().blogPost.findMany({ where: isPublic(), orderBy: newestFirst, omit: noBody });
   return rows.map(summaryFromRow);
 }
 
-// The newest published articles other than the given one, for the links under an article.
 export async function listOtherPosts(slug: string, limit: number): Promise<BlogPostSummary[]> {
   const rows = await getDb().blogPost.findMany({
     where: { ...isPublic(), slug: { not: slug } },
@@ -69,14 +66,12 @@ export async function listOtherPosts(slug: string, limit: number): Promise<BlogP
   return rows.map(summaryFromRow);
 }
 
-// A draft or an unknown slug gives null.
 export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | null> {
   const row = await getDb().blogPost.findFirst({ where: { ...isPublic(), slug } });
   return row ? fromRow(row) : null;
 }
 
-// An old slug of a published article gives its current slug, however many times the slug changed since. A draft's old
-// address is as unknown as the draft itself. A value that cannot be a slug is unknown, so the lookup never runs.
+// An old slug of a published article gives its current slug. Old slugs of drafts are not resolved.
 export async function getPublishedPostRedirect(slug: string): Promise<string | null> {
   if (!KEBAB_CASE.test(slug)) return null;
   const redirect = await getDb().blogPostSlugRedirect.findUnique({
@@ -95,7 +90,6 @@ export async function listPostChanges(): Promise<{ slug: string; updatedAt: Date
   });
 }
 
-// For the panel: drafts included, drafts first.
 export async function listPosts(): Promise<BlogPostSummary[]> {
   const rows = await getDb().blogPost.findMany({
     orderBy: [{ publishedAt: { sort: 'desc', nulls: 'first' } }, { id: 'desc' }],
@@ -109,9 +103,7 @@ export async function getPost(id: unknown): Promise<BlogPost | null> {
   return row ? fromRow(row) : null;
 }
 
-// A slug is free when no other article has it and it is not an old slug of another article: that redirect is kept, so
-// the other article's old address never starts to show a different one. The article's own old slug is free; the
-// caller removes that redirect.
+// Free if no other article has it or redirects from it. The article's own old slugs are free.
 async function assertSlugFree(tx: Prisma.TransactionClient, slug: string, postId?: string): Promise<void> {
   const post = await tx.blogPost.findUnique({ where: { slug }, select: { id: true } });
   const redirect = await tx.blogPostSlugRedirect.findUnique({ where: { oldSlug: slug }, select: { postId: true } });
@@ -133,7 +125,6 @@ export async function createPost(input: unknown): Promise<BlogPost> {
   }
 }
 
-// A changed slug is remembered as a redirect.
 export async function updatePost(id: unknown, input: unknown): Promise<BlogPost> {
   assertWritable();
   const postId = idSchema.parse(id);
@@ -156,7 +147,6 @@ export async function updatePost(id: unknown, input: unknown): Promise<BlogPost>
   }
 }
 
-// The redirects of the article are deleted with it.
 export async function deletePost(id: unknown): Promise<void> {
   assertWritable();
   const result = await getDb().blogPost.deleteMany({ where: { id: idSchema.parse(id) } });

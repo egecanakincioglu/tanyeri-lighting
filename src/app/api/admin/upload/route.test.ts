@@ -17,7 +17,6 @@ function post(body: unknown): Request {
   return new Request('http://localhost/api/admin/upload', { method: 'POST', body: JSON.stringify(body) });
 }
 
-// Runs the real options callback the route hands to the library, as the library would.
 type Options = { onBeforeGenerateToken: (pathname: string) => Promise<Record<string, unknown>> };
 function callbackOf(): Options['onBeforeGenerateToken'] {
   return (mocks.handleUpload.mock.calls[0]?.[0] as Options).onBeforeGenerateToken;

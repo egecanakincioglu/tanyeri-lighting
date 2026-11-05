@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Blocks pushing to main; main only changes through merged pull requests.
+# Blocks pushing to main. Installed by tooling/scripts/setup-git-hooks.sh.
 set -euo pipefail
-# the ref lines arrive on stdin once; keep them so the optional local hook below can read them too
+# stdin can be read once; keep the refs for the local hook below.
 refs="$(cat)"
 while read -r _local_ref _local_sha remote_ref _remote_sha; do
   if [ "$remote_ref" = "refs/heads/main" ]; then
@@ -10,7 +10,6 @@ while read -r _local_ref _local_sha remote_ref _remote_sha; do
   fi
 done <<<"$refs"
 
-# run an optional machine-local hook of the same name
 local_hook="$(git rev-parse --path-format=absolute --git-common-dir)/hooks/pre-push"
 if [ -x "$local_hook" ]; then
   { [ -z "$refs" ] || printf '%s\n' "$refs"; } | "$local_hook" "$@"

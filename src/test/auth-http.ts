@@ -8,13 +8,13 @@ export const ADMIN_EMAIL = 'admin@example.com';
 export const ADMIN_PASSWORD = 'correct horse battery staple';
 export const OTHER_PASSWORD = 'another long passphrase 42';
 
-// The limits are per client address and endpoint, so every test uses addresses of its own.
+// Limits are per address and endpoint, so each test uses its own addresses.
 let nextAddress = 1;
 function freshAddress(): string {
   return `203.0.113.${nextAddress++}`;
 }
 
-// The tests call the library handler itself: the route in front of it answers only the few paths a browser uses.
+// Calls the library handler directly; the route in front answers only a few paths.
 export function handle(request: Request): Promise<Response> {
   return getAuth().handler(request);
 }
@@ -35,7 +35,6 @@ export function signIn(password: string, options: CallOptions = {}): Promise<Res
   return handle(authRequest('/sign-in/email', { email: ADMIN_EMAIL, password }, options));
 }
 
-// The name=value pairs of the Set-Cookie headers, ready to send back as a Cookie header.
 export function cookieOf(response: Response): string {
   return response.headers
     .getSetCookie()
@@ -56,7 +55,6 @@ export async function loginCookie(options: CallOptions = {}): Promise<string> {
   return cookieOf(response);
 }
 
-// Empties every table the authentication tests touch and creates the one admin with ADMIN_PASSWORD.
 export async function resetAdmin(): Promise<void> {
   const db = getDb();
   await db.rateLimit.deleteMany();

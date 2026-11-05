@@ -11,8 +11,7 @@ import {
 } from '../content/errors.ts';
 import { StorageDisabledError, UploadRejectedError } from '../storage/index.ts';
 
-// What every panel Server Action hands back to its form. The texts live in messages/*.json (AdminForm); the server
-// only names the case, so the language of the page decides the wording and no raw error text reaches the browser.
+// Only the case is named here; the page language picks the wording and no raw error text reaches the browser.
 
 export type FieldError = { code: 'required' | 'tooLong' | 'invalid' | 'taken'; max?: number };
 
@@ -41,7 +40,6 @@ export function failure(code: ErrorCode, fieldErrors: Record<string, FieldError>
   return { status: 'error', code, fieldErrors };
 }
 
-// The first issue per field. A bilingual field is `title.tr` and `title.en`, which are the names of its inputs.
 function fieldErrorsOf(error: ZodError): Record<string, FieldError> {
   const errors: Record<string, FieldError> = {};
   for (const issue of error.issues) {
@@ -67,20 +65,18 @@ function mapError(error: unknown): FormState {
   if (error instanceof UnauthorizedError) return failure('unauthorized');
   if (error instanceof ContentNotFoundError) return failure('notFound');
   if (error instanceof InvalidOrderError) return failure('invalidOrder');
-  // The field that collided is marked, so the form shows the message next to the value to change.
   if (error instanceof ValueTakenError) return failure('taken', { [error.field]: { code: 'taken' } });
   if (error instanceof CategoryLimitError) return failure('categoryLimit');
   if (error instanceof CategoryNotEmptyError) return failure('categoryNotEmpty');
   if (error instanceof CatalogInUseError) return failure('catalogInUse');
   if (error instanceof StorageDisabledError) return failure('storageOff');
   if (error instanceof UploadRejectedError) return failure(REJECTIONS[error.reason]);
-  // The real cause stays in the server log; the form only says that something went wrong.
+  // The real cause stays in the server log.
   console.error('Admin action failed', error);
   return failure('generic');
 }
 
-// Runs the body of a Server Action. Each action calls guardAction() itself inside `work`
-// (tooling/scripts/check-admin-guard.ts looks for it in the action), so the guard's error ends up here too.
+// Each action calls guardAction() inside `work`; check-admin-guard looks for it there.
 export async function runAction(work: () => Promise<FormState | void>): Promise<FormState> {
   try {
     return (await work()) ?? { status: 'success' };
@@ -94,7 +90,6 @@ export function formText(formData: FormData, name: string): string {
   return typeof value === 'string' ? value : '';
 }
 
-// The two inputs of a bilingual field are named `<name>.tr` and `<name>.en`.
 export function formPair(formData: FormData, name: string): { tr: string; en: string } {
   return { tr: formText(formData, `${name}.tr`), en: formText(formData, `${name}.en`) };
 }

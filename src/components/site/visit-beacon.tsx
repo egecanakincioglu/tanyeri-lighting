@@ -3,8 +3,9 @@
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
-// Counts a page view once the page is really opened in a browser: prefetches and crawlers that run no script never
-// reach this effect. It stays tiny on purpose; the home page is close to its weight budget (ADR 0009).
+// Counts a view only when the page really opens in a browser:
+// prefetches and crawlers without script never reach this effect.
+// Keep it tiny; the home page is close to its weight budget.
 export function VisitBeacon() {
   const pathname = usePathname();
   useEffect(() => {

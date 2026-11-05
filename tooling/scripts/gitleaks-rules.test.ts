@@ -1,5 +1,4 @@
-// Runs the pinned gitleaks image with the repository's .gitleaks.toml on a temp repo seeded with fixtures.
-// Skipped with a message when no container engine is reachable.
+// Runs the pinned gitleaks image with .gitleaks.toml on fixtures; skipped when no container engine is reachable.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

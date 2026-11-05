@@ -4,7 +4,6 @@ import { axeViolations } from '../../test/axe.ts';
 import { AdminShell } from './shell.tsx';
 
 function renderShell(locale: 'tr' | 'en') {
-  // The shell brings the language provider itself; the public site has none.
   return render(
     <AdminShell locale={locale} logoLabel="Tanyeri Lighting" backLabel="Back to the site">
       <h1>Title</h1>

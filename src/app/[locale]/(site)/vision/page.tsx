@@ -15,7 +15,7 @@ import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getAboutPage } from '../../../../server/content/about-page.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 
-// The vision text is stored with the about page; the description is the page's own entry in the page info.
+// The text is stored with the about page; the description is its own page-info entry.
 export async function generateMetadata({ params }: PageProps<'/[locale]/vision'>): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};

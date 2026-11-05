@@ -14,7 +14,7 @@ import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listProjects } from '../../../../server/content/projects.ts';
 
-// One project per row, at most 56 rem wide; below that the gutters are 4 vw (1 rem under 25 rem).
+// One project per row, max 56 rem; gutters are 4 vw (1 rem under 25 rem).
 const sizes = '(min-width: 61rem) 56rem, (min-width: 25rem) 92vw, calc(100vw - 2rem)';
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/projects'>): Promise<Metadata> {

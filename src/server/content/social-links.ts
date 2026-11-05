@@ -24,7 +24,6 @@ export async function listSocialLinks(): Promise<SocialLink[]> {
   return rows.map(fromRow);
 }
 
-// The new link goes to the end of the list.
 export async function createSocialLink(input: unknown): Promise<SocialLink> {
   assertWritable();
   const columns = toColumnsOf(socialLinkSchema.parse(input));
@@ -53,7 +52,7 @@ export async function deleteSocialLink(id: unknown): Promise<void> {
   if (result.count === 0) throw new ContentNotFoundError('Social link');
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderSocialLinks(ids: unknown): Promise<void> {
   assertWritable();
   const order = socialLinkOrderSchema.parse(ids);

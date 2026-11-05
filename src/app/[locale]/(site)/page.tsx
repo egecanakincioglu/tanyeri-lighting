@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]'>): Prom
   }
   const page = await getPageMetadata('home');
   const { title, ...rest } = toMetadata(page, locale);
-  // The saved home title already carries the brand, so the site template is skipped.
+  // The saved home title has the brand, so skip the site template.
   return { ...rest, ...(title ? { title: { absolute: String(title) } } : {}), ...pageSeo(locale, '/') };
 }
 
@@ -48,7 +48,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     listApplicationAreas(),
   ]);
 
-  // Scaled and tilted cards must never widen the page.
+  // Scaled and tilted cards must not widen the page.
   return (
     <div className="overflow-x-clip">
       <JsonLd data={websiteData(settings, locale)} />

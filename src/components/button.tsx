@@ -8,9 +8,7 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary: 'border-accent bg-accent text-on-accent hover:border-accent-hover hover:bg-accent-hover',
-  // The quiet choice next to a primary action, on a white surface.
   outline: 'border-hairline bg-surface text-ink hover:border-accent hover:text-accent-text',
-  // For use on photos: a white outline over the image scrim.
   ghost: 'border-white/70 bg-transparent text-white hover:border-white hover:bg-white/15',
 };
 
@@ -24,7 +22,6 @@ export function Button({ variant = 'primary', type = 'button', ...rest }: Button
 
 type ButtonLinkProps = Omit<ComponentProps<typeof Link>, 'className'> & { variant?: Variant };
 
-/** A link that looks like a button, for navigation that is not an action. */
 export function ButtonLink({ variant = 'primary', ...rest }: ButtonLinkProps) {
   return <Link className={`${base} ${variants[variant]}`} {...rest} />;
 }

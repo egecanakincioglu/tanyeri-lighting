@@ -4,7 +4,7 @@ const WINDOWS = [
   'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
 ];
 
-/** CHROME_PATH wins; otherwise the first known install location that exists, or null. */
+/** CHROME_PATH wins over the known install locations. */
 export function findChrome(
   env: Record<string, string | undefined>,
   platform: string,

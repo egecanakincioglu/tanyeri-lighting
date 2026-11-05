@@ -6,7 +6,6 @@ const controlClass =
 type FieldProps = {
   id: string;
   label: string;
-  /** Already translated; shown under the control and tied to it for screen readers. */
   error?: string;
 };
 

@@ -1,10 +1,5 @@
-// Site audit thresholds only tighten: between base and head, tooling/site-audit/thresholds.json may raise category
-// scores and the expected score, lower budgets and add keys, but no score may drop, be removed or sit below 90, and no
-// budget may grow or be removed.
-//
+// Fails when tooling/site-audit/thresholds.json lowers a score, drops one below 90 or loosens a budget.
 //   node tooling/scripts/check-site-audit-thresholds.ts --base <sha> --head <sha>
-//
-// Exit codes: 0 ok, 1 a threshold was loosened, 2 usage or git error. Portable: Node only.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,7 +13,6 @@ export interface Thresholds {
   budgets?: Record<string, number>;
 }
 
-/** Every score (categories plus expected) by display name. */
 function scores(t: Thresholds): Map<string, number> {
   const all = new Map<string, number>();
   for (const [k, v] of Object.entries(t.categories ?? {})) all.set(`category ${k}`, v);
@@ -26,7 +20,6 @@ function scores(t: Thresholds): Map<string, number> {
   return all;
 }
 
-/** Problems found when going from the base thresholds to the head thresholds (empty when none). */
 export function compare(base: Thresholds, head: Thresholds): string[] {
   const problems: string[] = [];
   const headScores = scores(head);

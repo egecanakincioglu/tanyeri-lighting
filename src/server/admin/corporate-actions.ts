@@ -8,9 +8,7 @@ import { createSocialLink, deleteSocialLink, reorderSocialLinks, updateSocialLin
 import { discardChangedFiles } from './files.ts';
 import { failure, formPair, formText, runAction, type FormState } from './form.ts';
 
-// The company screens: the business details with the social links, and the about page. The services validate again
-// and refuse writes in the demo; the public pages read the database on every request, so refresh() only redraws the
-// panel screen the action came from.
+// The public pages read the database on every request, so refresh() only redraws the panel screen.
 
 export async function updateSiteSettingsAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {

@@ -5,8 +5,7 @@ import { callAuth } from './call.ts';
 import { guardAction, UnauthorizedError } from '../auth/guard.ts';
 import { safeLocale, signInPath } from './paths.ts';
 
-// The guard is imported by its full path because tooling/scripts/check-admin-guard.ts looks for it that way.
-// A real form post. Without a session there is nothing to end, and the visitor lands on the sign-in page either way.
+// The guard is imported by its full path because check-admin-guard.ts looks for it that way.
 export async function signOutAction(formData: FormData): Promise<void> {
   let signedIn = true;
   try {

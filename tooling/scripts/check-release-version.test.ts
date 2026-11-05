@@ -1,4 +1,3 @@
-// Tests for check-release-version.ts: the pure rules plus the CLI against real temporary git repositories.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

@@ -9,7 +9,6 @@ import { SubmitButton } from './submit-button.tsx';
 import type { FormTexts } from './texts.ts';
 
 export type ConfirmDeleteTexts = {
-  /** The label of the button that opens the dialog. */
   trigger: string;
   title: string;
   /** Holds `{name}`, replaced with what will be deleted. */
@@ -20,20 +19,15 @@ export type ConfirmDeleteTexts = {
 };
 
 type Props = {
-  /** What will be deleted, shown in the dialog. */
   name: string;
-  /** Hidden fields the action needs, such as the id and the language. */
   fields: Record<string, string>;
   action: (previous: FormState | null, formData: FormData) => Promise<FormState>;
   texts: ConfirmDeleteTexts;
   formTexts: Pick<FormTexts, 'saved' | 'errors'>;
-  /** The reason the button is off (the demo); the server refuses the delete anyway. */
   disabledReason?: string | undefined;
-  /** An icon button for dense rows; the name for screen readers and the tooltip stay the same. */
   compact?: boolean;
 };
 
-/** A delete button that asks first, in a native modal dialog. Escape and the cancel button close it. */
 export function ConfirmDelete({ name, fields, action, texts, formTexts, disabledReason, compact }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [state, formAction] = useActionState(action, null);

@@ -15,31 +15,23 @@ export type MediaTexts = {
   replace: string;
   clear: string;
   uploading: string;
-  /** Said when nothing is chosen yet. */
   none: string;
-  /** The accepted types and the size limit, as a short hint. */
   hint: string;
-  /** Names the stored file in the file variant. */
   open: string;
 };
 
-/** Step two of an upload: checks the temporary file the browser sent to the store and returns the final address. */
 export type UploadAction = (address: string, kind: MediaKind) => Promise<FormState>;
 
 type Props = {
   id: string;
-  /** The hidden input that carries the stored address to the Server Action. */
   name: string;
   label: string;
   defaultValue?: string;
   upload: UploadAction;
   texts: MediaTexts;
   errors: FormTexts['errors'];
-  /** Set when uploads are off (no file store, or the demo): the reason, shown instead of the choose button's action. */
   disabledReason?: string | undefined;
-  /** Shows the picture as an A4 portrait page instead of a landscape photo. */
   portrait?: boolean;
-  /** Already translated message of the form's own validation. */
   error?: string | undefined;
 };
 
@@ -48,7 +40,7 @@ const ACCEPT: Record<MediaKind, string> = {
   file: 'application/pdf',
 };
 
-// The server checks size and real type again; this only spares the visitor a round trip.
+// The server checks size and type again; this only saves a round trip.
 function MediaField({ kind, ...props }: Props & { kind: MediaKind }) {
   const { id, name, label, defaultValue = '', upload, texts, errors, disabledReason, error, portrait } = props;
   const [url, setUrl] = useState(defaultValue);

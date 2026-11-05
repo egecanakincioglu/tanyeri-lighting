@@ -49,7 +49,6 @@ describe('MarkdownField', () => {
     const heading = await screen.findByRole('heading', { level: 2, name: 'Title' }, { timeout: 10_000 });
     expect(heading).toBeTruthy();
     expect(container.querySelector('strong')?.textContent).toBe('bold');
-    // Raw HTML is dropped like on the public pages.
     expect(container.querySelector('b')).toBeNull();
     expect((container.querySelector('textarea') as HTMLTextAreaElement).value).toContain('## Title');
     expect(screen.getByRole('button', { name: 'Preview' }).getAttribute('aria-pressed')).toBe('true');

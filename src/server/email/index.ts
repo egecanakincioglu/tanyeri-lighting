@@ -10,7 +10,7 @@ export interface EmailMessage {
   text: string;
 }
 
-// Thrown instead of sending quietly, so a caller that forgot to check isEmailEnabled() finds out.
+// Thrown instead of sending quietly, so a caller that skipped isEmailEnabled() finds out.
 export class EmailDisabledError extends Error {
   constructor() {
     super('Email is off: the SMTP variables are not set');
@@ -32,7 +32,7 @@ function getTransport(config: SmtpConfig): Transporter {
   return transport;
 }
 
-// Tests swap in one of nodemailer's built-in transports (jsonTransport, streamTransport); undefined resets.
+// Test hook: swap in a nodemailer built-in transport; undefined resets.
 export function setEmailTransport(replacement: Transporter | undefined): void {
   transport = replacement;
 }
@@ -45,16 +45,17 @@ export async function sendEmail(message: EmailMessage): Promise<void> {
 
 type Scheduler = (task: () => Promise<void>) => void;
 
-// `after` needs a request scope, so tests swap in a scheduler that runs the task at once or keeps it; undefined resets.
+// `after` needs a request scope, so tests swap in a scheduler; undefined resets.
 let schedule: Scheduler = after;
 
 export function setEmailScheduler(replacement: Scheduler | undefined): void {
   schedule = replacement ?? after;
 }
 
-// Sends once the response has gone, so the answer takes the same time whether a mail is sent or not, and a mail
-// server failure never reaches the visitor. The log carries the error kind only: messages can hold the address.
-// `allowed` runs after the response too and may veto the mail, so a check against a database adds no delay.
+// Sent after the response, so timing is the same whether a mail is sent or not,
+// and a mail failure never reaches the visitor.
+// The log holds the error kind only: messages can contain the address.
+// `allowed` also runs after the response and may veto the mail.
 export function sendEmailAfterResponse(message: EmailMessage, allowed?: () => Promise<boolean>): void {
   schedule(async () => {
     try {

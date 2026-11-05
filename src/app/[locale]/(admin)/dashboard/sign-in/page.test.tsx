@@ -20,7 +20,7 @@ vi.mock('next/navigation', async (importOriginal) => ({
   },
 }));
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Admin' }) => {
     const messages = { tr, en }[locale][namespace] as Record<string, string>;

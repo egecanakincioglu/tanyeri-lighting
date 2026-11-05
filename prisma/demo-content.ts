@@ -1,6 +1,5 @@
-// The fictional content of the public demo: Turkish and English, with pictures from public/demo. Every record goes
-// through the zod schemas of the content services. Prisma is used directly because the write services refuse to run in
-// demo mode. Everything here is made up: names, address, phone number and links.
+// Fictional content of the public demo, in Turkish and English.
+// Prisma is used directly because the write services refuse to run in demo mode.
 import { statSync } from 'node:fs';
 import type { PrismaClient } from '../src/generated/prisma/client.ts';
 import { toColumns } from '../src/server/content/bilingual.ts';
@@ -28,8 +27,7 @@ import {
 const pair = (tr: string, en: string) => ({ tr, en });
 const img = (file: string) => `/demo/${file}`;
 
-// What each demo picture shows, written from the picture itself. A picture used on more than one page has one
-// description. The wording differs from the card titles on purpose, so a screen reader does not read the same words twice.
+// Picture descriptions differ from the card titles on purpose, so a screen reader does not read the same words twice.
 const hall = pair(
   'Mavi çelik çatı kafesi ve tavandan sarkan armatürleriyle boş bir üretim salonu.',
   'An empty hall with a blue steel roof frame and luminaires hanging from the ceiling.',
@@ -127,7 +125,7 @@ const socialLinks = [
   { platform: 'youtube', label: pair('YouTube', 'YouTube'), url: 'https://www.youtube.com/@tanyerilighting' },
 ].map((link) => socialLinkSchema.parse(link));
 
-// The site adds " | Tanyeri Lighting" to every title but the home one, which is shown as saved.
+// The site adds " | Tanyeri Lighting" to every title but the home one.
 const pageMetadata: Record<PageKey, ReturnType<typeof pair>[]> = {
   home: [
     pair('LED ve Mimari Aydınlatma Çözümleri | Tanyeri Lighting', 'LED and Architectural Lighting | Tanyeri Lighting'),
@@ -267,7 +265,7 @@ const legalPages = {
   }),
 };
 
-// The words of each category's own address; the titles have no brand, the site template adds it.
+// Category titles have no brand; the site template adds it.
 const categories = [
   {
     slug: 'gomme-spot',
@@ -378,8 +376,7 @@ type Row = [
   color: keyof typeof colors,
 ];
 
-// Fictional technical values and a short description for each demo product, by slug. Light output follows the power
-// (about 85-110 lm per watt) and the protection class follows where the fixture is used.
+// Fictional technical values by product slug.
 type Details = [flux: string, temperature: string, cri: string, ip: string, tr: string, en: string];
 
 const productDetails: Record<string, Details> = {
@@ -625,7 +622,6 @@ const productDetails: Record<string, Details> = {
   ],
 };
 
-// Five products per category, in the order of `categories`.
 const productRows: Record<string, { code: string; material: keyof typeof materials; rows: Row[] }> = {
   'gomme-spot': {
     code: 'GS',
@@ -927,7 +923,6 @@ const productRows: Record<string, { code: string; material: keyof typeof materia
   },
 };
 
-// The home page shows these six, in this order.
 const featuredSlugs = [
   'halka-sarkit-40w',
   'cob-gomme-spot-15w',
@@ -973,7 +968,7 @@ const homeBanner = homeBannerSchema.parse({
   secondaryAction: { label: pair('İletişime Geç', 'Get in Touch'), target: 'contact' },
 });
 
-// The last item is the category the card links to; Industrial Sites has no matching category.
+// The last item links to a category; Industrial Sites has none.
 const areas = [
   [
     'area-konut.webp',
@@ -1182,8 +1177,7 @@ const references = [
   },
 ].map((reference) => referenceSchema.parse(reference));
 
-// A few made-up contact messages so the panel home and the message list have something to show: the demo stores no
-// messages of its own. The ids are fixed, so a second run replaces these rows and never touches other messages.
+// Made-up contact messages for the panel. Fixed ids, so a second run replaces them and leaves other messages alone.
 const HOUR = 60 * 60 * 1000;
 const demoMessages = [
   {
@@ -1251,8 +1245,7 @@ export interface SeedCounts {
   blogPosts: number;
 }
 
-// Replaces all site content with the demo content, in one transaction, so a second run leaves the same content. Users
-// and sessions are not touched. Content that already exists is only replaced when the caller says so.
+// Replaces all site content in one transaction. Existing content is replaced only when the caller says so.
 export async function seedDemoContent(db: PrismaClient, options: { replace?: boolean } = {}): Promise<SeedCounts> {
   if (!options.replace) {
     const existing =

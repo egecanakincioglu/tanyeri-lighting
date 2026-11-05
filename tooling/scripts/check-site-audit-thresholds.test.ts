@@ -1,4 +1,3 @@
-// Tests for check-site-audit-thresholds.ts: the pure comparison plus the CLI against real temporary git repositories.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -87,7 +86,6 @@ describe('CLI', () => {
       sh(repo, 'config', k, v);
     return repo;
   }
-  // Commits the thresholds file with the given content, or an unrelated file when content is null.
   function commit(repo: string, content: string | null): string {
     if (content !== null) writeFileSync(path.join(repo, FILE), content);
     else writeFileSync(path.join(repo, 'other.txt'), String(counter++));

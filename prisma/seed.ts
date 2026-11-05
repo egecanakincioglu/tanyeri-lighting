@@ -1,5 +1,4 @@
-// Creates the first admin from ADMIN_EMAIL and ADMIN_PASSWORD: `pnpm db:seed`.
-// Safe to run again: an existing email is left untouched. The password is never printed.
+// Creates the first admin from ADMIN_EMAIL and ADMIN_PASSWORD: `pnpm db:seed`. Safe to run again.
 import { createFirstAdmin } from '../src/server/auth/admin.ts';
 import { getDb } from '../src/server/db.ts';
 import { getAdminCredentials } from '../src/server/env.ts';

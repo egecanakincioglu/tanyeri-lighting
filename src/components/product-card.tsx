@@ -6,13 +6,10 @@ type ProductCardProps = {
   imageUrl: string;
   name: string;
   href: string;
-  /** Depends on how many columns the page lays the cards in. */
   sizes: string;
-  /** The first card of the list loads at once; the rest wait until they are near. */
   eager?: boolean;
 };
 
-/** A square product photo, shown whole and centred, with its name below; the whole card is one link. */
 export function ProductCard({ imageUrl, name, href, sizes, eager = false }: ProductCardProps) {
   return (
     <div className="h-full rounded-lg duration-300 motion-safe:transition-[scale,box-shadow] motion-safe:hover:scale-105 motion-safe:hover:shadow-[0_8px_16px_rgb(0_0_0/0.12)] motion-safe:hover:[&>article]:shadow-none">

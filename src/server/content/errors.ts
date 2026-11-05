@@ -7,7 +7,6 @@ export class ContentNotFoundError extends Error {
   }
 }
 
-// The new order must list every existing item exactly once.
 export class InvalidOrderError extends Error {
   constructor() {
     super('The new order must list every item exactly once');
@@ -15,10 +14,9 @@ export class InvalidOrderError extends Error {
   }
 }
 
-// "value" is used when the database does not say which unique value collided.
+// "value" is used when the database does not say which value collided.
 type TakenField = 'key' | 'code' | 'slug' | 'value';
 
-// A value that has to be unique (a category key, a product code or slug) is already in use.
 export class ValueTakenError extends Error {
   readonly field: TakenField;
 
@@ -36,7 +34,6 @@ export class CategoryLimitError extends Error {
   }
 }
 
-// Products are not deleted or moved with their category: the category has to be emptied first.
 export class CategoryNotEmptyError extends Error {
   constructor() {
     super('The category still has products');
@@ -51,8 +48,7 @@ const UNIQUE_COLUMNS = [
   ['key', 'key'],
 ] as const;
 
-// The names a unique violation gives for the constraint: `meta.target` (column names, or the index name) and, with
-// the driver adapter, `meta.driverAdapterError.cause.constraint` (`fields` or `index`).
+// Constraint names: `meta.target`, and with the driver adapter `meta.driverAdapterError.cause.constraint`.
 function constraintNames(meta: Record<string, unknown> | undefined): string[] {
   const names: unknown[] = [meta?.['target']];
   const cause = (meta?.['driverAdapterError'] as { cause?: { constraint?: Record<string, unknown> } } | undefined)
@@ -61,7 +57,7 @@ function constraintNames(meta: Record<string, unknown> | undefined): string[] {
   return names.flat().filter((name): name is string => typeof name === 'string');
 }
 
-// A column name (`slug`) or an index name (`product_slug_key`) matches the column it ends with.
+// A column name or index name matches the column it ends with.
 function takenField(names: string[]): TakenField {
   for (const [column, field] of UNIQUE_COLUMNS) {
     if (names.some((name) => name === column || name.replace(/_key$/, '').endsWith(`_${column}`))) return field;
@@ -69,14 +65,12 @@ function takenField(names: string[]): TakenField {
   return 'value';
 }
 
-// Closes the race between the check for a free value and the write: the database's unique constraint has the last
-// word, and its violation (P2002) becomes the same error as the check. Any other error comes back unchanged.
+// The unique constraint has the last word when two writers race; P2002 becomes the same error as the check.
 export function mapUniqueViolation(error: unknown): unknown {
   if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') return error;
   return new ValueTakenError(takenField(constraintNames(error.meta)));
 }
 
-// A promo board still links to the catalog, so it cannot be deleted.
 export class CatalogInUseError extends Error {
   constructor() {
     super('A promo board still links to the catalog');
@@ -84,12 +78,12 @@ export class CatalogInUseError extends Error {
   }
 }
 
-// Prisma reports an update or delete of a missing row with code P2025.
+// Prisma code P2025: update or delete of a missing row.
 export function isRecordNotFound(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
 }
 
-// Prisma reports a write that breaks a foreign key (a row that is missing, or still referenced) with code P2003.
+// Prisma code P2003: a write that breaks a foreign key.
 export function isForeignKeyViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003';
 }

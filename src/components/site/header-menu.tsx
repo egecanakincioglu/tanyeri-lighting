@@ -6,13 +6,11 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { CONTAINER } from './container.ts';
 import { rememberLocale, switchHref, type SwitchRoute } from './language-switch.ts';
 
-// The addresses are complete (language prefix and query), computed on the server.
 type MenuLink = { label: string; href: string };
 export type MenuItem = { label: string; href?: string; children?: MenuLink[] };
 
 type Props = {
   locale: string;
-  /** The home address, the only one that is current on that exact path alone. */
   home: string;
   routes: SwitchRoute[];
   logo: ReactNode;
@@ -83,8 +81,8 @@ function LanguageLinks({ pathname, locale, routes, languages, label, search }: L
   );
 }
 
-// The query string (a category or page of the product list) goes with the language switch, as the alternate address in
-// the page head does. It is read in the browser, so the server sends the links without it and pages stay static.
+// The query string goes with the language switch, as the alternate address in the page head does.
+// It is read in the browser, so pages stay static.
 function LanguageLinksWithQuery(props: LanguageProps) {
   const query = useSearchParams().toString();
   return <LanguageLinks {...props} search={query ? `?${query}` : ''} />;

@@ -7,7 +7,6 @@ type PaginationItem = {
 };
 
 type PaginationProps = {
-  /** Accessible name of the navigation landmark. */
   label: string;
   items: PaginationItem[];
 };

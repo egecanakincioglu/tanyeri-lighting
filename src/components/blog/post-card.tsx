@@ -8,16 +8,13 @@ type Props = {
   excerpt: string;
   imageUrl: string;
   href: string;
-  /** The publication date, already formatted. */
   date: ReactNode;
-  /** True for the first card of the list, whose picture is in view on load. */
   eager?: boolean;
 };
 
-// The demo photos are 480 px wide, so the thumbnail is at most 192 px: sharp on 2x screens and not blown up.
+// The demo photos are 480 px wide, so thumbnails are at most 192 px: sharp on 2x screens.
 const IMAGE_SIZES = '(min-width: 40rem) 192px, 112px';
 
-/** A row with a square thumbnail; the title link covers the whole card, so the target is as large as the card. */
 export function PostCard({ title, excerpt, imageUrl, href, date, eager = false }: Props) {
   return (
     <div className="relative h-full">

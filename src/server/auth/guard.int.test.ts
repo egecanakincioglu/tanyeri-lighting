@@ -6,11 +6,10 @@ import { getDb } from '../db.ts';
 import { isDemoMode } from '../env.ts';
 import { guardAction, guardHandler, guardPage, UnauthorizedError } from './guard.ts';
 
-// The request headers of the code under test; `next/headers` has no request to read from outside Next.js.
+// `next/headers` has no request outside Next.js.
 const request = vi.hoisted(() => ({ headers: new Headers() }));
 vi.mock('next/headers', () => ({ headers: () => Promise.resolve(request.headers) }));
 
-// Only the demo flag is switched; the rest of the environment module stays real.
 vi.mock('../env.ts', async (importOriginal) => {
   const original = await importOriginal<typeof import('../env.ts')>();
   return { ...original, isDemoMode: vi.fn(() => false) };
@@ -19,7 +18,7 @@ vi.mock('../env.ts', async (importOriginal) => {
 const EMAIL = 'admin@example.com';
 const PASSWORD = 'correct horse battery staple';
 
-// The sign-in limit is per client address, so every sign-in uses an address of its own.
+// The sign-in limit is per client address, so each sign-in uses its own.
 let nextAddress = 1;
 
 async function signInCookie(): Promise<string> {
@@ -41,7 +40,7 @@ async function signInCookie(): Promise<string> {
     .join('; ');
 }
 
-// next/navigation throws an error with a digest instead of returning; the digest carries the redirect target.
+// next/navigation throws with a digest; the digest holds the redirect target.
 async function redirectTarget(call: Promise<unknown>): Promise<string> {
   const error = (await call.then(
     () => null,

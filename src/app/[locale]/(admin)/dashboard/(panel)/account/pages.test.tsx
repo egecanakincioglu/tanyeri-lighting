@@ -39,7 +39,6 @@ const SMTP = {
   SMTP_FROM: 'Tanyeri <no-reply@example.com>',
 };
 
-// Both forms ask for the current password; the password form comes first.
 function fill(label: string, value: string, index = 0) {
   fireEvent.change(screen.getAllByLabelText(label)[index]!, { target: { value } });
 }

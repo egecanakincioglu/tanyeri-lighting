@@ -1,4 +1,3 @@
-// Tests for check-package-manager.ts against temporary package.json files.
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';

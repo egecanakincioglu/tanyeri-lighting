@@ -2,8 +2,7 @@ import type { StaticPath } from '../../i18n/routing.ts';
 import type { FrameGroup } from './frame.tsx';
 import type { AdminIconName } from './icons.tsx';
 
-// The panel menu, grouped like the site: the keys are the labels in messages (AdminNav.groups and AdminNav.items) and
-// the addresses are keys of routing.pathnames. A screen without a page file is answered by the shared placeholder.
+// Keys are labels in messages (AdminNav.groups and AdminNav.items) and keys of routing.pathnames.
 export const ADMIN_NAV = [
   {
     id: 'general',
@@ -58,7 +57,6 @@ export const ADMIN_NAV = [
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-/** The menu with its labels; `unread` is the badge of the messages item. */
 export function buildNavGroups(t: Translate, unread: number): FrameGroup[] {
   return ADMIN_NAV.map((group) => ({
     label: t(`groups.${group.id}`),
@@ -71,7 +69,6 @@ export function buildNavGroups(t: Translate, unread: number): FrameGroup[] {
   }));
 }
 
-/** The label key of a screen, or undefined when the address is not one of the panel's screens. */
 export function itemKeyOfSection(section: string): string | undefined {
   for (const group of ADMIN_NAV) {
     for (const item of group.items) {

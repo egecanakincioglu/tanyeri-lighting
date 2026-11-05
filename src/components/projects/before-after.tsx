@@ -8,21 +8,15 @@ type BeforeAfterProps = {
   afterUrl: string;
   beforeLabel: string;
   afterLabel: string;
-  /** Visible text above the photos that names the control. */
   label: string;
   /** Spoken value with the placeholders `{before}` and `{after}`, which become the two percentages. */
   valueText: string;
-  /** Names the project; both photos are described as "<name>, <side>". */
   name: string;
   sizes: string;
-  /** True for the first project, whose photos are in view on load. */
   eager?: boolean;
 };
 
-/**
- * Two photos of one place, the "before" cut off at the slider. A native range input lies over them, so a pointer drag
- * and the keyboard come from the browser; the percentage is also read out as the value.
- */
+/** A native range input lies over the photos, so pointer drag and keyboard come from the browser. */
 export function BeforeAfter({
   beforeUrl,
   afterUrl,

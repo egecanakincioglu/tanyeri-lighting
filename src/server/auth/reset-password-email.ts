@@ -2,11 +2,11 @@ import { getPathname } from '../../i18n/navigation.ts';
 import { routing } from '../../i18n/routing.ts';
 import type { EmailMessage } from '../email/index.ts';
 
-// How long a reset link works. Written out in the auth options too, so the text below stays true.
+// Must match the reset link lifetime in the auth options.
 export const RESET_TOKEN_LIFETIME_SECONDS = 3600;
 
-// The reset page lives in the panel, which has no visitor language yet at this point, so the link uses the
-// default locale and the text carries both languages: Turkish first, then English.
+// The reset page is in the panel, which has no visitor's language yet,
+// so the link uses the default locale and the text is Turkish, then English.
 export function resetPasswordLink(baseURL: string, token: string): string {
   const link = new URL(getPathname({ locale: routing.defaultLocale, href: '/dashboard/reset-password' }), baseURL);
   link.searchParams.set('token', token);

@@ -1,5 +1,4 @@
-// Linux runs the shell scripts and git hooks by path, which needs the executable bit in the index.
-// Windows ignores the bit, so only this check keeps it from being lost unnoticed.
+// Linux needs the executable bit in the index; Windows ignores it, so only this test catches a lost bit.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';

@@ -49,7 +49,7 @@ export async function recordVisit(input: VisitInput): Promise<void> {
   await purgeOldVisits(now);
 }
 
-/** The last 30 calendar days (today included) as `YYYY-MM-DD`, oldest first. */
+/** Oldest first. */
 export function lastDays(now: Date, count: number = STATS_DAYS): string[] {
   const [year = 0, month = 1, day = 1] = istanbulDay(now).split('-').map(Number);
   return Array.from({ length: count }, (_, index) =>
@@ -57,9 +57,9 @@ export function lastDays(now: Date, count: number = STATS_DAYS): string[] {
   );
 }
 
-// A visit is one visitor address (the anonymized /24 or /48) in a period, so it is an estimate: visitors on one
-// network count once. A page view is one request counted in `views`. The queries compare the plain `day` column, so
-// its index is used.
+// A visit is one anonymized address (/24 or /48) in a period, so it is an estimate.
+// A page view is one request counted in `views`.
+// Queries compare the plain `day` column so its index is used.
 export async function getVisitStats(now: Date = new Date()): Promise<VisitStats> {
   const db = getDb();
   const dayList = lastDays(now);

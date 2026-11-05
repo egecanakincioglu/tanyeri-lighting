@@ -25,7 +25,7 @@ export default async function EditServicePage({ params }: PageProps<'/[locale]/d
     serviceFormProps(locale),
     listServices(),
   ]);
-  // There are only a few services and no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const service = services.find((item) => item.id === id);
   if (!service) notFound();
 

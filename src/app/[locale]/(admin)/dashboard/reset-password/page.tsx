@@ -14,8 +14,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/dashboar
   return { title: t('resetTitle'), robots: { index: false, follow: false } };
 }
 
-// Public page: the emailed link brings a visitor without a session. The auth layer checks the link's key when the
-// form is sent, not this page.
+// Public page: the emailed link has no session. The auth layer checks the key on submit.
 export default async function ResetPasswordPage({
   params,
   searchParams,

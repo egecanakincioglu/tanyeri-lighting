@@ -13,10 +13,7 @@ type Locale = (typeof routing.locales)[number];
 const sizes =
   '(min-width: 150rem) 515px, (min-width: 120rem) 461px, (min-width: 90rem) 419px, (min-width: 56.25rem) calc(30.7vw - 1.17rem), (min-width: 37.5rem) calc(46vw - 0.88rem), 92vw';
 
-/**
- * Cards with a 16:9 photo, a title and a short text. Renders nothing without areas. A card with a category links to
- * that category's view of the product list; the whole card is the target, named by its title.
- */
+/** Renders nothing without areas. */
 export function WorkAreas({ title, areas, locale }: { title: string; areas: ApplicationArea[]; locale: Locale }) {
   if (areas.length === 0) return null;
 

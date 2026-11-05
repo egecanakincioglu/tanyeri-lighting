@@ -48,7 +48,7 @@ export default async function ProductsAdminPage({ params, searchParams }: PagePr
     selected ? products.filter((product) => product.categoryId === selected.id) : products,
     query.q,
   );
-  // The order of a category is saved as a whole, so the arrows need all of its products on one screen.
+  // Reordering saves a whole category, so all its products must be on one screen.
   const reorderable = selected !== undefined && query.q === '';
   const shown = reorderable ? { items: matches, page: 1, pages: 1 } : paginate(matches, query.page);
 

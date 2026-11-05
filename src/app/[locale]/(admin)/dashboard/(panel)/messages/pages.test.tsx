@@ -80,7 +80,6 @@ describe('message screens', () => {
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Messages');
       const link = screen.getByRole('link', { name: /Offer & prices/ });
       expect(link.getAttribute('href')).toBe('/en/admin/messages/m1');
-      // The accessible name is the visible text, so a voice-control user can say what they read.
       expect(link.hasAttribute('aria-label')).toBe(false);
       expect(screen.getByRole('link', { name: /Ayşe Yılmaz.*Offer & prices.*Please send a price list/ })).toBe(link);
       expect(screen.getAllByText('Hello, Please send a price list.')).toHaveLength(2);

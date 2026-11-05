@@ -32,7 +32,7 @@ export default async function CatalogsAdminPage({ params }: PageProps<'/[locale]
   ]);
   const formTexts = buildFormTexts(form);
 
-  // The dialog names the boards that use the catalog; `{name}` stays in the text for the dialog to fill in.
+  // `{name}` stays in the text; the dialog fills it in.
   const language = locale;
   function deleteBodyOf(catalogId: string): string | undefined {
     const titles = boards.filter((board) => board.catalogId === catalogId).map((board) => `“${board.title[language]}”`);

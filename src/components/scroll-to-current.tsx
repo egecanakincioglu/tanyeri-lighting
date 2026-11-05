@@ -7,10 +7,7 @@ type ScrollToCurrentProps = {
   children: ReactNode;
 };
 
-/**
- * A list that scrolls its own current item (`aria-current`) to the start edge on mount. Only the list scrolls, never
- * the page, and the jump is instant, so it needs no reduced-motion handling.
- */
+/** Instant scroll of the list only, never the page, so it needs no reduced-motion handling. */
 export function ScrollToCurrent({ className, children }: ScrollToCurrentProps) {
   const list = useRef<HTMLUListElement>(null);
 

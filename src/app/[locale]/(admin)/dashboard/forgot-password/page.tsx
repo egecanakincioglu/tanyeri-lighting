@@ -16,7 +16,7 @@ export async function generateMetadata({
   return { title: t('requestTitle'), robots: { index: false, follow: false } };
 }
 
-// Public page: it is for a visitor who has lost the password, so it can not require a session.
+// Public page: it cannot require a session.
 export default async function ForgotPasswordPage({ params }: PageProps<'/[locale]/dashboard/forgot-password'>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();

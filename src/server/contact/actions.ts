@@ -8,17 +8,17 @@ import type { ContactState } from './form.ts';
 import { createContactMessage } from './service.ts';
 
 const RATE_LIMIT = { scope: 'contact', limit: 5, windowSeconds: 60 * 60 } as const;
-// The public contact form. Public on purpose (allowlisted in tooling/scripts/check-admin-guard.ts), so it does its
-// own protection: a honeypot, validation, and a limit per client address. It works as a plain form post, too.
+// Public on purpose (allowlisted in check-admin-guard.ts), so it protects itself:
+// honeypot, validation and a per-address limit.
 export async function submitContactMessage(_previous: ContactState | null, formData: FormData): Promise<ContactState> {
-  // Looks accepted, so a script learns nothing; nothing is stored and no counter is touched.
+  // Looks accepted so a script learns nothing; nothing is stored or counted.
   if (isHoneypotFilled(formData)) return { status: 'ok' };
 
   // Validation runs before the limit, so a typo does not use up one of the visitor's submissions.
   const parsed = parseContactForm(formData);
   if (!parsed.success) return { status: 'invalid', fieldErrors: parsed.fieldErrors, values: submittedValues(formData) };
 
-  // Nothing is stored in the demo, so it must not spend the limits of the real site either.
+  // Nothing is stored in the demo, so it must not spend the real limits.
   if (isDemoMode()) {
     const { name, email, subject, message } = parsed.data;
     return { status: 'demo', summary: { name, email, subject, message } };

@@ -15,7 +15,7 @@ export interface StoredFile {
   size: number;
 }
 
-// Callers (and the panel) ask this before offering an upload; the token's value never leaves env.ts.
+// The token's value never leaves env.ts.
 export function isStorageEnabled(): boolean {
   return getBlobToken() !== undefined;
 }
@@ -26,11 +26,11 @@ function requireToken(): string {
   return token;
 }
 
-// How many leading bytes decide the real type (the longest signature, WebP, is 12).
+// Leading bytes that decide the real type (the longest signature, WebP, is 12).
 const SNIFF_BYTES = 16;
 
-// Only an address inside this store's own temporary folder is accepted, so the step can not be used to fetch or
-// delete anything else. The address is rebuilt from the parsed URL.
+// Only addresses inside this store's temporary folder are accepted, so the step cannot fetch or delete anything else.
+// The address is rebuilt from the parsed URL.
 function temporaryAddress(address: string, token: string): URL {
   const rejected = new UploadRejectedError('invalid-address', 'The address is not a temporary file of this store');
   const host = blobHostname(token);
@@ -54,11 +54,9 @@ async function leadingBytes(url: URL): Promise<Uint8Array> {
   return bytes.subarray(0, SNIFF_BYTES);
 }
 
-// The second step of an upload (ADR 0002 rule 8): the browser has put the file into tmp/ of the store; this checks it
-// and stores the result under a generated name. The size comes from the store, the type from the first bytes (the
-// claimed type and name are ignored), and `kind` is what the field accepts: a picture field refuses a PDF and the
-// reverse. Pictures are re-encoded; a PDF is copied inside the store without passing through this process. The
-// temporary file is removed whatever the outcome.
+// Second upload step: the browser has put the file in tmp/. Size comes from the store, type from the first bytes
+// (claimed type and name are ignored), and `kind` is what the field accepts. Pictures are re-encoded;
+// a PDF is copied inside the store. The temporary file is always removed.
 export async function finalizeUpload(address: string, kind: MediaKind): Promise<StoredFile> {
   const token = requireToken();
   const temporary = temporaryAddress(address, token);
@@ -110,8 +108,7 @@ export async function deleteFile(url: string): Promise<void> {
   }
 }
 
-// The size of a stored file as the file store reports it, so a size saved next to an address is never taken from the
-// browser.
+// Size as the file store reports it, never from the browser.
 export async function storedFileSize(url: string): Promise<number> {
   const token = requireToken();
   try {

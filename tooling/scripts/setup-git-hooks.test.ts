@@ -1,4 +1,3 @@
-// Tests for setup-git-hooks.sh in a temporary repository with a temporary HOME and global git config.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

@@ -25,8 +25,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/catalogs
   return { ...toMetadata(page, locale, undefined, t('catalogs')), ...pageSeo(locale, '/catalogs') };
 }
 
-// One column up to 24rem wide, two up to 50rem, three up to 62rem; the page gutter is clamp(1rem, 4vw, 4rem). The 2x
-// source of the widest cover (about 390 px) fits the 800 px file, so no column is wider than that.
+// Columns: 1 up to 24rem, 2 up to 50rem, 3 up to 62rem. The widest 2x cover fits the 800 px file.
 const COVER_SIZES =
   '(min-width: 900px) 315px, (min-width: 540px) calc((min(100vw - 2 * clamp(1rem, 4vw, 4rem), 50rem) - 1.5rem) / 2), min(100vw - 2 * clamp(1rem, 4vw, 4rem), 24rem)';
 
@@ -54,7 +53,7 @@ export default async function CatalogsPage({ params }: PageProps<'/[locale]/cata
     listCatalogs(),
   ]);
 
-  // The viewer fills in the numbers while it runs, so the templates keep their placeholders.
+  // Keep the placeholders; the viewer fills in the numbers.
   const viewerLabels: ViewerLabels = {
     close: t('viewerClose'),
     previous: t('viewerPrevious'),

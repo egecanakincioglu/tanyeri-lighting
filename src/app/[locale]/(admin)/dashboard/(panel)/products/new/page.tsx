@@ -24,7 +24,6 @@ export default async function NewProductPage({ params }: PageProps<'/[locale]/da
     getTranslations({ locale, namespace: 'AdminProducts' }),
     listCategories(),
   ]);
-  // A product belongs to a category, so without one there is nothing to create.
   if (categories.length === 0) notFound();
   const props = await productFormProps(locale, categories);
 

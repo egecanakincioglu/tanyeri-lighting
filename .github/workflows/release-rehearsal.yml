@@ -1,7 +1,6 @@
 name: release-rehearsal
 
-# Run by hand before every release: deploys a branch (normally the release pull request's) to a Vercel preview
-# so the exact code can be checked before the tag goes to production. Vercel builds it from GitHub.
+# Manual: deploys a branch to a Vercel preview so the code can be checked before the tag.
 on:
   workflow_dispatch:
     inputs:
@@ -30,7 +29,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-      # The input ref is only fetched, never checked out: its code must not run in a step that holds the token.
+      # Fetch only, never check out: this code must not run in a step that holds the token.
       - name: Resolve the commit to deploy
         id: sha
         env:

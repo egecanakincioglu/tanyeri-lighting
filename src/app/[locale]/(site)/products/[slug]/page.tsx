@@ -20,13 +20,13 @@ type Locale = (typeof routing.locales)[number];
 
 const categoryHref = (key: string) => ({ pathname: '/products' as const, query: { category: key } });
 
-// Power, size, colour and material in one line; a detail that is not filled in is left out.
+// Power, size, colour and material; empty details are left out.
 const specsOf = (product: Product, locale: Locale) =>
   [product.power, product.dimensions, product.color[locale], product.material[locale]]
     .filter((value) => value !== '')
     .join(', ');
 
-// The demo photos are 480 px wide, so the image is shown at most 240 px wide: sharp on 2x screens and not blown up.
+// Demo photos are 480 px wide; cap the image at 240 px: sharp on 2x screens.
 const IMAGE_SIZES = '240px';
 
 async function categoryName(key: string, locale: Locale): Promise<string> {

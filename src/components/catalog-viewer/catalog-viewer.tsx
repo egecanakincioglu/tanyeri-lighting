@@ -5,8 +5,7 @@ import { createPortal } from 'react-dom';
 import { BookError } from './book-error.tsx';
 import type { ViewerLabels } from './viewer-labels.ts';
 
-// The book pulls in the page-flip library and the PDF library; they load only once a catalog is opened.
-// If the chunk cannot be fetched, the visitor still gets the PDF itself.
+// Loaded only once a catalog is opened; if the chunk cannot be fetched, the visitor still gets the PDF.
 const CatalogBook = lazy(() =>
   import('./catalog-book.tsx')
     .then((module) => ({ default: module.CatalogBook }))
@@ -15,7 +14,6 @@ const CatalogBook = lazy(() =>
 
 type Props = { url: string; name: string; labels: ViewerLabels; onClose: () => void };
 
-/** A full-screen dialog around the book. */
 export function CatalogViewer({ url, name, labels, onClose }: Props) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);

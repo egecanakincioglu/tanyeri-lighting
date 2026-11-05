@@ -16,7 +16,7 @@ const isLegal = (key: PageKey): key is LegalPageKey => (LEGAL_PAGE_KEYS as reado
 
 async function pageEntry(key: PageKey, contentDate?: Date): Promise<Entry | null> {
   const [metadata, legal] = await Promise.all([getPageMetadata(key), isLegal(key) ? getLegalPage(key) : undefined]);
-  // A legal page that was never saved answers 404, so it is not listed.
+  // An unsaved legal page answers 404, so it is not listed.
   if (legal === null) return null;
   return {
     href: key === 'home' ? '/' : `/${key}`,
@@ -24,8 +24,7 @@ async function pageEntry(key: PageKey, contentDate?: Date): Promise<Entry | null
   };
 }
 
-// Every public address in every language. It reads the database, so it is built per request; when a read fails the
-// error propagates and the answer is a server error, never a list with pages missing.
+// Built per request; a failed read returns a server error, never a list with pages missing.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await connection();
   const [products, categories, posts, contentDates] = await Promise.all([
@@ -34,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     listPostChanges(),
     listContentDates(),
   ]);
-  // A list changes when any of its items does, so its last change is the newest one.
+  // A list changed when its newest item did.
   const pageDates: Partial<Record<PageKey, Date>> = {
     ...contentDates,
     products: newest(
@@ -46,7 +45,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages = await Promise.all(PAGE_KEYS.map((key) => pageEntry(key, pageDates[key])));
   const entries: Entry[] = [
     ...pages.filter((page) => page !== null),
-    // Each category view is its own indexable address of the product list.
     ...categories.map((category) => ({
       href: { pathname: '/products', query: { category: category.key } } as const,
       modified: category.updatedAt,

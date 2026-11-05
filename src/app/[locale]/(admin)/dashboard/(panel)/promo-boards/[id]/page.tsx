@@ -27,7 +27,7 @@ export default async function EditPromoBoardPage({ params }: PageProps<'/[locale
     promoFormProps(locale),
     listPromoBoards(),
   ]);
-  // There are only a few boards and no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const board = boards.find((item) => item.id === id);
   if (!board) notFound();
 

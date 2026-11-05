@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-// Fails if any relative markdown link in docs/ (or in the root README.md, CONTRIBUTING.md, SECURITY.md, when they
-// exist) points to a missing file. Anchors are ignored; links inside code blocks and inline code are not links.
+// Fails when a relative markdown link in docs/ or the root README.md, CONTRIBUTING.md or SECURITY.md
+// points to a missing file.
 //   node tooling/scripts/check-doc-links.ts [--root <dir>]
-// Paths git ignores (for example the local legacy guide) are not scanned. Without --root the repository root is resolved with `git rev-parse --show-toplevel`.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';

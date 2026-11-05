@@ -16,7 +16,7 @@ import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listServices } from '../../../../server/content/services.ts';
 
-// Two columns from 600 px, one below; the widths follow the page container steps in globals.css.
+// Two columns from 600 px, else one; widths follow the container steps in globals.css.
 const GUTTERS = '2 * clamp(1rem, 4vw, 4rem)';
 const IMAGE_SIZES = [
   '(min-width: 150rem) 49rem',

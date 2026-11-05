@@ -1,7 +1,6 @@
 import { isDemoMode } from '../env.ts';
 import { deleteFile, isStorageEnabled } from '../storage/index.ts';
 
-// The host of the file store, as next.config.ts lists it for images.
 const STORE_HOST = /\.public\.blob\.vercel-storage\.com$/;
 
 function isStoredAddress(address: string): boolean {
@@ -13,9 +12,7 @@ function isStoredAddress(address: string): boolean {
   }
 }
 
-// Call it after a save that replaced or removed a file, with the address the record held before. It only touches
-// files of the file store: a demo picture (/demo/...) or any other address is left alone. A failure is logged and
-// never fails the save, which has already happened; the file is then an orphan, not a broken page.
+// Only files of the file store are touched. A failure is logged and never fails the save; the file becomes an orphan.
 export async function discardReplacedFile(before: string | null | undefined, after?: string | null): Promise<void> {
   if (!before || before === after || isDemoMode() || !isStorageEnabled() || !isStoredAddress(before)) return;
   try {
@@ -25,9 +22,7 @@ export async function discardReplacedFile(before: string | null | undefined, aft
   }
 }
 
-// The same for a record: `before` and `after` are the record as it was and as it is now (`after` is null once it is
-// deleted); every listed field that held a file and now holds another one, or none, has its old file discarded. The forms
-// upload a new file for every record, so one address is not shared by two records.
+// Same for a whole record; forms upload a new file per record, so no address is shared.
 export async function discardChangedFiles<T extends object>(
   before: T | null | undefined,
   after: T | null | undefined,

@@ -15,8 +15,8 @@ function toPattern(template: string): string {
     .join('');
 }
 
-// One pattern per public page and language, built from the routing table so a new page is counted without a change
-// here. The admin section ("/dashboard...") is left out on purpose: the panel is never recorded.
+// One pattern per public page and language, built from the routing table.
+// The admin section is left out on purpose: the panel is never recorded.
 const PATTERNS: readonly RegExp[] = Object.entries(routing.pathnames)
   .filter(([key]) => !key.startsWith('/dashboard'))
   .flatMap(([, value]) =>
@@ -25,8 +25,7 @@ const PATTERNS: readonly RegExp[] = Object.entries(routing.pathnames)
     ),
   );
 
-// True only for the address of a known public page, with its language prefix. Anything else (the panel, a 404, a long
-// or odd string) is refused. The path is not stored; this only keeps forged requests out.
+// True only for a known public page with its language prefix. The path is not stored; this keeps forged requests out.
 export function isVisitPath(text: string): boolean {
   if (text.length === 0 || text.length > MAX_PATH_LENGTH) return false;
   const path = text.length > 1 && text.endsWith('/') ? text.slice(0, -1) : text;

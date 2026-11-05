@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/dashboar
 export default async function SignInPage({ params }: PageProps<'/[locale]/dashboard/sign-in'>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  // Public page: it can not require a session. A signed-in visitor goes on to the panel instead.
+  // Public page; a signed-in visitor goes to the panel.
   if (await currentSession()) redirect(panelPath(locale));
   const t = await getTranslations({ locale, namespace: 'Admin' });
-  // The public demo shows its read-only account here, and nothing else ever shows a credential.
+  // Only the public demo shows its read-only account here.
   const demoAccount = isDemoMode() ? getDemoAdminCredentials() : undefined;
 
   return (

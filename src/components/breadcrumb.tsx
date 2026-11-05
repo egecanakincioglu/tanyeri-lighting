@@ -2,17 +2,14 @@ import Link from 'next/link';
 
 type Crumb = {
   name: string;
-  /** Left out on the last item, which is the page itself. */
   href?: string;
 };
 
 type BreadcrumbProps = {
-  /** Accessible name of the navigation landmark. */
   label: string;
   items: Crumb[];
 };
 
-/** A one-line trail to the current page. The last item is the page, so it is text, not a link. */
 export function Breadcrumb({ label, items }: BreadcrumbProps) {
   return (
     <nav aria-label={label}>

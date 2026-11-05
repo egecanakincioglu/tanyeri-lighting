@@ -10,14 +10,13 @@ const envSchema = z.object({
   DATABASE_URL_UNPOOLED: databaseUrl,
   // Signs and encrypts auth data; the library warns below 32 characters.
   BETTER_AUTH_SECRET: z.string().min(32),
-  // The site's own address: the only trusted origin and the base of every auth URL.
+  // The only trusted origin and base of every auth URL.
   BETTER_AUTH_URL: z.url({ protocol: /^https?$/ }),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
-// The sample values in .env.example start with this. They are fine for a local run and for CI, so only a Vercel
-// deployment refuses them.
+// Sample values from .env.example are fine locally and in CI; only a Vercel deployment refuses them.
 const PLACEHOLDER_PREFIX = 'replace-me';
 
 function placeholderProblems(source: Record<string, string | undefined>, names: string[]): string[] {
@@ -47,8 +46,7 @@ export function getEnv(): Env {
 
 const indexingSchema = z.enum(['on', 'off']).default('off');
 
-// Separate from getEnv(): it must work where the database variables are absent (build, site audit).
-// Read on every call, not cached, so the value is never frozen at an unexpected moment.
+// Separate from getEnv(): works without the database variables. Read on every call, not cached.
 export function isIndexingEnabled(source: Record<string, string | undefined> = process.env): boolean {
   const result = indexingSchema.safeParse(source.SITE_INDEXING);
   if (!result.success) {
@@ -57,7 +55,7 @@ export function isIndexingEnabled(source: Record<string, string | undefined> = p
   return result.data === 'on';
 }
 
-// Same reason as isIndexingEnabled: no database variables needed, read on every call.
+// Same as isIndexingEnabled: no database variables, read on every call.
 export function isDevelopment(source: Record<string, string | undefined> = process.env): boolean {
   return source.NODE_ENV === 'development';
 }
@@ -66,15 +64,14 @@ export function isProduction(source: Record<string, string | undefined> = proces
   return source.NODE_ENV === 'production';
 }
 
-// Optional: without it file storage is off. Empty counts as unset, so a blank line in .env keeps it off.
-// Separate from getEnv() for the same reason as isIndexingEnabled, and read on every call.
+// Optional: without it file storage is off. Empty counts as unset.
 export function getBlobToken(source: Record<string, string | undefined> = process.env): string | undefined {
   const token = source.BLOB_READ_WRITE_TOKEN?.trim();
   return token ? token : undefined;
 }
 
-// Shared by the seed and the recovery command, so the rules live in one place.
-// Better Auth stores and looks up emails in lower case, so the address is normalised the same way.
+// Shared by the seed and the recovery command.
+// Better Auth stores emails in lower case, so the address is normalised too.
 export const adminEmailSchema = z.email().transform((value) => value.toLowerCase());
 export const adminPasswordSchema = z.string().min(MIN_PASSWORD_LENGTH);
 
@@ -85,8 +82,7 @@ const adminSchema = z.object({
 
 export type AdminCredentials = { email: string; password: string };
 
-// Only the seed needs these, so they are not part of getEnv(): the running app must start without them.
-// Messages name the variable and the rule, never the value.
+// Only the seed needs these, so the running app starts without them. Messages never contain values.
 export function getAdminCredentials(source: Record<string, string | undefined> = process.env): AdminCredentials {
   const result = adminSchema.safeParse(source);
   const problems = result.success
@@ -103,8 +99,8 @@ const demoAdminSchema = z.object({
   DEMO_ADMIN_PASSWORD: adminPasswordSchema,
 });
 
-// The read-only account of the public demo, shown on its sign-in page and created by the demo seed. Optional, both or
-// neither: a blank value counts as unset, and a partly set or invalid pair is an error that names the variable.
+// The read-only demo account shown on its sign-in page. Both or neither; blank counts as unset,
+// a partial or invalid pair is an error naming the variable.
 export function getDemoAdminCredentials(
   source: Record<string, string | undefined> = process.env,
 ): AdminCredentials | undefined {
@@ -121,7 +117,7 @@ export function getDemoAdminCredentials(
 
 const demoSchema = z.enum(['true', 'false']).default('false');
 
-// Same reason as isIndexingEnabled: no database variables needed, read on every call.
+// Same as isIndexingEnabled: no database variables, read on every call.
 export function isDemoMode(source: Record<string, string | undefined> = process.env): boolean {
   const result = demoSchema.safeParse(source.DEMO_MODE);
   if (!result.success) {
@@ -148,9 +144,8 @@ const smtpFields = {
 
 const smtpNames = Object.keys(smtpFields) as (keyof typeof smtpFields)[];
 
-// Optional, all or none: without the group email is off. Empty counts as unset, so blank lines in .env keep it off.
-// A partly set group is an error that names the missing variables, never the values.
-// Separate from getEnv() for the same reason as getBlobToken, and read on every call.
+// Optional, all or none; without the group email is off. Blank counts as unset.
+// A partial group is an error naming the missing variables.
 export function getSmtpConfig(source: Record<string, string | undefined> = process.env): SmtpConfig | undefined {
   const values = Object.fromEntries(smtpNames.map((name) => [name, source[name]?.trim() || undefined]));
   if (smtpNames.every((name) => values[name] === undefined)) return undefined;
@@ -180,17 +175,15 @@ export function isEmailEnabled(source: Record<string, string | undefined> = proc
   return getSmtpConfig(source) !== undefined;
 }
 
-// Vercel sets VERCEL=1 on every deployment. Headers that only Vercel writes are trusted only where this is true.
-// Same reason as isIndexingEnabled: no database variables needed, read on every call.
+// Vercel sets VERCEL=1. Headers that only Vercel writes are trusted only where this is true.
 export function isVercel(source: Record<string, string | undefined> = process.env): boolean {
   return source.VERCEL === '1';
 }
 
 const siteUrlSchema = z.url({ protocol: /^https?$/ });
 
-// The public address that canonical links, the sitemap and structured data are built on. Without SITE_URL, a Vercel
-// deployment uses the production host Vercel sets (a host name, no scheme), and a local run uses localhost.
-// Separate from getEnv() for the same reason as isIndexingEnabled, and read on every call. Only the origin is kept.
+// Base of canonical links, the sitemap and structured data.
+// Without SITE_URL, Vercel's production host is used, else localhost. Only the origin is kept.
 export function getSiteUrl(source: Record<string, string | undefined> = process.env): URL {
   const explicit = source.SITE_URL?.trim();
   const host = source.VERCEL_PROJECT_PRODUCTION_URL?.trim();

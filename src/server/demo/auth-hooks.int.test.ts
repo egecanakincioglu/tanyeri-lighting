@@ -61,7 +61,6 @@ async function sessionOf(cookie: string): Promise<unknown> {
   return response.json();
 }
 
-// The account state a refused request must leave untouched.
 async function accountState() {
   const db = getDb();
   const user = await db.user.findUniqueOrThrow({ where: { email: EMAIL } });

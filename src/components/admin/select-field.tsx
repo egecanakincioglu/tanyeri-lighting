@@ -4,11 +4,9 @@ type Props = Omit<ComponentProps<'select'>, 'className' | 'id' | 'aria-invalid'>
   id: string;
   label: string;
   options: readonly { value: string; label: string }[];
-  /** Already translated; shown under the control and tied to it for screen readers. */
   error?: string | undefined;
 };
 
-/** A native select, with the look and the label of the text fields. */
 export function SelectField({ id, label, options, error, ...rest }: Props) {
   return (
     <div className="flex flex-col gap-1.5">

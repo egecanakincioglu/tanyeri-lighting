@@ -1,4 +1,3 @@
-// Tests for release-prepare.ts: pure helpers and a run against a temporary git repository.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

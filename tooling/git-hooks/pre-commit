@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Checks branch name, staged content and secrets before a commit. Installed by tooling/scripts/setup-git-hooks.sh.
 set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo DETACHED)"
@@ -10,9 +11,8 @@ fi
 "$root/tooling/scripts/check-forbidden-terms.sh" --staged
 "$root/tooling/scripts/check-forbidden-paths.sh" --staged
 
-# The image comes from the CI image manifest (single source of truth); sed keeps the hook independent of Node.
+# The gitleaks image is read with sed so the hook does not need Node.
 gitleaks_image="$(sed -n 's/^FROM \(.*\) AS gitleaks$/\1/p' "$root/tooling/ci-images/Dockerfile" | tr -d '\r')"
-# The pinned version is the image tag (ghcr.io/gitleaks/gitleaks:v1.2.3@sha256:...) without the leading "v".
 pinned="${gitleaks_image#*:}"
 pinned="${pinned%%@*}"
 pinned="${pinned#v}"
@@ -20,10 +20,8 @@ if [ -z "$gitleaks_image" ] || [ -z "$pinned" ]; then
   echo "pre-commit: cannot read the pinned gitleaks image from tooling/ci-images/Dockerfile; commit rejected" >&2
   exit 1
 fi
-# A PATH binary counts only when it is exactly the pinned version; a container engine counts only if its daemon is
-# actually reachable (the CLI alone is not enough).
-# MSYS_NO_PATHCONV stops Git Bash on Windows from rewriting "-w /repo" and the volume path; it is harmless elsewhere.
-# $root is the form git reports ("C:/..." on Windows), which docker and podman accept as a volume source.
+# A PATH binary counts only at exactly the pinned version; a container engine only if its daemon answers.
+# MSYS_NO_PATHCONV stops Git Bash on Windows from rewriting "-w /repo" and the volume path.
 local_version=""
 if command -v gitleaks >/dev/null 2>&1; then
   local_version="$(gitleaks version 2>/dev/null | tr -d '\r' | head -n 1)"
@@ -42,7 +40,6 @@ else
   exit 1
 fi
 
-# run an optional machine-local hook of the same name
 local_hook="$(git rev-parse --path-format=absolute --git-common-dir)/hooks/pre-commit"
 if [ -x "$local_hook" ]; then
   "$local_hook" "$@"

@@ -17,7 +17,6 @@ vi.mock('next-intl/server', () => ({
   getTranslations: async ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Header' | 'DemoBand' }) =>
     createTranslator({ locale, messages: locale === 'tr' ? tr : en, namespace }),
 }));
-// The footer reads the database; its own tests cover it.
 vi.mock('../../../components/site/footer.tsx', () => ({
   Footer: ({ settings }: { settings: { logoUrl: string | null } }) => (
     <footer data-logo={settings.logoUrl}>footer</footer>

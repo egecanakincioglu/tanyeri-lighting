@@ -26,7 +26,7 @@ export default async function EditProductPage({ params }: PageProps<'/[locale]/d
     listCategories(),
     listProducts(),
   ]);
-  // There is no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const product = products.find((item) => item.id === id);
   if (!product) notFound();
   const props = await productFormProps(locale, categories);

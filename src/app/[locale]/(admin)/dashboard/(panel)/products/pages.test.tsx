@@ -59,7 +59,6 @@ function product(index: number, categoryIndex = 0) {
   };
 }
 
-// 30 products in the first category (two pages) and 2 in the second.
 const everything = [...Array.from({ length: 30 }, (_, index) => product(index + 1)), product(31, 1), product(32, 1)];
 
 type Query = Record<string, string | string[] | undefined>;

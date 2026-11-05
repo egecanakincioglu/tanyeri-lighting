@@ -168,7 +168,6 @@ export function FooterContent({ settings, socialLinks, legal, year }: ContentPro
   );
 }
 
-// The layout reads the settings once for the header and the footer.
 export async function Footer({ settings }: { settings: SiteSettings }) {
   const [socialLinks, pages] = await Promise.all([
     listSocialLinks(),

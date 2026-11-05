@@ -7,13 +7,10 @@ import type { FormTexts } from './texts.ts';
 type Props = {
   state: FormState | null;
   texts: Pick<FormTexts, 'saved' | 'errors'>;
-  /** Why saving is off (the demo); shown next to the buttons. */
   note?: string | undefined;
-  /** The save button and the cancel link. */
   children: ReactNode;
 };
 
-/** The bar at the end of a form. It sticks to the bottom of the screen on long forms, in plain CSS. */
 export function FormActions({ state, texts, note, children }: Props) {
   return (
     <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-hairline bg-surface px-4 py-3 shadow-[0_-6px_16px_-8px_rgb(0_0_0/0.18)] sm:px-5">

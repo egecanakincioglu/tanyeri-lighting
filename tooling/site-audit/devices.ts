@@ -1,4 +1,3 @@
-// The device set of ADR 0009 rule 5 and the widths the audit sweeps.
 export interface Device {
   name: string;
   width: number;
@@ -20,7 +19,7 @@ export const DEVICES: readonly Device[] = [
   { name: 'ultrawide-desktop', width: 2560, height: 1440, touch: false, dpr: 1 },
 ];
 
-/** Viewports that get a screenshot (ADR 0009 rule 5, manual visual check). */
+/** Viewports that get a screenshot. */
 const SCREENSHOT_SIZES: readonly string[] = ['390x844', '768x1024', '1024x768', '1440x900', '844x390'];
 
 export function isScreenshotDevice(d: Device): boolean {
@@ -29,7 +28,6 @@ export function isScreenshotDevice(d: Device): boolean {
 
 export const SWEEP_HEIGHT = 900;
 
-/** 320, 336, ... 2560. */
 export function sweepWidths(): number[] {
   const out: number[] = [];
   for (let w = 320; w <= 2560; w += 16) out.push(w);

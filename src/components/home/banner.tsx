@@ -7,7 +7,6 @@ import { SiteImage } from '../site-image.tsx';
 
 type Locale = (typeof routing.locales)[number];
 
-// The pages a banner button can open, as route keys.
 const PAGE_ROUTES = {
   home: '/',
   products: '/products',
@@ -26,7 +25,7 @@ const PAGE_ROUTES = {
 const scrim =
   'bg-[linear-gradient(90deg,rgb(0_0_0/0.76),rgb(0_0_0/0.64))] md:bg-[linear-gradient(90deg,rgb(0_0_0/0.78),rgb(0_0_0/0.72)_62%,rgb(0_0_0/0))] 2xl:bg-[linear-gradient(90deg,rgb(0_0_0/0.78),rgb(0_0_0/0.7)_40%,rgb(0_0_0/0)_85%)]';
 
-/** Full-width photo with the page's only h1, one sentence and two buttons. Renders nothing while the title is empty. */
+/** Renders nothing while the title is empty. */
 export function Banner({ banner, locale }: { banner: HomeBanner; locale: Locale }) {
   const title = banner.title[locale];
   if (title === '') return null;

@@ -17,7 +17,6 @@ type CategoryFormTexts = {
   seoDescription: string;
   h1: string;
   intro: string;
-  /** Said once above the four optional fields of the category's own page. */
   pageHint: string;
   cancel: string;
 };
@@ -29,15 +28,13 @@ type Action = (previous: FormState | null, formData: FormData) => Promise<FormSt
 type Props = {
   action: Action;
   locale: string;
-  /** Set when editing. */
   initial?: { id: string; key: string; name: Pair; seoTitle: Pair; seoDescription: Pair; h1: Pair; intro: Pair };
   texts: CategoryFormTexts;
   formTexts: FormTexts;
-  /** The demo's reason for a read-only form. */
   readOnlyReason?: string | undefined;
 };
 
-// The limits of categorySchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with categorySchema in src/server/content/schemas.ts.
 const LIMITS = { key: 60, name: 60, seoTitle: 70, seoDescription: 320, h1: 100, intro: 600 };
 
 export function CategoryForm({ action, locale, initial, texts, formTexts, readOnlyReason }: Props) {
@@ -45,7 +42,7 @@ export function CategoryForm({ action, locale, initial, texts, formTexts, readOn
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

@@ -28,7 +28,7 @@ type SentMail = { from: string; to: string; subject: string; text: string };
 
 let sendMail: MockInstance<(mail: SentMail) => Promise<unknown>>;
 
-// The email goes out after the response; the scheduler keeps the tasks so a test decides when they run.
+// The email goes out after the response; the scheduler holds tasks so a test decides when they run.
 let scheduled: (() => Promise<void>)[] = [];
 
 async function runScheduled(): Promise<void> {
@@ -55,11 +55,10 @@ function tokenOf(mail: SentMail): string {
   return token!;
 }
 
-// These tests run with the SMTP variables set: email is on. The disabled side is in auth.int.test.ts.
 describe('password reset with email on', () => {
   beforeAll(() => {
     for (const [name, value] of Object.entries(SMTP)) vi.stubEnv(name, value);
-    // One of nodemailer's built-in transports: it builds the message and sends nothing over a network.
+    // A built-in nodemailer transport: builds the message, sends nothing.
     const transport = createTransport({ jsonTransport: true });
     sendMail = vi.spyOn(transport, 'sendMail') as unknown as typeof sendMail;
     setEmailTransport(transport);
@@ -170,7 +169,6 @@ describe('password reset with email on', () => {
     await runScheduled();
     expect(sendMail).toHaveBeenCalledTimes(3);
 
-    // The budget belongs to the address: another visitor is not limited.
     expect((await requestReset(ADMIN_EMAIL, '198.51.100.31')).status).toBe(200);
   });
 

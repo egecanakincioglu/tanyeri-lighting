@@ -1,10 +1,5 @@
-// Dependency audit: `pnpm audit` must report no high or critical advisory, unless tooling/audit-exceptions.json lists
-// it. Each exception is { id: "<GHSA id>", reason, expires: "YYYY-MM-DD" } and an expired one fails on its own, so an
-// exception can not outlive its date.
-//
+// Fails when `pnpm audit` reports a high or critical advisory that tooling/audit-exceptions.json does not list.
 //   node tooling/scripts/check-audit.ts
-//
-// Exit codes: 0 ok, 1 findings or expired exceptions, 2 audit output or exceptions file unreadable.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

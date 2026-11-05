@@ -19,7 +19,6 @@ type ProductFormTexts = {
   category: string;
   slug: string;
   slugHint: string;
-  /** Said on the edit page only: a changed address keeps the old one working. */
   slugRedirectHint: string;
   code: string;
   name: string;
@@ -42,7 +41,6 @@ type Props = {
   upload: UploadAction;
   locale: string;
   categories: readonly { value: string; label: string }[];
-  /** Set when editing. */
   initial?: {
     id: string;
     categoryId: string;
@@ -63,12 +61,11 @@ type Props = {
   texts: ProductFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of productSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with productSchema in src/server/content/schemas.ts.
 const LIMITS = {
   slug: 80,
   code: 60,
@@ -95,12 +92,12 @@ export function ProductForm({
 }: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   const [slug, setSlug] = useState(initial?.slug ?? '');
-  // A new product's address follows the Turkish name until it is edited by hand; a stored address is never rewritten.
+  // A new address follows the Turkish name until edited by hand; a stored address is never rewritten.
   const [slugEdited, setSlugEdited] = useState(Boolean(initial));
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

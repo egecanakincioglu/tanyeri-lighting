@@ -1,4 +1,3 @@
-// Tests for check-admin-guard.ts against temporary source trees.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

@@ -1,9 +1,5 @@
-// A pull request that changes the version in package.json must also change CHANGELOG.md, carry a finished notes file
-// releases/vX.Y.Z.md for the new version, and the version may only go up (SemVer).
-//
+// Fails when a version bump lacks a CHANGELOG entry or a finished releases/vX.Y.Z.md, or lowers the version.
 //   node tooling/scripts/check-release-version.ts --base <sha> --head <sha>
-//
-// Exit codes: 0 ok, 1 a rule is broken, 2 usage or git error. Portable: Node and git only.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +7,6 @@ import { hasPlaceholder, notesHeading, notesPath } from './release-check.ts';
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
 
-/** Negative, zero or positive like a sort comparator; null when either side is not a plain X.Y.Z version. */
 export function compareVersions(a: string, b: string): number | null {
   const x = SEMVER.exec(a);
   const y = SEMVER.exec(b);
@@ -23,10 +18,8 @@ export function compareVersions(a: string, b: string): number | null {
   return 0;
 }
 
-/** `notes` is the content of the notes file of `version` (null when it does not exist). */
 type Snapshot = { version: string; changelog: string | null; notes: string | null };
 
-/** Problems found when going from the base version/changelog to the head ones (empty when none). */
 export function check(base: Snapshot, head: Snapshot): string[] {
   if (base.version === head.version) return [];
   const problems: string[] = [];
@@ -42,7 +35,7 @@ export function check(base: Snapshot, head: Snapshot): string[] {
   return problems;
 }
 
-/** File content at a ref; null when the file is absent there; undefined when git itself failed. */
+/** Null when the file is absent at the ref; undefined when git itself failed. */
 function show(ref: string, file: string, cwd: string): string | null | undefined {
   const r = spawnSync('git', ['show', `${ref}:${file}`], { cwd, encoding: 'utf8', windowsHide: true, timeout: 30000 });
   if (r.error) return undefined;

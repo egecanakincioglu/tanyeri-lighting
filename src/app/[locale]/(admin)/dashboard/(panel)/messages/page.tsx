@@ -9,7 +9,6 @@ import { guardPage } from '../../../../../../server/auth/guard.ts';
 import { listMessages } from '../../../../../../server/contact/service.ts';
 import { isDemoMode } from '../../../../../../server/env.ts';
 
-// Fifty rows a page; the next page continues after the last row shown.
 const PAGE_SIZE = 50;
 const PREVIEW_LENGTH = 140;
 const MAX_CURSOR_LENGTH = 64;

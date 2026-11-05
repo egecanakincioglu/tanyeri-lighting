@@ -19,7 +19,6 @@ import {
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = '/work/tanyeri';
 const HOME = '/home/dev';
-// fake public key material, used only in tests
 const KEY = 'AAAAC3NzaC1lZDI1NTE5AAAAIabc123'; // gitleaks:allow
 const PUB = `ssh-ed25519 ${KEY} dev@example.com`;
 
@@ -31,7 +30,7 @@ type Env = {
   platform: string;
 };
 
-// A machine on which every check passes; each test breaks one thing.
+// Every check passes; each test breaks one thing.
 function healthy(): Env {
   const cfg: Record<string, string> = {
     'user.name': 'Dev',

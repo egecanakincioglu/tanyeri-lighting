@@ -1,4 +1,3 @@
-// Tests for check-signed-commits.ts with an injected git listing and an injected fetch.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

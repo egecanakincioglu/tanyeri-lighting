@@ -48,8 +48,7 @@ export async function listCategories(): Promise<Category[]> {
   return rows.map(fromRow);
 }
 
-// The key and last change of every category that has products, for the sitemap: an empty category is not indexed. The
-// change time is the later of the category's own and its newest product's.
+// Empty categories are left out of the sitemap. The change time is the later of the category and its newest product.
 export async function listCategoryChanges(): Promise<{ key: string; updatedAt: Date }[]> {
   const rows = await getDb().category.findMany({
     where: { products: { some: {} } },
@@ -66,7 +65,7 @@ export async function listCategoryChanges(): Promise<{ key: string; updatedAt: D
   });
 }
 
-// The new category goes to the end of the list. At most MAX_CATEGORIES exist.
+// At most MAX_CATEGORIES exist.
 export async function createCategory(input: unknown): Promise<Category> {
   assertWritable();
   const columns = toColumnsOf(categorySchema.parse(input));
@@ -102,7 +101,6 @@ export async function updateCategory(id: unknown, input: unknown): Promise<Categ
   }
 }
 
-// A category that still has products is not deleted.
 export async function deleteCategory(id: unknown): Promise<void> {
   assertWritable();
   const categoryId = idSchema.parse(id);
@@ -113,7 +111,7 @@ export async function deleteCategory(id: unknown): Promise<void> {
   });
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderCategories(ids: unknown): Promise<void> {
   assertWritable();
   const order = idListSchema.parse(ids);

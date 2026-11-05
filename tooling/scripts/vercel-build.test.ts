@@ -1,4 +1,3 @@
-// Tests for vercel-build.ts: the decision logic only; the real prisma and next are never run.
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { plan } from './vercel-build.ts';

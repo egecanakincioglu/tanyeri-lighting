@@ -4,8 +4,7 @@ import { getDb } from '../db.ts';
 import { signInAction } from './sign-in-action.ts';
 import { signOutAction } from './sign-out-action.ts';
 
-// The request of the code under test; `next/headers` has no request to read from outside Next.js. The cookie store
-// records what the library's Next.js plugin writes.
+// `next/headers` has no request outside Next.js. The cookie store records what the library writes.
 const request = vi.hoisted(() => ({ headers: new Headers(), cookieSet: vi.fn() }));
 vi.mock('next/headers', () => ({
   headers: () => Promise.resolve(request.headers),
@@ -26,7 +25,7 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-// next/navigation throws an error with a digest instead of returning; the digest carries the redirect target.
+// next/navigation throws with a digest; the digest holds the redirect target.
 async function redirectTarget(call: Promise<unknown>): Promise<string> {
   const error = (await call.then(
     () => null,
@@ -127,7 +126,6 @@ describe('the sign-in and sign-out actions on a real database', () => {
       const statuses = [];
       for (let i = 0; i < 4; i++) statuses.push((await attempt()).status);
       expect(statuses).toEqual(['error', 'error', 'error', 'rate-limited']);
-      // The right password does not get through while the limit holds.
       const blocked = await signInAction(null, form({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }));
       expect(blocked.status).toBe('rate-limited');
       expect(await getDb().session.count()).toBe(0);

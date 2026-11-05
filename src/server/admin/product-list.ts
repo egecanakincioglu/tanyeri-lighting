@@ -10,10 +10,7 @@ function first(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value) ?? '';
 }
 
-/**
- * The list's query values from the address. Whatever is malformed falls back: no search, all categories (an unknown key
- * counts as none), the first page. The page number is clamped to the last page later, by paginate().
- */
+/** Malformed values fall back to no search, all categories and the first page. */
 export function parseProductQuery(raw: RawQuery, categoryKeys: readonly string[]): ProductQuery {
   const category = first(raw['category']);
   const page = Number(first(raw['page']));
@@ -24,7 +21,6 @@ export function parseProductQuery(raw: RawQuery, categoryKeys: readonly string[]
   };
 }
 
-/** Products whose name in either language or whose code contains the search, ignoring case. */
 export function searchProducts(products: Product[], q: string): Product[] {
   const needle = q.toLocaleLowerCase('tr');
   if (needle === '') return products;

@@ -1,9 +1,9 @@
 import type { EmailMessage } from '../email/index.ts';
 
-// How long the confirmation link works. Written out in the auth options too, so the text below stays true.
+// Must match the confirmation link lifetime in the auth options.
 export const CHANGE_EMAIL_LIFETIME_SECONDS = 3600;
 
-// Sent to the new address, which the link proves belongs to the admin. Turkish first, then English.
+// Sent to the new address. Turkish first, then English.
 export function changeEmailEmail(to: string, link: string): EmailMessage {
   return {
     to,
@@ -29,8 +29,7 @@ export function changeEmailEmail(to: string, link: string): EmailMessage {
   };
 }
 
-// Sent to the current address first: only its owner can let the change go on to the new address. Turkish first, then
-// English.
+// Sent to the current address first. Turkish first, then English.
 export function changeEmailApprovalEmail(to: string, newEmail: string, link: string): EmailMessage {
   return {
     to,

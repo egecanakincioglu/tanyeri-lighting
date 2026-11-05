@@ -1,5 +1,4 @@
-// Pure decisions of the Lighthouse legs (ADR 0010): medians, transfer budgets, red or warning. Lighthouse itself
-// only runs in run.ts.
+// Pure decisions of the Lighthouse legs: medians, transfer budgets, red or warning.
 const CATEGORY_IDS = ['performance', 'accessibility', 'best-practices', 'seo'] as const;
 export type CategoryId = (typeof CATEGORY_IDS)[number];
 
@@ -9,7 +8,6 @@ export interface Thresholds {
   budgets: { scriptKB: number; stylesheetKB: number; fontFiles: number; fontKB: number; totalKB: number };
 }
 
-/** The part of a Lighthouse result this tooling reads. */
 export interface LhrLike {
   runtimeError?: { code?: string; message?: string };
   categories: Record<string, { score: number | null; auditRefs?: { id: string }[] }>;
@@ -39,7 +37,7 @@ export function median(values: number[]): number {
   return sorted.length % 2 === 1 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
 
-/** Why a run cannot be used (Lighthouse failed to record it, e.g. NO_NAVSTART), or null for a valid run. */
+/** Why a run is unusable (e.g. NO_NAVSTART), or null for a valid run. */
 export function discardReason(lhr: LhrLike): string | null {
   if (lhr.runtimeError) return `runtime error ${lhr.runtimeError.code ?? lhr.runtimeError.message ?? 'unknown'}`;
   const missing = CATEGORY_IDS.filter((id) => typeof lhr.categories[id]?.score !== 'number');
@@ -57,7 +55,6 @@ export function nextStep(
   return attempts < needed + maxRetries ? 'retry' : 'failed';
 }
 
-/** Category score on the 0-100 scale; a category Lighthouse did not score counts as 0. */
 function categoryScore(lhr: LhrLike, id: CategoryId): number {
   return Math.round((lhr.categories[id]?.score ?? 0) * 100);
 }
@@ -69,7 +66,6 @@ export function medianScores(runs: LhrLike[]): Record<CategoryId, number> {
   >;
 }
 
-/** The run whose performance score is the median; budgets and agentic audits are read from it. */
 export function medianRun(runs: LhrLike[]): LhrLike {
   const sorted = [...runs].sort((a, b) => categoryScore(a, 'performance') - categoryScore(b, 'performance'));
   return sorted[Math.floor((sorted.length - 1) / 2)]!;
@@ -97,7 +93,6 @@ export function transferOf(lhr: LhrLike): Transfer {
   return { scriptKB: kb(script), stylesheetKB: kb(stylesheet), fontFiles, fontKB: kb(font), totalKB: kb(total) };
 }
 
-/** Titles of applicable audits of the Agentic Browsing category that did not pass. */
 export function agenticFailures(lhr: LhrLike): string[] {
   const refs = lhr.categories['agentic-browsing']?.auditRefs ?? [];
   const failed: string[] = [];

@@ -12,7 +12,7 @@ const content = vi.hoisted(() => ({ references: vi.fn(), metadata: vi.fn() }));
 vi.mock('../../../../server/content/references.ts', () => ({ listReferences: content.references }));
 vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale }: { locale: 'tr' | 'en' }) =>
     Promise.resolve((key: keyof typeof tr.Header) => ({ tr, en })[locale].Header[key]),
@@ -40,7 +40,7 @@ describe('ReferencesPage', () => {
     const { container } = render(await ReferencesPage(props(locale)));
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(heading);
-    // The name is a proper name: the same in both languages.
+    // A proper name: the same in both languages.
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
       'Example Company 1',
       'Example Company 2',

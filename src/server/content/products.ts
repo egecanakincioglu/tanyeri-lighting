@@ -10,7 +10,6 @@ export const withCategory = { category: { select: { key: true } } } satisfies Pr
 
 type ProductRow = Prisma.ProductGetPayload<{ include: typeof withCategory }>;
 
-// Shared with the featured product list, which reads products through its own table.
 export function productFromRow(row: ProductRow): Product {
   return {
     id: row.id,
@@ -51,7 +50,6 @@ function toColumnsOf(product: ProductInput) {
   };
 }
 
-// The product list in display order: categories in their order, products in their order within a category.
 // A key that matches no category gives an empty list.
 export async function listProducts(categoryKey?: string): Promise<Product[]> {
   const rows = await getDb().product.findMany({
@@ -62,7 +60,6 @@ export async function listProducts(categoryKey?: string): Promise<Product[]> {
   return rows.map(productFromRow);
 }
 
-// The address and last change of every product, for the sitemap; the list readers do not carry the change time.
 export async function listProductChanges(): Promise<{ slug: string; updatedAt: Date }[]> {
   return getDb().product.findMany({
     select: { slug: true, updatedAt: true },
@@ -72,8 +69,7 @@ export async function listProductChanges(): Promise<{ slug: string; updatedAt: D
 
 export type ProductLookup = { product: Product } | { redirectTo: string };
 
-// A slug the product used to have answers with the current one, however many times the slug changed since.
-// A value that cannot be a slug (a NUL byte, for one, which the database refuses) is unknown, so the lookup never runs.
+// An old slug gives the current slug. A value that cannot be a slug (such as a NUL byte) is unknown, so no query runs.
 export async function getProductBySlug(slug: string): Promise<ProductLookup | null> {
   if (!KEBAB_CASE.test(slug)) return null;
   const db = getDb();
@@ -97,9 +93,7 @@ async function assertCodeFree(tx: Prisma.TransactionClient, code: string, produc
   if (taken && taken.id !== productId) throw new ValueTakenError('code');
 }
 
-// A slug is free when no other product has it and it is not an old slug of another product: that redirect is kept,
-// so the other product's old address never starts to show a different product. The product's own old slug is free;
-// the caller removes that redirect.
+// Free if no other product has it or redirects from it. The product's own old slugs are free.
 async function assertSlugFree(tx: Prisma.TransactionClient, slug: string, productId?: string): Promise<void> {
   const product = await tx.product.findUnique({ where: { slug }, select: { id: true } });
   const redirect = await tx.productSlugRedirect.findUnique({ where: { oldSlug: slug }, select: { productId: true } });
@@ -113,7 +107,6 @@ async function nextSortOrder(tx: Prisma.TransactionClient, categoryId: string): 
   return nextPosition(last._max.sortOrder);
 }
 
-// The new product goes to the end of its category.
 export async function createProduct(input: unknown): Promise<Product> {
   assertWritable();
   const columns = toColumnsOf(productSchema.parse(input));
@@ -133,7 +126,7 @@ export async function createProduct(input: unknown): Promise<Product> {
   }
 }
 
-// A changed slug is remembered as a redirect. A product that moves to another category goes to its end.
+// A product that moves to another category goes to its end.
 export async function updateProduct(id: unknown, input: unknown): Promise<Product> {
   assertWritable();
   const productId = idSchema.parse(id);
@@ -164,15 +157,13 @@ export async function updateProduct(id: unknown, input: unknown): Promise<Produc
   }
 }
 
-// The redirects of the product are deleted with it.
 export async function deleteProduct(id: unknown): Promise<void> {
   assertWritable();
   const result = await getDb().product.deleteMany({ where: { id: idSchema.parse(id) } });
   if (result.count === 0) throw new ContentNotFoundError('Product');
 }
 
-// `ids` is the complete list of the category's products in their new order; a missing, extra or repeated id changes
-// nothing.
+// Anything but the complete list changes nothing.
 export async function reorderProducts(categoryId: unknown, ids: unknown): Promise<void> {
   assertWritable();
   const category = idSchema.parse(categoryId);
