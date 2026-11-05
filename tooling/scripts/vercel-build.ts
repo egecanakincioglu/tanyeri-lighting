@@ -1,9 +1,6 @@
 #!/usr/bin/env node
-// Vercel build command (vercel.json "buildCommand"). Deployments come only from the release workflows, so preview and
-// production builds both apply the Prisma migrations before building. The Prisma client is generated in every build
-// because Vercel may restore node_modules from its cache without running the postinstall script.
-//
-// Exit codes: 0 ok, 1 failure (missing DATABASE_URL_UNPOOLED in preview or production, or a failing step), otherwise the failing step's code.
+// Vercel build command: applies Prisma migrations, generates the Prisma client, then builds.
+// The client is generated every time because Vercel may restore node_modules from cache without running postinstall.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +21,7 @@ export function plan(env: Record<string, string | undefined>): Plan {
   return { steps: ['generate', 'migrate', 'build'] };
 }
 
-// The project's own CLIs, run through the current Node so no shell or global shim is needed (Windows and Linux).
+// Run the project CLIs through the current Node so no shell or global shim is needed.
 const PRISMA = path.join('node_modules', 'prisma', 'build', 'index.js');
 const BIN: Record<Step, string> = {
   generate: PRISMA,

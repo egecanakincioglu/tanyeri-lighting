@@ -1,10 +1,5 @@
-// License policy: every production dependency must be under a permissive license that this PolyForm Noncommercial project can ship with.
-// `pnpm licenses list --prod --json` is read; SPDX expressions are evaluated (AND needs all, OR needs one,
-// parentheses allowed). Anything outside the allow list, LGPL/GPL/AGPL and unknown licenses included, fails.
-//
+// Fails when a production dependency has a license outside the allow list (read from `pnpm licenses list`).
 //   node tooling/scripts/check-licenses.ts
-//
-// Exit codes: 0 ok, 1 disallowed license, 2 pnpm output unreadable.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pnpmStdout } from './pnpm-json.ts';
@@ -12,7 +7,6 @@ import { pnpmStdout } from './pnpm-json.ts';
 const ALLOWED = new Set([
   'MIT',
   'ISC',
-  // MIT without the attribution clause: strictly more permissive than MIT.
   'MIT-0',
   'BSD-2-Clause',
   'BSD-3-Clause',
@@ -24,7 +18,7 @@ const ALLOWED = new Set([
   'Unlicense',
 ]);
 
-// Next's image optimizer ships libvips as a separate, unmodified binary package; LGPL permits that use.
+// libvips ships as a separate, unmodified binary, which LGPL permits.
 const SHARP_PREFIX = '@img/sharp-';
 const SHARP_LICENSE = 'LGPL-3.0-or-later';
 
@@ -35,7 +29,7 @@ export function isAllowed(expression: string, pkg: string): boolean {
     const t = tokens[i++];
     if (t === '(') {
       const v = or();
-      i++; // ')'
+      i++;
       return v;
     }
     return t !== undefined && (ALLOWED.has(t) || (t === SHARP_LICENSE && pkg.startsWith(SHARP_PREFIX)));

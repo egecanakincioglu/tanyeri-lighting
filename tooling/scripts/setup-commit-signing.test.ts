@@ -13,7 +13,7 @@ const tmp = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'tanyeri-signing-')
 let counter = 0;
 after(() => rmSync(tmp, { recursive: true, force: true }));
 
-// On Windows plain `bash` may be the WSL launcher, so Git Bash is resolved explicitly.
+// Plain `bash` may be the WSL launcher on Windows, so Git Bash is resolved explicitly.
 const BASH = resolveBash();
 const bashOk = BASH !== null && spawnSync(BASH, ['--version'], { encoding: 'utf8' }).status === 0;
 const keygenOk = spawnSync('ssh-keygen', ['-?'], { encoding: 'utf8' }).error === undefined;

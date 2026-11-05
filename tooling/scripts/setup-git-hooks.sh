@@ -11,7 +11,6 @@ git config --local core.autocrlf false
 chmod +x tooling/git-hooks/* tooling/scripts/*.sh 2>/dev/null || true
 echo "git hooks enabled (core.hooksPath=$hooks)"
 bash tooling/scripts/setup-commit-signing.sh
-# Show immediately what else this machine is missing (never fails the setup).
 if command -v node >/dev/null 2>&1; then
   node tooling/scripts/doctor.ts || true
 else

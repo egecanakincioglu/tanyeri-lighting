@@ -1,12 +1,5 @@
-// Deploys a commit from GitHub through the Vercel REST API and waits until it is ready. Vercel builds from the
-// repository, so nothing is uploaded from the runner.
-//
+// Deploys a commit through the Vercel REST API and waits until it is ready.
 //   node tooling/scripts/vercel-deploy.ts --target preview|production --ref <branch or tag> --sha <commit>
-//
-// Environment: VERCEL_TOKEN, VERCEL_ORG_ID (team), VERCEL_PROJECT_ID, GITHUB_REPOSITORY (owner/repo);
-// GITHUB_STEP_SUMMARY is optional. Prints the deployment address. Exit codes: 0 ready, 1 failed or timed out,
-// 2 usage error. API: https://vercel.com/docs/rest-api/deployments/create-a-new-deployment and
-// https://vercel.com/docs/rest-api/deployments/get-a-deployment-by-id-or-url
 import { appendFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,7 +30,7 @@ const defaultDeps: Deps = {
   now: Date.now,
 };
 
-/** The request that creates the deployment. A preview has no `target` (the API treats an omitted target as preview). */
+/** A preview has no `target`: the API treats an omitted target as preview. */
 export function createRequest(o: Options): { url: string; init: RequestInit } {
   const [org, repo] = o.repository.split('/');
   const body = {
@@ -58,7 +51,6 @@ export function createRequest(o: Options): { url: string; init: RequestInit } {
 
 type Deployment = { id?: string; url?: string; readyState?: string; errorMessage?: string };
 
-/** What to do with a deployment state: keep waiting, succeed, or fail. */
 export function decide(state: string | undefined): 'wait' | 'ready' | 'failed' {
   if (state === 'READY') return 'ready';
   if (state === 'ERROR' || state === 'CANCELED') return 'failed';
@@ -70,7 +62,6 @@ async function json(res: Response, what: string): Promise<Deployment> {
   return (await res.json()) as Deployment;
 }
 
-/** Creates the deployment and waits for it; resolves with its address, rejects with a message without secrets. */
 export async function deploy(o: Options, deps: Deps = defaultDeps): Promise<string> {
   const req = createRequest(o);
   let d = await json(await deps.fetch(req.url, req.init), 'creating the deployment');

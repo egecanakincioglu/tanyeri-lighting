@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
+# Rejects a bad commit message or forbidden terms in it. Installed by tooling/scripts/setup-git-hooks.sh.
 set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 "$root/tooling/scripts/check-commit-msg.sh" "$1"
 "$root/tooling/scripts/check-forbidden-terms.sh" --text "$1"
 
-# run an optional machine-local hook of the same name
 local_hook="$(git rev-parse --path-format=absolute --git-common-dir)/hooks/commit-msg"
 if [ -x "$local_hook" ]; then
   "$local_hook" "$@"

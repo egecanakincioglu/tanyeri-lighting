@@ -1,4 +1,3 @@
-// Tests for check-doc-links.ts: temporary docs trees and the real repository.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';

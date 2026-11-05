@@ -1,5 +1,4 @@
-// Input checks of the recovery command. They fail before any database access, so no database is needed here;
-// the effect on the database is covered by the integration tests in src/server/auth/admin.int.test.ts.
+// Input checks of the recovery command; they fail before any database access.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';

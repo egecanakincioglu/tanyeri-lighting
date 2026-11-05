@@ -1,9 +1,5 @@
-// Coverage thresholds only go up: between base and head, tooling/coverage-thresholds.json may add globs and raise
-// values, but must not remove a glob or metric or lower a value.
-//
+// Fails when tooling/coverage-thresholds.json removes a glob or metric or lowers a value between base and head.
 //   node tooling/scripts/check-coverage-thresholds.ts --base <sha> --head <sha>
-//
-// Exit codes: 0 ok, 1 a threshold went down or was removed, 2 usage or git error. Portable: Node only.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +8,6 @@ const FILE = 'tooling/coverage-thresholds.json';
 
 export type Thresholds = Record<string, Record<string, number>>;
 
-/** Problems found when going from the base thresholds to the head thresholds (empty when none). */
 export function compare(base: Thresholds, head: Thresholds): string[] {
   const problems: string[] = [];
   for (const [glob, metrics] of Object.entries(base)) {

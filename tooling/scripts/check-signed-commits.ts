@@ -1,12 +1,6 @@
 #!/usr/bin/env node
-// Signed-commit enforcement without the gh CLI: every non-merge commit in base..head must be reported as
-// `verified` by the GitHub API (a signature checked against a key registered on the author's account).
-//
+// Fails when a non-merge commit in base..head is not `verified` by the GitHub API.
 //   GH_TOKEN=... REPO=owner/name node tooling/scripts/check-signed-commits.ts --base <sha> --head <sha>
-//
-// --base/--head fall back to BASE_SHA/HEAD_SHA. Dependency-free (Node fetch). Prints one
-// `::error::commit <sha> is not verified (reason: <reason>)` line per offending commit.
-// Exit codes: 0 all verified, 1 unverified commit or API failure, 2 usage or git error.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +21,7 @@ function gitRevList(base: string, head: string, cwd?: string): RevList {
   return { ok: true, shas: r.stdout.split(/\r?\n/).filter(Boolean) };
 }
 
-/** Verification of one commit: { verified, reason }. Throws on an API failure. */
+/** Throws on an API failure. */
 type FetchLike = (
   url: string,
   init?: RequestInit,

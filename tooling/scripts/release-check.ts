@@ -1,11 +1,5 @@
 // Release helpers used by .github/workflows/release.yml.
-//
-//   node tooling/scripts/release-check.ts verify <vX.Y.Z> [main-ref]   tag commit is on main and matches package.json
-//   node tooling/scripts/release-check.ts title <vX.Y.Z>               print the title of releases/vX.Y.Z.md
-//   node tooling/scripts/release-check.ts notes <vX.Y.Z> <out-file>    write the release body: that notes file plus the
-//                                                                      CHANGELOG.md section as a folded commit list
-//
-// Exit codes: 0 ok, 1 the check failed, 2 usage error. Portable: Node and git only.
+//   node tooling/scripts/release-check.ts verify|title|notes <vX.Y.Z> [args]
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -14,25 +8,20 @@ import { fileURLToPath } from 'node:url';
 const TAG = /^v(\d+\.\d+\.\d+)$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-/** The version in a `vX.Y.Z` tag, or null when the tag has another shape. */
 export function versionOfTag(tag: string): string | null {
   return TAG.exec(tag)?.[1] ?? null;
 }
 
-/** Left in a draft notes file; a release cannot be published while it is still there. */
 export const PLACEHOLDER = '<!-- fill in -->';
 
-/** True while any `<!-- fill in ... -->` comment is left in a notes file. */
 export function hasPlaceholder(text: string): boolean {
   return text.includes('<!-- fill in');
 }
 
-/** Repository-relative path of a version's notes file. */
 export function notesPath(version: string): string {
   return `releases/v${version}.md`;
 }
 
-/** The first line must be `# vX.Y.Z — <title>`; returns `vX.Y.Z — <title>`, or null when it has another shape. */
 export function notesHeading(text: string, version: string): string | null {
   const first = (text.split(/\r?\n/, 1)[0] ?? '').trimEnd();
   const prefix = `# v${version} — `;
@@ -40,13 +29,11 @@ export function notesHeading(text: string, version: string): string | null {
   return first.slice(2);
 }
 
-/** The release body: the notes without their first line, then the commit list folded into a details block. */
 export function releaseBody(notes: string, commitList: string): string {
   const body = notes.split(/\r?\n/).slice(1).join('\n').trim();
   return `${body}\n\n<details>\n<summary>Commit list</summary>\n\n${commitList}\n</details>\n`;
 }
 
-/** The notes file of a version, or null when it does not exist (any other read error is thrown). */
 function readNotes(cwd: string, version: string): string | null {
   try {
     return readFileSync(path.join(cwd, notesPath(version)), 'utf8');
@@ -56,7 +43,6 @@ function readNotes(cwd: string, version: string): string | null {
   }
 }
 
-/** The notes of one version: the lines under `## [version] - date` up to the next `## [` heading, trimmed. */
 export function changelogSection(changelog: string, version: string): string | null {
   const lines = changelog.split(/\r?\n/);
   const prefix = `## [${version}] - `;
@@ -68,7 +54,6 @@ export function changelogSection(changelog: string, version: string): string | n
   return body === '' ? null : body;
 }
 
-/** True when the commit is `main` itself or one of its ancestors. */
 export function isOnMain(commit: string, mainRef: string, cwd: string): boolean {
   return (
     spawnSync('git', ['merge-base', '--is-ancestor', commit, mainRef], { cwd, windowsHide: true, timeout: 30000 })

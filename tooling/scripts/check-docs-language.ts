@@ -1,15 +1,6 @@
 #!/usr/bin/env node
-// Documentation language and naming rule:
-//   - every file and folder under docs/ has an ASCII kebab-case name (README.md is the one uppercase exception;
-//     date prefixes YYYY-MM-DD- and numbered ADR names NNNN- are plain kebab-case with digits);
-//   - the documents are written in English: README.md, CONTRIBUTING.md, SECURITY.md, CHANGELOG.md, releases/**/*.md
-//     and docs/**/*.md contain none of the Turkish-only letters ğ Ğ ş Ş ı İ outside inline code and fenced code blocks.
-//     The author's name is the one allowed exception (see ALLOWED).
-// Paths git ignores (for example the local legacy guide) are skipped.
-//
+// Fails when a name under docs/ is not ASCII kebab-case or the documents contain Turkish-only letters outside code.
 //   node tooling/scripts/check-docs-language.ts [--root <dir>]
-//
-// Exit codes: 0 ok, 1 violations, 2 usage error. Portable: Node only.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,19 +11,15 @@ const DIR_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const FILE_NAME = /^(README\.md|[a-z0-9]+(-[a-z0-9]+)*\.[a-z0-9]+)$/;
 const TURKISH_ONLY = /[ğĞşŞıİ]/g;
 const ROOT_FILES = ['README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md'];
-// Proper names that legitimately contain a Turkish-only letter.
 const ALLOWED = ['Egecan Akıncıoğlu'];
 
-/** True when the file name is allowed under docs/. */
 export const isValidFileName = (name: string): boolean => FILE_NAME.test(name);
-/** True when the folder name is allowed under docs/. */
 export const isValidDirName = (name: string): boolean => DIR_NAME.test(name);
 const FENCE = /^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^[ \t]*\1[ \t]*$|(?![\s\S]))/gm;
-/** The text without fenced code blocks (an unclosed fence runs to the end) and inline code; line numbers are kept. */
+/** The text without code blocks and inline code; line numbers are kept. */
 export const stripCode = (text: string): string =>
   text.replace(FENCE, (block) => '\n'.repeat(block.split('\n').length - 1)).replace(/`[^`\n]*`/g, '');
 
-/** The lines (1-based) that contain Turkish-only letters outside code and allowed names, with the letters found. */
 export function findTurkishLetters(text: string): { line: number; letters: string }[] {
   let plain = stripCode(text);
   for (const name of ALLOWED) plain = plain.replaceAll(name, '');
@@ -55,7 +42,6 @@ const listFiles = (root: string, rel: string, out: { rel: string; isDir: boolean
   }
 };
 
-/** Problems found under `root`, as human readable strings (empty when everything is fine). */
 export function checkDocs(root: string): string[] {
   const docs: { rel: string; isDir: boolean }[] = [];
   const releases: { rel: string; isDir: boolean }[] = [];

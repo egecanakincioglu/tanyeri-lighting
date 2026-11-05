@@ -1,12 +1,6 @@
 #!/usr/bin/env node
-// Site audit (ADR 0009 rule 13). Starts `next start` on port 3000 (run `pnpm build` first), audits every page of
-// pages.ts in a real Chrome and stops the server again.
-//
+// Starts the built site, audits every page in Chrome, and runs Lighthouse on the mobile and desktop legs.
 //   node tooling/site-audit/run.ts --leg pages|mobile|desktop
-//
-// The mobile and desktop legs run Lighthouse (3 valid runs per page, up to 2 extra attempts for runs Lighthouse failed to record, median) against thresholds.json.
-// Report: site-audit-report/report.json, screenshots/ (pages) and Lighthouse JSON and HTML (mobile, desktop). Exit codes: 0 ok, 1 audit failures, 2 setup problem
-// (usage, Chrome missing, server did not start).
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -66,7 +60,7 @@ async function startServer(): Promise<ChildProcess> {
   const next = require.resolve('next/dist/bin/next');
   const child = spawn(process.execPath, [next, 'start', '-p', String(PORT)], {
     stdio: ['ignore', 'inherit', 'inherit'],
-    // The audit measures the site as it will be once indexing is open (Lighthouse flags noindex as not crawlable).
+    // Lighthouse flags noindex as not crawlable, so measure with indexing on.
     env: { ...process.env, SITE_INDEXING: 'on', SITE_URL: BASE },
     detached: process.platform !== 'win32',
   });
@@ -117,7 +111,7 @@ async function httpChecks(): Promise<void> {
   await seoChecks();
 }
 
-// robots.txt, the sitemap and, for every address in the sitemap, the raw HTML: one request each, no browser.
+// Raw HTML checks: robots.txt, the sitemap and each sitemap address, no browser.
 async function seoChecks(): Promise<void> {
   const robots = await fetch(`${BASE}/robots.txt`);
   if (robots.status !== 200) fail('http /robots.txt', `status ${robots.status}, expected 200`);
@@ -199,10 +193,10 @@ async function auditView(page: Page, url: string, d: Device, axeSource: string):
     async (dpr) =>
       Promise.all(
         [...document.images].map(async (img) => {
-          // Load lazy images as a scrolling visitor would; one that stays unloaded has no currentSrc and is skipped.
+          // Load lazy images as a scrolling visitor would; an unloaded one has no currentSrc and is skipped.
           img.loading = 'eager';
           await Promise.race([img.decode().catch(() => undefined), new Promise((r) => setTimeout(r, 5000))]);
-          // img.naturalWidth is density-corrected for srcset width descriptors; a probe decodes the file itself.
+          // img.naturalWidth is density-corrected for srcset; a probe decodes the file itself.
           const probe = new Image();
           if (img.currentSrc) {
             probe.src = img.currentSrc;
@@ -250,7 +244,7 @@ function demoAdminFromEnv(): { email: string; password: string } | undefined {
   return email && password ? { email, password } : undefined;
 }
 
-// The real form, so the session is the one a person gets. Every page of the browser shares the cookie afterwards.
+// The real form, so the session is the one a person gets.
 async function signInThroughForm(page: Page, { email, password }: { email: string; password: string }): Promise<void> {
   await setViewport(page, { width: 1440, height: 900, touch: false, dpr: 1 });
   await page.goto(`${BASE}${SIGN_IN_PAGES[0]}`, { waitUntil: 'networkidle0' });
@@ -288,7 +282,7 @@ async function browserChecks(): Promise<string> {
       for (const p of list) {
         const url = BASE + p;
         await overflowSweep(warm, url);
-        // A new page per device view, so the image check sees what a first-time visitor at that device gets.
+        // A new page per device, so the image check sees a first-time visitor's view.
         for (const d of DEVICES) {
           const page = await openPage();
           try {
@@ -299,7 +293,7 @@ async function browserChecks(): Promise<string> {
         }
       }
     };
-    // Signed out first: a signed-in visitor is sent on from the sign-in page.
+    // Signed out first: the sign-in page redirects a signed-in visitor.
     await auditAll([...PAGES, ...SIGN_IN_PAGES]);
     const demoAdmin = demoAdminFromEnv();
     if (demoAdmin) {

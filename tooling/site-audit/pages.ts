@@ -1,11 +1,9 @@
-// Every public page the audit visits. A page template under src/app/[locale]/(site) without an address here fails
-// pages.test.ts, so a new template can not ship unaudited.
+// Every public page the audit visits. pages.test.ts fails when a page template has no address here.
 //
-// Admin screens are listed apart (SIGN_IN_PAGES, ADMIN_PAGES). They are noindex by design, so Lighthouse would score
-// their SEO below the gate; they get the browser checks (accessibility, overflow, console, status) but no Lighthouse run.
+// Admin screens are listed apart; they are noindex by design, so they get browser checks but no Lighthouse run.
 export const LOCALES = ['tr', 'en'] as const;
 
-// A dynamic template is listed with one seeded address, which stands for the template.
+// A dynamic template is listed with one seeded address.
 export const PAGES: readonly string[] = [
   '/tr',
   '/en',
@@ -37,8 +35,7 @@ export const PAGES: readonly string[] = [
   '/en/blog/lineer-aydinlatma-nedir',
 ];
 
-// The sign-in pages are public and checked signed out. The panel redirects a visitor without a session, so its screens
-// are listed apart, in ADMIN_PAGES, and visited with the demo admin's session.
+// Public sign-in pages, checked signed out. Panel screens redirect without a session, so they are in ADMIN_PAGES.
 export const SIGN_IN_PAGES: readonly string[] = [
   '/tr/yonetim/giris',
   '/en/admin/sign-in',
@@ -48,8 +45,7 @@ export const SIGN_IN_PAGES: readonly string[] = [
   '/en/admin/reset-password',
 ];
 
-// Every panel screen without a parameter in its address. The edit screens take a record id, which the seeded content
-// does not fix, so their components are covered by unit tests and the browser walkthrough instead.
+// Panel screens without a parameter in the address. Edit screens are covered by unit tests instead.
 export const ADMIN_PAGES: readonly string[] = [
   '/tr/yonetim',
   '/en/admin',

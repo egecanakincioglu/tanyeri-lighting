@@ -1,4 +1,3 @@
-// Text-level guards for the workflow files and the Dependabot config (no YAML parser, no dependencies).
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -9,13 +8,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const DIR = path.join(ROOT, '.github', 'workflows');
 const files = readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f));
 const read = (f: string) => readFileSync(path.join(DIR, f), 'utf8');
-/** Lines without full-line comments. */
 const codeLines = (f: string) =>
   read(f)
     .split(/\r?\n/)
     .filter((l) => !/^\s*#/.test(l));
 
-/** Job blocks: jobs are the 2-space-indented keys under `jobs:`. */
 function jobs(f: string) {
   const lines = read(f).split(/\r?\n/);
   const start = lines.findIndex((l) => /^jobs:\s*$/.test(l));
@@ -78,7 +75,6 @@ describe('every workflow', () => {
       lines.forEach((l, i) => {
         if (/^\s*run:/.test(l)) assert.ok(!l.includes('${{ github.event'), `line ${i + 1}`);
       });
-      // Multi-line scripts: every line of a run block.
       let inRun = false;
       let indent = 0;
       for (const [i, l] of lines.entries()) {

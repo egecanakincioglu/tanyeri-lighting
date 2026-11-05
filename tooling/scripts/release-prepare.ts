@@ -1,12 +1,7 @@
 // Prepares a release: computes the next SemVer version from the Conventional Commits since the last v* tag, writes it
-// to package.json, puts a new section at the top of CHANGELOG.md and creates a draft releases/vX.Y.Z.md when that
-// file does not exist yet (an existing one is never touched). It does not tag, push or publish.
-//
+// Computes the next version from the Conventional Commits since the last tag,
+// then updates package.json and CHANGELOG.md and drafts releases/vX.Y.Z.md.
 //   node tooling/scripts/release-prepare.ts [--version X.Y.Z] [--dry-run]
-//
-// Bump rules: breaking change -> MAJOR (MINOR while the version is below 1.0.0), feat -> MINOR, fix -> PATCH;
-// when none of them is present the suggestion is PATCH. Exit codes: 0 ok, 1 invalid version or nothing to release,
-// 2 usage or environment error. Runs in the working directory (a git repository with a package.json).
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -27,7 +22,6 @@ const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
 const CHANGELOG_INTRO =
   '# Changelog\n\nAll notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n';
 
-/** Parses one commit; a header that is not a Conventional Commit becomes type "other". */
 export function parseCommit(sha: string, subject: string, body: string): Commit {
   const m = HEADER.exec(subject);
   if (!m) return { sha, type: 'other', breaking: BREAKING_FOOTER.test(body), summary: subject, header: subject };
@@ -45,7 +39,6 @@ function parseVersion(text: string): [number, number, number] | null {
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
 }
 
-/** Negative when a < b, zero when equal, positive when a > b. */
 export function compareVersions(a: string, b: string): number {
   const x = parseVersion(a);
   const y = parseVersion(b);
@@ -53,7 +46,6 @@ export function compareVersions(a: string, b: string): number {
   return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
 }
 
-/** The next version after `current` for the given commits. */
 export function nextVersion(current: string, commits: Commit[]): string {
   const v = parseVersion(current);
   if (!v) throw new Error(`not a X.Y.Z version: ${current}`);
@@ -63,7 +55,6 @@ export function nextVersion(current: string, commits: Commit[]): string {
   return `${major}.${minor}.${patch + 1}`;
 }
 
-/** The changelog section for a release (ends with a newline). */
 export function renderSection(version: string, date: string, commits: Commit[]): string {
   const line = (c: Commit, text: string): string => `- ${text} (${c.sha})`;
   const groups: [string, string[]][] = [
@@ -77,7 +68,6 @@ export function renderSection(version: string, date: string, commits: Commit[]):
   return out;
 }
 
-/** The draft of releases/vX.Y.Z.md; every placeholder must be filled before the release can be published. */
 export function renderNotesDraft(version: string, tag: string | null, count: number): string {
   return [
     `# v${version} — ${PLACEHOLDER}`,
@@ -94,7 +84,6 @@ export function renderNotesDraft(version: string, tag: string | null, count: num
   ].join('\n');
 }
 
-/** Creates the notes draft; returns false when the file already exists (it is left untouched). */
 function writeNotesDraft(cwd: string, version: string, draft: string): boolean {
   const file = path.join(cwd, notesPath(version));
   mkdirSync(path.dirname(file), { recursive: true });
@@ -107,14 +96,12 @@ function writeNotesDraft(cwd: string, version: string, draft: string): boolean {
   }
 }
 
-/** Puts `section` above the newest existing section (or at the end when there is none). */
 export function insertSection(changelog: string, section: string): string {
   const at = changelog.search(/^## \[/m);
   if (at === -1) return `${changelog.trimEnd()}\n\n${section}`;
   return `${changelog.slice(0, at)}${section}\n${changelog.slice(at)}`;
 }
 
-/** package.json text with only the "version" value replaced. */
 export function setPackageVersion(text: string, version: string): string {
   const re = /("version"\s*:\s*")[^"]*(")/;
   if (!re.test(text)) throw new Error('package.json has no "version" field');
@@ -124,7 +111,6 @@ export function setPackageVersion(text: string, version: string): string {
 const git = (cwd: string, ...args: string[]): string =>
   execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
-/** The file's text, or `fallback` when it does not exist (any other error is thrown). */
 function readOrDefault(file: string, fallback: string): string {
   try {
     return readFileSync(file, 'utf8');
@@ -142,7 +128,6 @@ function lastTag(cwd: string): string | null {
   }
 }
 
-/** Non-merge commits after `tag` (or all of them) up to HEAD, newest first. */
 function readCommits(cwd: string, tag: string | null): Commit[] {
   const out = git(cwd, 'log', '--no-merges', '--format=%h%x1f%s%x1f%b%x1e', tag ? `${tag}..HEAD` : 'HEAD');
   return out

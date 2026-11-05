@@ -1,25 +1,5 @@
-// Every entry point to the admin side checks the session itself (ADR 0003 rule 7); the proxy is never trusted. This
-// check fails when one forgets the shared guard from src/server/auth/guard.ts:
-//
+// Fails when an admin page, layout, route handler or server action does not call the shared guard.
 //   node tooling/scripts/check-admin-guard.ts
-//
-// - src/app/[locale]/(admin)/**/page.* and layout.*: the default export must call guardPage().
-// - src/app/**/route.*: every exported HTTP method must call guardHandler().
-// - any file under src/ whose top level starts with the 'use server' directive: every export must await
-//   guardAction() at the top level of the action, or at the top level of the callback it passes to runAction() (from
-//   server/admin/form.ts) or to a wrapper in the same file that calls that callback.
-// - a 'use server' directive inside a function fails everywhere: inline Server Actions are not allowed.
-//
-// Files with the extensions ts, tsx, js, jsx, mjs and cjs are scanned. The file is parsed with the TypeScript compiler
-// API. A guard "is called" when the name comes from an import that resolves to src/server/auth/guard.ts (relative
-// path, or the @/ alias for src/). For pages and handlers the call may sit anywhere inside the exported function. It
-// does not follow calls into other functions or files, and it does not check that the call is reached on every path;
-// review covers that. An export that is not a function declared in the same file (a re-export, `export *`, a
-// destructured export, a class) can not be verified and fails too.
-//
-// Public entry points are listed below, each with the reason. An entry that is not listed has to call the guard.
-//
-// Exit codes: 0 ok, 1 a violation, 2 src/ is missing. Reads src/ below the working directory.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,26 +7,24 @@ import ts from 'typescript';
 
 type Kind = 'page' | 'handler' | 'action';
 
-// The sign-in page is how a visitor gets a session, so it can not require one. The two password recovery pages are for
-// a visitor who has lost the password, so they can not require one either.
+// Visitors need these pages to sign in or recover a password, so they can not require a session.
 const PUBLIC_PAGES: ReadonlySet<string> = new Set([
   'src/app/[locale]/(admin)/dashboard/sign-in/page.tsx',
   'src/app/[locale]/(admin)/dashboard/forgot-password/page.tsx',
   'src/app/[locale]/(admin)/dashboard/reset-password/page.tsx',
 ]);
-// The Better Auth endpoints do their own session handling and rate limiting.
+// The auth library handles sessions and rate limiting itself.
 const PUBLIC_HANDLERS: ReadonlySet<string> = new Set([
   'src/app/api/auth/[...all]/route.ts',
-  // Visitors without an account post the page they opened. It takes only a same-origin request with a known public
-  // path, is rate limited and stores an anonymized address.
+  // Anonymous visit counter: same-origin only, known public paths, rate limited, anonymized address.
   'src/app/api/visits/route.ts',
-  // The plain-text site guide. It is a GET with no input and returns only the public page list.
+  // Public GET with no input; returns only the public page list.
   'src/app/llms.txt/route.ts',
 ]);
-// The contact form is for visitors without an account. It protects itself with a honeypot, validation and a rate limit.
+// For visitors without an account; protected by a honeypot, validation and a rate limit.
 const PUBLIC_ACTIONS: ReadonlySet<string> = new Set([
   'src/server/contact/actions.ts',
-  // How a visitor gets a session, so it can not require one. The auth layer does the rate limiting.
+  // Creates the session, so it can not require one; the auth layer rate limits it.
   'src/server/auth/sign-in-action.ts',
 ]);
 
@@ -82,14 +60,12 @@ function hasUseServerDirective(sf: ts.SourceFile): boolean {
   return false;
 }
 
-// The import specifier as a path from the project root, for relative paths and the @/ alias.
 function resolveImport(file: string, specifier: string): string | undefined {
   if (specifier.startsWith('@/')) return `src/${specifier.slice(2)}`;
   if (!specifier.startsWith('.')) return undefined;
   return path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier));
 }
 
-// The names this file gave to one function of a module (import aliases included).
 function importedNames(sf: ts.SourceFile, file: string, module: string, guard: string): Set<string> {
   const names = new Set<string>();
   for (const statement of sf.statements) {
@@ -113,7 +89,6 @@ function isCallTo(node: ts.Node, names: ReadonlySet<string>): node is ts.CallExp
   return ts.isCallExpression(node) && ts.isIdentifier(node.expression) && names.has(node.expression.text);
 }
 
-// True when this expression is `await guard()`, or a runAction(callback) whose callback awaits the guard at its top level.
 function awaitsGuard(expression: ts.Expression, guards: ReadonlySet<string>, runs: ReadonlySet<string>): boolean {
   let node: ts.Expression = expression;
   while (ts.isParenthesizedExpression(node)) node = node.expression;
@@ -183,7 +158,6 @@ function localFunctions(sf: ts.SourceFile): Map<string, ts.Node> {
   return functions;
 }
 
-// Functions declared in this file that call their first parameter, like `checked(work)` wrapping `await work()`.
 function localRunners(sf: ts.SourceFile): Set<string> {
   const runners = new Set<string>();
   for (const [name, fn] of localFunctions(sf)) {

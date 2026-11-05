@@ -1,5 +1,5 @@
-// End-to-end test of the commit-msg hook (and the pre-commit hook next to it) in a throwaway repo whose
-// core.hooksPath points at the real hooks. Stub scanners keep gitleaks and docker out of the test.
+// End-to-end test of the commit-msg hook (and pre-commit) in a throwaway repo;
+// stub scanners keep gitleaks and docker out.
 import assert from 'node:assert/strict';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import {

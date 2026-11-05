@@ -1,4 +1,3 @@
-// Tests for vercel-deploy.ts with a faked fetch (no real API call is made).
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import os from 'node:os';
@@ -26,7 +25,6 @@ const ARGS = ['--target', 'preview', '--ref', 'main', '--sha', SHA];
 
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
-/** Deps that serve the given responses in order; time advances by the slept amount. */
 function fake(responses: Response[]) {
   const calls: { url: string; init?: RequestInit }[] = [];
   let clock = 0;

@@ -1,6 +1,5 @@
-// Runs `pnpm <args>` and returns its stdout. pnpm is a .cmd shim on Windows, which Node can not spawn directly;
-// the arguments are fixed strings from the callers, never user input. A non-zero exit is not an error here:
-// `pnpm audit` exits 1 when it finds something, and the caller judges the JSON.
+// Runs `pnpm <args>` and returns stdout; pnpm is a .cmd shim on Windows, which Node can not spawn directly.
+// A non-zero exit is not an error: `pnpm audit` exits 1 on findings, and the caller reads the JSON.
 import { spawnSync } from 'node:child_process';
 
 export function pnpmStdout(args: string[]): string | null {

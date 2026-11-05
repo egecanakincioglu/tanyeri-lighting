@@ -1,9 +1,6 @@
 import { spawnSync } from 'node:child_process';
 
-/**
- * The entries of `relPaths` (relative to `cwd`) that git does not ignore. Outside a git work tree nothing is
- * ignored, so the list is returned unchanged.
- */
+/** Outside a git work tree nothing is ignored, so the list comes back unchanged. */
 export function withoutGitIgnored(cwd: string, relPaths: string[]): string[] {
   if (relPaths.length === 0) return relPaths;
   const inside = spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd, encoding: 'utf8' });

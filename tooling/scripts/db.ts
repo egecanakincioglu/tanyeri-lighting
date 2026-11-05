@@ -1,12 +1,6 @@
 #!/usr/bin/env node
-// Starts and stops the local development PostgreSQL in Docker. The image comes from the CI image manifest
-// (tooling/ci-images/Dockerfile, stage "postgres"), so local and CI run the same version. No password: trust auth,
-// and the port is bound to 127.0.0.1 only.
-//
-//   node tooling/scripts/db.ts up     -> creates or starts the container, waits until it accepts connections
-//   node tooling/scripts/db.ts down   -> stops the container; the data volume is kept
-//
-// Exit codes: 0 ok, 1 failure (usage, image drift, not ready in time), 2 Docker missing or not running.
+// Starts and stops the local development PostgreSQL in Docker.
+//   node tooling/scripts/db.ts up|down
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +15,7 @@ export type ContainerState = { exists: false } | { exists: true; running: boolea
 export type UpAction = 'create' | 'start' | 'none' | 'image-drift';
 export type DockerResult = { status: number | null; stdout: string };
 
-/** The `docker run` arguments. Postgres 18 images keep the data under /var/lib/postgresql, so the volume goes there. */
+/** Postgres 18 keeps its data under /var/lib/postgresql, so the volume goes there. */
 export function runArgs(image: string): string[] {
   return [
     'run',
@@ -40,14 +34,12 @@ export function runArgs(image: string): string[] {
   ];
 }
 
-/** What `up` has to do for the current container state. */
 export function upAction(state: ContainerState, image: string): UpAction {
   if (!state.exists) return 'create';
   if (state.image !== image) return 'image-drift';
   return state.running ? 'none' : 'start';
 }
 
-/** Parses the output of `docker inspect -f "{{.State.Running}} {{.Config.Image}}"`. */
 export function parseInspect(output: string): ContainerState {
   const [running, image] = output.trim().split(/\s+/);
   return { exists: true, running: running === 'true', image: image ?? '' };

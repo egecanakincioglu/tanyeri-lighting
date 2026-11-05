@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-// Development environment doctor: checks that this machine can work on the project (Linux and Windows).
-//   node tooling/scripts/doctor.ts           lists every check with a fix, exits 1 when any check fails
-//   node tooling/scripts/doctor.ts --json    machine-readable: { ok, items: [{ level, name, detail, fix }] }
-// Level 'warn' never changes the exit code.
+// Checks that this machine can work on the project and prints a fix for each problem.
+//   node tooling/scripts/doctor.ts [--json]
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import os from 'node:os';
@@ -15,8 +13,6 @@ const SIGNING_SETUP = 'tooling/scripts/setup-commit-signing.sh';
 const HOOKS_SETUP = 'tooling/scripts/setup-git-hooks.sh';
 const MAX_CRLF_REPORTED = 10;
 
-// ---------------------------------------------------------------- pure helpers (exported for tests)
-
 const slashes = (p: unknown): string =>
   String(p ?? '')
     .replace(/\\/g, '/')
@@ -26,7 +22,6 @@ const normPath = (p: unknown): string => {
   return /^([a-z]:|\/\/)/i.test(n) ? n.toLowerCase() : n; // Windows paths are case-insensitive
 };
 
-/** core.hooksPath is fine when it is, or resolves (relative to the repo root) to, <root>/tooling/git-hooks. */
 export function hooksPathOk(value: unknown, root: string | undefined) {
   if (typeof value !== 'string' || value === '' || !root) return false;
   const v = slashes(value);
@@ -34,13 +29,11 @@ export function hooksPathOk(value: unknown, root: string | undefined) {
   return normPath(abs) === normPath(`${root}/${HOOKS_DIR}`);
 }
 
-/** First integer of a .node-version style string ("24", "v24.1.0"). */
 export function parseNodeMajor(text: unknown): number | null {
   const m = /(\d+)/.exec(String(text ?? ''));
   return m ? Number(m[1]) : null;
 }
 
-/** Resolves a user.signingkey style value to a file path, or null when it is a literal public key / empty. */
 export function signingKeyPath(value: unknown, home: string = os.homedir()): string | null {
   const v = String(value ?? '').trim();
   if (!v || v.startsWith('key::') || /^(ssh|ecdsa|sk)-/.test(v)) return null;
@@ -49,13 +42,11 @@ export function signingKeyPath(value: unknown, home: string = os.homedir()): str
   return v;
 }
 
-/** Base64 key material (second field) of a public key line or .pub file, or null. */
 export function keyMaterial(pubText: unknown): string | null {
   const m = /^\s*(?:key::)?(?:ssh-\S+|ecdsa-\S+|sk-\S+)\s+([A-Za-z0-9+/=]+)/m.exec(String(pubText ?? ''));
   return m ? m[1] : null;
 }
 
-/** Tracked files whose working copy has CRLF line endings (from `git ls-files --eol`). */
 export function findCrlfFiles(eolOutput: unknown): string[] {
   const files = [];
   for (const line of String(eolOutput ?? '').split(/\r?\n/)) {
@@ -68,7 +59,6 @@ export function findCrlfFiles(eolOutput: unknown): string[] {
   return files;
 }
 
-/** OS specific installation hints. */
 export function hint(platform: string, tool: 'node' | 'gitleaks' | 'gh' | 'pnpm'): string {
   const key = platform === 'win32' ? 'win' : 'linux';
   const table = {
@@ -93,16 +83,13 @@ export function hint(platform: string, tool: 'node' | 'gitleaks' | 'gh' | 'pnpm'
   return table[tool][key];
 }
 
-// ---------------------------------------------------------------- command execution
-
 export type ExecResult = { ok: boolean; missing: boolean; out: string; err: string };
 type Exec = (cmd: string, args?: string[]) => ExecResult;
 type Level = 'ok' | 'warn' | 'error';
 export type CheckItem = { level: Level; name: string; detail: string; fix: string };
 
-/** Runs a command without a shell (a .cmd shim through cmd.exe); never throws. */
 export function defaultExec(cmd: string, args: string[] = []): ExecResult {
-  // Node refuses to spawn a .cmd shim directly (EINVAL); the arguments passed here are fixed strings, never user input.
+  // Node can not spawn a .cmd shim directly (EINVAL); the arguments are fixed strings, never user input.
   const shim = /[.]cmd$/i.test(cmd);
   const r = spawnSync(shim ? 'cmd.exe' : cmd, shim ? ['/d', '/c', cmd, ...args] : args, {
     encoding: 'utf8',
@@ -121,12 +108,6 @@ export function defaultExec(cmd: string, args: string[] = []): ExecResult {
 
 const item = (level: Level, name: string, detail: string, fix = ''): CheckItem => ({ level, name, detail, fix });
 
-// ---------------------------------------------------------------- checks
-
-/**
- * Runs every check. Everything that touches the machine is injected:
- *   exec(cmd, args) -> { ok, missing, out, err }; fileExists(p); readText(p) (throws when unreadable).
- */
 export type RunChecksOptions = {
   platform?: string;
   nodeVersion?: string;
@@ -157,7 +138,6 @@ export function runChecks({
     }
   };
 
-  // node
   const nodeFile = root ? safeRead(`${slashes(root)}/.node-version`) : null;
   const wanted = nodeFile === null ? null : parseNodeMajor(nodeFile);
   const actual = parseNodeMajor(nodeVersion);
@@ -169,7 +149,6 @@ export function runChecks({
       item('error', 'node', `running Node ${nodeVersion}, .node-version wants ${wanted}`, hint(platform, 'node')),
     );
 
-  // git identity
   const name = config('user.name');
   const email = config('user.email');
   if (name && email) items.push(item('ok', 'git identity', `${name} <${email}>`));
@@ -185,7 +164,6 @@ export function runChecks({
     );
   }
 
-  // hooks
   const hooksPath = config('core.hooksPath');
   if (hooksPathOk(hooksPath, root)) items.push(item('ok', 'git hooks', `core.hooksPath=${hooksPath}`));
   else
@@ -198,7 +176,6 @@ export function runChecks({
       ),
     );
 
-  // signing
   const format = config('gpg.format');
   const gpgsign = config('commit.gpgsign');
   const keySetting = config('user.signingkey');
@@ -241,7 +218,6 @@ export function runChecks({
     }
   }
 
-  // line endings
   const autocrlf = config('core.autocrlf');
   if (autocrlf === 'true')
     items.push(
@@ -273,8 +249,7 @@ export function runChecks({
     }
   }
 
-  // gitleaks: the binary at the pinned version, or a container runtime that can run the pinned image; the
-  // pre-commit hook rejects commits otherwise, so "neither" is a failure
+  // The pre-commit hook rejects commits without the pinned gitleaks or a container runtime for its image.
   const pinnedLeaks = imageVersion(root ? safeRead(`${slashes(root)}/tooling/ci-images/Dockerfile`) : null, 'gitleaks');
   const leaks = exec('gitleaks', ['version']);
   const leaksVersion = leaks.ok ? leaks.out.replace(/^v/, '') : null;
@@ -312,14 +287,12 @@ export function runChecks({
       ),
     );
 
-  // gh
   const gh = exec('gh', ['auth', 'status']);
   if (gh.missing) items.push(item('error', 'gh', 'the GitHub CLI is not installed', hint(platform, 'gh')));
   else if (!gh.ok) items.push(item('error', 'gh', 'gh is not authenticated', 'gh auth login'));
   else items.push(item('ok', 'gh', 'installed and authenticated'));
 
-  // pnpm: a warning until the workspace needs it. A .cmd shim on Windows; or through Corepack, where it must match
-  // the version pinned in package.json (Corepack fetches exactly that version).
+  // Warning only. Through Corepack the version must match the one pinned in package.json.
   const pnpm = exec(platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['--version']);
   const viaCorepack = pnpm.ok ? null : exec(platform === 'win32' ? 'corepack.cmd' : 'corepack', ['pnpm', '--version']);
   const packageJson = root ? safeRead(`${slashes(root)}/package.json`) : null;

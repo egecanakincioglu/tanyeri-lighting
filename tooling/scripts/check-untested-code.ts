@@ -1,13 +1,6 @@
 #!/usr/bin/env node
-// Untested code never reaches main: when a commit of any type except style adds or modifies
-// production source (src/**/*.{ts,tsx,mts,cts}, test files and *.d.ts excluded), the whole range base..head must
-// also add or modify at least one test file (*.test.{ts,tsx,mts,cts,mjs} or *.spec.*, anywhere).
-// Commits of type style (formatting only) are exempt, and so are deletion-only changes.
-//
+// Fails when a range of non-style commits changes src/ code but no test file; the whole range counts.
 //   node tooling/scripts/check-untested-code.ts --base <sha> --head <sha>
-//
-// The check is range-wide on purpose: a fix and its test may land in separate commits of one pull request.
-// Exit codes: 0 ok, 1 untested source changes, 2 usage or git error. Portable: Node only.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,18 +12,11 @@ const TEST_FILE = /\.(?:test\.(?:ts|tsx|mts|cts|mjs)|spec\.[^/]+)$/;
 const TEST_DIR = /(?:^|\/)__tests__\//;
 const DECLARATION = /\.d\.[cm]?ts$/;
 
-/** True for a test file (by name or by living under __tests__/). */
 export const isTestFile = (file: string): boolean => TEST_FILE.test(file) || TEST_DIR.test(file);
-/** True for production source that needs a test: under src/, TypeScript, not a test and not a declaration file. */
 export const isGatedSource = (file: string): boolean =>
   SOURCE.test(file) && !isTestFile(file) && !DECLARATION.test(file);
-/** The Conventional Commits type of a header, or null. */
 export const commitType = (header: string): string | null => HEADER.exec(header)?.[1] ?? null;
 
-/**
- * Parses `git log --name-status` output (records start with \x01<sha>\t<subject>) into
- * [{ sha, header, files: [{ status, file }] }].
- */
 export type Commit = { sha: string; header: string; files: { status: string; file: string }[] };
 export function parseLog(text: string): Commit[] {
   const commits: Commit[] = [];
@@ -47,7 +33,6 @@ export function parseLog(text: string): Commit[] {
   return commits;
 }
 
-/** Decision for parsed commits: { ok, offenders: [{ sha, header, files }], testFiles }. */
 export function evaluate(commits: Commit[]): {
   ok: boolean;
   offenders: { sha: string; header: string; files: string[] }[];
