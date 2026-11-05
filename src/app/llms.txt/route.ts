@@ -14,8 +14,7 @@ const PAGES: { href: PageHref; name: Record<Locale, string> }[] = [
 
 const SECTIONS: Record<Locale, string> = { tr: 'Türkçe', en: 'English' };
 
-// A plain-text map of the public pages for readers that prefer Markdown. Google Search does not use this file; it
-// answers the Lighthouse audit and gives text-only readers a short overview. The links follow SITE_URL.
+// Plain-text map of the public pages for text readers and the Lighthouse audit; Google Search ignores it.
 export function GET(): Response {
   const lines = [
     '# Tanyeri Lighting',

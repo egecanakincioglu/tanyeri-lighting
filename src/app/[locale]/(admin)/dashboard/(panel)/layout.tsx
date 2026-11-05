@@ -11,8 +11,7 @@ import { guardPage } from '../../../../../server/auth/guard.ts';
 import { signOutAction } from '../../../../../server/auth/sign-out-action.ts';
 import { isDemoMode } from '../../../../../server/env.ts';
 
-// The sign-in page sits next to this group, not in it, so it stays without the menu. Every page in the group still
-// calls the guard itself: a layout is not re-run on every client navigation.
+// Each page calls the guard itself: a layout does not re-run on client navigation.
 export default async function PanelLayout({ children, params }: LayoutProps<'/[locale]/dashboard'>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();

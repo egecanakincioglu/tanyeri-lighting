@@ -7,8 +7,7 @@ import { PageHeader } from '../../../../../../components/admin/page-header.tsx';
 import { routing } from '../../../../../../i18n/routing.ts';
 import { guardPage } from '../../../../../../server/auth/guard.ts';
 
-// The one page behind every menu item that has no screen of its own yet. A screen replaces it by adding a page file
-// at its own folder, which takes precedence over this dynamic one.
+// Fallback for menu items without a screen; a real page file takes precedence.
 async function titleOf(locale: string, section: string): Promise<string | undefined> {
   const key = itemKeyOfSection(section);
   if (!key) return undefined;

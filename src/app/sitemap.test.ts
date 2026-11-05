@@ -20,7 +20,7 @@ vi.mock('../server/content/content-dates.ts', async (importOriginal) => ({
   listContentDates: content.dates,
 }));
 vi.mock('../server/content/categories.ts', () => ({ listCategoryChanges: content.categories }));
-// connection() only works inside a request; opting into dynamic rendering is its whole effect.
+// connection() only works inside a request.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
 
 const metaDate = new Date('2026-03-01T10:00:00Z');

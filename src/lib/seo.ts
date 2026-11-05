@@ -16,12 +16,10 @@ export function absoluteUrl(path: string): string {
   return new URL(path, getSiteUrl()).href;
 }
 
-// The one place that decides canonical and hreflang. The paths are relative; metadataBase makes them absolute.
-// x-default is the root address on the home page (it redirects by language) and the default language elsewhere.
+// The one place that decides canonical and hreflang. x-default is the root on the home page, else the default language.
 const OG_LOCALES: Record<Locale, string> = { tr: 'tr_TR', en: 'en_US' };
 
-// Canonical, hreflang and the Open Graph basics for one address. The title and description are the page's own. A page
-// that sets openGraph replaces the whole object of the layout, so the shared image (the file app/opengraph-image.png) is named here.
+// A page that sets openGraph replaces the layout's whole object, so the shared image is named here.
 export function pageSeo(locale: Locale, href: PageHref): Pick<Metadata, 'alternates' | 'openGraph'> {
   return {
     alternates: pageAlternates(locale, href),

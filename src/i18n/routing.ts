@@ -1,6 +1,6 @@
 import { defineRouting } from 'next-intl/routing';
 
-// Page addresses are keyed by the English path; Turkish pages use Turkish addresses (ADR 0006).
+// Page addresses are keyed by the English path; Turkish pages use Turkish addresses.
 export const routing = defineRouting({
   locales: ['tr', 'en'],
   defaultLocale: 'tr',
@@ -21,13 +21,12 @@ export const routing = defineRouting({
     '/contact': { tr: '/iletisim', en: '/contact' },
     '/privacy': { tr: '/gizlilik', en: '/privacy' },
     '/terms': { tr: '/kullanim-kosullari', en: '/terms' },
-    // The admin side lives in the (admin)/dashboard folder, which tooling/scripts/check-admin-guard.ts expects.
+    // check-admin-guard expects the admin side in (admin)/dashboard.
     '/dashboard': { tr: '/yonetim', en: '/admin' },
     '/dashboard/sign-in': { tr: '/yonetim/giris', en: '/admin/sign-in' },
     '/dashboard/forgot-password': { tr: '/yonetim/parola-unuttum', en: '/admin/forgot-password' },
     '/dashboard/reset-password': { tr: '/yonetim/parola-sifirla', en: '/admin/reset-password' },
-    // Every panel screen has its address here, so a screen is only a page file away. The ones without a page yet are
-    // answered by (panel)/[section]/page.tsx.
+    // Pages not built yet are answered by (panel)/[section]/page.tsx.
     '/dashboard/banner': { tr: '/yonetim/banner', en: '/admin/banner' },
     '/dashboard/featured-products': { tr: '/yonetim/one-cikan-urunler', en: '/admin/featured-products' },
     '/dashboard/promo-boards': { tr: '/yonetim/tanitim-panolari', en: '/admin/promo-boards' },
@@ -70,5 +69,4 @@ export const routing = defineRouting({
   },
 });
 
-// The addresses without a parameter, which a plain link can point to.
 export type StaticPath = Exclude<keyof typeof routing.pathnames, `${string}[${string}`>;

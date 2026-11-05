@@ -27,7 +27,7 @@ export default async function EditCategoryPage({ params }: PageProps<'/[locale]/
     categoryFormProps(locale),
     listCategories(),
   ]);
-  // There are at most a few categories and no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const category = categories.find((item) => item.id === id);
   if (!category) notFound();
 

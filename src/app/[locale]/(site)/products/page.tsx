@@ -22,12 +22,10 @@ import { listProducts } from '../../../../server/content/products.ts';
 
 const PAGE_SIZE = 24;
 
-// Image widths follow the grid: 2 columns below 540 px, 3 from 540, 4 from 900, 6 from 1280; the page width is fixed
-// from 1440 px. Each width is the cell minus the card padding and border.
+// Image widths follow the grid: 2 columns under 540 px, 3 from 540, 4 from 900, 6 from 1280; fixed width from 1440.
 const cardSizes =
   '(min-width: 150rem) 224px, (min-width: 120rem) 197px, (min-width: 90rem) 176px, (min-width: 80rem) calc(15.3vw - 2.7rem), (min-width: 56.25rem) calc(23vw - 2.4rem), (min-width: 33.75rem) calc(30.7vw - 2.3rem), calc(46vw - 2rem)';
 
-// A value that is missing, repeated or not a positive whole number counts as absent.
 function single(value: string | string[] | undefined): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
@@ -37,7 +35,7 @@ function parsePage(value: string | undefined, pageCount: number): number {
   return page <= pageCount ? page : 1;
 }
 
-// The page and its metadata read the same list, so it is loaded once per request.
+// The page and its metadata share one load per request.
 const loadListing = cache(async (requested: string | undefined, rawPage: string | undefined) => {
   const categories = await listCategories();
   const selected = categories.find((entry) => entry.key === requested);
@@ -60,7 +58,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<'/[lo
     loadListing(single(query.category), single(query.page)),
   ]);
   const { selected } = listing;
-  // A category view has its own title and description; an empty one falls back to the category name and the page's.
+  // A category view has its own title and description; empty ones fall back to the category name.
   const metadata = toMetadata(
     page,
     locale,
@@ -68,7 +66,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<'/[lo
     t('products'),
   );
   const description = selected?.seoDescription[locale];
-  // A later page and a category view are their own addresses; each is its own canonical, never the plain list.
+  // A later page or category view is its own canonical.
   const paged = listing.current > 1;
   const target = {
     ...(listing.category ? { category: listing.category } : {}),
@@ -80,7 +78,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<'/[lo
     ...(description ? { description } : {}),
     ...(paged ? { title: `${String(metadata.title)} - ${products('pageSuffix', { page: listing.current })}` } : {}),
     ...pageSeo(locale, href),
-    // An empty list answers 200, so it is kept out of the index instead of looking like a soft 404.
+    // An empty list returns 200, so keep it out of the index to avoid a soft 404.
     ...(listing.products.length === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -101,7 +99,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps<'
     single(query.page),
   );
 
-  // The first page and the all-products list carry no query, so their address is the plain one.
+  // The first page and the all-products list use the plain address.
   const listHref = (categoryKey: string | undefined, page = 1) => {
     const query = { ...(categoryKey ? { category: categoryKey } : {}), ...(page > 1 ? { page } : {}) };
     return getPathname({

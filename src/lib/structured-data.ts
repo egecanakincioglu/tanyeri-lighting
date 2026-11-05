@@ -2,24 +2,23 @@ import type { Article, BreadcrumbList, ContactPage, Organization, Thing, WebSite
 import type { SiteSettings, SocialLink } from '../server/content/schemas.ts';
 import { absoluteUrl, localizedPath, type Locale, type PageHref } from './seo.ts';
 
-// The data is written inside a script element. `<` is escaped so no text in the data can close the element or open
-// another one; JSON.parse reads the escaped form back to the same value.
+// `<` is escaped so data cannot close the script element.
 export function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
 
-// One node for the whole site, whatever the language, so the contact page can point at it.
+// One site-wide node so the contact page can point at it.
 export function organizationId(): string {
   return absoluteUrl('/#organization');
 }
 
 const trimmed = (value: string) => value.trim();
 
-// A text the visitor can not see on the page is not written: empty ones are left out.
+// Empty texts are left out.
 const when = <K extends string>(key: K, value: string | undefined) =>
   (value ? { [key]: value } : {}) as { [P in K]?: string };
 
-// The schema-dts types also allow a bare string for a node; the builders always return the object form.
+// schema-dts also allows a bare string; builders always return objects.
 type Node<T extends Thing> = Exclude<WithContext<T>, string>;
 
 export function websiteData(settings: SiteSettings, locale: Locale): Node<WebSite> {
@@ -36,9 +35,8 @@ export function websiteData(settings: SiteSettings, locale: Locale): Node<WebSit
 
 const FALLBACK_LOGO = '/icons/icon-512.png';
 
-// No postal address and no business type: the brand is fictional and has no location. The description repeats the
-// visible text of the page. In the demo the phone, email and social profiles are not the brand's own, so neither a
-// contact point nor sameAs is written.
+// No address or business type: the brand is fictional.
+// Demo contact data is not the brand's, so no contact point or sameAs.
 export function organizationData(
   settings: SiteSettings,
   links: readonly SocialLink[],
@@ -87,15 +85,13 @@ export function breadcrumbData(locale: Locale, crumbs: readonly Crumb[]): Node<B
 export type ArticleFacts = {
   headline: string;
   description: string;
-  /** An address or a path on the site. */
   image: string;
   published: Date;
   modified: Date;
   href: PageHref;
 };
 
-// Every value is shown on the page (title, summary, picture, date) except the modified date, which the saved row
-// carries. The organization is the author and the publisher: the articles have no named writer.
+// The modified date comes from the saved row. The organization is author and publisher: articles have no named writer.
 export function articleData(article: ArticleFacts, locale: Locale): Node<Article> {
   const url = absoluteUrl(localizedPath(locale, article.href));
   const modified = article.modified > article.published ? article.modified : article.published;

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/dashboar
 const cell = 'px-4 py-3 align-top';
 const head = `${cell} text-left text-sm font-semibold text-muted`;
 
-// The bar repeats the number next to it, so it is hidden from assistive technology.
+// The bar repeats the number, so hide it from screen readers.
 function Views({ value, max }: { value: number; max: number }) {
   return (
     <>

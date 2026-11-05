@@ -14,7 +14,7 @@ import { breadcrumbData } from '../../../../lib/structured-data.ts';
 import { getPageMetadata } from '../../../../server/content/page-metadata.ts';
 import { listReferences } from '../../../../server/content/references.ts';
 
-// 1 column below 540 px, 2 up to 768 px, 3 up to 1280 px, then 5 as on the old page. The bare 18vw lets the browser pick the small widths; the page width is fixed from 1440 px.
+// 1 column under 540 px, 2 up to 768 px, 3 up to 1280 px, then 5. The page width is fixed from 1440 px.
 const sizes =
   '(min-width: 150rem) 301px, (min-width: 120rem) 269px, (min-width: 90rem) 243px, (min-width: 81.5rem) 221px, (min-width: 80rem) 18vw, (min-width: 48rem) calc(30.67vw - 1rem), (min-width: 33.75rem) calc(46vw - 0.75rem), (min-width: 25rem) 92vw, calc(100vw - 2rem)';
 

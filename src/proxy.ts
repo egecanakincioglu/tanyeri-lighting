@@ -14,10 +14,9 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data:",
     "font-src 'self'",
-    // The PDF reader runs in a worker from our own origin.
+    // The PDF reader runs in a worker from the site's own origin.
     "worker-src 'self'",
-    // The catalog reader fetches the PDF from the public file store, which answers cross-origin reads. The panel's
-    // upload sends a file to the store API, whose address the storage library fixes at vercel.com/api/blob/.
+    // The catalog reader fetches PDFs cross-origin; uploads go to the store API at vercel.com/api/blob/.
     "connect-src 'self' https://*.public.blob.vercel-storage.com https://vercel.com/api/blob/",
     "object-src 'none'",
     "base-uri 'self'",
@@ -29,8 +28,7 @@ function buildCsp(nonce: string): string {
 export default function proxy(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID());
   const csp = buildCsp(nonce);
-  // next-intl copies the request headers into the rewrite/next response, which is how
-  // Next.js reads the nonce to apply it to its own scripts.
+  // next-intl copies request headers into the response; Next.js reads the nonce from there.
   request.headers.set('content-security-policy', csp);
   const response = intlProxy(request);
   response.headers.set('content-security-policy', csp);

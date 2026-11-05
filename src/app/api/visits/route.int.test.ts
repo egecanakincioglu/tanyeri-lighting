@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 import { getDb } from '../../../server/db.ts';
 import { POST } from './route.ts';
 
-// Outside a request `after` has nothing to attach to; the test runs what it was given, like the host does later.
+// Outside a request `after` has nothing to attach to, so run the callback directly.
 const queued = vi.hoisted(() => ({ tasks: [] as (() => Promise<void>)[] }));
 vi.mock('next/server', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/server')>()),

@@ -49,7 +49,7 @@ describe('the auth route on a real database', () => {
     const reset = await POST(authRequest('/request-password-reset', { email: ADMIN_EMAIL }));
     const attempt = await POST(authRequest('/reset-password', { token: 'x', newPassword: 'x'.repeat(12) }));
 
-    // Email is off in this suite: the library refuses the request itself, so it did run.
+    // Email is off here, so the library itself refused the request.
     expect(reset.status).toBe(400);
     expect(attempt.status).toBe(400);
     expect(await getDb().rateLimit.count()).toBe(2);

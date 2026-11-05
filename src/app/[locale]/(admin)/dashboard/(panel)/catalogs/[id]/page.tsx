@@ -25,7 +25,7 @@ export default async function EditCatalogPage({ params }: PageProps<'/[locale]/d
     catalogFormProps(locale),
     listCatalogs(),
   ]);
-  // There are only a few catalogs and no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const catalog = catalogs.find((item) => item.id === id);
   if (!catalog) notFound();
 

@@ -132,7 +132,6 @@ describe('company settings screen', () => {
     inIntl('en', await SettingsAdminPage(props('en')));
     fireEvent.click(screen.getByRole('button', { name: 'Move down: instagram' }));
     await waitFor(() => expect(mocks.reorder).toHaveBeenCalledWith(['l2', 'l1']));
-    // The first link can not move up.
     fireEvent.click(screen.getByRole('button', { name: 'Move up: instagram' }));
     expect(mocks.reorder).toHaveBeenCalledTimes(1);
   });

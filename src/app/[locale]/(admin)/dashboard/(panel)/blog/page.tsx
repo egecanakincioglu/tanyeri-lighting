@@ -29,7 +29,7 @@ export default async function BlogAdminPage({ params }: PageProps<'/[locale]/das
     listPosts(),
   ]);
   const formTexts = buildFormTexts(form);
-  // A draft has no date; a date after today is an article that visitors do not see yet.
+  // A draft has no date; a future date is not visible yet.
   const status = (date: Date | null) => {
     if (!date) return t('draft');
     const day = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(date);

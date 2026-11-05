@@ -3,13 +3,12 @@ import path from 'node:path';
 import { Client } from 'pg';
 import { ADMIN_URL, TEST_DATABASE, TEST_URL } from './integration-env.ts';
 
-// Recreates the test database, so every run starts from an empty schema.
 async function recreateDatabase(): Promise<void> {
   const client = new Client({ connectionString: ADMIN_URL });
   try {
     await client.connect();
   } catch {
-    // Vitest 5 crashes while printing the stack of an error thrown from a global setup, so print the hint first.
+    // Vitest 5 crashes printing a global setup error stack, so print the hint first.
     const message = 'Integration tests need PostgreSQL on 127.0.0.1:5432; run "pnpm db:up" first.';
     console.error(message);
     throw Object.assign(new Error(message), { stack: message });
@@ -22,7 +21,6 @@ async function recreateDatabase(): Promise<void> {
   }
 }
 
-// Drops the database after the run so checkouts do not leave databases behind; the next run recreates it anyway.
 async function dropDatabase(): Promise<void> {
   const client = new Client({ connectionString: ADMIN_URL });
   try {

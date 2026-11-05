@@ -12,7 +12,7 @@ const content = vi.hoisted(() => ({ projects: vi.fn(), metadata: vi.fn() }));
 vi.mock('../../../../server/content/projects.ts', () => ({ listProjects: content.projects }));
 vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Header' | 'Projects' }) => {
     const messages = { tr, en }[locale][namespace] as Record<string, string>;

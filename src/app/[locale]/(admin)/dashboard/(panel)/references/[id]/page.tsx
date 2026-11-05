@@ -27,7 +27,7 @@ export default async function EditReferencePage({ params }: PageProps<'/[locale]
     referenceFormProps(locale),
     listReferences(),
   ]);
-  // There are only a few references and no single-row reader, so the list is searched.
+  // No single-row reader exists, so search the list.
   const reference = references.find((item) => item.id === id);
   if (!reference) notFound();
 

@@ -3,8 +3,7 @@ import type { PageMetadata } from '../server/content/schemas.ts';
 
 type Locale = 'tr' | 'en';
 
-// A page without saved metadata (or without a text for the language) keeps the site default, or the `fallbackTitle` the
-// page names. A page whose own content carries the title passes it as `title`; the saved description still applies.
+// A missing text keeps the site default or `fallbackTitle`. A page that carries its own title passes it as `title`.
 export function toMetadata(
   saved: PageMetadata | null,
   locale: Locale,

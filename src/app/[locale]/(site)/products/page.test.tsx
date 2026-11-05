@@ -13,7 +13,7 @@ vi.mock('../../../../server/content/categories.ts', () => ({ listCategories: con
 vi.mock('../../../../server/content/products.ts', () => ({ listProducts: content.products }));
 vi.mock('../../../../server/content/page-metadata.ts', () => ({ getPageMetadata: content.metadata }));
 
-// The real helper needs the Next.js server runtime; this fake reads the same message files.
+// The real helper needs the Next.js server runtime.
 vi.mock('next-intl/server', () => ({
   getTranslations: ({ locale, namespace }: { locale: 'tr' | 'en'; namespace: 'Products' | 'Header' }) =>
     Promise.resolve((key: string, values: Record<string, number> = {}) =>

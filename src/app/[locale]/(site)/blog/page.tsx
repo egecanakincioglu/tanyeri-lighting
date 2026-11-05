@@ -23,13 +23,12 @@ function single(value: string | string[] | undefined): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
-// A value that is missing, repeated or not a positive whole number counts as absent.
 function parsePage(value: string | undefined, pageCount: number): number {
   const page = value !== undefined && /^[1-9]\d{0,5}$/.test(value) ? Number(value) : 1;
   return page <= pageCount ? page : 1;
 }
 
-// The page and its metadata read the same list, so it is loaded once per request.
+// The page and its metadata share one load per request.
 const loadListing = cache(async (rawPage: string | undefined) => {
   const posts = await listPublishedPosts();
   const pageCount = Math.ceil(posts.length / PAGE_SIZE);
@@ -49,13 +48,13 @@ export async function generateMetadata({ params, searchParams }: PageProps<'/[lo
     loadListing(single(query.page)),
   ]);
   const metadata = toMetadata(page, locale, undefined, header('blog'));
-  // A later page is its own address with its own title; it must not point its canonical at the first page.
+  // A later page has its own canonical, not the first page's.
   const paged = listing.current > 1;
   return {
     ...metadata,
     ...(paged ? { title: `${String(metadata.title)} - ${t('pageSuffix', { page: listing.current })}` } : {}),
     ...pageSeo(locale, listHref(listing.current)),
-    // An empty list answers 200, so it is kept out of the index instead of looking like a soft 404.
+    // An empty list returns 200, so keep it out of the index to avoid a soft 404.
     ...(listing.posts.length === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }

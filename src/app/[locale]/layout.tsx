@@ -8,7 +8,7 @@ import '../globals.css';
 import { getSiteUrl, isIndexingEnabled } from '../../server/env.ts';
 import { routing } from '../../i18n/routing.ts';
 
-// One variable file holds Latin plus the full Turkish alphabet.
+// One variable file covers Latin and Turkish.
 const figtree = localFont({
   src: '../fonts/Figtree-Variable.woff2',
   weight: '400 700',

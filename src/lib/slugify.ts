@@ -7,11 +7,12 @@ const TURKISH_LETTERS: Record<string, string> = {
   ü: 'u',
 };
 
-/** An address-safe form of a name: Turkish letters become their Latin twins, anything else becomes a single hyphen. */
+/** Turkish letters become Latin; anything else becomes one hyphen. */
 export function slugify(text: string): string {
   return (
     text
-      // Lowered by hand: the default lowering of İ leaves a combining dot behind, and a plain I is a dotless ı in Turkish.
+      // Lowered by hand: the default lowering of İ leaves a combining dot behind,
+      // and a plain I is a dotless ı in Turkish.
       .replaceAll('İ', 'i')
       .replaceAll('I', 'ı')
       .toLocaleLowerCase('tr')

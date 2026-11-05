@@ -21,7 +21,7 @@ import {
 
 const postHref = (slug: string) => ({ pathname: '/blog/[slug]' as const, params: { slug } });
 
-// The demo photos are 480 px wide, so the image is shown at most 240 px wide: sharp on 2x screens and not blown up.
+// Demo photos are 480 px wide; cap the image at 240 px: sharp on 2x screens.
 const IMAGE_SIZES = '240px';
 
 const linkClass = 'underline-offset-4 hover:text-accent-text hover:underline';

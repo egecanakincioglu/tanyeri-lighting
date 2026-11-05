@@ -26,7 +26,6 @@ type Page = { generateMetadata: (props: never) => Promise<Metadata> };
 const props = (locale: string, extra: Record<string, string> = {}) =>
   ({ params: Promise.resolve({ locale, ...extra }), searchParams: Promise.resolve({}) }) as never;
 
-// Each public page with its address in both languages and the title it shows.
 const pages: [string, () => Promise<Page>, Record<Locale, string>, Record<Locale, string>][] = [
   ['home', () => import('./page.tsx'), { tr: '/tr', en: '/en' }, { tr: '/tr', en: '/en' }],
   [
