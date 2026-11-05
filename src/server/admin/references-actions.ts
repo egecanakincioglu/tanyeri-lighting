@@ -17,14 +17,11 @@ import { failure, formPair, formText, runAction, type FormState } from './form.t
 
 const FILE_FIELDS = ['imageUrl'] as const;
 
-// The record as it is before a change, to know which files the change leaves behind.
 async function findReference(id: string) {
   return (await listReferences()).find((item) => item.id === id);
 }
 
-// The pattern for a resource: the form fields become the input of the content service, which validates it again and
-// refuses writes in the demo. The public pages read the database on every request (the root layout awaits
-// connection()), so there is nothing to revalidate; refresh() only redraws the panel screen the action came from.
+// The public pages read the database on every request, so refresh() only redraws the panel screen.
 
 function referenceInput(formData: FormData) {
   return {

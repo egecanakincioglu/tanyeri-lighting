@@ -36,7 +36,6 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-// These tests run with the SMTP variables set: email is on. The off side is in account-actions.int.test.ts.
 describe('changeEmailAction with email on', () => {
   let cookie = '';
 
@@ -45,7 +44,7 @@ describe('changeEmailAction with email on', () => {
     const transport = createTransport({ jsonTransport: true });
     sendMail = vi.spyOn(transport, 'sendMail') as unknown as typeof sendMail;
     setEmailTransport(transport);
-    // The mail goes out after the response; here it goes at once.
+    // The mail normally goes out after the response; here it goes at once.
     setEmailScheduler((task) => void task());
   });
 
@@ -84,7 +83,6 @@ describe('changeEmailAction with email on', () => {
     expect(approval.to).toBe(ADMIN_EMAIL);
     expect(approval.text).toContain('new@example.com');
 
-    // The approval moves the request on to the new address and changes nothing yet.
     const approved = await GET(new Request(linkOf(approval), { headers: { cookie } }));
     expect(approved.status).toBe(302);
     expect((await getDb().user.findFirstOrThrow()).email).toBe(ADMIN_EMAIL);
@@ -92,8 +90,7 @@ describe('changeEmailAction with email on', () => {
     const confirmation = sendMail.mock.calls[1]![0];
     expect(confirmation.to).toBe('new@example.com');
 
-    // The holder of the last link has no session of their own here: the link would sign them in, and the change ends
-    // every session instead.
+    // This user has no session of their own: the link signs them in, then the change ends every session.
     const opened = await GET(new Request(linkOf(confirmation)));
     expect(opened.status).toBe(302);
     expect(opened.headers.get('location')).toBe('/en/admin/account');

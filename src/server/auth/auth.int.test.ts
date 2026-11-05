@@ -16,7 +16,6 @@ import { TEST_AUTH_URL } from '../../test/integration-env.ts';
 import { getDb } from '../db.ts';
 import { setEmailTransport } from '../email/index.ts';
 
-// These tests run without the SMTP variables: email is off. The enabled side is in password-reset.int.test.ts.
 describe('authentication endpoints on a real database', () => {
   beforeEach(async () => {
     await resetAdmin();
@@ -78,7 +77,6 @@ describe('authentication endpoints on a real database', () => {
     expect(rightPassword.status).toBe(429);
     expect(await getDb().session.count()).toBe(0);
 
-    // The budget belongs to the address: another visitor is not locked out.
     expect((await signIn(PASSWORD, { address: '198.51.100.8' })).status).toBe(200);
   });
 
@@ -139,7 +137,7 @@ describe('authentication endpoints on a real database', () => {
     );
     expect(changed.status).toBe(200);
 
-    // A revoked session stops working at once: the session cookie is never trusted without the database.
+    // The session cookie is never trusted without the database.
     expect(await sessionOf(first)).toBeNull();
     expect(await sessionOf(second)).toBeNull();
     expect(await sessionOf(cookieOf(changed))).not.toBeNull();

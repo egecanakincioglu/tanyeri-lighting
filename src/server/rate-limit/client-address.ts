@@ -1,10 +1,10 @@
 import { isIPv4, isIPv6 } from 'node:net';
 import { isVercel } from '../env.ts';
 
-// Every request outside Vercel, without the header or with a value that is not an address falls into this one bucket.
+// Shared bucket for requests outside Vercel, without the header, or with a value that is not an address.
 export const UNKNOWN_ADDRESS = 'unknown';
 
-// The eight 16-bit groups of a valid IPv6 address. An embedded IPv4 tail ("::ffff:1.2.3.4") becomes two groups.
+// The eight 16-bit groups of a valid IPv6 address; an embedded IPv4 tail becomes two groups.
 export function ipv6Groups(address: string): number[] {
   let text = address;
   const lastColon = text.lastIndexOf(':');
@@ -20,8 +20,8 @@ export function ipv6Groups(address: string): number[] {
   return [...before, ...zeros, ...after].map((group) => parseInt(group, 16));
 }
 
-// A whole /64 is one subscriber, so one client can rotate through 2^64 addresses; they must share a bucket.
-// IPv4-mapped IPv6 addresses are IPv4 clients behind a dual-stack socket and are counted as IPv4.
+// A /64 is one subscriber who can rotate through 2^64 addresses, so it shares one bucket.
+// IPv4-mapped IPv6 counts as IPv4.
 function normalizeAddress(value: string): string {
   const address = value.split('%')[0] ?? '';
   if (isIPv4(address)) return address;
@@ -37,9 +37,8 @@ function normalizeAddress(value: string): string {
     .join(':')}::/64`;
 }
 
-// ADR 0004 rule 4: the address is read only from a header the server itself writes. Vercel overwrites
-// x-forwarded-for and does not pass a client-sent value through. Anywhere else anyone can send the header, so
-// trusting it would let a caller pick a fresh bucket per request; those requests share one bucket instead.
+// Read only from a header the server writes itself. Vercel overwrites x-forwarded-for; elsewhere anyone can send it
+// and get a fresh bucket per request, so those requests share one bucket.
 export function getClientAddress(headers: Headers): string {
   if (!isVercel()) return UNKNOWN_ADDRESS;
   const first = headers.get('x-forwarded-for')?.split(',')[0]?.trim();

@@ -43,8 +43,7 @@ export async function listPromoBoards(): Promise<PromoBoard[]> {
   return rows.map(fromRow);
 }
 
-// The new board goes to the end of the list. The catalog has to exist: the foreign key is the check, so a catalog
-// deleted at the same moment cannot slip through.
+// The foreign key checks that the catalog exists, so one deleted at the same moment cannot slip through.
 export async function createPromoBoard(input: unknown): Promise<PromoBoard> {
   assertWritable();
   const columns = toColumnsOf(promoBoardSchema.parse(input));
@@ -82,7 +81,7 @@ export async function deletePromoBoard(id: unknown): Promise<void> {
   if (result.count === 0) throw new ContentNotFoundError('Promo board');
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderPromoBoards(ids: unknown): Promise<void> {
   assertWritable();
   const order = idListSchema.parse(ids);

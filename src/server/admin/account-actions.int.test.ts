@@ -12,14 +12,14 @@ import { getAuth } from '../auth/auth.ts';
 import { getDb } from '../db.ts';
 import { changeEmailAction, changePasswordAction } from './account-actions.ts';
 
-// The request of the code under test; `next/headers` has no request to read from outside Next.js.
+// next/headers has no request outside Next.js, so the tests supply one.
 const request = vi.hoisted(() => ({ headers: new Headers(), cookieSet: vi.fn() }));
 vi.mock('next/headers', () => ({
   headers: () => Promise.resolve(request.headers),
   cookies: () => Promise.resolve({ set: request.cookieSet }),
 }));
 
-// The auth limits are per client address, so every test uses an address of its own.
+// Auth limits are per client address, so each test uses its own.
 let nextAddress = 1;
 function visitor(cookie?: string): void {
   const headers = new Headers({ 'x-forwarded-for': `198.51.100.${nextAddress++}` });
@@ -36,7 +36,6 @@ function form(fields: Record<string, string>): FormData {
 const change = (extra: Record<string, string> = {}) =>
   form({ currentPassword: ADMIN_PASSWORD, newPassword: OTHER_PASSWORD, confirm: OTHER_PASSWORD, ...extra });
 
-// These tests run without the SMTP variables: email is off. The email change itself is in account-email.int.test.ts.
 describe('the account actions on a real database', () => {
   let cookie = '';
 

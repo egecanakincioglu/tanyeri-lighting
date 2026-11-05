@@ -2,18 +2,17 @@ import { z } from 'zod';
 import { type Bilingual, bilingual, optionalBilingual } from './bilingual.ts';
 import { isValidPhone } from './phone.ts';
 
-// The input rules of the content services. Lengths are hard limits for storage and layout; search-engine length
-// advice for titles and descriptions is shorter and belongs to the admin form.
+// Lengths are hard limits for storage and layout; shorter SEO advice belongs to the admin form.
 
 const MAX_URL_LENGTH = 2048;
 
-// https only: a stored address ends up in links and in structured data.
+// https only: stored addresses end up in links and structured data.
 const httpsUrl = z
   .url({ protocol: /^https$/ })
   .trim()
   .max(MAX_URL_LENGTH);
 
-// The files of the demo content live in public/demo. Exact prefix, no parent step, no protocol-relative address.
+// Demo files live in public/demo. Exact prefix, no parent step, no protocol-relative address.
 const demoPath = z
   .string()
   .trim()
@@ -21,12 +20,10 @@ const demoPath = z
   .regex(/^\/demo\/[A-Za-z0-9._/-]+$/)
   .refine((path) => !path.includes('..') && !path.includes('//'));
 
-// Where a stored picture or file is: an https address (uploads are Blob addresses) or a path under /demo/.
 const mediaUrl = z.union([httpsUrl, demoPath]);
 
 export const siteSettingsSchema = z.object({
   siteName: bilingual(100),
-  // A Blob address from the storage module, or none.
   logoUrl: mediaUrl.nullable(),
   phone: z.string().trim().max(30).refine(isValidPhone, 'Enter a phone number of 7 to 20 digits'),
   email: z.string().trim().pipe(z.email().max(254)),
@@ -50,7 +47,6 @@ export type SocialLink = SocialLinkInput & { id: string };
 export const socialLinkIdSchema = z.string().min(1).max(64);
 export const socialLinkOrderSchema = z.array(socialLinkIdSchema);
 
-// The public pages that have a title and a description of their own.
 export const PAGE_KEYS = [
   'home',
   'products',
@@ -84,7 +80,6 @@ export type LegalPageKey = z.infer<typeof legalPageKeySchema>;
 
 export const legalPageSchema = z.object({
   title: bilingual(150),
-  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   body: bilingual(50_000),
 });
 
@@ -93,9 +88,7 @@ export type LegalPage = LegalPageInput & { updatedAt: Date };
 
 export const projectSchema = z.object({
   title: bilingual(150),
-  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   description: bilingual(5000),
-  // The two pictures of the before and after slider; Blob addresses from the storage module.
   beforeImageUrl: mediaUrl,
   afterImageUrl: mediaUrl,
 });
@@ -106,15 +99,12 @@ export type Project = ProjectInput & { id: string };
 export const projectIdSchema = z.string().min(1).max(64);
 export const projectOrderSchema = z.array(projectIdSchema);
 
-// What a picture shows, in one short sentence; empty in both languages for a decorative picture.
 const imageAlt = optionalBilingual(200);
 
 export const referenceSchema = z.object({
   imageUrl: mediaUrl,
   imageAlt,
-  // A proper name, the same in both languages.
   name: z.string().trim().min(1).max(100),
-  // What kind of work it was.
   title: bilingual(100),
   description: bilingual(500),
 });
@@ -125,7 +115,7 @@ export type Reference = ReferenceInput & { id: string };
 export const referenceIdSchema = z.string().min(1).max(64);
 export const referenceOrderSchema = z.array(referenceIdSchema);
 
-// Ids are created by the database; any id the caller sends is checked for shape only.
+// Ids come from the database; a sent id is checked for shape only.
 export const idSchema = z.string().min(1).max(64);
 export const idListSchema = z.array(idSchema);
 
@@ -137,25 +127,21 @@ const kebabCase = (maxLength: number) =>
 export const MAX_CATEGORIES = 8;
 
 export const categorySchema = z.object({
-  // Language independent; used as a filter in URLs.
   key: kebabCase(60),
   name: bilingual(60),
-  // The words of the category's own address; each is filled in both languages or in neither, and an empty one falls
-  // back to the name. The title has no brand: the site template adds it.
+  // Filled in both languages or neither; an empty one falls back to the name. No brand: the site template adds it.
   seoTitle: optionalBilingual(70).default({ tr: '', en: '' }),
   seoDescription: optionalBilingual(320).default({ tr: '', en: '' }),
   h1: optionalBilingual(100).default({ tr: '', en: '' }),
-  // Plain text under the heading of the category view.
   intro: optionalBilingual(600).default({ tr: '', en: '' }),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
 export type Category = CategoryInput & { id: string };
 
-// Strict on purpose: a product has no price, so a stray `price` is an error, not silently dropped.
+// Strict: a product has no price, so a stray `price` is an error, not dropped.
 export const productSchema = z.strictObject({
   categoryId: idSchema,
-  // The language-independent address of the product page.
   slug: kebabCase(80),
   code: z.string().trim().min(1).max(60),
   name: bilingual(120),
@@ -163,9 +149,8 @@ export const productSchema = z.strictObject({
   material: bilingual(100),
   power: z.string().trim().min(1).max(40),
   dimensions: z.string().trim().min(1).max(60),
-  // Two or three sentences; filled in both languages or in neither.
   description: optionalBilingual(500).default({ tr: '', en: '' }),
-  // Language-independent values with their unit, such as "1050 lm"; empty leaves the row out.
+  // Values with a unit, such as "1050 lm"; empty leaves the row out.
   luminousFlux: z.string().trim().max(20).default(''),
   colorTemperature: z.string().trim().max(20).default(''),
   cri: z.string().trim().max(20).default(''),
@@ -178,19 +163,16 @@ export type Product = ProductInput & { id: string; categoryKey: string };
 
 export const catalogSchema = z.object({
   name: bilingual(120),
-  // A Blob address from the storage module.
   pdfUrl: mediaUrl,
-  // The picture shown on the catalogs page; empty when the catalog has none.
   coverImageUrl: mediaUrl.or(z.literal('')),
   imageAlt,
-  // Bytes; the upper bound is the largest value the column holds.
+  // Bytes, up to the largest value the column holds.
   sizeBytes: z.int().min(1).max(2_147_483_647),
 });
 
 export type CatalogInput = z.infer<typeof catalogSchema>;
 export type Catalog = CatalogInput & { id: string };
 
-// A button of the home banner: its text and the public page it opens.
 const bannerActionSchema = z.strictObject({
   label: bilingual(40),
   target: pageKeySchema,
@@ -207,8 +189,7 @@ export const homeBannerSchema = z.strictObject({
 
 export type HomeBanner = z.infer<typeof homeBannerSchema>;
 
-// The order of the list is the order on the home page. Each product can appear once.
-// The home grid has room for six.
+// Each product can appear once; the home grid has room for six.
 export const FEATURED_LIMIT = 6;
 
 export const featuredProductIdsSchema = idListSchema
@@ -221,37 +202,30 @@ export const promoBoardSchema = z.strictObject({
   imageUrl: mediaUrl,
   imageAlt,
   title: bilingual(100),
-  // One short line under the title; empty in both languages when the board has none.
   subtitle: optionalBilingual(120),
-  // The catalog the board links to.
   catalogId: idSchema,
 });
 
 export type PromoBoardInput = z.infer<typeof promoBoardSchema>;
-// The name and file address of the linked catalog are read along, so a page needs no second query.
 export type PromoBoard = PromoBoardInput & { id: string; catalogName: Bilingual; catalogPdfUrl: string };
 
 export const applicationAreaSchema = z.strictObject({
   imageUrl: mediaUrl,
   imageAlt,
   title: bilingual(100),
-  // Short plain text.
   description: bilingual(300),
-  // The category the card links to; none leaves it unlinked.
   categoryId: idSchema.nullable().default(null),
 });
 
 export type ApplicationAreaInput = z.infer<typeof applicationAreaSchema>;
-// The key of the linked category is read along, so the home page needs no second query.
 export type ApplicationArea = ApplicationAreaInput & { id: string; categoryKey: string | null };
 
 export const serviceSchema = z.strictObject({
   imageUrl: mediaUrl,
   imageAlt,
   title: bilingual(100),
-  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   description: bilingual(5000),
-  // An extra remark under the card: filled in both languages, or empty in both.
+  // An extra remark under the card: both languages or neither.
   note: optionalBilingual(500),
 });
 
@@ -259,28 +233,23 @@ export type ServiceInput = z.infer<typeof serviceSchema>;
 export type Service = ServiceInput & { id: string };
 
 export const blogPostSchema = z.strictObject({
-  // The language independent address of the article.
   slug: kebabCase(80),
   title: bilingual(120),
   description: bilingual(320),
   excerpt: bilingual(320),
-  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   body: bilingual(50_000),
   imageUrl: mediaUrl,
   imageAlt: bilingual(200),
-  // Empty means a draft; a day in the future publishes the article on that day.
+  // Empty means a draft; a future day publishes on that day.
   publishedAt: z.date().nullable(),
 });
 
 export type BlogPostInput = z.infer<typeof blogPostSchema>;
 export type BlogPost = BlogPostInput & { id: string; createdAt: Date; updatedAt: Date };
-// What the list and the cards need: no body.
 export type BlogPostSummary = Omit<BlogPost, 'body'>;
 
 export const aboutPageSchema = z.strictObject({
-  // Limited Markdown, stored as plain text and rendered by src/components/markdown-content.tsx.
   body: bilingual(50_000),
-  // The vision is a section of the about page.
   vision: bilingual(50_000),
 });
 

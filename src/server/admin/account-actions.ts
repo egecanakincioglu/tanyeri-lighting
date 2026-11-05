@@ -19,7 +19,7 @@ type AccountCode = 'invalid' | 'demo' | 'unauthorized' | 'rateLimited' | 'emailO
 export type AccountState =
   { status: 'success' } | { status: 'error'; code: AccountCode; fields: Partial<Record<AccountField, AccountIssue>> };
 
-// Form field names as constants: the secret scanner flags literal values assigned to password-named properties.
+// Constants: the secret scanner flags literal values on password-named properties.
 const CURRENT_FIELD = 'currentPassword';
 const NEW_FIELD = 'newPassword';
 
@@ -37,7 +37,7 @@ async function checked(work: () => Promise<AccountState>): Promise<AccountState>
   }
 }
 
-// The passwords go to the auth layer only; they are never logged or sent back to the form.
+// Passwords go to the auth layer only; never log them or send them back to the form.
 export async function changePasswordAction(_previous: AccountState | null, formData: FormData): Promise<AccountState> {
   return checked(async () => {
     await guardAction();
@@ -57,16 +57,14 @@ export async function changePasswordAction(_previous: AccountState | null, formD
     if (response.status === 429) return failed('rateLimited');
     if (response.status === 400) return failed('invalid', { [CURRENT_FIELD]: 'wrongCurrent' });
     if (!response.ok) return failed('generic');
-    // A separate call, not the library's revokeOtherSessions flag: that flag also replaces this session's token, and
-    // the page that redraws after the action still holds the old cookie, so it would find no session and sign out.
+    // Not revokeOtherSessions: it also replaces this session token, and the redrawn page would find no session.
     const others = await callAuth('/revoke-other-sessions', {});
-    // The password is already changed, so a plain error would send the user back to try again for nothing.
+    // The password is already changed; a plain error would make the user retry.
     if (!others.ok) return failed('othersOpen');
     return { status: 'success' };
   });
 }
 
-// Password guesses one account may make before an e-mail change.
 const VERIFY_LIMIT = { scope: 'change-email-password', limit: 5, windowSeconds: 900 } as const;
 
 const emailSchema = z.email().max(254);
@@ -84,7 +82,7 @@ export async function changeEmailAction(_previous: AccountState | null, formData
 
     const currentPassword = formText(formData, CURRENT_FIELD);
     if (currentPassword === '') return failed('invalid', { [CURRENT_FIELD]: 'required' });
-    // `auth.api` skips the library limiter, so the guesses at the password are counted per account here.
+    // `auth.api` skips the library limiter, so password guesses are counted per account here.
     const limit = await checkRateLimit({ ...VERIFY_LIMIT, subject: session.user.id });
     if (!limit.ok) return failed('rateLimited');
     try {
@@ -96,7 +94,7 @@ export async function changeEmailAction(_previous: AccountState | null, formData
       throw error;
     }
 
-    // The library answers alike for a free and a taken address, so the form can not tell them apart either.
+    // The library answers the same for a free and a taken address; so does the form.
     const callbackURL = getPathname({ locale: safeLocale(formText(formData, 'locale')), href: '/dashboard/account' });
     const response = await callAuth('/change-email', { newEmail: parsed.data, callbackURL });
     if (response.status === 429) return failed('rateLimited');

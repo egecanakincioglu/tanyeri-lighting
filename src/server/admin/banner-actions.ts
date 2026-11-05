@@ -10,7 +10,6 @@ function actionInput(formData: FormData, name: 'primary' | 'secondary') {
   return { label: formPair(formData, `${name}Label`), target: formText(formData, `${name}Target`) };
 }
 
-// The banner is one row: the form always saves all of it.
 export async function updateBannerAction(_previous: FormState | null, formData: FormData): Promise<FormState> {
   return runAction(async () => {
     await guardAction();

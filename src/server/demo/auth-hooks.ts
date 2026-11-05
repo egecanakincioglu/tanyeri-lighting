@@ -1,11 +1,9 @@
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { isDemoMode } from '../env.ts';
 
-// Every Better Auth 1.7.14 core endpoint that changes account or session state, and list-sessions, which would show
-// every demo visitor the addresses and browsers of the others sharing the account. Sign-in, sign-out, get-session and the
-// read-only lookups stay open; sign-up is closed by the auth options. It is a deny list so the demo admin keeps
-// working when the library adds a read-only endpoint; the integration test fails when an endpoint is in neither
-// list, so a library upgrade can not add a write endpoint unnoticed.
+// Deny list of auth endpoints that change account or session state,
+// plus list-sessions (it would show visitors each other's browsers).
+// Sign-in, sign-out and read-only lookups stay open. The integration test fails when an endpoint is on neither list.
 export const DEMO_BLOCKED_AUTH_PATHS: ReadonlySet<string> = new Set([
   '/change-password',
   '/change-email',

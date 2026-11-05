@@ -11,7 +11,6 @@ import {
 const pair = (tr: string, en: string) => ({ tr, en });
 const IMAGE = 'https://store.public.blob.vercel-storage.com/picture.webp';
 
-// Each schema that stores a picture takes the same optional pair, so one set of rules is checked against all six.
 const schemas = [
   [
     'referenceSchema',

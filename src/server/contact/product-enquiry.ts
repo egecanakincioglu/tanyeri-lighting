@@ -1,9 +1,8 @@
 import type { routing } from '../../i18n/routing.ts';
 import { getProductBySlug } from '../content/products.ts';
 
-// The product a visitor asks about, from the `product` value of the contact address. The value is only used to look the
-// product up; what the page shows comes from the stored product. An unknown value, an old address that now redirects
-// and anything that is not a single text give nothing.
+// Looks up the product from the `product` query value.
+// An unknown value, an old address that redirects, or anything that is not a single string gives nothing.
 export async function findEnquiryProduct(
   value: string | string[] | undefined,
   locale: (typeof routing.locales)[number],

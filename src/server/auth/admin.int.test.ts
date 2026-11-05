@@ -11,7 +11,7 @@ const EMAIL = 'first-admin@example.com';
 const PASSWORD = 'correct horse battery staple';
 const NEW_PASSWORD = 'another long passphrase 42';
 
-// The sign-in limit is per client address and endpoint, so every test uses addresses of its own.
+// The sign-in limit is per address and endpoint, so each test uses its own addresses.
 let nextAddress = 1;
 
 function signIn(email: string, password: string): Promise<Response> {
@@ -28,8 +28,6 @@ function signIn(email: string, password: string): Promise<Response> {
   );
 }
 
-// The commands run as the real processes: Node strips the types itself, no loader is involved.
-// The child inherits the integration database variables from the test environment.
 function runScript(script: string, args: string[], input?: string) {
   return spawnSync(process.execPath, [path.join(process.cwd(), script), ...args], { input, encoding: 'utf8' });
 }

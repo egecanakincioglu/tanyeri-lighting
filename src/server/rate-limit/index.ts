@@ -3,20 +3,19 @@ import { getDb } from '../db.ts';
 import { getEnv } from '../env.ts';
 import { getClientAddress } from './client-address.ts';
 
-// Rate limiting for public endpoints such as the contact form (ADR 0004 rule 3). Sign-in keeps the limiter of the
-// authentication library; this module never touches its table.
+// For public endpoints such as the contact form.
+// Sign-in keeps the auth library's limiter; this module never touches its table.
 
 export type RateLimitResult = { ok: true } | { ok: false; retryAfterSeconds: number };
 
 export type RateLimitOptions = {
-  // Names the endpoint, e.g. "contact". Part of the key, so endpoints never share a counter.
+  // Names the endpoint; part of the key, so endpoints never share a counter.
   scope: string;
-  // Requests allowed per window and client.
   limit: number;
   windowSeconds: number;
-  // The client address is read from these. Ignored when a subject is given.
+  // Source of the client address; ignored when a subject is given.
   headers?: Headers;
-  // Counts one named subject, such as an account, instead of the client address.
+  // Counts a named subject, such as an account, instead of the client address.
   subject?: string;
 };
 
@@ -26,17 +25,17 @@ const RETENTION_MS = MAX_WINDOW_SECONDS * 1000;
 // At most this many expired rows go per cleanup, so one request never pays for a long backlog.
 export const CLEANUP_BATCH = 100;
 
-// Decided here, recorded in ADR 0004: the client address is never stored. The key is an HMAC-SHA256 of
-// "<scope>:<address>" under a key derived from BETTER_AUTH_SECRET with a fixed label, so a leaked table cannot be
-// reversed by trying every IPv4 address, and no extra secret has to be configured.
+// The address is never stored. The key is an HMAC-SHA256 of "<scope>:<address>"
+// under a key derived from BETTER_AUTH_SECRET,
+// so a leaked table cannot be reversed by trying every IPv4 address.
 function bucketKey(scope: string, address: string): string {
   const derived = createHmac('sha256', getEnv().BETTER_AUTH_SECRET).update('rate-limit').digest();
   return createHmac('sha256', derived).update(`${scope}:${address}`).digest('hex');
 }
 
-// Fixed windows aligned to the epoch. The counter is one row per key: the statement below starts a new window when
-// the stored one is older and otherwise increments, atomically, so concurrent requests can not both read the same
-// count. A refused request still counts; the counter only grows until the window ends.
+// Fixed windows aligned to the epoch, one row per key.
+// One atomic statement starts a new window or increments, so concurrent
+// requests cannot read the same count. A refused request still counts.
 export async function checkRateLimit({
   scope,
   limit,
@@ -70,8 +69,8 @@ export async function checkRateLimit({
   // A key that just opened a window is the cheap moment to sweep: traffic itself drives the cleanup.
   if (row.count === 1) {
     const cutoff = new Date(now - RETENTION_MS);
-    // MATERIALIZED makes the planner evaluate the limited, locking subquery exactly once; as a plain IN subquery it
-    // may be run again and delete more rows than one sweep allows.
+    // MATERIALIZED evaluates the limited, locking subquery once;
+    // a plain IN subquery may run again and delete more rows than allowed.
     await db.$executeRaw`
       WITH doomed AS MATERIALIZED (
         SELECT "key" FROM "rateLimitCounter"
@@ -88,7 +87,7 @@ export async function checkRateLimit({
   return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((windowEnd - now) / 1000)) };
 }
 
-// For route handlers. Server Actions use the result object instead.
+// For route handlers; Server Actions use the result object.
 export function tooManyRequests(retryAfterSeconds: number): Response {
   return Response.json(
     { error: 'Too many requests' },

@@ -8,13 +8,13 @@ function fromRow(row: LegalPageRow): LegalPage {
   return { title: fromColumns('title', row), body: fromColumns('body', row), updatedAt: row.updatedAt };
 }
 
-// The body is Markdown text; render it with src/components/markdown-content.tsx, never as raw HTML.
+// Markdown: render it with markdown-content.tsx, never as raw HTML.
 export async function getLegalPage(key: LegalPageKey): Promise<LegalPage | null> {
   const row = await getDb().legalPage.findUnique({ where: { pageKey: key } });
   return row ? fromRow(row) : null;
 }
 
-// A legal page without a row is hidden: the public page answers 404 and the footer has no link.
+// No row means hidden: the page is 404 and the footer has no link.
 export async function deleteLegalPage(key: unknown): Promise<void> {
   assertWritable();
   const pageKey = legalPageKeySchema.parse(key);

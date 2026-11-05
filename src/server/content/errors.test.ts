@@ -7,7 +7,7 @@ function prismaError(code: string, meta?: Record<string, unknown>) {
   return new Prisma.PrismaClientKnownRequestError('failed', { code, clientVersion: 'test', meta });
 }
 
-// The shape the Postgres driver adapter reports: the violated index is in the cause of the adapter error.
+// The Postgres driver adapter puts the violated index in the cause.
 function adapterError(index: string) {
   return prismaError('P2002', {
     driverAdapterError: { cause: { kind: 'UniqueConstraintViolation', constraint: { index } } },

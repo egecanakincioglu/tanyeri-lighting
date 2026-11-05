@@ -8,7 +8,7 @@ const db = getDb();
 
 const demoFile = (url: string) => new URL(`../../../public${url}`, import.meta.url);
 
-// A bilingual pair is filled in both languages and the two differ (a copy of one language is not a translation).
+// A copy of one language is not a translation, so the pair must differ.
 const isTranslated = (tr: string, en: string) => tr.length > 0 && en.length > 0 && tr !== en;
 
 describe('demo content seed on a real database', () => {

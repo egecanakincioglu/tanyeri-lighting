@@ -3,7 +3,7 @@ import { getDb } from '../db.ts';
 import { submitContactMessage } from './actions.ts';
 import { HONEYPOT_FIELD, SITE_WIDE_LIMIT } from './form.ts';
 
-// The request headers of the code under test; `next/headers` has no request to read from outside Next.js.
+// `next/headers` has no request outside Next.js.
 const request = vi.hoisted(() => ({ headers: new Headers() }));
 vi.mock('next/headers', () => ({ headers: () => Promise.resolve(request.headers) }));
 

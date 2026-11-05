@@ -12,7 +12,6 @@ export type PanelCounts = {
   unreadMessages: number;
 };
 
-// One round of plain counts for the panel home and the menu badge. Callers check the session first.
 export async function getPanelCounts(): Promise<PanelCounts> {
   const db = getDb();
   const [products, categories, catalogs, projects, references, services, blogPosts, messages, unreadMessages] =
@@ -30,7 +29,6 @@ export async function getPanelCounts(): Promise<PanelCounts> {
   return { products, categories, catalogs, projects, references, services, blogPosts, messages, unreadMessages };
 }
 
-// The badge of the messages item in the menu.
 export function countUnreadMessages(): Promise<number> {
   return getDb().contactMessage.count({ where: { readAt: null } });
 }

@@ -24,7 +24,7 @@ function board(catalogId: string, name: string) {
 }
 
 async function clean(): Promise<void> {
-  // The boards go first: the foreign key refuses to delete a catalog that a board links to.
+  // Boards first: the foreign key refuses to delete a catalog a board links to.
   await getDb().promoBoard.deleteMany();
   await getDb().catalog.deleteMany();
 }

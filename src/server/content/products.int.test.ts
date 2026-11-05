@@ -265,8 +265,7 @@ describe('products on a real database', () => {
     });
   });
 
-  // Two writers pass the in-transaction check at the same time; the unique index decides and the loser gets the same
-  // error as a failed check.
+  // Two writers pass the check together; the unique index decides and the loser gets the same error.
   describe('concurrent writers', () => {
     async function settle(...writes: Promise<unknown>[]) {
       const results = await Promise.allSettled(writes);

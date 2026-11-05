@@ -4,7 +4,6 @@ import { assertWritable } from '../demo/guard.ts';
 import { fromColumns, toColumns } from './bilingual.ts';
 import { type SiteSettings, siteSettingsSchema } from './schemas.ts';
 
-// The business details live in one row with a fixed id.
 const ROW_ID = 'site';
 
 function fromRow(row: SiteSettingsRow): SiteSettings {
@@ -33,8 +32,7 @@ function toColumnsOf(settings: SiteSettings) {
   };
 }
 
-// Before the first save there is no row: every text, the phone and the email are empty and there is no logo. The result is only a default for
-// readers; it is not stored, and saving still requires every field in both languages.
+// No row yet: texts, phone and email are empty and there is no logo. Not stored.
 function emptySettings(): SiteSettings {
   const empty = () => ({ tr: '', en: '' });
   return {
@@ -54,7 +52,6 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return row ? fromRow(row) : emptySettings();
 }
 
-// Replaces all fields at once; creates the row on the first save.
 export async function updateSiteSettings(input: unknown): Promise<SiteSettings> {
   assertWritable();
   const columns = toColumnsOf(siteSettingsSchema.parse(input));

@@ -3,8 +3,7 @@ import { getDb } from '../db.ts';
 import { assertWritable } from '../demo/guard.ts';
 import type { ContactInput } from './form.ts';
 
-// Not guarded: the public Server Action stores messages. The admin entry points that call the functions below
-// check the session first (ADR 0003 rule 7).
+// Not guarded: the public Server Action stores messages. Admin entry points check the session first.
 export async function createContactMessage(input: ContactInput): Promise<void> {
   await getDb().contactMessage.create({ data: input });
 }
@@ -14,11 +13,10 @@ const MAX_PAGE_SIZE = 100;
 
 export type MessagePage = {
   items: ContactMessage[];
-  // The id to pass as `cursor` for the next page; null on the last page.
   nextCursor: string | null;
 };
 
-// Newest first. Pass the previous page's nextCursor to continue after it.
+// Newest first; pass the previous nextCursor to continue.
 export async function listMessages({
   limit = DEFAULT_PAGE_SIZE,
   cursor,

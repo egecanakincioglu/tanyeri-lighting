@@ -1,7 +1,7 @@
 import { isDemoMode, isEmailEnabled } from '../env.ts';
 
-// Resetting by email needs outgoing email, and the demo refuses the endpoints. Without it the pages say so and the
-// sign-in page hides its link; recovery is then the command on the server.
+// Reset needs outgoing email, and the demo refuses the endpoints.
+// When off, the pages say so and recovery is a server command.
 export function isPasswordResetAvailable(): boolean {
   return isEmailEnabled() && !isDemoMode();
 }

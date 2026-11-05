@@ -47,11 +47,9 @@ type Action = (previous: null, formData: FormData) => Promise<unknown>;
 
 interface Family {
   name: string;
-  // The form fields that hold a stored file, and the ones among them that may hold a demo picture.
   fileFields: string[];
   demoFields: string[];
   base: () => Record<string, string>;
-  // A record that is created and removed; the banner and the company details exist once and are only updated.
   create?: Action;
   update: Action;
   remove?: Action;
@@ -189,7 +187,7 @@ const families: Family[] = [
   {
     name: 'catalogs',
     fileFields: ['pdfUrl', 'coverImageUrl'],
-    // A catalog needs its PDF in the file store; only the cover may be a demo picture.
+    // Only the cover may be a demo picture; the PDF must be uploaded.
     demoFields: ['coverImageUrl'],
     base: () => pair('name', 'Catalog'),
     create: createCatalogAction,
@@ -239,7 +237,7 @@ const PDF = new TextEncoder().encode('%PDF-1.4\nbody of the catalog\n%%EOF');
 let server: FakeBlobServer;
 let counter = 0;
 
-// A new address in the file store for a field; a PDF is really uploaded because the catalog asks the store for its size.
+// A PDF is really uploaded because the catalog asks the store for its size.
 async function stored(field: string): Promise<string> {
   if (field === 'pdfUrl') return storeFile(PDF);
   counter += 1;
@@ -262,8 +260,6 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-// Saves the family's first record (or its only one) with these files and returns its id; the file store has seen no
-// deletion yet when it returns.
 async function seed(family: Family, files: Record<string, string>): Promise<string> {
   const fields = { ...family.base(), ...files };
   if (family.create) {

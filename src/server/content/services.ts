@@ -27,14 +27,12 @@ function toColumnsOf(service: ServiceInput) {
   };
 }
 
-// The description is Markdown; render it with src/components/markdown-content.tsx, never as raw HTML. A service
-// without a note has an empty pair in `note`.
+// Markdown: render it with markdown-content.tsx, never as raw HTML.
 export async function listServices(): Promise<Service[]> {
   const rows = await getDb().service.findMany({ orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }] });
   return rows.map(fromRow);
 }
 
-// The new service goes to the end of the list.
 export async function createService(input: unknown): Promise<Service> {
   assertWritable();
   const columns = toColumnsOf(serviceSchema.parse(input));
@@ -63,7 +61,7 @@ export async function deleteService(id: unknown): Promise<void> {
   if (result.count === 0) throw new ContentNotFoundError('Service');
 }
 
-// `ids` is the complete list in its new order; a missing, extra or repeated id changes nothing.
+// Anything but the complete list changes nothing.
 export async function reorderServices(ids: unknown): Promise<void> {
   assertWritable();
   const order = idListSchema.parse(ids);
