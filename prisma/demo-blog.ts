@@ -1,5 +1,4 @@
-// The demo articles of the Blog page: the text of each article as written, in both languages. The days are fixed, so
-// a second seed run leaves the same rows. The addresses in the texts are pages of the demo content.
+// Demo blog articles in both languages. Fixed days keep a second seed run identical; addresses point at demo pages.
 export interface DemoBlogPost {
   slug: string;
   publishedAt: Date;

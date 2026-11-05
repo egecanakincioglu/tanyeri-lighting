@@ -81,7 +81,7 @@ model RateLimit {
   @@map("rateLimit")
 }
 
-// Counters of the project's own rate limiter (src/server/rate-limit); Better Auth keeps its own in "rateLimit".
+// Counters of the project's own rate limiter; Better Auth keeps its own in "rateLimit".
 model RateLimitCounter {
   key         String   @id
   windowStart DateTime
@@ -91,8 +91,7 @@ model RateLimitCounter {
   @@map("rateLimitCounter")
 }
 
-// Messages from the public contact form. No IP address and no browser identification string are kept; "locale" is
-// the language the visitor used on the site ("tr" or "en"), so a reply can be written in it.
+// No IP address or browser identification string is kept. "locale" is the visitor's language, so a reply can use it.
 model ContactMessage {
   id        String    @id @default(cuid())
   name      String
@@ -107,9 +106,9 @@ model ContactMessage {
   @@map("contactMessage")
 }
 
-// One row per day and anonymized visitor address, so a client can not grow the table by sending more requests. The
-// address is cut to its /24 (IPv4) or /48 (IPv6) before it is stored; no path, referrer or browser identification
-// string is kept. The day is the Europe/Istanbul calendar day. Rows are kept for 13 months.
+// One row per day and anonymized address, so a client cannot grow the table.
+// The address is cut to /24 (IPv4) or /48 (IPv6).
+// No path, referrer or browser identification string is kept. The day is the Europe/Istanbul day; rows live 13 months.
 model Visit {
   id      String   @id @default(cuid())
   day     DateTime @db.Date
@@ -123,10 +122,10 @@ model Visit {
   @@map("visit")
 }
 
-// Every bilingual field below is two required columns, `<field>Tr` and `<field>En`; a page never falls back from one
-// language to the other (ADR 0006). src/server/content maps them to a { tr, en } pair.
+// Every bilingual field is two required columns, `<field>Tr` and `<field>En`;
+// a page never falls back to the other language.
 
-// Contact and identity details of the business. At most one row, with the fixed id "site".
+// Business contact and identity details. At most one row, id "site".
 model SiteSettings {
   id             String   @id
   siteNameTr     String
@@ -161,7 +160,7 @@ model SocialLink {
   @@map("socialLink")
 }
 
-// Title and description of a public page. The key is one of PAGE_KEYS in src/server/content/schemas.ts.
+// Title and description of a public page; the key is a PAGE_KEYS value.
 model PageMetadata {
   pageKey       String   @id
   titleTr       String
@@ -173,7 +172,7 @@ model PageMetadata {
   @@map("pageMetadata")
 }
 
-// The legal pages, keyed "privacy" and "terms". The bodies are limited Markdown stored as plain text.
+// The legal pages, keyed "privacy" and "terms". Bodies are limited Markdown as plain text.
 model LegalPage {
   pageKey   String   @id
   titleTr   String
@@ -185,7 +184,7 @@ model LegalPage {
   @@map("legalPage")
 }
 
-// A finished job shown with a before and an after picture. The description is limited Markdown stored as plain text.
+// A job with before and after pictures. The description is limited Markdown as plain text.
 model Project {
   id             String   @id @default(uuid(7))
   titleTr        String
@@ -202,12 +201,10 @@ model Project {
   @@map("project")
 }
 
-// A client or partner shown on the site. The name is a proper name and is not translated; the title says what kind of
-// work it was.
+// A client or partner. The name is a proper name and is not translated.
 model Reference {
   id            String   @id @default(uuid(7))
   imageUrl      String
-  // Empty when the picture has no description (a decorative picture).
   imageAltTr    String   @default("")
   imageAltEn    String   @default("")
   name          String
@@ -223,15 +220,14 @@ model Reference {
   @@map("reference")
 }
 
-// Product categories (at most 8, enforced in src/server/content/categories.ts). The key is language independent and
-// is used to filter the product list in a URL.
+// Product categories, at most 8. The key is language independent and filters the product list in a URL.
 model Category {
   id               String            @id @default(uuid(7))
   key              String            @unique
   nameTr           String
   nameEn           String
   sortOrder        Int
-  // Empty strings mean the page falls back to the category name. The title has no brand: the site template adds it.
+  // Empty strings fall back to the category name. The title has no brand: the site template adds it.
   seoTitleTr       String            @default("")
   seoTitleEn       String            @default("")
   seoDescriptionTr String            @default("")
@@ -248,8 +244,7 @@ model Category {
   @@map("category")
 }
 
-// A product has no price. The slug is the language-independent address of its page; `sortOrder` counts within the
-// category. A category with products cannot be deleted.
+// A product has no price. `sortOrder` counts within the category. A category with products cannot be deleted.
 model Product {
   id               String                @id @default(uuid(7))
   categoryId       String
@@ -264,7 +259,6 @@ model Product {
   materialEn       String
   power            String
   dimensions       String
-  // Optional details; an empty value leaves the row or text out of the page.
   descriptionTr    String                @default("")
   descriptionEn    String                @default("")
   luminousFlux     String                @default("")
@@ -282,7 +276,7 @@ model Product {
   @@map("product")
 }
 
-// An earlier slug of a product, kept so the old address answers with a redirect to the current one.
+// An earlier product slug, kept so the old address redirects.
 model ProductSlugRedirect {
   id        String   @id @default(uuid(7))
   oldSlug   String   @unique
@@ -294,15 +288,13 @@ model ProductSlugRedirect {
   @@map("productSlugRedirect")
 }
 
-// A downloadable PDF catalog. The file itself is stored by the storage module; this row keeps its address and size.
+// A downloadable PDF catalog. The row keeps the file's address and size.
 model Catalog {
   id            String       @id @default(uuid(7))
   nameTr        String
   nameEn        String
   pdfUrl        String
-  // Empty when the catalog has no cover picture.
   coverImageUrl String
-  // Empty when the picture has no description (a decorative picture).
   imageAltTr    String       @default("")
   imageAltEn    String       @default("")
   sizeBytes     Int
@@ -315,12 +307,10 @@ model Catalog {
   @@map("catalog")
 }
 
-// The banner at the top of the home page. At most one row, with the fixed id "home". Each action is a button that
-// opens one of the public pages (a PAGE_KEYS value, checked in src/server/content/schemas.ts).
+// The home page banner. At most one row, id "home". Each action is a button to a public page (a PAGE_KEYS value).
 model HomeBanner {
   id               String   @id
   imageUrl         String
-  // Empty when the picture has no description (a decorative picture).
   imageAltTr       String   @default("")
   imageAltEn       String   @default("")
   titleTr          String
@@ -338,7 +328,7 @@ model HomeBanner {
   @@map("homeBanner")
 }
 
-// The products shown on the home page, in display order. A product that is deleted leaves the list.
+// Products on the home page, in display order. Deleting a product removes it from the list.
 model FeaturedProduct {
   id        String   @id @default(uuid(7))
   productId String   @unique
@@ -350,16 +340,15 @@ model FeaturedProduct {
   @@map("featuredProduct")
 }
 
-// A picture on the home page that links to a catalog. A catalog that a board links to cannot be deleted.
+// A home page picture that links to a catalog. A catalog linked from a board cannot be deleted.
 model PromoBoard {
   id         String   @id @default(uuid(7))
   imageUrl   String
-  // Empty when the picture has no description (a decorative picture).
   imageAltTr String   @default("")
   imageAltEn String   @default("")
   titleTr    String
   titleEn    String
-  // One short line under the title; both empty when the board has none.
+  // Both empty when the board has no subtitle.
   subtitleTr String
   subtitleEn String
   catalogId  String
@@ -373,11 +362,10 @@ model PromoBoard {
   @@map("promoBoard")
 }
 
-// A kind of place the business lights (the former "work areas"). The description is short plain text.
+// A kind of place the business lights. The description is short plain text.
 model ApplicationArea {
   id            String    @id @default(uuid(7))
   imageUrl      String
-  // Empty when the picture has no description (a decorative picture).
   imageAltTr    String    @default("")
   imageAltEn    String    @default("")
   titleTr       String
@@ -385,7 +373,7 @@ model ApplicationArea {
   descriptionTr String
   descriptionEn String
   sortOrder     Int
-  // The category the home card links to; none leaves the card unlinked.
+  // The home card links to this category; none leaves it unlinked.
   categoryId    String?
   category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt     DateTime  @default(now())
@@ -395,12 +383,11 @@ model ApplicationArea {
   @@map("applicationArea")
 }
 
-// A card of the services page. The description is limited Markdown stored as plain text. The note is optional: both
-// columns are empty strings when there is none, never only one of them.
+// A card of the services page. The description is limited Markdown as plain text.
+// The note is optional: both columns are empty, never only one.
 model Service {
   id            String   @id @default(uuid(7))
   imageUrl      String
-  // Empty when the picture has no description (a decorative picture).
   imageAltTr    String   @default("")
   imageAltEn    String   @default("")
   titleTr       String
@@ -417,8 +404,8 @@ model Service {
   @@map("service")
 }
 
-// The about page, with the vision as a section of it. At most one row, with the fixed id "about". Both texts are
-// limited Markdown stored as plain text.
+// The about page, with the vision as a section. At most one row, id "about".
+// Both texts are limited Markdown as plain text.
 model AboutPage {
   id        String   @id
   bodyTr    String
@@ -430,8 +417,8 @@ model AboutPage {
   @@map("aboutPage")
 }
 
-// A blog article. Public only while publishedAt is set and not in the future; a row without it is a draft. The
-// body is limited Markdown stored as plain text. The slug is the language independent address.
+// A blog article. Public only while publishedAt is set and not in the future; otherwise a draft.
+// The body is limited Markdown as plain text.
 model BlogPost {
   id            String                 @id @default(uuid(7))
   slug          String                 @unique
@@ -455,7 +442,7 @@ model BlogPost {
   @@map("blog_post")
 }
 
-// An earlier slug of a blog article, kept so the old address answers with a redirect to the current one.
+// An earlier blog slug, kept so the old address redirects.
 model BlogPostSlugRedirect {
   id        String   @id @default(uuid(7))
   oldSlug   String   @unique
