@@ -1,4 +1,3 @@
-// The panel icons: 24 px grid, 1.6 stroke, round ends. They carry no meaning of their own, the label next to them does.
 const PATHS = {
   dashboard: 'M4 5h7v7H4zM13 5h7v4h-7zM13 11h7v8h-7zM4 14h7v5H4z',
   chart: 'M5 19v-8M12 19V5M19 19v-6',

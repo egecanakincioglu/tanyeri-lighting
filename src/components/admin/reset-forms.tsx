@@ -6,14 +6,13 @@ import { Link } from '../../i18n/navigation.ts';
 import { Button } from '../button.tsx';
 import { TextField } from '../field.tsx';
 
-// Checked here first so a typo gets a message at once; the auth layer enforces the same limits.
+// Checked here for instant feedback; the auth layer enforces the same limits.
 
 const linkClass = 'inline-flex min-h-touch items-center font-medium text-ink underline underline-offset-4';
 
 type Failure = 'rateLimited' | 'demo' | 'generic';
 
-// The browser posts straight to the auth endpoints: only requests that reach the handler are rate limited, and the
-// answer carries no session. A network error counts as a plain failure.
+// Posts straight to the auth endpoints: only requests that reach the handler are rate limited.
 async function post(path: string, body: object): Promise<{ status: number; code: string }> {
   try {
     const response = await fetch(`/api/auth${path}`, {
@@ -54,7 +53,7 @@ export function RequestResetForm({ texts }: { texts: RequestResetTexts }) {
     event.preventDefault();
     setState('working');
     const { status } = await post('/request-password-reset', { email: email.trim() });
-    // The answer is the same for a known and an unknown address, so a refused address looks like an accepted one.
+    // Same answer for a known and an unknown address, so a refused address looks accepted.
     setState(status === 200 ? 'done' : failureOf(status));
   }
 
@@ -117,7 +116,7 @@ export type ResetPasswordTexts = {
 type ResetState = 'idle' | 'working' | 'done' | 'invalid' | Failure;
 
 export function ResetPasswordForm({ resetKey, texts }: { resetKey: string; texts: ResetPasswordTexts }) {
-  // An empty key means the link had none: the same dead end as an expired one.
+  // An empty key means the link had none, a dead end like an expired link.
   const [state, setState] = useState<ResetState>(resetKey === '' ? 'invalid' : 'idle');
   const [issue, setIssue] = useState<{ field: 'next' | 'repeat'; kind: keyof ResetPasswordTexts['issues'] }>();
 

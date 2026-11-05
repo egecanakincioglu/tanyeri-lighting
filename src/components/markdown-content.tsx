@@ -1,8 +1,7 @@
 import Markdown, { type Components } from 'react-markdown';
 
-// The one place that turns stored Markdown into elements (long texts: legal pages, later about and services).
-// Only the limited set below can appear. Raw HTML and images are dropped, other elements such as code and quotes keep
-// only their text, and the library's own address check still removes javascript: and similar targets.
+// Only the limited set below can appear. Raw HTML and images are dropped;
+// the library address check removes javascript: targets.
 const ALLOWED_ELEMENTS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'br'];
 
 // The page owns the only h1, so a text never adds another: its headings start at h2 and stop at h3.

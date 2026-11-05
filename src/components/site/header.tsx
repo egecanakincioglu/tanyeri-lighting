@@ -9,12 +9,11 @@ import { CONTACT_PATH, NAV } from './nav.ts';
 
 type HeaderProps = {
   logoUrl?: string | null;
-  /** The product categories, named in the page language, listed under Products. */
   categories?: { key: string; name: string }[];
 };
 
-// The public pages with their full address in every language; the menu's script swaps the language in the current
-// address with this list, so it needs no routing code of its own.
+// Full address of each public page in every language;
+// the menu script swaps the language with this list, so it needs no routing code.
 const LANGUAGE_ROUTES: SwitchRoute[] = Object.entries(routing.pathnames)
   .filter(([path]) => !path.startsWith('/dashboard'))
   .map(([, entry]) =>
@@ -73,8 +72,8 @@ export function Header({ logoUrl, categories = [] }: HeaderProps) {
         closeMenu: t('closeMenu'),
       }}
       logo={
-        // On phones the logo is narrowed so it fits next to the language links and the menu button at 320 px; the file
-        // stays between one and two times the shown size on dense screens.
+        // On phones the logo is narrowed to fit next to the language links and menu button at 320 px;
+        // the file stays between one and two times the shown size.
         <Link
           href={at('/')}
           prefetch={false}

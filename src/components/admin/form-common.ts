@@ -4,7 +4,6 @@ import { isDemoMode } from '../../server/env.ts';
 import { isStorageEnabled } from '../../server/storage/index.ts';
 import { buildFormTexts } from './texts.ts';
 
-/** What every panel form with an image gets besides its own texts: the upload door, the limits and the shared texts. */
 export async function commonFormProps(locale: 'tr' | 'en') {
   const [form, media] = await Promise.all([
     getTranslations({ locale, namespace: 'AdminForm' }),

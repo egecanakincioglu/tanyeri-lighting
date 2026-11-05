@@ -5,7 +5,6 @@ import { PROSE } from './prose.ts';
 
 const bodyClass = `mx-auto max-w-3xl pb-[clamp(2.5rem,6vw,4.5rem)] break-words ${PROSE}`;
 
-/** A legal page: the title is the page heading, the body is stored Markdown. */
 export function LegalView({ title, body }: { title: string; body: string }) {
   return (
     <>

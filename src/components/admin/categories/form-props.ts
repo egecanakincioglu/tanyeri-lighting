@@ -2,7 +2,6 @@ import { getTranslations } from 'next-intl/server';
 import { isDemoMode } from '../../../server/env.ts';
 import { buildFormTexts } from '../texts.ts';
 
-/** What both category pages (create and edit) pass to the form besides the action and the stored values. */
 export async function categoryFormProps(locale: 'tr' | 'en') {
   const [t, form] = await Promise.all([
     getTranslations({ locale, namespace: 'AdminCategories' }),

@@ -19,7 +19,6 @@ type Props = {
   action: Action;
   upload: UploadAction;
   locale: string;
-  /** Set when editing. */
   initial?: {
     id: string;
     imageUrl: string;
@@ -31,12 +30,11 @@ type Props = {
   texts: ReferenceFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
-  /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of referenceSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with referenceSchema in src/server/content/schemas.ts.
 const LIMITS = { name: 100, title: 100, description: 500 };
 
 export function ReferenceForm({
@@ -54,7 +52,7 @@ export function ReferenceForm({
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

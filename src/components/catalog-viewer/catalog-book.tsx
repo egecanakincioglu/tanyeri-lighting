@@ -12,7 +12,6 @@ type Props = { url: string; name: string; labels: ViewerLabels };
 type Loaded = { pdf: PDFDocumentProxy; total: number; ratio: number };
 type Stage = { width: number; height: number };
 
-/** The slice of the page-flip API that this viewer calls. */
 type PageFlipApi = { flipNext: () => void; flipPrev: () => void };
 type BookHandle = { pageFlip: () => PageFlipApi };
 

@@ -1,19 +1,16 @@
 type VisitBar = {
   day: string;
-  // The hover text of the day, already in the reader's language.
   title: string;
   views: number;
 };
 
 type Props = {
   bars: readonly VisitBar[];
-  /** The text alternative of the whole chart. */
   summary: string;
   startLabel: string;
   endLabel: string;
 };
 
-/** Daily page views as plain bars: no script, one series, a real value axis (0 and the peak) and the two end dates. */
 export function VisitBars({ bars, summary, startLabel, endLabel }: Props) {
   const max = Math.max(1, ...bars.map((bar) => bar.views));
   return (

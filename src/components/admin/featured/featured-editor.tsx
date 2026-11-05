@@ -21,9 +21,7 @@ type FeaturedTexts = {
   add: string;
   search: string;
   noMatch: string;
-  /** Said when the list is full. */
   full: string;
-  /** Said when more products match than are listed. */
   refine: string;
 };
 
@@ -34,7 +32,6 @@ type Props = {
   save: (ids: string[]) => Promise<FormState>;
   texts: FeaturedTexts;
   formTexts: FormTexts;
-  /** Set in the demo: the reason every control is off. */
   disabledReason?: string | undefined;
 };
 
@@ -48,7 +45,6 @@ function Thumb({ item }: { item: FeaturedItem }) {
   );
 }
 
-/** The home page's product list: the chosen products in order, and a searchable list of the others to add. */
 export function FeaturedEditor({ initial, products, limit, save, texts, formTexts, disabledReason }: Props) {
   const [chosen, setChosen] = useState(initial);
   const [query, setQuery] = useState('');
@@ -56,7 +52,7 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
   const searchId = useId();
   const search = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLOListElement>(null);
-  // Where the focus goes once the pressed button is gone: a product id (its remove button) or the search field.
+  // Where focus goes after the pressed button is gone: a product id or the search field.
   const focusNext = useRef<string | null>(null);
   const off = Boolean(disabledReason);
   const full = chosen.length >= limit;
@@ -84,7 +80,7 @@ export function FeaturedEditor({ initial, products, limit, save, texts, formText
   }
 
   function add(product: FeaturedItem) {
-    // A full list disables the search field, so the new row's remove button takes the focus.
+    // A full list disables the search field, so focus goes to the new row's remove button.
     focusNext.current = chosen.length + 1 >= limit ? product.id : '';
     setChosen([...chosen, product]);
   }

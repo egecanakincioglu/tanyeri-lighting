@@ -16,7 +16,6 @@ type PromoFormTexts = {
   title: string;
   subtitle: string;
   catalog: string;
-  /** Said instead of the select while there is no catalog to link. */
   noCatalogs: string;
   cancel: string;
 };
@@ -27,7 +26,6 @@ type Props = {
   action: Action;
   upload: UploadAction;
   locale: string;
-  /** Set when editing. */
   initial?: {
     id: string;
     imageUrl: string;
@@ -44,7 +42,7 @@ type Props = {
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of promoBoardSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with promoBoardSchema in src/server/content/schemas.ts.
 const LIMITS = { title: 100, subtitle: 120 };
 
 export function PromoForm({
@@ -63,7 +61,7 @@ export function PromoForm({
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

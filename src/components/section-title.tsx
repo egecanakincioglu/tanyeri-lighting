@@ -1,14 +1,10 @@
 type SectionTitleProps = {
   title: string;
-  /** 1 for the page title, 2 for a section; keeps the heading order correct. */
   level: 1 | 2;
 };
 
-/**
- * Centred title with the same text faintly repeated behind it and a short accent line below. The repeat is drawn by
- * CSS from `data-title`, so the text is in the HTML once; the empty alternative after the slash keeps it out of the
- * accessibility tree.
- */
+/** The repeated text is drawn by CSS from `data-title`, so it is in the HTML once;
+ * the empty alternative keeps it out of the accessibility tree. */
 export function SectionTitle({ title, level }: SectionTitleProps) {
   const Tag = `h${level}` as const;
   return (

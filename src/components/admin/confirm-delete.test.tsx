@@ -15,7 +15,7 @@ const texts = {
 const formTexts = { saved: 'Saved.', errors: { notFound: 'Not found.' } } as never;
 const action = vi.fn<(previous: FormState | null, formData: FormData) => Promise<FormState>>();
 
-// jsdom has no modal dialog yet; this stand-in sets and clears the attribute the browser would.
+// jsdom has no modal dialog; this stand-in sets and clears the attribute.
 beforeEach(() => {
   action.mockClear();
   action.mockResolvedValue({ status: 'success' });
@@ -89,7 +89,7 @@ describe('ConfirmDelete', () => {
     const dialog = screen.getByRole('dialog', { name: 'Delete this reference?' });
     expect(dialog.getAttribute('aria-describedby')).toBeTruthy();
     expect(dialog.textContent).toContain('“Alpha Hotel” will be deleted for good.');
-    // The browser focuses the first focusable control of a modal dialog, which must be the safe choice.
+    // The browser focuses the first control of a modal dialog, which must be the safe choice.
     expect(dialog.querySelector('button, a[href], input:not([type="hidden"])')?.textContent).toBe('Cancel');
   });
 

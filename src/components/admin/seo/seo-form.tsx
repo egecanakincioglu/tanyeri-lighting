@@ -26,8 +26,7 @@ type Props = {
   readOnlyReason?: string | undefined;
 };
 
-// The limits of pageMetadataSchema in src/server/content/schemas.ts stay the authority; these are the lengths search
-// engines show before they cut a title or a description.
+// Lengths search engines show before they cut a title or description; the schema limits stay the authority.
 const RECOMMENDED = { title: 60, description: 155 };
 const LIMITS = { title: 120, description: 320 };
 

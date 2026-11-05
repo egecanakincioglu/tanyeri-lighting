@@ -19,18 +19,17 @@ type Common = {
   button: string;
   working: string;
   done: string;
-  /** Why the form is off (the demo, or no outgoing e-mail); the controls are disabled and the reason is shown. */
   disabledReason?: string | undefined;
 };
 
 function useAccountForm(action: Action) {
   const [state, formAction, pending] = useActionState(action, null);
   const form = useRef<HTMLFormElement>(null);
-  // The passwords are never sent back, so a done form is emptied rather than left with old values.
+  // Passwords are never sent back, so a done form is emptied.
   useEffect(() => {
     if (state?.status === 'success') form.current?.reset();
   }, [state]);
-  // Submitted from code, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

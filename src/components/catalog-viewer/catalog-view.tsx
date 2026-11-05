@@ -10,18 +10,14 @@ import { CatalogViewer } from './catalog-viewer.tsx';
 type Props = {
   href: string;
   name: string;
-  /** Text of the size line, for example "PDF, 2.4 MB". */
   detail: string;
   label: string;
   labels: ViewerLabels;
-  /** The cover picture, or the placeholder; it fills a portrait box and opens the viewer like the view link. */
   cover: ReactNode;
-  /** The download link; it needs no script, so the page builds it. */
   download: ReactNode;
   children: ReactNode;
 };
 
-/** A catalog card whose view link, and its cover, open the page-flip viewer instead when scripts are running. */
 export function CatalogView({ href, name, detail, label, labels, cover, download, children }: Props) {
   const [open, setOpen] = useState(false);
   const linkRef = useRef<HTMLAnchorElement>(null);

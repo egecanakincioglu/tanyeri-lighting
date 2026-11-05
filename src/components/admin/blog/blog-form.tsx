@@ -23,7 +23,6 @@ type BlogFormTexts = {
   body: string;
   slug: string;
   slugHint: string;
-  /** Said on the edit page only: a changed address keeps the old one as a redirect. */
   slugRedirectHint: string;
   publishedAt: string;
   publishedAtHint: string;
@@ -36,7 +35,7 @@ type Props = {
   action: Action;
   upload: UploadAction;
   locale: string;
-  /** Set when editing. `publishedAt` is the day as YYYY-MM-DD, or empty for a draft. */
+  /** `publishedAt` is YYYY-MM-DD, or empty for a draft. */
   initial?: {
     id: string;
     slug: string;
@@ -52,12 +51,11 @@ type Props = {
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
   markdownTexts: { hint: string; edit: string; preview: string; loading: string };
-  /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of blogPostSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with blogPostSchema in src/server/content/schemas.ts.
 const LIMITS = { slug: 80, title: 120, description: 320, excerpt: 320, body: 50_000, imageAlt: 200 };
 
 export function BlogForm({
@@ -74,12 +72,12 @@ export function BlogForm({
 }: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   const [slug, setSlug] = useState(initial?.slug ?? '');
-  // A new article's address follows the Turkish title until it is edited by hand; a stored address is never rewritten.
+  // A new address follows the Turkish title until edited by hand; a stored address is never rewritten.
   const [slugEdited, setSlugEdited] = useState(Boolean(initial));
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

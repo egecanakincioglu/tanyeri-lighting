@@ -1,7 +1,7 @@
 import { MarkdownField } from './markdown-field.tsx';
 
 type Props = {
-  /** The base name: the inputs are `<name>.tr` and `<name>.en`, the keys the Server Actions read. */
+  /** Inputs are `<name>.tr` and `<name>.en`; the Server Actions read these keys. */
   name: string;
   label: string;
   languages: { tr: string; en: string };
@@ -11,7 +11,6 @@ type Props = {
   texts: { hint: string; edit: string; preview: string; loading: string };
 };
 
-/** Limited Markdown in Turkish and English, one editor with a preview per language. */
 export function BilingualMarkdownField({ name, label, languages, defaultValue, maxLength, errors, texts }: Props) {
   return (
     <fieldset className="min-w-0 rounded-md border border-hairline px-4 pt-1 pb-5 sm:px-5">

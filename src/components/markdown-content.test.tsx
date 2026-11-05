@@ -110,7 +110,7 @@ describe('MarkdownContent', () => {
         '2. second',
       ].join('\n\n'),
     );
-    // jsdom does not compute colors, so the contrast rule cannot run here (ADR 0009).
+    // jsdom does not compute colors, so the contrast rule cannot run here.
     const results = await axe.run(root, {
       runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
       rules: { 'color-contrast': { enabled: false } },

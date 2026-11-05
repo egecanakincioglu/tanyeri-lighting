@@ -20,18 +20,17 @@ type Props = {
   initial: { body: Pair; vision: Pair };
   texts: AboutFormTexts;
   formTexts: FormTexts;
-  /** The demo's reason for a read-only form. */
   readOnlyReason?: string | undefined;
 };
 
-// The limit of aboutPageSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with aboutPageSchema in src/server/content/schemas.ts.
 const MAX_LENGTH = 50_000;
 
 export function AboutForm({ action, initial, texts, formTexts, readOnlyReason }: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   const errors = state?.status === 'error' ? state.fieldErrors : {};
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

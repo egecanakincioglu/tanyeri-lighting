@@ -3,12 +3,10 @@
 import { lazy, Suspense, useState } from 'react';
 import { TextAreaField } from '../field.tsx';
 
-// The preview uses the same component as the public pages, so what shows here is what the visitor gets. It is loaded
-// the first time someone asks for it: the library is not part of the form's own bundle.
+// Loaded on first use, so the Markdown library stays out of the form bundle.
 const MarkdownPreview = lazy(() => import('./markdown-preview.tsx'));
 
 type MarkdownFieldTexts = {
-  /** The allowed syntax in one short line. */
   hint: string;
   edit: string;
   preview: string;
@@ -22,7 +20,6 @@ type Props = {
   defaultValue?: string;
   maxLength?: number;
   lang?: string;
-  /** Defaults to true. */
   required?: boolean;
   error?: string | undefined;
   texts: MarkdownFieldTexts;
@@ -31,7 +28,6 @@ type Props = {
 const tabClass =
   'min-h-touch rounded-md border border-hairline px-4 text-sm font-semibold aria-pressed:border-accent aria-pressed:bg-accent-tint aria-pressed:text-accent-text';
 
-/** A text area for limited Markdown with a hint of the syntax and a preview toggle. */
 export function MarkdownField({
   id,
   name,
@@ -56,7 +52,7 @@ export function MarkdownField({
           {texts.preview}
         </button>
       </div>
-      {/* Hidden, not removed, so the text is still submitted while the preview shows. */}
+      {/* Hidden, not removed, so the text is still submitted. */}
       <div hidden={previewing}>
         <TextAreaField
           id={id}

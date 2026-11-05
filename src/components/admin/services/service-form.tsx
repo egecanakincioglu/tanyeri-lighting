@@ -29,18 +29,16 @@ type Props = {
   action: Action;
   upload: UploadAction;
   locale: string;
-  /** Set when editing. */
   initial?: { id: string; imageUrl: string; imageAlt: Pair; title: Pair; description: Pair; note: Pair };
   texts: ServiceFormTexts;
   formTexts: FormTexts;
   mediaTexts: MediaTexts;
   markdownTexts: { hint: string; edit: string; preview: string; loading: string };
-  /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
 
-// The limits of serviceSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with serviceSchema in src/server/content/schemas.ts.
 const LIMITS = { title: 100, description: 5000, note: 500 };
 
 export function ServiceForm({
@@ -58,10 +56,10 @@ export function ServiceForm({
   const [state, formAction, pending] = useActionState(action, null);
   const errors = state?.status === 'error' ? state.fieldErrors : {};
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
-  // The note is filled in both languages or in neither; the schema reports a half-filled pair on `note`.
+  // The note is filled in both languages or neither; the schema reports a half-filled pair on `note`.
   const noteError = errors['note'] ? texts.noteBoth : undefined;
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

@@ -18,7 +18,6 @@ type Props = {
   action: Action;
   upload: UploadAction;
   locale: string;
-  /** Set when editing. */
   initial?: {
     id: string;
     name: { tr: string; en: string };
@@ -28,15 +27,13 @@ type Props = {
   };
   texts: CatalogFormTexts;
   formTexts: FormTexts;
-  /** The hint of the picture field differs from the file field's, so each has its own texts. */
   imageTexts: MediaTexts;
   fileTexts: MediaTexts;
-  /** The demo's reason for a read-only form, or why uploads are off. */
   readOnlyReason?: string | undefined;
   uploadDisabledReason?: string | undefined;
 };
 
-// The limit of catalogSchema in src/server/content/schemas.ts, which stays the authority.
+// Keep in sync with catalogSchema in src/server/content/schemas.ts.
 const NAME_LIMIT = 120;
 
 export function CatalogForm({
@@ -56,7 +53,7 @@ export function CatalogForm({
   const message = (field: string) => fieldMessage(formTexts, errors[field]);
   const disabledReason = readOnlyReason ?? uploadDisabledReason;
 
-  // Submitted from code, not as the form's action, so the form keeps what was typed when the server refuses it.
+  // Called from code, not as the form action, so the typed values stay after a refusal.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

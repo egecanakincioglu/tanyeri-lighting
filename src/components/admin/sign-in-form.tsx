@@ -15,7 +15,7 @@ export type SignInFormTexts = {
 };
 
 type SignInFormProps = {
-  /** The Server Action; it also runs when the form is posted without JavaScript. */
+  /** Also runs when the form is posted without JavaScript. */
   action: (previous: SignInState | null, formData: FormData) => Promise<SignInState>;
   locale: string;
   texts: SignInFormTexts;
@@ -25,7 +25,7 @@ const ERROR_ID = 'sign-in-error';
 
 export function SignInForm({ action, locale, texts }: SignInFormProps) {
   const [state, formAction, pending] = useActionState(action, null);
-  // Controlled, so the address survives a refused attempt. The password is never sent back to the page.
+  // Controlled, so the address survives a refused attempt; the password is never sent back.
   const [email, setEmail] = useState(state?.email ?? '');
   const message = state ? (state.status === 'rate-limited' ? texts.rateLimited : texts.error) : null;
   const described = message ? ERROR_ID : undefined;
@@ -33,7 +33,7 @@ export function SignInForm({ action, locale, texts }: SignInFormProps) {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="locale" value={locale} />
-      {/* The region stays in the page, so a screen reader announces whatever it receives after an attempt. */}
+      {/* The region stays in the page, so a screen reader announces the result of an attempt. */}
       <div id={ERROR_ID} role="alert">
         {message && <p className="font-medium text-error">{message}</p>}
       </div>

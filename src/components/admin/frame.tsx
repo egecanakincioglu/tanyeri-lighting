@@ -13,7 +13,6 @@ type Props = {
   logo: ReactNode;
   groups: FrameGroup[];
   email: string;
-  /** Set in demo mode: the note about the read-only panel. */
   demoNotice?: string;
   signOut: { action: (formData: FormData) => Promise<void>; label: string };
   labels: { menu: string; openMenu: string; closeMenu: string; viewSite: string };
@@ -22,7 +21,7 @@ type Props = {
 
 const DESKTOP_QUERY = '(min-width: 64rem)';
 
-// The panel home is `/dashboard`, the parent of every other screen, so it only matches itself.
+// The panel home matches only itself; it is the parent of every other screen.
 function matches(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -41,18 +40,16 @@ export function AdminFrame({ locale, logo, groups, email, demoNotice, signOut, l
   const wasOpen = useRef(false);
 
   const items = groups.flatMap((group) => group.items);
-  // The deepest matching address names the screen, so an edit page still belongs to its list.
+  // The deepest match names the screen, so an edit page belongs to its list.
   const current = items.filter((item) => matches(pathname, item.href)).sort((a, b) => b.href.length - a.href.length)[0];
 
   const currentGroup = groups.find((group) => group.items.some((item) => item.href === current?.href));
 
-  // A long menu keeps the current item in view when the screen changes.
   useEffect(() => {
     asideRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [current?.href]);
 
-  // The slide-in menu of narrow screens behaves like the site's side menu: the page behind it is inert, Tab stays
-  // inside, Escape closes it and focus goes back to the button that opened it.
+  // The slide-in menu acts like the site's side menu: the page behind it is inert, Tab stays inside, Escape closes it.
   useEffect(() => {
     if (!open) {
       if (wasOpen.current) openButtonRef.current?.focus({ preventScroll: true });
@@ -106,7 +103,7 @@ export function AdminFrame({ locale, logo, groups, email, demoNotice, signOut, l
         ref={asideRef}
         id="admin-menu"
         aria-label={labels.menu}
-        // Below 1024 px the menu is a closed dialog until the button opens it; from 1024 px it is part of the page.
+        // Below 1024 px the menu is a closed dialog; from 1024 px it is part of the page.
         role={open ? 'dialog' : undefined}
         aria-modal={open || undefined}
         onClick={(event) => {

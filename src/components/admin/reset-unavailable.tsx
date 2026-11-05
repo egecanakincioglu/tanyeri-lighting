@@ -2,7 +2,6 @@ import { Link } from '../../i18n/navigation.ts';
 
 type Props = { title: string; text: string; signIn: string };
 
-/** Shown instead of a recovery form when the site sends no e-mail or runs as the demo. */
 export function ResetUnavailable({ title, text, signIn }: Props) {
   return (
     <section aria-labelledby="reset-unavailable" className="flex flex-col gap-3">
